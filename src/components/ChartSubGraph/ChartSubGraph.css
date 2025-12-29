@@ -1,0 +1,79 @@
+.ChartSubContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ChartTimeFrameBar {
+  height: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+}
+
+.ChartMenuBar {
+  height: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  font-size: x-small;
+  background-color: rgb(61, 8, 8);
+  position: relative;
+}
+
+.SubChartSelectionDropDown {
+  position: absolute;
+}
+
+.ChartGraphWrapper {
+  flex: 1;
+}
+
+.ChartGraph {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.priceAxisSVG {
+  width: 50px;
+  height: 100%;
+  background-color: aquamarine;
+}
+
+.dateAxisSVG {
+  flex: 1;
+  background-color: rgb(80, 52, 17);
+}
+
+.SubChartWrapper {
+  height: auto;
+}
+
+.SubChartContainer {
+  background-color: rgb(161, 135, 103);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.subChartGraph {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  min-height: 75px;
+  max-height: 125px;
+}
+.subChartYAxis {
+  background-color: aquamarine;
+  width: 50px;
+}
+.subChartXAxis {
+  flex: 1;
+  background-color: blue;
+}

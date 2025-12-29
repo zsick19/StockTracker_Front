@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
-   "dependencies": {
+  "dependencies": {
     "@d3fc/d3fc-discontinuous-scale": "^4.1.1",
     "@reduxjs/toolkit": "^2.8.2",
     "d3": "^7.9.0",
