@@ -13,9 +13,9 @@ function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTic
                 <button >{displayTickers ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</button>
             </div>
             {displayTickers && <div className='LSH-WatchListTickerOpen'>
-                {watchList.tickers.map((ticker, index) =>
+                {watchList.tickersContained.map((ticker, index) =>
                     <div className={`${index % 2 == 0 && 'everyOther'} LSH-SingleTickerTitle`} onClick={() => setPrimaryChartTicker(ticker)} onDoubleClick={() => { setPrimaryChartTicker(ticker); setSecondaryChartTicker(ticker) }}>
-                        <p>{ticker}</p>
+                        <p>{ticker.ticker}</p>
                         <p>$111.23</p>
                         <p>3%</p>
                         <button onClick={(e) => { e.stopPropagation(); setSecondaryChartTicker(ticker) }}><CirclePlus size={16} color='white' /></button>

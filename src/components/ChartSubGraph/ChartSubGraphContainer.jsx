@@ -24,10 +24,10 @@ function ChartSubGraphContainer({ ticker })
 
 
 
-  
+
   return (
     <div className="ChartSubContainer">
-      <ChartTimeFrameBar ticker={ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} setShowTimeFrameModal={setShowTimeFrameModal} />
+      <ChartTimeFrameBar ticker={ticker.ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} setShowTimeFrameModal={setShowTimeFrameModal} />
 
       <ChartMenuBar />
 

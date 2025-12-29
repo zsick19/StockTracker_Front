@@ -1,13 +1,15 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import "../MacroControlSection/MacroControlSection.css";
 import ChartSubGraphContainer from "../../../../components/ChartSubGraph/ChartSubGraphContainer";
 import MacroWatchListContainer from "./Components/MacroWatchListContainer";
+import { InitializationApiSlice, selectMacroWatchListsFromUser, useGetUserInitializationQuery } from "../../../../features/Initializations/InitializationSliceApi";
+import { useSelector } from "react-redux";
 
 function MacroControlSection()
 {
   const secondarySearchTicker = useRef();
-  const [primaryChartTicker, setPrimaryChartTicker] = useState("SPY");
-  const [secondaryChartTicker, setSecondaryChartTicker] = useState("SPY");
+  const [primaryChartTicker, setPrimaryChartTicker] = useState({ticker:"SPY",_id:undefined});
+  const [secondaryChartTicker, setSecondaryChartTicker] = useState({ticker:"SPY",_id:undefined});
 
   const handleSecondaryChartSearch = (e) =>
   {
@@ -15,6 +17,10 @@ function MacroControlSection()
     setSecondaryChartTicker(secondarySearchTicker.current.value);
     secondarySearchTicker.current.value = "";
   };
+
+  const memoizedSelectedWatchlist = useMemo(() => selectMacroWatchListsFromUser({ userId: '6952bd331482f8927092ddcc' }))
+  const usersMacroWatchList = useSelector(memoizedSelectedWatchlist)
+  console.log(usersMacroWatchList)
 
   return (
     <section id="LSH-MacroSection">
