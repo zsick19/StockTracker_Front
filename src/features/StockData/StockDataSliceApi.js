@@ -1,0 +1,16 @@
+import { apiSlice } from "../../AppRedux/api/apiSlice";
+
+export const StockDataApiSlice = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    getStockDataUsingTimeFrame: builder.query({
+      query: (args) => ({
+        url: `/stockData/${args.ticker}?liveFeed=${args.liveFeed}`,
+        method: "POST",
+        body: args.timeFrame,
+      }),
+      keepUnusedDataFor: 60000,
+    }),
+  }),
+});
+
+export const { useGetStockDataUsingTimeFrameQuery } = StockDataApiSlice;

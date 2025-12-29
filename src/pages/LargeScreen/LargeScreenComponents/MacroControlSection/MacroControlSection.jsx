@@ -8,8 +8,8 @@ import { useSelector } from "react-redux";
 function MacroControlSection()
 {
   const secondarySearchTicker = useRef();
-  const [primaryChartTicker, setPrimaryChartTicker] = useState({ticker:"SPY",_id:undefined});
-  const [secondaryChartTicker, setSecondaryChartTicker] = useState({ticker:"SPY",_id:undefined});
+  const [primaryChartTicker, setPrimaryChartTicker] = useState({ ticker: "SPY", _id: undefined });
+  const [secondaryChartTicker, setSecondaryChartTicker] = useState({ ticker: "SPY", _id: undefined });
 
   const handleSecondaryChartSearch = (e) =>
   {
@@ -18,9 +18,7 @@ function MacroControlSection()
     secondarySearchTicker.current.value = "";
   };
 
-  const memoizedSelectedWatchlist = useMemo(() => selectMacroWatchListsFromUser({ userId: '6952bd331482f8927092ddcc' }))
-  const usersMacroWatchList = useSelector(memoizedSelectedWatchlist)
-  console.log(usersMacroWatchList)
+
 
   return (
     <section id="LSH-MacroSection">
