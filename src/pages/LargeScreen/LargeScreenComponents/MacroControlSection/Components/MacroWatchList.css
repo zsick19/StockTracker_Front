@@ -1,0 +1,42 @@
+.LSH-WatchListWrapper {
+  padding-bottom: 0.25rem;
+}
+
+.LSH-WatchListTitle {
+  display: flex;
+  padding-inline: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  background-color: turquoise;
+}
+
+.LSH-WatchListTitle > button {
+  background: none;
+  border: none;
+  height: 24px;
+  width: 24px;
+}
+
+.LSH-WatchListTickerOpen {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  background-color: rgb(34, 34, 34);
+}
+
+.LSH-SingleTickerTitle {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  grid-template-columns: repeat(4, 1fr);
+  font-size: var(--fs-200);
+  color: green;
+}
+.everyOther {
+  background-color: rgb(17, 17, 17);
+}
+.LSH-SingleTickerTitle > button {
+  background: none;
+  border: none;
+  width: 16px;
+  height: 16px;
+}

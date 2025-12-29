@@ -7,7 +7,7 @@ function MacroControlSection()
 {
   const secondarySearchTicker = useRef();
   const [primaryChartTicker, setPrimaryChartTicker] = useState("SPY");
-  const [secondaryChartTicker, setSecondaryChartTicker] = useState(undefined);
+  const [secondaryChartTicker, setSecondaryChartTicker] = useState("SPY");
 
   const handleSecondaryChartSearch = (e) =>
   {
@@ -20,7 +20,7 @@ function MacroControlSection()
     <section id="LSH-MacroSection">
 
       <div id="LSH-MacroWatchLists">
-        <MacroWatchListContainer />
+        <MacroWatchListContainer setPrimaryChartTicker={setPrimaryChartTicker} />
         <div>
           <button>Create A New Macro</button>
           <form>
@@ -36,9 +36,7 @@ function MacroControlSection()
 
       <div id="LSH-MacroCharts">
         <ChartSubGraphContainer ticker={primaryChartTicker} />
-        {secondaryChartTicker && (
-          <ChartSubGraphContainer ticker={secondaryChartTicker} />
-        )}
+        <ChartSubGraphContainer ticker={secondaryChartTicker} />
       </div>
     </section>
   );

@@ -12,9 +12,9 @@
 }
 
 #LSH-MacroWatchListContainer {
-  padding: 1rem;
+  padding: 0.5rem;
   flex: 1;
-  max-height: 85vh;
+  max-height: 80vh;
   background-color: red;
   overflow-y: auto;
 }

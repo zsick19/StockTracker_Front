@@ -1,9 +1,9 @@
 import React from 'react'
 import MacroWatchList from './MacroWatchList'
 
-function MacroWatchListContainer()
+function MacroWatchListContainer({ setPrimaryChartTicker })
 {
-    const watchLists = [{ title: 'ddd', tickers: ['AAA', 'BBB', 'CCC'] },
+    const watchLists = [{ title: 'ddd', tickers: ['AAAD', 'BBB', 'CCC'] },
     { title: 'CentralMacro', tickers: ['SPY', 'DIA'] },
     { title: 'CentralMacro', tickers: ['SPY', 'DIA'] },
     { title: 'CentralMacro', tickers: ['SPY', 'DIA'] },
@@ -30,7 +30,7 @@ function MacroWatchListContainer()
 
     return (
         <div id='LSH-MacroWatchListContainer'>
-            {watchLists.map((watch) => <MacroWatchList watchList={watch} />)}
+            {watchLists.map((watch) => <MacroWatchList watchList={watch} setPrimaryChartTicker={setPrimaryChartTicker} />)}
         </div>
     )
 }
