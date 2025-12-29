@@ -20,17 +20,18 @@ function MacroControlSection()
     <section id="LSH-MacroSection">
 
       <div id="LSH-MacroWatchLists">
-        <MacroWatchListContainer setPrimaryChartTicker={setPrimaryChartTicker} />
+        <MacroWatchListContainer setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />
+
         <div>
-          <button>Create A New Macro</button>
           <form>
             <input type="text" ref={secondarySearchTicker} />
             <button type="button" onClick={(e) => handleSecondaryChartSearch(e)}>Second Chart</button>
           </form>
 
-          <button onClick={() => setSecondaryChartTicker(undefined)}>
-            Clear Second Chart
-          </button>
+          <div className='flex'>
+            <button>Create A New Macro</button>
+            <button>Input Macro levels</button>
+          </div>
         </div>
       </div>
 

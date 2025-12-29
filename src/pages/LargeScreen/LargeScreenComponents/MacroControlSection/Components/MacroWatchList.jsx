@@ -2,24 +2,27 @@ import { ChevronDown, ChevronUp, CirclePlus } from 'lucide-react'
 import React, { useState } from 'react'
 import '../Components/MacroWatchList.css'
 
-function MacroWatchList({ watchList, setPrimaryChartTicker })
+function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTicker })
 {
     const [displayTickers, setDisplayTickers] = useState(false)
 
     return (
         <div className='LSH-WatchListWrapper'>
-            <div className='LSH-WatchListTitle'>
+            <div className='LSH-WatchListTitle' onClick={() => setDisplayTickers(prev => !prev)}>
                 <p>{watchList.title}</p>
-                <button onClick={() => setDisplayTickers(prev => !prev)}>{displayTickers ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</button>
+                <button >{displayTickers ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</button>
             </div>
             {displayTickers && <div className='LSH-WatchListTickerOpen'>
                 {watchList.tickers.map((ticker, index) =>
-                    <div className={`${index % 2 == 0 && 'everyOther'} LSH-SingleTickerTitle`} onClick={() => setPrimaryChartTicker(ticker)}>
+                    <div className={`${index % 2 == 0 && 'everyOther'} LSH-SingleTickerTitle`} onClick={() => setPrimaryChartTicker(ticker)} onDoubleClick={() => { setPrimaryChartTicker(ticker); setSecondaryChartTicker(ticker) }}>
                         <p>{ticker}</p>
                         <p>$111.23</p>
                         <p>3%</p>
-                        <button><CirclePlus size={16} color='white' /></button>
+                        <button onClick={(e) => { e.stopPropagation(); setSecondaryChartTicker(ticker) }}><CirclePlus size={16} color='white' /></button>
                     </div>)}
+                <div className='LSH-SingleTickerTitle'>
+                    Add
+                </div>
             </div>}
         </div>
     )

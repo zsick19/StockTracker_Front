@@ -8,7 +8,6 @@ import ChartMenuBar from "./ChartMenuBar";
 
 function ChartSubGraphContainer({ ticker })
 {
-  //ticker to search for
   //show any subcharts/studies
   const [timeFrame, setTimeFrame] = useState(defaultTimeFrames.dailyOneYear);
   const [showTimeFrameModal, setShowTimeFrameModal] = useState(false)
@@ -23,10 +22,13 @@ function ChartSubGraphContainer({ ticker })
   }
 
 
+
+
+  
   return (
     <div className="ChartSubContainer">
       <ChartTimeFrameBar ticker={ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} setShowTimeFrameModal={setShowTimeFrameModal} />
-      
+
       <ChartMenuBar />
 
       <div className="ChartGraphWrapper">
