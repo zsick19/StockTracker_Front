@@ -5,7 +5,7 @@ import { selectAllCharting } from '../../features/Charting/chartingElements'
 function ChartGraph({ stockData, chartingData })
 {
     const allChartingData = useSelector(selectAllCharting)
-    console.log(allChartingData)
+    //console.log(allChartingData)
 
     return (
         <div className='ChartGraph'>

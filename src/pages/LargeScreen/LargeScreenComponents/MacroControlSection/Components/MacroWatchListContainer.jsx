@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux'
 
 function MacroWatchListContainer({ setPrimaryChartTicker, setSecondaryChartTicker })
 {
-    const memoizedSelectedWatchlist = useMemo(() => selectMacroWatchListsFromUser({ userId: '6952bd331482f8927092ddcc' }))
+    const memoizedSelectedWatchlist = selectMacroWatchListsFromUser({ userId: '6952bd331482f8927092ddcc' })
     const usersMacroWatchList = useSelector(memoizedSelectedWatchlist)
 
     let watchListVisual

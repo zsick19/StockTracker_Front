@@ -102,34 +102,25 @@ const chartingElementSlice = createSlice({
       state.chartingAltered = true;
     },
     setPreviousCharting: (state, action) => {
-      console.log(action.payload);
+      // console.log(action.payload);
       // state.chartingAltered = false
       // state.freeLines = action.payload.freeLines
       // state.freeLinesId = action.payload.freeLinesId
-
       // state.trendLines = action.payload.trendLines
       // state.trendLinesId = action.payload.trendLinesId
-
       // state.linesH = action.payload.linesH
       // state.linesHId = action.payload.linesHId
-
       // state.channels = action.payload.channels
       // state.channelsId = action.payload.channelsId
-
       // state.triangles = action.payload.triangles
       // state.trianglesId = action.payload.trianglesId
-
       // state.wedges = action.payload.wedges
       // state.wedgesId = action.payload.wedgesId
-
       // state.enterExitLines = action.payload.enterExitLines
       // state.enterExitsId = action.payload.enterExitsId
-
       // if (action.payload?.keyPriceLines)
       // {
-
       //     state.keyPriceLines = action.payload?.keyPriceLines
-
       //     state.keyPriceLinesId = action.payload?.keyPriceLinesId
       // }
     },
