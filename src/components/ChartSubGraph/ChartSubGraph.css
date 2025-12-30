@@ -31,24 +31,28 @@
   flex: 1;
 }
 
-.ChartGraph {
+.SVGGraphWrapper svg {
+  height: 100%;
+  width: 100%;
+}
+
+.SVGGraphWrapper {
   display: flex;
   height: 100%;
   width: 100%;
-  padding-right: 1rem;
+  padding-right: 0.5rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  background-color: rgb(28, 27, 29);
 }
 
-.priceAxisSVG {
+.priceSVGWrapper {
   width: 50px;
   height: 100%;
-  background-color: aquamarine;
 }
 
-.dateAxisSVG {
+.dateSVGWrapper {
   flex: 1;
-  background-color: rgb(80, 52, 17);
 }
 
 .SubChartWrapper {

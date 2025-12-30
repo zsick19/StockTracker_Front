@@ -4,21 +4,18 @@ import { useGetChartingDataQuery } from '../../features/Charting/ChartingSliceAp
 import { useDispatch } from 'react-redux'
 import { setPreviousCharting } from '../../features/Charting/chartingElements'
 
-function ChartWithChartingWrapper({ stockData, chartId })
+function ChartWithChartingWrapper({ candleData, chartId })
 {
     const dispatch = useDispatch()
     const { data: chartingData, isSuccess, isLoading, isError, refetch } = useGetChartingDataQuery({ chartId })
 
-    useEffect(() =>
-    {
-        if (isSuccess) { dispatch(setPreviousCharting(chartingData)) }
+    useEffect(() => { if (isSuccess) { dispatch(setPreviousCharting(chartingData)) } }, [chartingData])
 
-    }, [chartingData])
 
 
     return (
         <div className="ChartGraphWrapper">
-            <ChartGraph stockData={stockData} />
+            <ChartGraph candleData={candleData.candleData} mostRecentPrice={candleData.mostRecentPrice} />
         </div>
     )
 }

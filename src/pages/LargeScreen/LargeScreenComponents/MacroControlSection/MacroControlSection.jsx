@@ -48,15 +48,13 @@ function MacroControlSection()
 
       <div id="LSH-MacroWatchLists">
         <MacroWatchListContainer setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />
-
-        {showAddWatchlist ?
-          <div className="LSH-AddWatchListForm">
-            <form onSubmit={(e) => attemptAddingMacroWatchList(e)}>
-              <input type="text" ref={addWatchListTitle} />
-              <button><CirclePlus /></button>
-            </form>
-            <button onClick={() => setShowAddWatchlist(false)}>Cancel</button>
-          </div> :
+        {showAddWatchlist ? <div className="LSH-AddWatchListForm">
+          <form onSubmit={(e) => attemptAddingMacroWatchList(e)}>
+            <input type="text" ref={addWatchListTitle} />
+            <button><CirclePlus /></button>
+          </form>
+          <button onClick={() => setShowAddWatchlist(false)}>Cancel</button>
+        </div> :
           <div>
             <button onClick={() => setShowAddWatchlist(true)}>New Macro WatchList</button>
           </div>}

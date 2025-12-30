@@ -6,7 +6,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
       query: (args) => ({
         url: `/stockData/${args.ticker}?liveFeed=${args.liveFeed}`,
         method: "POST",
-        body: args.timeFrame,
+        body: { timeFrame: args.timeFrame },
       }),
       keepUnusedDataFor: 60000,
     }),

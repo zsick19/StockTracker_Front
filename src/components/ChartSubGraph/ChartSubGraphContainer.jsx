@@ -20,7 +20,7 @@ function ChartSubGraphContainer({ ticker })
   const { data: stockData, isSuccess, isLoading, isError, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: ticker.ticker, timeFrame, liveFeed: false })
 
   let actualChart
-  if (isSuccess && stockData.length > 0) { actualChart = <ChartWithChartingWrapper stockData={stockData} chartId={ticker._id} /> }
+  if (isSuccess && stockData.candleData.length > 0) { actualChart = <ChartWithChartingWrapper candleData={stockData} chartId={ticker._id} /> }
   else if (isSuccess) { actualChart = <div>No Data to display</div> }
   else if (isLoading) { actualChart = <div>Loading spinner</div> }
   else if (isError)
