@@ -58,7 +58,7 @@ function MacroControlSection()
             <button onClick={() => setShowAddWatchlist(false)}>Cancel</button>
           </div> :
           <div>
-            <button onClick={() => setShowAddWatchlist(true)}>Create A New Macro</button>
+            <button onClick={() => setShowAddWatchlist(true)}>New Macro WatchList</button>
           </div>}
 
         <div>
