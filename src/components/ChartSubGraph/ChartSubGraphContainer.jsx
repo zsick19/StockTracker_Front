@@ -4,6 +4,7 @@ import ChartTimeFrameBar from "./ChartTimeFrameBar";
 import { defaultTimeFrames } from "../../Utilities/TimeFrames";
 import SubChartGraph from "./SubChartGraph";
 import ChartMenuBar from "./ChartMenuBar";
+import ChartWithChartingWrapper from "./ChartWithChartingWrapper";
 import { useGetStockDataUsingTimeFrameQuery } from "../../features/StockData/StockDataSliceApi";
 import GraphLoadingSpinner from "./GraphFetchStates/GraphLoadingSpinner";
 import GraphLoadingError from "./GraphFetchStates/GraphLoadingError";
@@ -19,8 +20,7 @@ function ChartSubGraphContainer({ ticker })
   let actualChart
   if (isSuccess && stockData.candleData.length > 0)
   {
-    //actualChart = <ChartWithChartingWrapper candleData={stockData} chartId={ticker._id} timeFrame={timeFrame} />
-    actualChart = <GraphLoadingSpinner />
+    actualChart = <ChartWithChartingWrapper candleData={stockData} chartId={ticker._id} timeFrame={timeFrame} />
   }
   else if (isSuccess) { actualChart = <div>No Data to display</div> }
   else if (isLoading) { actualChart = <GraphLoadingSpinner /> }

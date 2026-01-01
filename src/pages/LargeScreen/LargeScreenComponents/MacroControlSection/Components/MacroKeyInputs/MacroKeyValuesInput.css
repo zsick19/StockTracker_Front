@@ -1,0 +1,6 @@
+.LSH-SelectedStockKeyLevelInput {
+  font-size: var(--fs-200);
+}
+.LSH-SelectedStockKeyLevelInput input {
+  width: 75px;
+}

@@ -5,14 +5,16 @@ import MacroWatchListContainer from "./Components/MacroWatchListContainer";
 
 import { useCreateUserWatchListMutation } from "../../../../features/WatchList/WatchListSliceApi";
 import { ChartLine, CirclePlus, ListOrdered } from "lucide-react";
+import MacroKeyValuesInputContainer from "./Components/MacroKeyInputs/MacroKeyValuesInputContainer";
 
 function MacroControlSection()
 {
   const addWatchListTitle = useRef()
   const secondarySearchTicker = useRef();
-  const [primaryChartTicker, setPrimaryChartTicker] = useState({ ticker: "SPY", _id: undefined });
-  const [secondaryChartTicker, setSecondaryChartTicker] = useState({ ticker: "SPY", _id: undefined });
+  const [primaryChartTicker, setPrimaryChartTicker] = useState({ ticker: "SPY", _id: '6954543cbf357c3ef21e849e' });
+  const [secondaryChartTicker, setSecondaryChartTicker] = useState({ ticker: "SPY", _id: '6954543cbf357c3ef21e849e' });
   const [showAddWatchlist, setShowAddWatchlist] = useState(false)
+  const [showMacroKeyLevelDisplay, setShowMacroKeyLevelDisplay] = useState(false)
   const [errorMessage, setErrorMessage] = useState(undefined)
 
   const [createUserWatchList, { isSuccess, isError }] = useCreateUserWatchListMutation()
@@ -57,7 +59,7 @@ function MacroControlSection()
         </div> :
           <div className="LSH-MacroOptionControlButtons">
             <button onClick={() => { }}><ListOrdered size={16} /></button>
-            <button onClick={() => { }}><ChartLine size={16} /></button>
+            <button onClick={() => setShowMacroKeyLevelDisplay(true)}><ChartLine size={16} /></button>
             <button onClick={() => setShowAddWatchlist(true)}><CirclePlus size={16} /></button>
           </div>}
 
@@ -73,7 +75,7 @@ function MacroControlSection()
 
       <div id="LSH-MacroCharts">
         <ChartSubGraphContainer ticker={primaryChartTicker} />
-        <ChartSubGraphContainer ticker={secondaryChartTicker} />
+        {showMacroKeyLevelDisplay ? <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> : <ChartSubGraphContainer ticker={secondaryChartTicker} />}
       </div>
     </section>
   );

@@ -9,7 +9,11 @@ function MacroWatchListContainer({ setPrimaryChartTicker, setSecondaryChartTicke
     const usersMacroWatchList = useSelector(memoizedSelectedWatchlist)
 
     let watchListVisual
-    if (usersMacroWatchList.isSuccess) { watchListVisual = usersMacroWatchList.macroWatchLists.map((watch) => <MacroWatchList watchList={watch} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />) }
+    if (usersMacroWatchList.isSuccess)
+    {
+        watchListVisual = usersMacroWatchList.macroWatchLists.map((watch) => <MacroWatchList watchList={watch} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />)
+
+    }
     else if (usersMacroWatchList.isLoading) { watchListVisual = <div>Loading...</div> }
     else if (usersMacroWatchList.isError)
     {
