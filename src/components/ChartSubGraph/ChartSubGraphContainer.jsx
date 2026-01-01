@@ -4,29 +4,27 @@ import ChartTimeFrameBar from "./ChartTimeFrameBar";
 import { defaultTimeFrames } from "../../Utilities/TimeFrames";
 import SubChartGraph from "./SubChartGraph";
 import ChartMenuBar from "./ChartMenuBar";
-import ChartWithChartingWrapper from "./ChartWithChartingWrapper";
 import { useGetStockDataUsingTimeFrameQuery } from "../../features/StockData/StockDataSliceApi";
+import GraphLoadingSpinner from "./GraphFetchStates/GraphLoadingSpinner";
+import GraphLoadingError from "./GraphFetchStates/GraphLoadingError";
 
 function ChartSubGraphContainer({ ticker })
 {
-  //show any subcharts/studies
   const [timeFrame, setTimeFrame] = useState(defaultTimeFrames.dailyOneYear);
-  const [subCharts, setSubCharts] = useState(['rsi'])
+  const [subCharts, setSubCharts] = useState([])
 
 
   const { data: stockData, isSuccess, isLoading, isError, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: ticker.ticker, timeFrame, liveFeed: false })
 
   let actualChart
-  if (isSuccess && stockData.candleData.length > 0) { 
-    actualChart = <ChartWithChartingWrapper candleData={stockData} chartId={ticker._id} timeFrame={timeFrame}/> }
-  else if (isSuccess) { actualChart = <div>No Data to display</div> }
-  else if (isLoading) { actualChart = <div>Loading spinner</div> }
-  else if (isError)
+  if (isSuccess && stockData.candleData.length > 0)
   {
-    actualChart = <div>Error Loading Data
-      <button onClick={refetch}>Refetch</button>
-    </div>
+    //actualChart = <ChartWithChartingWrapper candleData={stockData} chartId={ticker._id} timeFrame={timeFrame} />
+    actualChart = <GraphLoadingSpinner />
   }
+  else if (isSuccess) { actualChart = <div>No Data to display</div> }
+  else if (isLoading) { actualChart = <GraphLoadingSpinner /> }
+  else if (isError) { actualChart = <GraphLoadingError refetch={refetch} /> }
 
 
 
