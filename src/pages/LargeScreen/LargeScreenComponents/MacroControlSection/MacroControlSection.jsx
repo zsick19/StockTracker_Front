@@ -4,13 +4,18 @@ import ChartSubGraphContainer from "../../../../components/ChartSubGraph/ChartSu
 import MacroWatchListContainer from "./Components/MacroWatchListContainer";
 
 import { useCreateUserWatchListMutation } from "../../../../features/WatchList/WatchListSliceApi";
-import { CirclePlus } from "lucide-react";
+import { ChartLine, CirclePlus, ListOrdered } from "lucide-react";
 
 function MacroControlSection()
 {
+  const addWatchListTitle = useRef()
   const secondarySearchTicker = useRef();
   const [primaryChartTicker, setPrimaryChartTicker] = useState({ ticker: "SPY", _id: undefined });
   const [secondaryChartTicker, setSecondaryChartTicker] = useState({ ticker: "SPY", _id: undefined });
+  const [showAddWatchlist, setShowAddWatchlist] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(undefined)
+
+  const [createUserWatchList, { isSuccess, isError }] = useCreateUserWatchListMutation()
 
   const handleSecondaryChartSearch = (e) =>
   {
@@ -18,11 +23,6 @@ function MacroControlSection()
     setSecondaryChartTicker(secondarySearchTicker.current.value);
     secondarySearchTicker.current.value = "";
   };
-
-  const [createUserWatchList, { isSuccess, isError }] = useCreateUserWatchListMutation()
-  const addWatchListTitle = useRef()
-  const [showAddWatchlist, setShowAddWatchlist] = useState(false)
-  const [errorMessage, setErrorMessage] = useState(undefined)
 
   async function attemptAddingMacroWatchList(e)
   {
@@ -55,8 +55,10 @@ function MacroControlSection()
           </form>
           <button onClick={() => setShowAddWatchlist(false)}>Cancel</button>
         </div> :
-          <div>
-            <button onClick={() => setShowAddWatchlist(true)}>New Macro WatchList</button>
+          <div className="LSH-MacroOptionControlButtons">
+            <button onClick={() => { }}><ListOrdered size={16} /></button>
+            <button onClick={() => { }}><ChartLine size={16} /></button>
+            <button onClick={() => setShowAddWatchlist(true)}><CirclePlus size={16} /></button>
           </div>}
 
         <div>
@@ -66,9 +68,6 @@ function MacroControlSection()
             <button type="button" onClick={(e) => handleSecondaryChartSearch(e)}>Second Chart</button>
           </form>
 
-          <div className='flex'>
-            <button>Input Macro levels</button>
-          </div>
         </div>
       </div>
 

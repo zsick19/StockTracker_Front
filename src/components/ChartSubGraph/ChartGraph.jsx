@@ -3,11 +3,11 @@ import { useSelector } from 'react-redux'
 import { selectAllCharting } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuitySkipWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { sub, addDays, isToday } from 'date-fns'
+import { sub, subBusinessDays, addDays, isToday } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 
-function ChartGraph({ candleData, mostRecentPrice, chartingData })
+function ChartGraph({ candleData, mostRecentPrice, chartingData, timeFrame })
 {
     //    const allChartingData = useSelector(selectAllCharting)
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
@@ -32,8 +32,20 @@ function ChartGraph({ candleData, mostRecentPrice, chartingData })
     {
         if (preDimensionsAndCandleCheck()) return
 
-        const startDate = sub(new Date(), { days: 365 })
-        const futureForwardEndDate = addDays(new Date(), pixelBuffer.xDirectionFutureDaysToGraph)
+        let startDate
+        let futureForwardEndDate
+
+        if (timeFrame.unitOfDuration === 'Y')
+        {
+            startDate = sub(new Date(), { days: 365 })
+            futureForwardEndDate = addDays(new Date(), pixelBuffer.xDirectionFutureDaysToGraph)
+        }
+        else if (timeFrame.unitOfDuration === 'D')
+        {
+            startDate = new Date()
+            futureForwardEndDate = addDays(startDate, 1)
+        }
+
         const xScaleNotForUse = scaleTime().domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
         const xDateScale = scaleDiscontinuous(xScaleNotForUse).discontinuityProvider(discontinuitySkipWeekends())
 
@@ -46,7 +58,8 @@ function ChartGraph({ candleData, mostRecentPrice, chartingData })
         else if (dateToPixel !== undefined) return xDateScale(new Date(dateToPixel))
         else return xDateScale
 
-    }, [candleData, currentXZoomState, candleDimensions])
+    }, [candleData, currentXZoomState, candleDimensions, timeFrame])
+
     const createPriceScale = useCallback(({ priceToPixel = undefined, pixelToPrice = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
@@ -72,10 +85,10 @@ function ChartGraph({ candleData, mostRecentPrice, chartingData })
 
     }, [candleData, currentYZoomState, priceDimensions])
 
+
+
     const stockCandleSVG = select(candleSVG.current)
     const priceScaleSVG = select(priceSVG.current)
-
-
 
     //plot stock candles
     useEffect(() =>
@@ -83,7 +96,7 @@ function ChartGraph({ candleData, mostRecentPrice, chartingData })
         if (preDimensionsAndCandleCheck()) return
 
         const xAxis = axisBottom(createDateScale())
-        const yAxis = axisLeft(createPriceScale()).ticks(20)
+        const yAxis = axisLeft(createPriceScale())
 
         priceScaleSVG.select('.y-axis').style('transform', `translateX(${priceDimensions.width - 1}px)`).call(yAxis)
         stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
@@ -161,7 +174,7 @@ function ChartGraph({ candleData, mostRecentPrice, chartingData })
 
 
 
-    }, [candleData, candleDimensions, currentXZoomState, currentYZoomState])
+    }, [candleData, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
 
 
     //zoomXBehavior

@@ -10,17 +10,15 @@ import { useGetStockDataUsingTimeFrameQuery } from "../../features/StockData/Sto
 function ChartSubGraphContainer({ ticker })
 {
   //show any subcharts/studies
-  //timeframe modal for custom or button through time frame bar for quick
-
   const [timeFrame, setTimeFrame] = useState(defaultTimeFrames.dailyOneYear);
-  const [showTimeFrameModal, setShowTimeFrameModal] = useState(false)
   const [subCharts, setSubCharts] = useState(['rsi'])
 
 
   const { data: stockData, isSuccess, isLoading, isError, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: ticker.ticker, timeFrame, liveFeed: false })
 
   let actualChart
-  if (isSuccess && stockData.candleData.length > 0) { actualChart = <ChartWithChartingWrapper candleData={stockData} chartId={ticker._id} /> }
+  if (isSuccess && stockData.candleData.length > 0) { 
+    actualChart = <ChartWithChartingWrapper candleData={stockData} chartId={ticker._id} timeFrame={timeFrame}/> }
   else if (isSuccess) { actualChart = <div>No Data to display</div> }
   else if (isLoading) { actualChart = <div>Loading spinner</div> }
   else if (isError)
@@ -36,11 +34,10 @@ function ChartSubGraphContainer({ ticker })
 
   return (
     <div className="ChartSubContainer">
-      <ChartTimeFrameBar ticker={ticker.ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} setShowTimeFrameModal={setShowTimeFrameModal} />
+      <ChartTimeFrameBar ticker={ticker.ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} />
       <ChartMenuBar />
 
       {actualChart}
-      {showTimeFrameModal && <div>Time Frame Modal</div>}
 
       {subCharts.length > 0 &&
         <div className="SubChartWrapper">

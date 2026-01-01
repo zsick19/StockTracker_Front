@@ -12,6 +12,54 @@
   padding: 0.5rem;
 }
 
+.TimeFrameDropDown {
+  position: relative;
+}
+.ChartTimeFrameDropDownSelect {
+  position: absolute;
+  z-index: 99;
+  height: 200px;
+  width: 200px;
+  right: 0px;
+  background-color: rgb(85, 85, 85);
+  font-size: var(--fs-200);
+}
+
+.PreDefinedTimeFrameRadioButtons {
+  gap: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Optional: You can style the label to look like a button or a custom radio button */
+.PreDefinedTimeFrameRadioButtons label {
+  cursor: pointer; /* Makes it clear the label is clickable */
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: inline-block;
+  background-color: #4d4747;
+}
+
+/* Optional: Add a different style when the input is checked */
+.PreDefinedTimeFrameRadioButtons input:checked + label {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
 .ChartMenuBar {
   height: 1.5rem;
   display: flex;
