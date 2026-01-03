@@ -20,7 +20,7 @@ function ChartSubGraphContainer({ ticker })
   let actualChart
   if (isSuccess && stockData.candleData.length > 0)
   {
-    actualChart = <ChartWithChartingWrapper candleData={stockData} chartId={ticker._id} timeFrame={timeFrame} />
+    actualChart = <ChartWithChartingWrapper ticker={ticker} candleData={stockData} chartId={ticker._id} timeFrame={timeFrame} />
   }
   else if (isSuccess) { actualChart = <div>No Data to display</div> }
   else if (isLoading) { actualChart = <GraphLoadingSpinner /> }

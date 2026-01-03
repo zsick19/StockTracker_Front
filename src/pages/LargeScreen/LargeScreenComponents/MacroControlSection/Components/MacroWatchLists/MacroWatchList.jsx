@@ -1,8 +1,8 @@
 import { ChevronDown, ChevronsDown, ChevronUp, CircleMinus, CircleX, Ellipsis, Undo2, X } from 'lucide-react'
 import { useRef, useState } from 'react'
-import '../Components/MacroWatchList.css'
-import { useAddTickerToWatchListMutation, useDeleteUserWatchListMutation, useRemoveTickerFromWatchListMutation, useUpdateWatchListNameMutation } from '../../../../../features/WatchList/WatchListSliceApi'
-import SingleWatchListTicker from './MacroWatchLists/SingleWatchListTicker'
+import './MacroWatchList.css'
+import { useAddTickerToWatchListMutation, useDeleteUserWatchListMutation, useRemoveTickerFromWatchListMutation, useUpdateWatchListNameMutation } from '../../../../../../features/WatchList/WatchListSliceApi'
+import SingleWatchListTicker from './SingleWatchListTicker'
 
 function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTicker })
 {

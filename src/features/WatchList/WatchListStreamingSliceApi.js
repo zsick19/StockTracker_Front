@@ -1,7 +1,7 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 
-const childAdapter = createEntityAdapter({
+const singleTickerAdapter = createEntityAdapter({
     selectId: (item) => item.ticker
 });
 
@@ -13,12 +13,8 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
             }),
             transformResponse: (response) =>
             {
-
                 let normalizedTickerData = {}
-                response.tickerData.map((tickerPriceData) =>
-                {
-                    normalizedTickerData[tickerPriceData.symbol] = tickerPriceData
-                })
+                response.tickerData.map((tickerPriceData) => { normalizedTickerData[tickerPriceData.symbol] = tickerPriceData })
 
                 const currentTime = new Date().getUTCDate()
                 const target = new Date()
@@ -41,13 +37,12 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
                     })
                 })
 
-                const tickerState = childAdapter.setAll(childAdapter.getInitialState(), tickerMap)
+                const tickerState = singleTickerAdapter.setAll(singleTickerAdapter.getInitialState(), tickerMap)
 
                 return {
                     watchLists: response.macroWatchList,
                     tickerState
                 }
-
             }, async onCacheEntryAdded(arg, { updateCachedData, cacheDataLoaded, cacheEntryRemoved })
             {
                 const ws = new WebSocket('ws://localhost:8080');
@@ -60,8 +55,10 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
 
                         updateCachedData((draft) =>
                         {
-                            itemsAdapter.updateOne(draft.itemsState, {
-                                id: update._id,
+                            singleTickerAdapter.updateOne(draft.tickerState, {
+                                id: update.ticker,
+
+
                                 changes: update
                             });
                         });

@@ -3,9 +3,10 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 export const ChartingApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getChartingData: builder.query({
-      query: (args) => {
+      query: (args) =>
+      {
         if (args.chartId) return { url: `/chartingData/${args.chartId}` };
-      },
+      }, providesTags: ['chartingData']
     }),
   }),
 });

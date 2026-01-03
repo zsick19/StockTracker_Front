@@ -6,10 +6,14 @@ import { scaleDiscontinuous, discontinuitySkipWeekends } from '@d3fc/d3fc-discon
 import { sub, subBusinessDays, addDays, isToday } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
+import { selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
 
-function ChartGraph({ candleData, mostRecentPrice, chartingData, timeFrame })
+function ChartGraph({ ticker, candleData, mostRecentPrice, chartingData, timeFrame })
 {
     //    const allChartingData = useSelector(selectAllCharting)
+    const KeyLevels = useSelector((state) => selectTickerKeyLevels(state, ticker.ticker))
+
+
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
     const priceSVG = useRef()
     const candleSVG = useRef()
@@ -160,21 +164,39 @@ function ChartGraph({ candleData, mostRecentPrice, chartingData, timeFrame })
         //         .attr('stroke', 'purple').attr('stroke-dasharray', '5,2')
         // }
 
+
+        stockCandleSVG.select('.currentPrice').selectAll('line').remove()
+        stockCandleSVG.select('.keyLevels').selectAll('line').remove()
+
+        if (KeyLevels.gammaFlip)
+        {
+            let gammaPrice = createPriceScale({ priceToPixel: KeyLevels.gammaFlip })
+            stockCandleSVG.select('.keyLevels').append('line')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', gammaPrice).attr('y2', gammaPrice)
+                .attr('stroke', 'yellow')
+                .attr('stroke-width', '1px')
+                .attr('stroke-dasharray', '5 5')
+        }
+
         if (mostRecentPrice.Price)
         {
             let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
-            stockCandleSVG.select('.currentPrice').selectAll('line').remove()
             stockCandleSVG.select('.currentPrice').append('line')
                 .attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('y1', pixelPrice).attr('y2', pixelPrice)
                 .attr('stroke', 'blue')
                 .attr('stroke-width', '2px')
                 .attr('stroke-dasharray', '5 5')
+
+
+
+
         }
 
 
 
-    }, [candleData, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
+    }, [candleData, KeyLevels, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
 
 
     //zoomXBehavior
@@ -236,6 +258,7 @@ function ChartGraph({ candleData, mostRecentPrice, chartingData, timeFrame })
                     <g className='channels' />
                     <g className='triangles' />
                     <g className='currentPrice' />
+                    <g className='keyLevels' />
                 </svg>
             </div>
         </div>

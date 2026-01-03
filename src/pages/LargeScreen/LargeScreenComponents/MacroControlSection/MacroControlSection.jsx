@@ -1,7 +1,7 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "../MacroControlSection/MacroControlSection.css";
 import ChartSubGraphContainer from "../../../../components/ChartSubGraph/ChartSubGraphContainer";
-import MacroWatchListContainer from "./Components/MacroWatchListContainer";
+import MacroWatchListContainer from "./Components/MacroWatchLists/MacroWatchListContainer";
 
 import { useCreateUserWatchListMutation } from "../../../../features/WatchList/WatchListSliceApi";
 import { ChartLine, CirclePlus, ListOrdered } from "lucide-react";
@@ -11,13 +11,12 @@ import { useSelector } from "react-redux";
 
 function MacroControlSection()
 {
-  const addWatchListTitle = useRef()
-  const secondarySearchTicker = useRef();
-
   const memoizedSelectedSPYId = useMemo(() => selectSPYIdFromUser({ userId: '6952bd331482f8927092ddcc' }), [])
   const usersSPYId = useSelector(memoizedSelectedSPYId)
+  useEffect(() => { if (usersSPYId) setPrimaryChartTicker({ ticker: 'SPY', _id: usersSPYId }) }, [usersSPYId])
 
-
+  const addWatchListTitle = useRef()
+  const secondarySearchTicker = useRef();
   const [primaryChartTicker, setPrimaryChartTicker] = useState({ ticker: "SPY", _id: usersSPYId });
   const [secondaryChartTicker, setSecondaryChartTicker] = useState({ ticker: "SPY", _id: usersSPYId });
   const [showAddWatchlist, setShowAddWatchlist] = useState(false)

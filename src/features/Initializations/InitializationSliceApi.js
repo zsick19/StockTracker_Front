@@ -14,21 +14,6 @@ export const InitializationApiSlice = apiSlice.injectEndpoints({
 
 export const { useGetUserInitializationQuery } = InitializationApiSlice;
 
-export const selectMacroWatchListsFromUser = (args) =>
-  createSelector(
-    InitializationApiSlice.endpoints.getUserInitialization.select(args),
-    (result) =>
-    {
-      return {
-        macroWatchLists: result?.data?.macroWatchLists,
-        isSuccess: result.isSuccess,
-        isLoading: result.isLoading,
-        isError: result.isError,
-        refetch: result.refetch,
-      };
-    }
-  );
-
 export const selectSPYIdFromUser = (args) =>
   createSelector(
     InitializationApiSlice.endpoints.getUserInitialization.select(args),

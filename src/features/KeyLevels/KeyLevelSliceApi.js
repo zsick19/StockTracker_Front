@@ -5,7 +5,8 @@ export const KeyLevelsApiSlice = apiSlice.injectEndpoints({
         getStockKeyLevels: builder.query({
             query: (args) => ({
                 url: `/chartingData/keyLevels/single/${args.chartId}`
-            })
+            }),
+            providesTags: ['stockKeyLevels']
         }),
         getUsersMacroKeyLevels: builder.query({
             query: () => ({
@@ -17,7 +18,8 @@ export const KeyLevelsApiSlice = apiSlice.injectEndpoints({
                 url: `/chartingData/keyLevels/single/${args.chartId}`,
                 method: 'PUT',
                 body: { updatedKeyLevels: args.updatedKeyLevels }
-            })
+            }),
+            invalidatesTags: ['chartingData', 'stockKeyLevels']
         }),
     }),
 });
