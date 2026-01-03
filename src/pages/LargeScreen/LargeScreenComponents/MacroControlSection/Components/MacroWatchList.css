@@ -67,10 +67,19 @@
   justify-items: center;
   grid-template-columns: 16px 1fr 1fr 1fr 16px;
   font-size: var(--fs-200);
-  color: green;
 }
 .everyOther {
   background-color: rgb(49, 49, 49);
+}
+
+.positiveGreenFont {
+  color: rgb(66, 190, 66);
+}
+.negativeRedFont {
+  color: rgb(219, 49, 49);
+}
+.neutralGrayFont {
+  color: gray;
 }
 
 .LSH-SingleTickerTitle > button {

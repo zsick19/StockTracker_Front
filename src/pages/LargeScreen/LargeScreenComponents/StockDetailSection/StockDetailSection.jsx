@@ -1,8 +1,9 @@
-import React from "react";
+import './StockDetailSection.css'
 
-function StockDetailSection() {
+function StockDetailSection()
+{
   return (
-    <section>
+    <section id="StockDetailSection">
       <p>StockDetailSection</p>
     </section>
   );

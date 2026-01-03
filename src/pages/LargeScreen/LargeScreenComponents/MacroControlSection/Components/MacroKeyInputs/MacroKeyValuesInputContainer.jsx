@@ -5,17 +5,13 @@ import GeneralMacroKeyInputForm from './GeneralMacroKeyInputForm'
 
 function MacroKeyValuesInputContainer({ selectedStock, setShowMacroKeyLevelDisplay })
 {
-    const [showOnlySelected, setShowOnlySelected] = useState(true)
-
-
-
-
+    const [showOnlySelectedForm, setShowOnlySelectedForm] = useState(false)
 
     return (
         <div id='LSH-MacroKeyValueInput'>
             <p>Macro Key Values</p>
-            <button onClick={() => setShowOnlySelected(prev => !prev)}>{showOnlySelected ? 'All Macros' : 'Selected Macro'}</button>
-            {showOnlySelected ?
+            <button onClick={() => setShowOnlySelectedForm(prev => !prev)}>{showOnlySelectedForm ? 'All Macros' : 'Selected Macro'}</button>
+            {showOnlySelectedForm ?
                 <SelectedKeyInputForm selectedStock={selectedStock} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
                 <GeneralMacroKeyInputForm setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} />
             }

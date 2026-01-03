@@ -6,13 +6,20 @@ import MacroWatchListContainer from "./Components/MacroWatchListContainer";
 import { useCreateUserWatchListMutation } from "../../../../features/WatchList/WatchListSliceApi";
 import { ChartLine, CirclePlus, ListOrdered } from "lucide-react";
 import MacroKeyValuesInputContainer from "./Components/MacroKeyInputs/MacroKeyValuesInputContainer";
+import { selectSPYIdFromUser } from "../../../../features/Initializations/InitializationSliceApi";
+import { useSelector } from "react-redux";
 
 function MacroControlSection()
 {
   const addWatchListTitle = useRef()
   const secondarySearchTicker = useRef();
-  const [primaryChartTicker, setPrimaryChartTicker] = useState({ ticker: "SPY", _id: '6954543cbf357c3ef21e849e' });
-  const [secondaryChartTicker, setSecondaryChartTicker] = useState({ ticker: "SPY", _id: '6954543cbf357c3ef21e849e' });
+
+  const memoizedSelectedSPYId = useMemo(() => selectSPYIdFromUser({ userId: '6952bd331482f8927092ddcc' }), [])
+  const usersSPYId = useSelector(memoizedSelectedSPYId)
+
+
+  const [primaryChartTicker, setPrimaryChartTicker] = useState({ ticker: "SPY", _id: usersSPYId });
+  const [secondaryChartTicker, setSecondaryChartTicker] = useState({ ticker: "SPY", _id: usersSPYId });
   const [showAddWatchlist, setShowAddWatchlist] = useState(false)
   const [showMacroKeyLevelDisplay, setShowMacroKeyLevelDisplay] = useState(false)
   const [errorMessage, setErrorMessage] = useState(undefined)

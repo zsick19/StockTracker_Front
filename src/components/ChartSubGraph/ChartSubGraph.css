@@ -43,9 +43,8 @@
   border: 0;
 }
 
-/* Optional: You can style the label to look like a button or a custom radio button */
 .PreDefinedTimeFrameRadioButtons label {
-  cursor: pointer; /* Makes it clear the label is clickable */
+  cursor: pointer;
   padding: 5px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;

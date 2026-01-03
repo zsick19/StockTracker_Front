@@ -1,0 +1,19 @@
+#LSH-ActiveTradeSection {
+  display: grid;
+  grid-template-rows: 30% 1fr;
+  gap: 1rem;
+}
+
+#NewsAndMessageSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+#NewsAndMessageSection div {
+  background-color: rgb(37, 38, 39);
+}
+
+#ActiveTradeSection {
+  background-color: rgb(37, 38, 39);
+}

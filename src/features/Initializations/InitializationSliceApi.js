@@ -17,7 +17,8 @@ export const { useGetUserInitializationQuery } = InitializationApiSlice;
 export const selectMacroWatchListsFromUser = (args) =>
   createSelector(
     InitializationApiSlice.endpoints.getUserInitialization.select(args),
-    (result) => {
+    (result) =>
+    {
       return {
         macroWatchLists: result?.data?.macroWatchLists,
         isSuccess: result.isSuccess,
@@ -27,3 +28,13 @@ export const selectMacroWatchListsFromUser = (args) =>
       };
     }
   );
+
+export const selectSPYIdFromUser = (args) =>
+  createSelector(
+    InitializationApiSlice.endpoints.getUserInitialization.select(args),
+    (result) =>
+    {
+      return result?.data?.spyChartId || undefined
+    }
+  )
+

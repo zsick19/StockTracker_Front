@@ -2,6 +2,7 @@ import { ChevronDown, ChevronsDown, ChevronUp, CircleMinus, CircleX, Ellipsis, U
 import { useRef, useState } from 'react'
 import '../Components/MacroWatchList.css'
 import { useAddTickerToWatchListMutation, useDeleteUserWatchListMutation, useRemoveTickerFromWatchListMutation, useUpdateWatchListNameMutation } from '../../../../../features/WatchList/WatchListSliceApi'
+import SingleWatchListTicker from './MacroWatchLists/SingleWatchListTicker'
 
 function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTicker })
 {
@@ -48,7 +49,11 @@ function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTic
             console.log(results)
             titleToUpdate.current.value = ''
             setDisplayWatchListEdit(false)
-        } catch (error) { console.log(error) }
+        } catch (error)
+        {
+            console.log(error)
+            titleToUpdate.current.value = ''
+        }
     }
 
     async function attemptToDeleteWatchList()
@@ -82,14 +87,11 @@ function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTic
             }
             {
                 displayTickers && <div className='LSH-WatchListTickerOpen'>
+
                     {watchList.tickersContained.map((ticker, index) =>
-                        <div className={`${index % 2 == 0 && 'everyOther'} LSH-SingleTickerTitle`} onClick={() => setPrimaryChartTicker(ticker)} onDoubleClick={() => { setPrimaryChartTicker(ticker); setSecondaryChartTicker(ticker) }}>
-                            <button onClick={(e) => { e.stopPropagation(); setSecondaryChartTicker(ticker) }}><ChevronsDown size={16} color='white' /></button>
-                            <p>{ticker.ticker}</p>
-                            <p>$111.23</p>
-                            <p>3%</p>
-                            <button onClick={(e) => { e.stopPropagation(); attemptRemoveTickerFromWatchList(ticker.ticker) }}><CircleMinus size={16} color='white' /></button>
-                        </div>)}
+                    {
+                        return <SingleWatchListTicker tickerId={ticker.ticker} index={index} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />
+                    })}
 
                     <form onSubmit={attemptToAddTickerToWatchList} className='LSH-WatchListAddTickerForm'>
                         <input type="text" ref={tickerToAddRef} placeholder='Add Ticker' />
