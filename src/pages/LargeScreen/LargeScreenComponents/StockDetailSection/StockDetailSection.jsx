@@ -5,14 +5,17 @@ import MarketSearch from './Components/MarketSearch/MarketSearch';
 import ConfirmMarketSearch from './Components/ConfirmMarketSearch/ConfirmMarketSearch';
 import ChartSingleGraph from './Components/ChartSingleGraph/ChartSingleGraph';
 import PreWatchMany from './Components/PrewatchMany/PrewatchMany';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectStockDetailControl, setStockDetailState } from '../../../../features/SelectedStocks/StockDetailControlSlice';
 
 function StockDetailSection()
 {
-  const [detailContent, setDetailContent] = useState(0)
+  const dispatch = useDispatch()
+  const currentStockDetail = useSelector(selectStockDetailControl)
 
   function provideDetailContent()
   {
-    switch (detailContent)
+    switch (currentStockDetail)
     {
       case 0: return <FourGraphSplitContainer />
       case 1: return <MarketSearch />
@@ -24,13 +27,12 @@ function StockDetailSection()
 
   return (
     <section id="StockDetailSection">
-      <p>StockDetailSection</p>
       <nav>
-        <button onClick={() => setDetailContent(0)}>Four Graph Split</button>
-        <button onClick={() => setDetailContent(1)}>Market Search</button>
-        <button onClick={() => setDetailContent(2)}>Confirmation</button>
-        <button onClick={() => setDetailContent(3)}>Single Graph For Charting</button>
-        <button onClick={() => setDetailContent(4)}>Prewatch</button>
+        <button onClick={() => dispatch(setStockDetailState(0))}>Four Graph Split</button>
+        <button onClick={() => dispatch(setStockDetailState(1))}>Market Search</button>
+        <button onClick={() => dispatch(setStockDetailState(2))}>Confirmation</button>
+        <button onClick={() => dispatch(setStockDetailState(3))}>Single Graph For Charting</button>
+        <button onClick={() => dispatch(setStockDetailState(4))}>Prewatch</button>
       </nav>
       {provideDetailContent()}
     </section>

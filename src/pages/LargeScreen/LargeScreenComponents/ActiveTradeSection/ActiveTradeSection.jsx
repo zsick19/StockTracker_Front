@@ -1,4 +1,5 @@
 import './ActiveTradeSection.css'
+import ActiveTradeAndWatchList from './Components/ActiveTradeAndWatchList/ActiveTradeAndWatchList';
 
 function ActiveTradeSection()
 {
@@ -13,9 +14,7 @@ function ActiveTradeSection()
       </div>
     </div>
 
-    <div id='ActiveTradeSection'>
-      Active Trades
-    </div>
+    <ActiveTradeAndWatchList />
   </section>;
 }
 

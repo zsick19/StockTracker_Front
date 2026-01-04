@@ -10,15 +10,18 @@ const selectedStockSlice = createSlice({
         { ticker: 'SPY', timeFrame: defaultTimeFrames.dailyOneYear },
     ],
     reducers: {
-
         setSelectedIndexTimeFrame: (state, action) =>
         {
-            console.log(state)
             state[action.payload.index].timeFrame = action.payload.timeFrame
         },
         setSelectedStockAndTimelineFourSpite: (state, action) =>
         {
-
+            return [
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayFiveMin },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneHour },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear },
+            ]
         },
     },
 });

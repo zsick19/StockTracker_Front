@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectAllCharting } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
-import { scaleDiscontinuous, discontinuitySkipWeekends } from '@d3fc/d3fc-discontinuous-scale'
+import { scaleDiscontinuous, discontinuitySkipWeekends, discontinuityRange } from '@d3fc/d3fc-discontinuous-scale'
 import { sub, subBusinessDays, addDays, isToday } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
@@ -50,8 +50,24 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, chartingData, timeFra
             futureForwardEndDate = addDays(startDate, 1)
         }
 
-        const xScaleNotForUse = scaleTime().domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
-        const xDateScale = scaleDiscontinuous(xScaleNotForUse).discontinuityProvider(discontinuitySkipWeekends())
+        //const xScaleNotForUse = scaleTime().domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
+        //const xDateScale = scaleDiscontinuous(xScaleNotForUse).discontinuityProvider(discontinuitySkipWeekends())
+        const blockStart = new Date();
+        blockStart.setHours(17, 0, 0, 0);
+
+        const blockEnd = new Date();
+        blockEnd.setDate(blockEnd.getDate() + 1);
+        blockEnd.setHours(6, 0, 0, 0);
+        const xDateScale = scaleDiscontinuous(scaleTime())
+            .discontinuityProvider(discontinuityRange([blockStart, blockEnd]))
+            .domain([startDate, futureForwardEndDate])
+            .range([0, candleDimensions.width])
+
+        //        const xScaleNotForUse = scaleTime().domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
+        //      const xDateScale = scaleDiscontinuous(xScaleNotForUse).discontinuityProvider(discontinuitySkipWeekends())
+
+
+
 
         if (currentXZoomState)
         {
@@ -120,6 +136,7 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, chartingData, timeFra
                 tickerGroups.append('line').attr('class', 'lowHigh').attr('stroke', 'black').attr('stroke-width', 1).attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
                 tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
                 tickerGroups.attr("transform", (d) => { return `translate(${baseDatePixel + (pixelCountToEvenlySpaceCandles * i)},0)` })
+                //tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
             })
         }
         function updateCandles(update)

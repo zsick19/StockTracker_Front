@@ -31,10 +31,9 @@ function FourWaySpitGraphContainer({ selectedStock, index })
 
     return (
         <div>
-            <h1>
-                {selectedStock.ticker}
-            </h1>
-            <button onClick={() => handleTimeFrameChange()}>{selectedStock.timeFrame.duration}{selectedStock.timeFrame.unitOfDuration}</button>
+            <div className='flex'>
+                <h1>{selectedStock.ticker}</h1>            <button onClick={() => handleTimeFrameChange()}>{selectedStock.timeFrame.duration}{selectedStock.timeFrame.unitOfDuration}</button>
+            </div>
             {graphVisual}
         </div>
     )

@@ -1,0 +1,18 @@
+#LSH-ActiveTradeLarger {
+  display: grid;
+  grid-template-columns: 25% 1fr;
+}
+
+.LSH-ActiveTradeContainer {
+  display: flex;
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+.LSH-ActiveTradeBlock {
+  width: 400px;
+  height: 400px;
+  background-color: rgb(128, 128, 128);
+  border-radius: 5px;
+  padding: 0.5rem;
+}
