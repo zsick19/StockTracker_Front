@@ -14,7 +14,7 @@ const selectedStockSlice = createSlice({
         {
             state[action.payload.index].timeFrame = action.payload.timeFrame
         },
-        setSelectedStockAndTimelineFourSpite: (state, action) =>
+        setSelectedStockAndTimelineFourSplit: (state, action) =>
         {
             return [
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin },
@@ -27,7 +27,7 @@ const selectedStockSlice = createSlice({
 });
 
 export const {
-    setSelectedStockAndTimelineFourSpite,
+    setSelectedStockAndTimelineFourSplit,
     setSelectedIndexTimeFrame
 } = selectedStockSlice.actions;
 
