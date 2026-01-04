@@ -6,12 +6,14 @@ import testReducer from "../features/test/testSlice";
 import authReducer from "../features/auth/authSlice";
 import chartingElementReducers from "../features/Charting/chartingElements";
 import keyLevelGraphElementsReducers from '../features/KeyLevels/KeyLevelGraphElements'
+import selectedStockReducers from '../features/SelectedStocks/SelectedStockSlice'
 
 export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
     chartingElement: chartingElementReducers,
     keyLevelElement: keyLevelGraphElementsReducers,
+    selectedStock: selectedStockReducers,
     auth: authReducer,
     test: testReducer,
   },

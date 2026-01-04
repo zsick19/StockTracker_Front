@@ -14,7 +14,6 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
     {
         if (isSuccess)
         {
-            console.log(chartingData)
             dispatch(setKeyLevelsCharting(chartingData))
             dispatch(setPreviousCharting(chartingData))
         }
