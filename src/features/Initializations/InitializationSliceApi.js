@@ -4,8 +4,8 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 export const InitializationApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getUserInitialization: builder.query({
-      query: (args) => ({
-        url: `/user/login/${args.userId}`,
+      query: () => ({
+        url: `/user/login`,
       }),
       keepUnusedDataFor: 60000,
     }),
@@ -14,12 +14,16 @@ export const InitializationApiSlice = apiSlice.injectEndpoints({
 
 export const { useGetUserInitializationQuery } = InitializationApiSlice;
 
-export const selectSPYIdFromUser = (args) =>
+export const selectSPYIdFromUser = () =>
   createSelector(
-    InitializationApiSlice.endpoints.getUserInitialization.select(args),
-    (result) =>
-    {
-      return result?.data?.spyChartId || undefined
-    }
+    InitializationApiSlice.endpoints.getUserInitialization.select(),
+    (result) => { return result?.data?.spyChartId || undefined }
   )
+
+export const selectUserMarketSearchFilters = () =>
+  createSelector(
+    InitializationApiSlice.endpoints.getUserInitialization.select(),
+    (result) => { return result?.data?.marketSearchFilters || [] }
+  )
+
 

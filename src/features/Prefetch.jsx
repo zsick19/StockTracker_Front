@@ -13,7 +13,7 @@ function Prefetch()
   {
     const prefetchUserInitial = store.dispatch(
       InitializationApiSlice.endpoints.getUserInitialization.initiate(
-        { userId: "6952bd331482f8927092ddcc" },
+        undefined,
         { subscribe: true, forceRefetch: true }
       )
     );
@@ -33,7 +33,7 @@ export const manualRefetchOfInitializedData = () =>
 {
   store.dispatch(
     InitializationApiSlice.endpoints.getUserInitialization.initiate(
-      { userId: "6952bd331482f8927092ddcc" },
+      undefined,
       { subscribe: false, forceRefetch: true }
     )
   );

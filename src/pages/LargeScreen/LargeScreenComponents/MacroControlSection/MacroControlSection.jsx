@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 
 function MacroControlSection()
 {
-  const memoizedSelectedSPYId = useMemo(() => selectSPYIdFromUser({ userId: '6952bd331482f8927092ddcc' }), [])
+  const memoizedSelectedSPYId = useMemo(() => selectSPYIdFromUser(), [])
   const usersSPYId = useSelector(memoizedSelectedSPYId)
   useEffect(() => { if (usersSPYId) setPrimaryChartTicker({ ticker: 'SPY', _id: usersSPYId }) }, [usersSPYId])
 

@@ -1,0 +1,1 @@
+export const defaultSectors = ['HealthCare', 'Consumer Staples', 'Industrials', 'Communication Services', "Utilities", "Technology", "Financials", "Materials", "Energy", "Consumer Discretionary", "Real Estate"]
