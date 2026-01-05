@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectAllFourStocks } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
-import FourWaySpitGraphContainer from '../../../../../../components/FourWaySpitGraph/FourWaySpitGraphContainer'
+import FourWaySpitGraphContainer from '../../../../../../components/FourWaySplitGraph/FourWaySplitGraphContainer'
 import './FourGraphSplit.css'
 
 
