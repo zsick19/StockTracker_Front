@@ -6,14 +6,12 @@ import MarketSearchResults from './Components/MarketSearchResults'
 import { useGetMarketSearchStockDataQuery } from '../../../../../../features/MarketSearch/MarketSearchSliceApi'
 import { PaginationInfo } from '../../../../../../components/Pagination/PaginationInfo'
 
-function MarketSearch()
+function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, marketSearchFilter, setMarketSearchFilter })
 {
-    const [currentPage, setCurrentPage] = useState(1)
     const [resultsPerPage, setResultsPerPage] = useState(9)
-    const [searchFilter, setSearchFilter] = useState({ AvgVolume: undefined, Sector: undefined, Industry: undefined, MarketCap: undefined, ATR: undefined, Volume: undefined, Country: undefined })
     const [paginationInfo, setPaginationInfo] = useState(null)
 
-    const { data, isSuccess, isLoading, isError, error, refetch } = useGetMarketSearchStockDataQuery({ currentPage, resultsPerPage, searchFilter })
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetMarketSearchStockDataQuery({ currentPage: currentMarketSearchPage, resultsPerPage, searchFilter: marketSearchFilter })
 
     let searchResults
 
@@ -32,7 +30,7 @@ function MarketSearch()
 
     useEffect(() =>
     {
-        if (isSuccess) { setPaginationInfo(new PaginationInfo(currentPage, data.totalResults, resultsPerPage)) }
+        if (isSuccess) { setPaginationInfo(new PaginationInfo(currentMarketSearchPage, data.totalResults, resultsPerPage)) }
     }, [data])
 
 
@@ -40,14 +38,14 @@ function MarketSearch()
 
     return (
         <div id='LHS-MarketSearchContainer'>
-            <MarketSearchFilterBar searchFilter={searchFilter} setSearchFilter={setSearchFilter} setResultsPerPage={setResultsPerPage} />
+            <MarketSearchFilterBar searchFilter={marketSearchFilter} setSearchFilter={setMarketSearchFilter} setResultsPerPage={setResultsPerPage} />
             <div id='LHS-MarketSearchResultContainer'>
-                <button onClick={() => setCurrentPage(prev => prev - 1)} disabled={!paginationInfo?.hasPrevious}>Prev</button>
+                <button onClick={() => setCurrentMarketSearchPage(prev => prev - 1)} disabled={!paginationInfo?.hasPrevious}>Prev</button>
                 {searchResults}
-                <button onClick={() => setCurrentPage(prev => prev + 1)} disabled={!paginationInfo?.hasNext}>Next</button>
+                <button onClick={() => setCurrentMarketSearchPage(prev => prev + 1)} disabled={!paginationInfo?.hasNext}>Next</button>
 
             </div>
-            <MarketSearchPageControl currentPage={currentPage} paginationInfo={paginationInfo} setCurrentPage={setCurrentPage} />
+            <MarketSearchPageControl currentPage={currentMarketSearchPage} paginationInfo={paginationInfo} setCurrentPage={setCurrentMarketSearchPage} />
         </div>
     )
 }

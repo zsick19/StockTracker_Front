@@ -14,12 +14,15 @@ function StockDetailSection()
   const dispatch = useDispatch()
   const currentStockDetail = useSelector(selectStockDetailControl)
 
+  const [currentMarketSearchPage, setCurrentMarketSearchPage] = useState(1)
+  const [marketSearchFilter, setMarketSearchFilter] = useState({ AvgVolume: undefined, Sector: undefined, Industry: undefined, MarketCap: undefined, ATR: undefined, Volume: undefined, Country: undefined })
+
   function provideDetailContent()
   {
     switch (currentStockDetail)
     {
       case 0: return <FourGraphSplitContainer />
-      case 1: return <MarketSearch />
+      case 1: return <MarketSearch currentMarketSearchPage={currentMarketSearchPage} setCurrentMarketSearchPage={setCurrentMarketSearchPage} marketSearchFilter={marketSearchFilter} setMarketSearchFilter={setMarketSearchFilter} />
       case 2: return <ConfirmMarketSearch />
       case 3: return <PlanViabilityStatus />
       case 4: return <ChartSingleGraph />
