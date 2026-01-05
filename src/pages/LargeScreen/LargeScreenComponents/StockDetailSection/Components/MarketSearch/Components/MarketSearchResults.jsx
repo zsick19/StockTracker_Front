@@ -13,9 +13,9 @@ function MarketSearchResults({ searchResults })
                     </div>
 
                     <div className='MarketSearchResultInfoBar'>
-                        <p>{search.ticker}</p>
-                        <p>{search.sector}</p>
-                        <p>{search.avgVol}</p>
+                        <p>{search.Symbol}</p>
+                        <p>{search.Sector}</p>
+                        <p>{search.AvgVolume}</p>
                     </div>
 
                 </div>

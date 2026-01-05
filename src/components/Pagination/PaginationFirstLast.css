@@ -1,0 +1,15 @@
+.paginationFirstLast {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.paginationFirstLast > ul {
+  margin: 0;
+}
+.paginationFirstLast > ul li {
+  list-style: none;
+}
+
+.active {
+  text-decoration: underline;
+}
