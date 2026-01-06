@@ -2,20 +2,25 @@ import { useMemo, useRef, useState } from 'react'
 import { defaultSectors } from '../../../../../../../Utilities/SectorsAndIndustries'
 import { useSelector } from 'react-redux'
 import { selectUserMarketSearchFilters } from '../../../../../../../features/Initializations/InitializationSliceApi'
-import { useCreateNewSavedFilterMutation } from '../../../../../../../features/MarketSearch/MarketSearchFilterSliceApi'
+import { useCreateNewSavedFilterMutation, useRemoveSavedFilterMutation } from '../../../../../../../features/MarketSearch/MarketSearchFilterSliceApi'
+import { CircleX } from 'lucide-react'
 
 function MarketSearchFilterBar({ searchFilter, setSearchFilter })
 {
     const titleForSavingFilter = useRef()
-    const memoizedUserSavedFilters = useMemo(() => selectUserMarketSearchFilters(), [])
+
+
+    const [createNewSavedFilter, { isSuccess, isLoading, isError, error }] = useCreateNewSavedFilterMutation()
+    const [removeSavedFilter, { isSuccess: removalSuccess }] = useRemoveSavedFilterMutation()
+    const memoizedUserSavedFilters = useMemo(() => selectUserMarketSearchFilters(), [removeSavedFilter, createNewSavedFilter])
     const userSavedFilters = useSelector(memoizedUserSavedFilters)
+
 
     const [filterToSubmit, setFilterToSubmit] = useState(searchFilter)
     const [displayFilterSave, setDisplayFilterSave] = useState(false)
     const [filterBarOpen, setFilterBarOpen] = useState(false)
     const [savedFilterServerMessage, setSavedFilterServerMessage] = useState(undefined)
 
-    const [createNewSavedFilter, { isSuccess, isLoading, isError, error }] = useCreateNewSavedFilterMutation()
 
     async function attemptToSaveFilter()
     {
@@ -58,14 +63,23 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
         }
     }
 
-    function handleUserSavedFilterSelection(e)
+    async function attemptToRemoveSavedFilter(e, index)
     {
-        if (e.target.value === '-1') { setFilterToSubmit(searchFilter) }
-        else
+        e.stopPropagation()
+        try
         {
-            let filterIndex = parseInt(e.target.value)
-            setFilterToSubmit(userSavedFilters[filterIndex].filterParams)
+            const results = await removeSavedFilter({ index, filterToRemove: userSavedFilters[index] })
+            setSavedFilterServerMessage('Filter Removed')
+        } catch (error)
+        {
+            console.log(error)
         }
+
+    }
+
+    function handleUserSavedFilterSelection(index)
+    {
+        setFilterToSubmit(userSavedFilters[index].filterParams)
     }
 
     function handleFilterValueChange(e)
@@ -77,6 +91,8 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
     {
         setSearchFilter(filterToSubmit)
         setFilterBarOpen(false)
+        setDisplayFilterSave(false)
+        setSavedFilterServerMessage(undefined)
     }
 
     return (
@@ -91,43 +107,51 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
                 </select>
             </form>
 
-            {filterBarOpen && <div id='LHS-MarketSearchFilterBarOpen'>
-                <h3>Filter</h3>
-                <form onSubmit={(e) => e.preventDefault()}>
-                    <label htmlFor="Sector">Sector</label>
-                    <select value={filterToSubmit.Sector} onChange={(e) => handleFilterValueChange(e)} name='Sector' id='Sector'>
-                        <option value='Select'>Select</option>
-                        {defaultSectors.map((sector) => <option value={sector}>{sector}</option>)}
-                    </select>
+            {filterBarOpen &&
+                <div id='LHS-MarketSearchFilterBarOpen'>
+                    <div id='LHS-FilterOptions'>
+                        <h3>Filter</h3>
+                        <form onSubmit={(e) => e.preventDefault()}>
+                            <label htmlFor="Sector">Sector</label>
+                            <select value={filterToSubmit.Sector} onChange={(e) => handleFilterValueChange(e)} name='Sector' id='Sector'>
+                                <option value='Select'>Select</option>
+                                {defaultSectors.map((sector) => <option value={sector}>{sector}</option>)}
+                            </select>
 
-
-                    {!displayFilterSave &&
-                        <div>
                             <button type='button' onClick={(e) => handleSubmittingFilterChange(e)}>Search</button>
-                            <button type='button' onClick={() => setDisplayFilterSave(true)}>Save Filter</button>
+
+                            {!displayFilterSave && <div>
+                            </div>}
+                        </form>
+                    </div>
+
+
+                    <div id='LHS-UserSavedFilters'>
+                        <h4>User Saved Filters</h4>
+                        <div>
+
+                            {userSavedFilters.map((savedFilter, index) =>
+                            {
+                                return <div onClick={() => handleUserSavedFilterSelection(index)} className='flex'>
+                                    <p>{savedFilter.title}</p>
+                                    <button onClick={(e) => attemptToRemoveSavedFilter(e, index)}>Remove</button>
+                                </div>
+                            })}
+                            <p>Click to Load Filter</p>
                         </div>
-                    }
-                </form>
-
-                {displayFilterSave &&
-                    <form onSubmit={(e) => e.preventDefault()}>
-                        <label htmlFor="filterTitle">Filter Title</label>
-                        <input type="text" id='filterTitle' ref={titleForSavingFilter} />
-                        <button type='button' onClick={() => attemptToSaveFilter()}>Save and Search</button>
-                        <button type='button' onClick={() => setDisplayFilterSave(false)}>Cancel</button>
-                        <p>{savedFilterServerMessage}</p>
-                    </form>
-                }
-
-
-                <select onChange={handleUserSavedFilterSelection}>
-                    <option value={-1}>Select From Saved Filter</option>
-                    {userSavedFilters.map((savedFilter, index) => { return <option value={index}>{savedFilter.title}</option> })}
-                </select>
-
-
-                <button onClick={() => { setDisplayFilterSave(false); setSavedFilterServerMessage(undefined); setFilterBarOpen(false) }}>Filter Bar Closed</button>
-            </div>}
+                        <br />
+                        <form onSubmit={(e) => e.preventDefault()}>
+                            <label htmlFor="filterTitle">Save This Filter</label>
+                            <input type="text" id='filterTitle' ref={titleForSavingFilter} />
+                            <button type='button' onClick={() => attemptToSaveFilter()}>Save and Search</button>
+                            <button type='button' onClick={() => setDisplayFilterSave(false)}>Cancel</button>
+                            <p>{savedFilterServerMessage}</p>
+                        </form>
+                    </div>
+                    <div>
+                        <button onClick={() => { setDisplayFilterSave(false); setSavedFilterServerMessage(undefined); setFilterBarOpen(false) }}><CircleX /></button>
+                    </div>
+                </div>}
         </div>
 
     )

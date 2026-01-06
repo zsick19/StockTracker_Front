@@ -19,6 +19,18 @@
   height: 300px;
   width: 100%;
   background-color: rgb(122, 122, 122);
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 25% min-content;
+  gap: 1rem;
+}
+
+#LHS-FilterOptions {
+  background-color: rgb(17, 17, 17);
+}
+
+#LHS-UserSavedFilters {
+  font-size: var(--fs-200);
 }
 
 #LHS-MarketSearchResultContainer {
