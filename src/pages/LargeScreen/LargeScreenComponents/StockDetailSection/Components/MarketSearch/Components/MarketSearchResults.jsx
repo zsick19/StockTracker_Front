@@ -1,26 +1,19 @@
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useSelector } from 'react-redux'
+import { selectUsersPatternedHistory } from '../../../../../../../features/Initializations/InitializationSliceApi'
+import SingleSearchResultBlock from './SingleSearchResultBlock'
 
 function MarketSearchResults({ searchResults })
 {
+    const memoizedUserPatterns = useMemo(() => selectUsersPatternedHistory(), [])
+    const patterns = useSelector(memoizedUserPatterns)
+
+
 
     return (
         <div id='LHS-MarketSearchResultBlocks'>
-            {searchResults.map((search) =>
-            {
-                return <div className='LHS-MarketSearchResultGraphWrapper'>
-                    <div className='ChartGraphWrapper'>
-                        <p>Chart will go here</p>
-                    </div>
-
-                    <div className='MarketSearchResultInfoBar'>
-                        <p>{search.Symbol}</p>
-                        <p>{search.Sector}</p>
-                        <p>{search.AvgVolume}</p>
-                    </div>
-
-                </div>
-            })}
-        </div>
+            {searchResults.map((search) => { return <SingleSearchResultBlock search={search} found={patterns.includes(search.Symbol)} /> })}
+        </div >
     )
 }
 
