@@ -70,10 +70,6 @@
   justify-content: space-between;
 }
 
-.patterned {
-  background-color: blue;
-}
-
 #LHS-MarketSearchPageControl {
   display: flex;
   justify-content: space-between;

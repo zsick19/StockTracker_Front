@@ -1,16 +1,35 @@
 import React, { useState } from 'react'
-import { useAddTickerToUserPatternsMutation } from '../../../../../../../features/StockActions/PatternSliceApi'
+import { useAddTickerToUserPatternsMutation, useRemoveTickerFromUserPatternsMutation } from '../../../../../../../features/StockActions/PatternSliceApi'
+import { useGetUserInitializationQuery } from '../../../../../../../features/Initializations/InitializationSliceApi'
 
 function SingleSearchResultBlock({ search, found })
 {
     const [addTickerToUserPatterns] = useAddTickerToUserPatternsMutation()
+    const [removeTickerFromUserPatterns] = useRemoveTickerFromUserPatternsMutation()
+    const [showConfirmDeletion, setShowConfirmDeletion] = useState(false)
     const [addRemoveErrorMessage, setAddRemoveErrorMessage] = useState(undefined)
 
-    async function attemptToTogglePattern(search)
+    const { item } = useGetUserInitializationQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.userStockHistory.find((i) => i.symbol === search.Symbol), }), skip: !found, });
+    let mostRecentAction = item ? item.history.at(-1).action : undefined
+
+    async function attemptToAddPattern(search)
     {
         try
         {
-            const results = await addTickerToUserPatterns({ patternToAdd: search.Symbol, addOrRemove: !found })
+            await addTickerToUserPatterns({ patternToAdd: search.Symbol })
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
+    async function attemptToRemovePatter()
+    {
+        setShowConfirmDeletion(false)
+        try
+        {
+            const results = await removeTickerFromUserPatterns({ historyId: item._id, ticker: search.Symbol })
+            console.log(results)
         } catch (error)
         {
             console.log(error)
@@ -18,17 +37,31 @@ function SingleSearchResultBlock({ search, found })
     }
 
 
+    function handleClickToggleAction(search)
+    {
+        if (mostRecentAction && mostRecentAction !== 'patterned') { setShowConfirmDeletion(true) }
+        else if (mostRecentAction) { attemptToRemovePatter() }
+        else { attemptToAddPattern(search) }
+    }
 
     return (
-        <div className='LHS-MarketSearchResultGraphWrapper' onClick={() => attemptToTogglePattern(search)}>
+        <div className='LHS-MarketSearchResultGraphWrapper' onClick={() => handleClickToggleAction(search)}>
             <div className='ChartGraphWrapper'>
-                <p>Chart will go here</p>
+                <p>Chart Goes Here</p>
             </div>
 
-            <div className={`MarketSearchResultInfoBar ${found ? 'patterned' : ''}`}>
-                <p>{search.Symbol}</p>
-                <p>{search.Sector}</p>
-                <p>{search.AvgVolume}</p>
+            <div className={`MarketSearchResultInfoBar ${found ? mostRecentAction : ''}`}>
+                {showConfirmDeletion ?
+                    <>
+                        <button onClick={(e) => { e.stopPropagation(); attemptToRemovePatter() }}>Confirm Deletion</button>
+                        <button onClick={(e) => { e.stopPropagation(); setShowConfirmDeletion(false) }}>Cancel</button>
+                    </> :
+                    <>
+                        <p>{search.Symbol}</p>
+                        <p>{search.Sector}</p>
+                        <p>{search.AvgVolume}</p>
+                    </>
+                }
             </div>
 
         </div>

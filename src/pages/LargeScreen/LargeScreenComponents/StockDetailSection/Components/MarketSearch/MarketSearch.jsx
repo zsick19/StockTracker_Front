@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import './MarketSearch.css'
+import './FoundPatternStageStyles.css'
 import MarketSearchFilterBar from './Components/MarketSearchFilterBar'
 import MarketSearchPageControl from './Components/MarketSearchPageControl'
 import MarketSearchResults from './Components/MarketSearchResults'

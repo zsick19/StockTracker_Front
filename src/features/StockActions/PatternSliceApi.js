@@ -5,7 +5,7 @@ export const PatternApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         addTickerToUserPatterns: builder.mutation({
             query: (args) => ({
-                url: `/patterns/found?patternToAdd=${args.patternToAdd}&addOrRemove=${args.addOrRemove}`,
+                url: `/patterns/found?patternToAdd=${args.patternToAdd}`,
             }),
             async onQueryStarted(args, { dispatch, queryFulfilled })
             {
@@ -25,7 +25,34 @@ export const PatternApiSlice = apiSlice.injectEndpoints({
                 }
             },
         }),
+        removeTickerFromUserPatterns: builder.mutation({
+            query: (args) => ({
+                url: `/patterns/found/${args.historyId}`,
+                method: 'DELETE'
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: removedHistory } = await queryFulfilled;
+                    dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization", undefined,
+                        (draft) =>
+                        {
+                            if (removedHistory.deletedCount > 0)
+                            {
+                                draft.userStockHistory = draft.userStockHistory.filter((t) => t._id !== args.historyId)
+                                draft.patternedTickers = draft.patternedTickers.filter((t) => t !== args.ticker)
+                            }
+                            return draft
+                        })
+                    );
+                } catch
+                {
+                    // If mutation fails, the cache remains untouched
+                }
+            },
+        })
     }),
 });
 
-export const { useAddTickerToUserPatternsMutation } = PatternApiSlice;
+export const { useAddTickerToUserPatternsMutation, useRemoveTickerFromUserPatternsMutation } = PatternApiSlice;
