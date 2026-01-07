@@ -6,10 +6,20 @@ export const ConfirmationApiSlice = apiSlice.injectEndpoints({
         getUsersUnconfirmedPatterns: builder.query({
             query: () => ({
                 url: `/patterns/unconfirmed`,
-            })
+            }),
         }),
-        
+
+        submitConfirmedPatterns: builder.mutation({
+            query: (args) => ({
+                url: '/patterns/unconfirmed/sync',
+                method: 'PATCH',
+                body: { confirmed: args.confirmed, remove: args.remove }
+            })
+        })
     })
 });
 
-export const { useGetUsersUnconfirmedPatternsQuery } = ConfirmationApiSlice;
+export const {
+    useGetUsersUnconfirmedPatternsQuery,
+    useSubmitConfirmedPatternsMutation
+} = ConfirmationApiSlice;
