@@ -7,6 +7,7 @@ export const ConfirmationApiSlice = apiSlice.injectEndpoints({
             query: () => ({
                 url: `/patterns/unconfirmed`,
             }),
+            keepUnusedDataFor: 3600,
             providesTags: ['unconfirmedPatterns']
         }),
 
@@ -16,7 +17,7 @@ export const ConfirmationApiSlice = apiSlice.injectEndpoints({
                 method: 'PATCH',
                 body: { confirmed: args.confirmed, remove: args.remove }
             }),
-            invalidatesTags: ['userData', 'unconfirmedPatterns'],
+            invalidatesTags: ['userData', 'unconfirmedPatterns', 'confirmedSummary'],
         })
     })
 });

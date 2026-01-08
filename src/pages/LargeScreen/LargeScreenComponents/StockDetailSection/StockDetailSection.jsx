@@ -32,6 +32,8 @@ function StockDetailSection()
     }
   }
 
+ 
+
   return (
     <section id="StockDetailSection">
       <nav>

@@ -23,15 +23,22 @@ const selectedStockSlice = createSlice({
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear },
             ]
         },
+        setSingleChartTickerTimeFrameAndChartingId: (state, action) =>
+        {
+            return [{ ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear, chartingId: action.payload.chartId }]
+        }
     },
 });
 
 export const {
     setSelectedStockAndTimelineFourSplit,
-    setSelectedIndexTimeFrame
+    setSelectedIndexTimeFrame,
+    setSingleChartTickerTimeFrameAndChartingId
 } = selectedStockSlice.actions;
 
 export default selectedStockSlice.reducer;
 
 export const selectAllFourStocks = (state) => state.selectedStock
 export const selectSelectedStockByIndex = (state, index) => state.selectedStock[index];
+
+export const selectSingleChartStock = (state) => state.selectedStock[0]

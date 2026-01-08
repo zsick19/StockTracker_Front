@@ -1,9 +1,15 @@
 import React from 'react'
+import { useSelector } from 'react-redux'
+import { selectSingleChartStock } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 
 function ChartSingleGraph()
 {
+    const selectedTicker = useSelector(selectSingleChartStock)
     return (
-        <div>ChartSingleGraph</div>
+        <div>
+            <p>Chart For Single Graph</p>
+            {selectedTicker?.ticker || 'No ticker selected'}
+        </div>
     )
 }
 
