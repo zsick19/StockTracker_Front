@@ -17,6 +17,7 @@ export const InitializationApiSlice = apiSlice.injectEndpoints({
         return response
       },
       keepUnusedDataFor: 60000,
+      providesTags: ['userData']
     }),
   }),
 });

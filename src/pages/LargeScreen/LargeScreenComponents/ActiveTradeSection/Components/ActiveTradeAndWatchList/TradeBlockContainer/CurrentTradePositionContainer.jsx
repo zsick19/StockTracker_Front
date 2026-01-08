@@ -13,7 +13,11 @@ function CurrentTradePositionContainer()
         dispatch(setStockDetailState(0))
         dispatch(setSelectedStockAndTimelineFourSplit(trade))
     }
-
+    const trialHandleStockToSingleChart = (trade) =>
+    {
+        dispatch(setStockDetailState(5))
+        dispatch(setSelectedStockAndTimelineFourSplit(trade))
+    }
 
 
     return (
@@ -24,7 +28,7 @@ function CurrentTradePositionContainer()
                     <div className='flex'>
                         <p>{trade.ticker}</p>
 
-                        <button onClick={() => trialHandleStockToFourWay(trade)}>Single Chart</button>
+                        <button onClick={() => trialHandleStockToSingleChart(trade)}>Single Chart</button>
                         <button onClick={() => trialHandleStockToFourWay(trade)}>4way</button>
                     </div>
                     <p>Trade/Stock Chart will go here</p>

@@ -7,6 +7,7 @@ export const ConfirmationApiSlice = apiSlice.injectEndpoints({
             query: () => ({
                 url: `/patterns/unconfirmed`,
             }),
+            providesTags: ['unconfirmedPatterns']
         }),
 
         submitConfirmedPatterns: builder.mutation({
@@ -14,7 +15,8 @@ export const ConfirmationApiSlice = apiSlice.injectEndpoints({
                 url: '/patterns/unconfirmed/sync',
                 method: 'PATCH',
                 body: { confirmed: args.confirmed, remove: args.remove }
-            })
+            }),
+            invalidatesTags: ['userData', 'unconfirmedPatterns'],
         })
     })
 });
