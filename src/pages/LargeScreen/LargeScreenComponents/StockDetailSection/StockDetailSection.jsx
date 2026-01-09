@@ -29,10 +29,11 @@ function StockDetailSection()
       case 4: return <PlanViabilityStatus />
       case 5: return <ChartSingleGraph />
       case 6: return <PreWatchMany />
+      case 7: return <div>Build Large Plan List Like Confirmed</div>
     }
   }
 
- 
+
 
   return (
     <section id="StockDetailSection">
@@ -44,8 +45,9 @@ function StockDetailSection()
         <button onClick={() => dispatch(setStockDetailState(2))}>Confirmation</button>
         <button onClick={() => dispatch(setStockDetailState(3))}>Confirmed Status</button>
 
-        <button onClick={() => dispatch(setStockDetailState(5))}>Plan Viability Status</button>
+        <button onClick={() => dispatch(setStockDetailState(4))}>Plan Viability Status</button>
         <button onClick={() => dispatch(setStockDetailState(6))}>PreWatch</button>
+        <button onClick={() => dispatch(setStockDetailState(7))}>Plan List</button>
       </nav>
       {provideDetailContent()}
     </section>

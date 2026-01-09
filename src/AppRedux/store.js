@@ -8,6 +8,7 @@ import chartingElementReducers from "../features/Charting/chartingElements";
 import keyLevelGraphElementsReducers from '../features/KeyLevels/KeyLevelGraphElements'
 import selectedStockReducers from '../features/SelectedStocks/SelectedStockSlice'
 import stockDetailControlReducers from '../features/SelectedStocks/StockDetailControlSlice'
+import previousNextStockReducers from '../features/SelectedStocks/PreviousNextStockSlice'
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     keyLevelElement: keyLevelGraphElementsReducers,
     selectedStock: selectedStockReducers,
     stockDetailControl: stockDetailControlReducers,
+    previousNextStock: previousNextStockReducers,
     auth: authReducer,
     test: testReducer,
   },

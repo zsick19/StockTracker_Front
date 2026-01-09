@@ -220,7 +220,7 @@ function ConfirmedStatus()
             <div id='LHS-ConfirmedSelectedStatus'>
                 <div>
                     Graph here
-
+                    <button>Begin Charting/Pick up Where you left off</button>
                 </div>
                 <div>
                     {selectedConfirmed ?
