@@ -1,23 +1,69 @@
 #LHS-ConfirmedStockStatusContainer {
   padding: 1rem;
   display: grid;
-  grid-template-rows: 300px 1fr;
+  height: 100%;
+  grid-template-rows: min-content 500px 1fr;
   gap: 1rem;
 }
 
 #LHS-StatusTableControl {
+  font-size: var(--fs-200);
+  border: 1px solid white;
+  border-radius: 15px;
+  padding: 1rem;
 }
-#LHS-ConfirmedStatusTable {
+
+#LHS-StatusTableControl > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+}
+
+#LHS-StatusTableControl fieldset {
+  margin: 0;
+  border: none;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.DirectSearchFieldSet {
+  flex-direction: column;
+}
+.DirectSearchFieldSet > div {
+  display: flex;
+  gap: 1rem;
+}
+.DirectSearchFieldSet > div button {
+  flex: 1;
 }
 
 .ShowOnlySelectedStatus {
-  gap: 2rem;
   display: flex;
+  gap: 0.5rem;
 }
 
 .ShowOnlyAddedWithin {
   display: flex;
-  gap: 2rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.ShowOnlyAddedWithin label {
+  width: max-content;
+}
+
+.ShowOnlyOlderThan {
+  width: 100%;
+}
+
+.olderThanExact {
+  display: flex;
+  gap: 1rem;
+}
+
+.ShowOnlyOlderThan > div:last-child button {
+  flex: 1;
+  background-color: blue;
 }
 
 .visually-hidden {
@@ -31,18 +77,79 @@
   border: 0;
 }
 
-.ShowOnlyRadioBtn label {
+.ShowOnlyRadioBtn label,
+.ShowOnlyRadioBtnNoSelect label {
   cursor: pointer;
   padding: 5px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   display: inline-block;
-  background-color: #4d4747;
+  background-color: #5f5959;
 }
 
 /* Optional: Add a different style when the input is checked */
 .ShowOnlyRadioBtn input:checked + label {
-  background-color: #007bff;
+  background-color: #374657;
   color: white;
   border-color: #007bff;
+}
+
+#LHS-ConfirmedStatusTable {
+  width: 100%;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+#LHS-ConfirmedStatusTable ::-webkit-scrollbar {
+  display: none;
+}
+
+#LHS-ConfirmedStatusTable {
+  background-color: rgb(0, 0, 0);
+}
+
+#LHS-ConfirmedStatusTable table {
+  width: 100%;
+  border: none;
+
+  font-size: var(--fs-200);
+}
+#LHS-ConfirmedStatusTable table thead {
+  border: none;
+  background-color: rgb(14, 14, 94);
+}
+
+#LHS-ConfirmedStatusTable table thead div {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.ConfirmedTableRow {
+  text-align: center;
+  font-size: var(--fs-200);
+}
+
+.ConfirmedTableRow:nth-child(even) {
+  background-color: #7a7a7a;
+}
+.ConfirmedTableRow:nth-child(odd) {
+  background-color: #4b4b4b;
+}
+
+.ConfirmedTableRow button {
+  border: none;
+  background: none;
+  color: white;
+  cursor: pointer;
+}
+
+#selected {
+  background-color: rgb(100, 19, 19);
+}
+
+#LHS-ConfirmedSelectedStatus {
+  display: grid;
+  grid-template-columns: 60% 40%;
 }

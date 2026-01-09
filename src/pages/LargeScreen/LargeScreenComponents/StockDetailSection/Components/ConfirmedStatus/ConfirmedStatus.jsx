@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useGetUsersConfirmedSummaryQuery } from '../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
 import { useDispatch } from 'react-redux'
-import { ArrowBigRight } from 'lucide-react'
+import { ArrowBigRight, ArrowDown, ArrowUp, ChevronDown, ChevronUp, Dot, Info } from 'lucide-react'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { confirmedStatuses } from '../../../../../../Utilities/ConfirmedStatuses'
@@ -11,43 +11,22 @@ import './ConfirmedStatus.css'
 function ConfirmedStatus()
 {
     const dispatch = useDispatch()
+    const directSearch = useRef()
+
     const { data, isSuccess, isError, isLoading, error, refetch } = useGetUsersConfirmedSummaryQuery()
-    const [filteredResults, setFilteredResults] = useState([])
-    const [tableFilters, setTableFilters] = useState({ status: 0, addedWithin: 0 })
 
-    let dataTableBody
-    if (isSuccess)
+    const [tableFilters, setTableFilters] = useState({ tickerSearch: undefined, status: 0, addedWithin: 0, olderThan: 0 })
+    const [tableSort, setTableSort] = useState({ sort: undefined, direction: undefined })
+
+    const [selectedConfirmed, setSelectedConfirmed] = useState(undefined)
+
+    const filteredSortedResults = useMemo(() =>
     {
-        dataTableBody = filteredResults.map((confirmed) =>
-        {
-            return <tr>
-                <td>{confirmed.tickerSymbol}</td>
-                <td>{confirmed.status >= 0 ? confirmedStatuses[confirmed.status] : 'Quick Add'}</td>
-                <td><ArrowBigRight onClick={() => jumpToChart(confirmed)} /></td>
-                <td>{new Date(confirmed.dateAdded).toLocaleDateString()}</td>
-            </tr>
-        })
-    }
-    else if (isLoading) { dataTableBody = <div>Loading...</div> }
-    else if (isError) { dataTableBody = <div>Error Loading Confirmed Summaries</div> }
+        if (!isSuccess) return []
 
-    function jumpToChart(confirmed)
-    {
-        dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: confirmed.tickerSymbol, chartingId: confirmed._id }))
-        dispatch(setStockDetailState(5))
-    }
+        if (tableFilters.tickerSearch) { return data.filter(t => t.tickerSymbol === tableFilters.tickerSearch) }
 
-
-    useEffect(() =>
-    {
-        if (isSuccess) { setFilteredResults(data) }
-    }, [data])
-
-    useEffect(() =>
-    {
-        if (!isSuccess) return
-        let filteredResultsForDisplay = data
-
+        let filteredResultsForDisplay = [...data]
         //status filter
         if (tableFilters.status !== 0) { filteredResultsForDisplay = filteredResultsForDisplay.filter(t => t.status + 1 === tableFilters.status) }
 
@@ -62,77 +41,151 @@ function ConfirmedStatus()
             filteredResultsForDisplay = filteredResultsForDisplay.filter(t => new Date(t.dateAdded).setHours(0, 0, 0, 0) >= lastDate)
         }
 
+        //older than x amount of days
+        if (tableFilters.olderThan !== NaN && tableFilters.olderThan !== 0)
+        {
+            let olderThanDate = subDays(new Date(), tableFilters.olderThan).setHours(0, 0, 0, 0)
+            filteredResultsForDisplay = filteredResultsForDisplay.filter(t => new Date(t.dateAdded) <= olderThanDate)
+        }
+
+        switch (tableSort.sort)
+        {
+            case 'ticker': filteredResultsForDisplay = filteredResultsForDisplay.sort((a, b) => { return tableSort.direction ? a.tickerSymbol.localeCompare(b.tickerSymbol) : b.tickerSymbol.localeCompare(a.tickerSymbol) }); break;
+            case 'status': filteredResultsForDisplay = filteredResultsForDisplay.sort((a, b) => { return tableSort.direction ? a.status - b.status : b.status - a.status }); break;
+            case 'date': filteredResultsForDisplay = filteredResultsForDisplay.sort((a, b) => { return tableSort.direction ? new Date(a.dateAdded) - new Date(b.dateAdded) : new Date(b.dateAdded) - new Date(a.dateAdded) }); break;
+        }
+
+        return filteredResultsForDisplay
+
+    }, [data, tableFilters, tableSort])
 
 
 
-        setFilteredResults(filteredResultsForDisplay)
+    let dataTableBody
+    if (isSuccess)
+    {
+        dataTableBody = filteredSortedResults.map((confirmed, i) =>
+        {
+            return <tr className={`ConfirmedTableRow`} id={confirmed.tickerSymbol === selectedConfirmed?.tickerSymbol ? 'selected' : ''} onClick={() => setSelectedConfirmed(confirmed)}>
+                <td>{confirmed.tickerSymbol}</td>
+                <td>{confirmed.status >= 0 ? confirmedStatuses[confirmed.status] : 'Quick Add'}</td>
+                <td>{new Date(confirmed.dateAdded).toLocaleDateString()}</td>
+                <td>y</td>
+                <td></td>
+                <td><button><ArrowBigRight size={16} onClick={(e) => { e.stopPropagation(); jumpToChart(confirmed) }} /></button></td>
+            </tr>
+        })
+    }
+    else if (isLoading) { dataTableBody = <div>Loading...</div> }
+    else if (isError) { dataTableBody = <div>Error Loading Confirmed Summaries</div> }
 
-    }, [tableFilters])
-
+    function jumpToChart(confirmed)
+    {
+        dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: confirmed.tickerSymbol, chartingId: confirmed._id }))
+        dispatch(setStockDetailState(5))
+    }
+    function handleDirectSearchChange()
+    {
+        if (directSearch.current.value === '') setTableFilters(prev => ({ ...prev, tickerSearch: undefined }))
+    }
 
 
     return (
         <div id='LHS-ConfirmedStockStatusContainer'>
 
             <div id='LHS-StatusTableControl'>
-                <h1>Confirmed Status</h1>
-                <p>Stats</p>
+                <h3>Filter Options</h3>
+                <div>
+                    <form onSubmit={(e) => { e.preventDefault(); setTableFilters(prev => ({ ...prev, tickerSearch: directSearch.current.value.toUpperCase() })) }}>
+                        <fieldset className='DirectSearchFieldSet'>
+                            <legend>Ticker Search</legend>
+                            <input type="text" placeholder='Ticker Search' ref={directSearch} onChange={handleDirectSearchChange} style={{ textTransform: "uppercase" }} />
+                            <div>
+                                <button type='button' onClick={() => setTableFilters(prev => ({ ...prev, tickerSearch: directSearch.current.value.toUpperCase() }))}>Search</button>
+                                <button type='button' onClick={() => { setTableFilters(prev => ({ ...prev, tickerSearch: undefined })); directSearch.current.value = '' }}>Clear</button>
+                            </div>
+                        </fieldset>
+                    </form>
 
-                <form onSubmit={(e) => e.preventDefault()}>
-                    <input type="text" placeholder='Ticker Search' />
-                    <button>Search</button>
-                </form>
-
-
-                <fieldset className='ShowOnlySelectedStatus' onChange={(e) => setTableFilters(prev => ({ ...prev, status: parseInt(e.target.value) }))}>
-                    <legend>Confirmed Status</legend>
-                    <div className='ShowOnlyRadioBtn'>
-                        <input type="radio" name="showOnlyStatus" id="all" className='visually-hidden' defaultChecked value={0} />
-                        <label htmlFor="all">All</label>
-                    </div>
-                    {confirmedStatuses.map((status, i) =>
-                    {
-                        return <div className='ShowOnlyRadioBtn' key={status}>
-                            <input type="radio" name="showOnlyStatus" id={status} className='visually-hidden' value={i + 1} />
-                            <label htmlFor={status}>{status}</label>
+                    <fieldset className='ShowOnlySelectedStatus' onChange={(e) => setTableFilters(prev => ({ ...prev, status: parseInt(e.target.value) }))}>
+                        <legend>Confirmed Status</legend>
+                        <div className='ShowOnlyRadioBtn'>
+                            <input type="radio" name="showOnlyStatus" id="all" className='visually-hidden' defaultChecked value={0} />
+                            <label htmlFor="all">All</label>
                         </div>
-                    })}
-                </fieldset>
+                        {confirmedStatuses.map((status, i) =>
+                        {
+                            return <div className='ShowOnlyRadioBtn' key={status}>
+                                <input type="radio" name="showOnlyStatus" id={status} className='visually-hidden' value={i + 1} />
+                                <label htmlFor={status}>{status}</label>
+                            </div>
+                        })}
+                    </fieldset>
+                </div>
 
-                <fieldset className='ShowOnlyAddedWithin' onChange={(e) => setTableFilters(prev => ({ ...prev, addedWithin: parseInt(e.target.value) }))}>
-                    <legend>Add Within</legend>
-                    <div className='ShowOnlyRadioBtn'>
-                        <input type="radio" name='addedWithin' id='any' className='visually-hidden' defaultChecked value={0} />
-                        <label htmlFor="any">Any</label>
-                    </div>
-                    <div className='ShowOnlyRadioBtn'>
-                        <input type="radio" name='addedWithin' id='today' className='visually-hidden' value={-1} />
-                        <label htmlFor="today">Today</label>
-                    </div>
-                    <div className='ShowOnlyRadioBtn'>
-                        <input type="radio" name='addedWithin' id='oneDay' className='visually-hidden' value={1} />
-                        <label htmlFor="oneDay">Yesterday</label>
-                    </div>
-                    <div className='ShowOnlyRadioBtn'>
-                        <input type="radio" name='addedWithin' id='twoDay' className='visually-hidden' value={2} />
-                        <label htmlFor="twoDay">2 Day</label>
-                    </div>
-                    <div className='ShowOnlyRadioBtn'>
-                        <input type="radio" name='addedWithin' id='week' className='visually-hidden' value={7} />
-                        <label htmlFor="week">Week</label>
-                    </div>
-                    <div className='ShowOnlyRadioBtn'>
-                        <input type="radio" name='addedWithin' id='twoWeek' className='visually-hidden' value={14} />
-                        <label htmlFor="twoWeek">2 Weeks</label>
-                    </div>
-                    <div className='ShowOnlyRadioBtn'>
-                        <input type="radio" name='addedWithin' id='month' className='visually-hidden' value={30} />
-                        <label htmlFor="month">Month</label>
-                    </div>
+                <div>
+                    <fieldset className='ShowOnlyAddedWithin' onChange={(e) => setTableFilters(prev => ({ ...prev, olderThan: 0, addedWithin: parseInt(e.target.value) }))}>
+                        <legend>Confirmed Added</legend>
+                        <div className='ShowOnlyRadioBtn'>
+                            <input type="radio" name='addedWithin' id='any' className='visually-hidden' defaultChecked checked={tableFilters.addedWithin === 0} value={0} />
+                            <label htmlFor="any">Any</label>
+                        </div>
+                        <div className='ShowOnlyRadioBtn'>
+                            <input type="radio" name='addedWithin' id='today' className='visually-hidden' value={-1} />
+                            <label htmlFor="today">Today</label>
+                        </div>
+                        <div className='ShowOnlyRadioBtn'>
+                            <input type="radio" name='addedWithin' id='oneDay' className='visually-hidden' value={1} />
+                            <label htmlFor="oneDay">Yesterday</label>
+                        </div>
+                        <div className='ShowOnlyRadioBtn'>
+                            <input type="radio" name='addedWithin' id='twoDay' className='visually-hidden' value={2} />
+                            <label htmlFor="twoDay">2 Days</label>
+                        </div>
+                        <div className='ShowOnlyRadioBtn'>
+                            <input type="radio" name='addedWithin' id='week' className='visually-hidden' value={7} />
+                            <label htmlFor="week">1 Week</label>
+                        </div>
+                        <div className='ShowOnlyRadioBtn'>
+                            <input type="radio" name='addedWithin' id='twoWeek' className='visually-hidden' value={14} />
+                            <label htmlFor="twoWeek">2 Weeks</label>
+                        </div>
+                        <div className='ShowOnlyRadioBtn'>
+                            <input type="radio" name='addedWithin' id='month' className='visually-hidden' value={30} />
+                            <label htmlFor="month">30 Days</label>
+                        </div>
+                        <div className='ShowOnlyRadioBtn'>
+                            <input type="radio" name='addedWithin' id='2month' className='visually-hidden' value={60} />
+                            <label htmlFor="2month">60 Days</label>
+                        </div>
+                    </fieldset>
 
-                </fieldset>
+                    <fieldset className='ShowOnlyOlderThan' onChange={(e) => setTableFilters(prev => ({ ...prev, addedWithin: 0, olderThan: parseInt(e.target.value) }))}>
+                        <legend>Confirmed Older Than</legend>
+                        <div className='olderThanExact'>
+                            <div>
+                                <input type="number" name='olderThanExact' id='exact' value={tableFilters.olderThan} min={0} />
+                                <label htmlFor="exact"> Days</label>
+                            </div>
+                            <button onClick={() => setTableFilters(prev => ({ ...prev, olderThan: 0 }))}>Clear</button>
+                        </div>
+                        <div className='flex'>
+                            <div className='ShowOnlyRadioBtnNoSelect'>
+                                <input type="radio" name='olderThan' id='oneWeekOlder' className='visually-hidden' value={7} />
+                                <label htmlFor="oneWeekOlder">1 Week</label>
+                            </div>
+                            <div className='ShowOnlyRadioBtnNoSelect'>
+                                <input type="radio" name='olderThan' id='twoWeekOlder' className='visually-hidden' value={14} />
+                                <label htmlFor="twoWeekOlder">2 Weeks</label>
+                            </div>
+                            <div className='ShowOnlyRadioBtnNoSelect'>
+                                <input type="radio" name='olderThan' id='threeWeekOlder' className='visually-hidden' value={21} />
+                                <label htmlFor="threeWeekOlder">3 Weeks</label>
+                            </div>
+                        </div>
 
-
+                    </fieldset>
+                </div>
             </div>
 
 
@@ -140,22 +193,47 @@ function ConfirmedStatus()
                 <table>
                     <thead>
                         <tr>
-                            <th>Ticker</th>
-                            <th>Status</th>
+                            <th onClick={() => setTableSort(prev => ({ sort: 'ticker', direction: !prev.direction }))}>
+                                <div>Ticker{tableSort.sort === 'ticker' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
+                            </th>
+                            <th onClick={() => setTableSort(prev => ({ sort: 'status', direction: !prev.direction }))}>
+                                <div>Status {tableSort.sort === 'status' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
+                            </th>
+                            <th onClick={() => setTableSort(prev => ({ sort: 'date', direction: !prev.direction }))}>
+                                <div>Date Added{tableSort.sort === 'date' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
+                            </th>
+                            <th onClick={() => setTableSort(prev => ({ sort: 'enterHit', direction: !prev.direction }))}>
+                                <div>Enter Hit{tableSort.sort === 'enterHit' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
+                            </th>
+                            <th onClick={() => setTableSort(prev => ({ sort: 'stopLossHit', direction: !prev.direction }))}>
+                                <div>Stoploss Hit{tableSort.sort === 'stopLossHit' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
+                            </th>
                             <th>Chart</th>
-                            <th>Date Added</th>
-                            <th>Enter Hit & Tracking</th>
-                            <th>Stoploss Hit & Tracking</th>
-                            <th>Plan</th>
                         </tr>
                     </thead>
                     <tbody>
                         {dataTableBody}
                     </tbody>
                 </table>
-
             </div>
-        </div>
+
+            <div id='LHS-ConfirmedSelectedStatus'>
+                <div>
+                    Graph here
+
+                </div>
+                <div>
+                    {selectedConfirmed ?
+                        <div>
+                            <h2>{selectedConfirmed?.tickerSymbol}</h2>
+                        </div> :
+                        <div>
+                            <h1>Select</h1>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div >
     )
 }
 

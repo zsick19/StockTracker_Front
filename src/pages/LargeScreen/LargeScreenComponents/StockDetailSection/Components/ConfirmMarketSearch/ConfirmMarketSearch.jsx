@@ -50,8 +50,7 @@ function ConfirmMarketSearch()
             <div id='LHS-UserUnconfirmedPatternResults'>
                 <div>
                     <button onClick={() => setShowSubmit(true)} disabled={isSuccess && data.length === 0}>Submit Progress</button>
-                    {showSubmit &&
-                        <div id='SubmitWindow'>
+                    {showSubmit &&                        <div id='SubmitWindow'>
                             <div>
                                 <h4>Keep</h4>
                                 {keepTheseTickers.keep.map((keep) => { return <p>{keep}</p> })}
