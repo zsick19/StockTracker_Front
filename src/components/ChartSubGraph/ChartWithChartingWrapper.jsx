@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import ChartGraph from './ChartGraph'
 import { useGetChartingDataQuery } from '../../features/Charting/ChartingSliceApi'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { setPreviousCharting } from '../../features/Charting/chartingElements'
 import { setKeyLevelsCharting } from '../../features/KeyLevels/KeyLevelGraphElements'
 
@@ -18,7 +18,6 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
             dispatch(setPreviousCharting(chartingData))
         }
     }, [chartingData])
-
 
 
     return (

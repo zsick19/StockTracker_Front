@@ -1,16 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useGetUsersConfirmedSummaryQuery } from '../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { ArrowBigRight, ArrowDown, ArrowUp, ChevronDown, ChevronUp, Dot, Info } from 'lucide-react'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { confirmedStatuses } from '../../../../../../Utilities/ConfirmedStatuses'
 import { subDays } from 'date-fns'
 import './ConfirmedStatus.css'
+import { selectCurrentUnConfirmed } from '../../../../../../features/SelectedStocks/PreviousNextStockSlice'
 
 function ConfirmedStatus()
 {
     const dispatch = useDispatch()
+    const pickUpUncharted = useSelector(selectCurrentUnConfirmed)
     const directSearch = useRef()
 
     const { data, isSuccess, isError, isLoading, error, refetch } = useGetUsersConfirmedSummaryQuery()
@@ -89,6 +91,11 @@ function ConfirmedStatus()
         if (directSearch.current.value === '') setTableFilters(prev => ({ ...prev, tickerSearch: undefined }))
     }
 
+    function handlePickUpFromLastUncharted()
+    {
+        dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: pickUpUncharted.ticker, chartingId: pickUpUncharted._id }))
+        dispatch(setStockDetailState(5))
+    }
 
     return (
         <div id='LHS-ConfirmedStockStatusContainer'>
@@ -220,7 +227,7 @@ function ConfirmedStatus()
             <div id='LHS-ConfirmedSelectedStatus'>
                 <div>
                     Graph here
-                    <button>Begin Charting/Pick up Where you left off</button>
+                    <button onClick={() => handlePickUpFromLastUncharted()}>Begin Charting/Pick up Where you left off</button>
                 </div>
                 <div>
                     {selectedConfirmed ?

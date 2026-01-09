@@ -10,15 +10,17 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
       }),
       keepUnusedDataFor: 60000,
     }),
-    getStockDataAndInfoUsingTimeFrame: builder.query({
-      query: (args) => ({
-        url: `/stockData/ticker/${args.ticker}?liveFeed=${args.liveFeed}`,
-        method: "POST",
-        body: { timeFrame: args.timeFrame },
-      }),
-      keepUnusedDataFor: 60000,
-    })
+    // getStockDataAndInfoUsingTimeFrame: builder.query({
+    //   query: (args) => ({
+    //     url: `/stockData/ticker/${args.ticker}?liveFeed=${args.liveFeed}`,
+    //     method: "POST",
+    //     body: { timeFrame: args.timeFrame },
+    //   }),
+    //   keepUnusedDataFor: 60000,
+    // })
   }),
 });
 
-export const { useGetStockDataUsingTimeFrameQuery, useGetStockDataAndInfoUsingTimeFrameQuery } = StockDataApiSlice;
+export const { useGetStockDataUsingTimeFrameQuery,
+  //useGetStockDataAndInfoUsingTimeFrameQuery 
+} = StockDataApiSlice;
