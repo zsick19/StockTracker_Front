@@ -13,6 +13,22 @@
   align-items: center;
 }
 
+.IntraDayTimeFrameBtns {
+  font-size: var(--fs-200);
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr; /* Forces all columns to be equal */
+  gap: 10px;
+  width: max-content;
+}
+
+.IntraDayTimeFrameBtns button {
+  border-radius: 5px;
+  border: 1px solid black;
+  background-color: rgb(40, 46, 71);
+  color: white;
+}
+
 .SingleChartModalUnderlay {
   position: absolute;
   height: 100%;
@@ -20,7 +36,7 @@
   background-color: rgba(59, 59, 59, 0.363);
 }
 
-#LHS-SingleChartVisibilityModal {
+.LHS-SingleChartModal {
   position: absolute;
   top: 10%;
   left: 12.5%;
@@ -54,7 +70,7 @@
 #LHS-SingleChartControls {
   height: 20%;
   display: grid;
-  grid-template-columns: 80% 1fr;
+  grid-template-columns: 1fr min-content;
   padding: 1rem;
 }
 
@@ -73,9 +89,25 @@
 }
 
 #LHS-UnChartedNavigation {
-  display: grid;
-  align-items: center;
-  background-color: gray;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
   height: 100%;
-  width: 100%;
+}
+
+.buttonIcon {
+  border: none;
+  background: none;
+}
+
+#LHS-UnChartedNavigation div {
+  font-size: var(--fs-200);
+  display: grid;
+  grid-template-columns: min-content 1fr min-content;
+  justify-content: center;
+  justify-items: center;
+  align-content: center;
+  align-items: center;
+  gap: 0.5rem;
 }

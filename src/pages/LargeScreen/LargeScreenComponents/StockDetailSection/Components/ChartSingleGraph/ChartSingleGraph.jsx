@@ -3,10 +3,18 @@ import './ChartSingleGraph.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectSingleChartStock, setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 import SingleGraphChartWrapper from './Components/SingleGraphChartWrapper'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarCog, ChevronLeft, ChevronRight, EyeOff, Scale3D } from 'lucide-react'
 import { selectConfirmedUnChartedTrio, setConfirmedUnChartedNavIndex } from '../../../../../../features/SelectedStocks/PreviousNextStockSlice'
 import { selectCurrentTool } from '../../../../../../features/Charting/ChartingTool'
 import VisibilityModal from './Components/VisibilityModal'
+import { interDayTimeFrames } from '../../../../../../Utilities/TimeFrames'
+import KeyLevelsPanel from './Components/ChartControlPanels/KeyLevelsPanel'
+import EnterExitPanel from './Components/ChartControlPanels/EnterExitPanel'
+import InfoPanel from './Components/ChartControlPanels/InfoPanel'
+import AlertPanel from './Components/ChartControlPanels/AlertPanel'
+import CustomTimeFrameModal from './Components/CustomTimeFrameModal'
+import StudiesModal from './Components/StudiesModal'
+import ContinueChartingNav from './Components/ContinueChartingNav'
 
 function ChartSingleGraph()
 {
@@ -15,8 +23,12 @@ function ChartSingleGraph()
     const selectedTicker = useSelector(selectSingleChartStock)
     const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
 
+    const [timeFrame, setTimeFrame] = useState(selectedTicker.timeFrame)
+
     const [chartInfoDisplay, setChartInfoDisplay] = useState(0)
+    const [showCustomTimeFrameModal, setShowCustomTimeFrameModal] = useState(false)
     const [showVisibilityModal, setShowVisibilityModal] = useState(false)
+    const [showStudiesModal, setShowStudiesModal] = useState(false)
 
 
     function handleNavigatingToNextUnChartedStock(nextDirection)
@@ -27,20 +39,20 @@ function ChartSingleGraph()
             {
                 if (currentUnChartedTicker.next)
                 {
-                    dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.next.ticker, chartingId: currentUnChartedTicker.next._id }))
+                    dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.next.ticker, chartId: currentUnChartedTicker.next.chartId }))
                     dispatch(setConfirmedUnChartedNavIndex({ next: nextDirection }))
                 }
-            } else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.current.ticker, chartingId: currentUnChartedTicker.current._id })) }
+            } else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.current.ticker, chartId: currentUnChartedTicker.current.chartId })) }
         } else
         {
             if (currentUnChartedTicker.current.ticker === selectedTicker.ticker)
             {
                 if (currentUnChartedTicker.previous)
                 {
-                    dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.previous.ticker, chartingId: currentUnChartedTicker.previous._id }))
+                    dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.previous.ticker, chartId: currentUnChartedTicker.previous.chartId }))
                     dispatch(setConfirmedUnChartedNavIndex({ next: nextDirection }))
                 }
-            } else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.current.ticker, chartingId: currentUnChartedTicker.current._id })) }
+            } else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.current.ticker, chartId: currentUnChartedTicker.current.chartId })) }
         }
     }
 
@@ -58,78 +70,42 @@ function ChartSingleGraph()
     {
         switch (chartInfoDisplay)
         {
-            case 0:
-                return (
-                    <div>
-                        <button>Reject</button>
-
-                        <button>Begin Tracking</button>
-                    </div>)
-            case 1:
-                return (
-                    <div>
-                        Alert info here
-                    </div>
-                )
-
-            case 2: return (
-                <div>
-                    Planning Enter/Exit
-                </div>
-            )
-
-            default:
-                break;
+            case 0: return <InfoPanel />
+            case 1: return <EnterExitPanel />
+            case 2: return <KeyLevelsPanel />
+            case 3: return <AlertPanel />
+            default: return <InfoPanel />
         }
     }
 
-    useEffect(() =>
-    {
-        switch (currentTool)
-        {
-            case 'Trace': return setChartInfoDisplay(0)
-            case 'PriceAlert': return setChartInfoDisplay(1)
-            case 'EnterExit': return setChartInfoDisplay(2)
-            default: return setChartInfoDisplay(0)
-        }
-
-    }, [currentTool])
-
-
     return (
         <div id='LHS-SingleGraphForCharting'>
+
             <div id='LHS-SingleGraphMenuBar'>
                 {selectedTicker?.ticker || 'No ticker selected'}
-                <button>Studies</button>
-                <button onClick={() => setShowVisibilityModal(true)}>Visibility Control</button>
-                <button>TimeFrame Control</button>
+                <button onClick={() => { setShowStudiesModal(true) }}>Studies</button>
+                <button onClick={() => { setShowVisibilityModal(true) }} title='Visibility Control'><EyeOff size={20} /></button>
+
+                <div className='IntraDayTimeFrameBtns'>
+                    {interDayTimeFrames.map((timeFrame) => { return <button onClick={() => setTimeFrame(timeFrame.timeFrame)}>{timeFrame.label}</button> })}
+                    <button onClick={() => { setShowCustomTimeFrameModal(true) }}><CalendarCog size={20} /></button>
+                </div>
+                <button onClick={() => handleResetScale()} className='buttonIcon'><Scale3D color='white' size={20} /></button>
             </div>
 
-
             {showVisibilityModal && <VisibilityModal setShowVisibilityModal={setShowVisibilityModal} />}
+            {showCustomTimeFrameModal && <CustomTimeFrameModal timeFrame={timeFrame} setTimeFrame={setTimeFrame} setShowCustomTimeFrameModal={setShowCustomTimeFrameModal} />}
+            {showStudiesModal && <StudiesModal setShowStudiesModal={setShowStudiesModal} />}
 
-            {selectedTicker ?
-                <SingleGraphChartWrapper ticker={selectedTicker.ticker} chartId={undefined} timeFrame={selectedTicker.timeFrame} setChartInfoDisplay={setChartInfoDisplay} />
+
+
+            {selectedTicker ? <SingleGraphChartWrapper ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setChartInfoDisplay={setChartInfoDisplay} />
                 : <div>No Chart Selected</div>}
 
+
             <div id='LHS-SingleChartControls'>
-                <div>
-                    <h3>Chart Controls</h3>
-                    {provideChartInfoDisplay()}
-                </div>
-                <div id='LHS-UnChartedNavigation'>
-                    <div>
-                        <p>Uncharted</p>
-                        <button disabled={!currentUnChartedTicker.previous} onClick={() => handleNavigatingToNextUnChartedStock(false)}><ChevronLeft /></button>
-                        <button disabled={!currentUnChartedTicker.next} onClick={() => handleNavigatingToNextUnChartedStock(true)}><ChevronRight /></button>
-                    </div>
-                    <div>
-                        <p>Unplanned</p>
-                        <button disabled={!currentUnChartedTicker.previous} onClick={() => handleNavigatingToNextUnChartedStock(false)}><ChevronLeft /></button>
-                        <button disabled={!currentUnChartedTicker.next} onClick={() => handleNavigatingToNextUnChartedStock(true)}><ChevronRight /></button>
-                    </div>
-                    <button>Sync Progress</button>
-                </div>
+                {provideChartInfoDisplay()}
+                <ContinueChartingNav currentUnChartedTicker={currentUnChartedTicker} handleNavigatingToNextUnChartedStock={handleNavigatingToNextUnChartedStock} />
             </div>
         </div>
     )

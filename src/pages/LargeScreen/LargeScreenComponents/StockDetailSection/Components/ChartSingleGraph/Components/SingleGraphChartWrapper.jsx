@@ -4,7 +4,7 @@ import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../feature
 import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
-import { Info, Save } from 'lucide-react'
+import { Info, KeyRound, Plane, Save, Siren } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool, setTool } from '../../../../../../../features/Charting/ChartingTool'
 import { AlertTools, ChartingTools, PlanningTools } from '../../../../../../../Utilities/ChartingTools'
@@ -31,21 +31,26 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
             {actualGraph}
             <div id='LHS-SingleGraphToolBar'>
 
-                <p className='veryTinyText'>Tools</p>
+                <p className='veryTinyText'>Draw</p>
                 {ChartingTools.map((tool, index) => { return <button key={tool.tool} title={tool.tool} onClick={() => dispatch(setTool(ChartingTools[index].tool))} className={currentTool === ChartingTools[index].tool ? 'currentTool' : 'notCurrentTool'} >{ChartingTools[index].icon}</button> })}
                 <br />
+                <br />
+
 
                 <p className='veryTinyText'>Plan</p>
-                {PlanningTools.map((tool, index) => <button key={tool.tool} title={tool.tool} onClick={() => dispatch(setTool(PlanningTools[index].tool))} className={currentTool === PlanningTools[index].tool ? 'currentTool' : 'notCurrentTool'}>{tool.icon}</button>)}
-                <br />
+                <button title='Planning' onClick={() => setChartInfoDisplay(1)}><Plane size={20} color='white' /></button>
+                <p className='veryTinyText'>Levels</p>
+                <button title='Key Levels' onClick={() => setChartInfoDisplay(2)}><KeyRound size={20} color='white' /></button>
                 <p className='veryTinyText'>Alerts</p>
-                {AlertTools.map((tool, index) => <button key={tool.tool} title={tool.tool} onClick={() => dispatch(setTool(AlertTools[index].tool))} className={currentTool === AlertTools[index].tool ? 'currentTool' : 'notCurrentTool'}>{tool.icon}</button>)}
+                <button title='Alerts' onClick={() => setChartInfoDisplay(3)}><Siren size={20} color='white' /></button>
+                <p className='veryTinyText'>Info</p>
+                <button onClick={() => setChartInfoDisplay(0)}><Info size={20} color='white' /></button>
+
                 <br />
                 <br />
 
                 <p className='veryTinyText'>Utility</p>
                 <button><Save size={20} color='white' /></button>
-                <button onClick={() => setChartInfoDisplay(0)}><Info size={20} color='white' /></button>
             </div>
         </div>
     )

@@ -3,8 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const previousNextStockSlice = createSlice({
     name: "previousNextStock",
     initialState: {
-        confirmedUncharted: [{ ticker: 'AARD', _id: '695eee1fbc2c64a116d5cbd7' }, { ticker: 'AAUC', _id: '695eee1fbc2c64a116d5cbd8' }, { ticker: 'AAPL', _id: '695ef093b364759947ace43c' },
-        { ticker: 'AAP', _id: "695ef093b364759947ace43d" }, { ticker: 'AAON', _id: "695ef20ab364759947ace462" }, { ticker: 'AB', _id: '695ef2d8b364759947ace476' }
+        confirmedUncharted: [{ ticker: 'AARD', chartId: '695eee1fbc2c64a116d5cbd7' }, { ticker: 'AAUC', chartId: '695eee1fbc2c64a116d5cbd8' }, { ticker: 'AAPL', chartId: '695ef093b364759947ace43c' },
+        { ticker: 'AAP', chartId: "695ef093b364759947ace43d" }, { ticker: 'AAON', chartId: "695ef20ab364759947ace462" }, { ticker: 'AB', _id: '695ef2d8b364759947ace476' }
         ],
         confirmedUnChartedLastIndex: 0
     },

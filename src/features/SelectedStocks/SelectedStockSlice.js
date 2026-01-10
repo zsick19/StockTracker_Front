@@ -25,7 +25,7 @@ const selectedStockSlice = createSlice({
         },
         setSingleChartTickerTimeFrameAndChartingId: (state, action) =>
         {
-            return [{ ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear, chartingId: action.payload.chartId }]
+            return [{ ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear, chartId: action.payload.chartId }]
         }
     },
 });

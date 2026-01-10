@@ -7,11 +7,13 @@ import { sub, subBusinessDays, addDays, isToday } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
+import { selectEnterExitByTickerMemo } from '../../features/EnterExitPlans/EnterExitGraphElement'
 
 function ChartGraph({ ticker, candleData, mostRecentPrice, chartingData, timeFrame })
 {
     //    const allChartingData = useSelector(selectAllCharting)
     const KeyLevels = useSelector((state) => selectTickerKeyLevels(state, ticker.ticker))
+    const EnterExitPlan = useSelector((state) => selectEnterExitByTickerMemo(state, ticker))
 
 
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
@@ -184,6 +186,7 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, chartingData, timeFra
 
         stockCandleSVG.select('.currentPrice').selectAll('line').remove()
         stockCandleSVG.select('.keyLevels').selectAll('line').remove()
+        stockCandleSVG.select('.enterExits').selectAll('line').remove()
 
         if (KeyLevels.gammaFlip)
         {
@@ -205,15 +208,26 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, chartingData, timeFra
                 .attr('stroke', 'blue')
                 .attr('stroke-width', '2px')
                 .attr('stroke-dasharray', '5 5')
+        }
 
-
-
+        if (EnterExitPlan?.enterPrice)
+        {
+            console.log('hit')
+            let pixelPrice = createPriceScale({ priceToPixel: EnterExitPlan.enterPrice })
+            stockCandleSVG.select('.enterExits').append('line')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', pixelPrice).attr('y2', pixelPrice)
+                .attr('stroke', 'red')
+                .attr('stroke-width', '2px')
+                .attr('stroke-dasharray', '5 5')
 
         }
 
 
 
-    }, [candleData, KeyLevels, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
+
+
+    }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
 
 
     //zoomXBehavior

@@ -12,6 +12,11 @@ function VisibilityModal({ setShowVisibilityModal })
         setVisibilityEdit(prev => ({ ...prev, trendLines: e.target.checked }))
     }
 
+    function handleShowOnlyPlan()
+    {
+        setVisibilityEdit(prev => ({ ...prev, trendLines: false, enterExitPlan: true }))
+    }
+
     function submitVisibilityControl(e)
     {
         e.preventDefault()
@@ -22,16 +27,21 @@ function VisibilityModal({ setShowVisibilityModal })
     return (
         <>
             <div className='SingleChartModalUnderlay' onClick={() => setShowVisibilityModal(false)}></div>
-            <div id='LHS-SingleChartVisibilityModal' onClick={(e) => e.stopPropagation()}>
+            <div className='LHS-SingleChartModal' onClick={(e) => e.stopPropagation()}>
 
                 <form onSubmit={(e) => submitVisibilityControl(e)} onChange={handleVisibilityChange}>
                     <div>
                         <label htmlFor="trendLines">Trend Lines</label>
                         <input type="checkbox" name="visControl" id="trendLines" defaultChecked={visibilityEdit.trendLines} />
                     </div>
+                    <div>
+                        <label htmlFor="enterExit">Enter Exit Plan</label>
+                        <input type="checkbox" name="visControl" id="enterExit" defaultChecked={visibilityEdit.enterExitPlan} />
+                    </div>
 
-                    
-                        <button >Submit</button>
+                    <button type='button' onClick={() => handleShowOnlyPlan()}>Only Plan</button>
+
+                    <button >Submit</button>
 
 
                 </form>

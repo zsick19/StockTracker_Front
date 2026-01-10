@@ -11,17 +11,20 @@ import stockDetailControlReducers from '../features/SelectedStocks/StockDetailCo
 import previousNextStockReducers from '../features/SelectedStocks/PreviousNextStockSlice'
 import chartingToolReducers from '../features/Charting/ChartingTool'
 import chartingVisibilityReducers from '../features/Charting/ChartingVisibility'
+import enterExitChartingReducers from '../features/EnterExitPlans/EnterExitGraphElement'
 
 export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
     chartingElement: chartingElementReducers,
+    enterExitElement: enterExitChartingReducers,
     keyLevelElement: keyLevelGraphElementsReducers,
     selectedStock: selectedStockReducers,
     stockDetailControl: stockDetailControlReducers,
     previousNextStock: previousNextStockReducers,
     chartingTool: chartingToolReducers,
     chartingVisibility: chartingVisibilityReducers,
+
     auth: authReducer,
     test: testReducer,
   },

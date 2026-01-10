@@ -1,7 +1,7 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
 
-const keyLevelGraphElementsSlice = createSlice({
-    name: "keyLevelGraphElements",
+const enterExitGraphElementsSlice = createSlice({
+    name: "enterExitGraphElements",
     initialState: {
     },
     reducers: {
@@ -101,10 +101,25 @@ const keyLevelGraphElementsSlice = createSlice({
         //     }
         //     state.chartingAltered = true;
         // },
-        setKeyLevelsCharting: (state, action) =>
+        setEnterExitCharting: (state, action) =>
         {
             let chartingData = action.payload
-            if (action.payload.gammaFlip) { state[chartingData.tickerSymbol] = { gammaFlip: chartingData.gammaFlip } }
+            if (action.payload.plannedId)
+            {
+                state[chartingData.tickerSymbol] = { ...chartingData.plannedId.plan }
+            } else
+            {
+                state[chartingData.tickerSymbol] = {
+                    enterBufferPrice: undefined,
+                    enterPrice: undefined,
+                    stoplossPrice: undefined,
+                    exitBufferPrice: undefined,
+                    exitPrice: undefined,
+                    moonPrice: undefined,
+                    risk: undefined,
+                    reward: undefined
+                }
+            }
         },
         // clearPreviousCharting: (state, action) =>
         // {
@@ -115,18 +130,16 @@ const keyLevelGraphElementsSlice = createSlice({
 });
 
 export const {
-    setKeyLevelsCharting
-} = keyLevelGraphElementsSlice.actions;
+    setEnterExitCharting
+} = enterExitGraphElementsSlice.actions;
 
-export default keyLevelGraphElementsSlice.reducer;
-
-
+export default enterExitGraphElementsSlice.reducer;
 
 
-export const selectTickerKeyLevels = (state, ticker) =>
-{
-    if (ticker in state.keyLevelElement) return state.keyLevelElement[ticker]
-    else return {}
-}
+const enterExitPlans = state => state.enterExitElement
+const selectedTicker = (state, ticker) => ticker
+export const selectEnterExitByTickerMemo = createSelector(
+    [enterExitPlans, selectedTicker],
+    (enterExitPlans, ticker) => { return enterExitPlans[ticker] }
+)
 
-export const { selectByTicker } = keyLevelGraphElementsSlice.selectors

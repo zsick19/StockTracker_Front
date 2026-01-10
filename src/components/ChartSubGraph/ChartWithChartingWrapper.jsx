@@ -4,6 +4,7 @@ import { useGetChartingDataQuery } from '../../features/Charting/ChartingSliceAp
 import { useDispatch, useSelector } from 'react-redux'
 import { setPreviousCharting } from '../../features/Charting/chartingElements'
 import { setKeyLevelsCharting } from '../../features/KeyLevels/KeyLevelGraphElements'
+import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGraphElement'
 
 function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
 {
@@ -14,6 +15,7 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
     {
         if (isSuccess)
         {
+            dispatch(setEnterExitCharting(chartingData))
             dispatch(setKeyLevelsCharting(chartingData))
             dispatch(setPreviousCharting(chartingData))
         }
@@ -22,7 +24,8 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
 
     return (
         <div className="ChartGraphWrapper">
-            <ChartGraph ticker={ticker} candleData={candleData.candleData} mostRecentPrice={candleData.mostRecentPrice} timeFrame={timeFrame} />
+            <ChartGraph ticker={ticker} candleData={candleData.candleData} mostRecentPrice={candleData.mostRecentPrice} 
+            timeFrame={timeFrame} />
         </div>
     )
 }
