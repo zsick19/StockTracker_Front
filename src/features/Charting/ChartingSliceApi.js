@@ -10,13 +10,18 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
     }),
 
     updateChartingData: builder.mutation({
-      query: (args) => 
+      async queryFn(args, api, extraOptions, baseQuery)
       {
-        if (args.chartId) return {
+        if (!args.chartId) return
+        const state = api.getState()
+        let updatedCharting = state.chartingElement[args.ticker]
+        const result = await baseQuery({
           url: `/chartingData/${args.chartId}`,
           method: 'PUT',
-          body: args.chartingUpdate
-        }
+          body: updatedCharting
+        })
+
+        return result.data ? { data: result.data } : { error: result.error }
       },
       invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
     })

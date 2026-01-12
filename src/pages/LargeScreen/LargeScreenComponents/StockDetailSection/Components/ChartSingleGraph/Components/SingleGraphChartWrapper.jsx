@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool, setTool } from '../../../../../../../features/Charting/ChartingTool'
 import { AlertTools, ChartingTools, PlanningTools } from '../../../../../../../Utilities/ChartingTools'
 import { useUpdateChartingDataMutation } from '../../../../../../../features/Charting/ChartingSliceApi'
-import { makeSelectChartingByTicker } from '../../../../../../../features/Charting/chartingElements'
+import { makeSelectChartAlteredByTicker, makeSelectChartingByTicker } from '../../../../../../../features/Charting/chartingElements'
 
 
 function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay })
@@ -17,8 +17,9 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const dispatch = useDispatch()
 
     const currentTool = useSelector(selectCurrentTool)
-    const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
-    const charting = useSelector(state => selectedChartingMemo(state, ticker))
+    const selectedChartingMemo = useMemo(makeSelectChartAlteredByTicker, [])
+    const chartingAltered = useSelector(state => selectedChartingMemo(state, ticker))
+    console.log(chartingAltered)
 
     const [serverResponse, setServerResponse] = useState(undefined)
 
@@ -38,7 +39,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     {
         try
         {
-            await updateChartingData({ chartingUpdate: charting, chartId })
+            await updateChartingData({ ticker, chartId })
             setServerResponse("positive")
 
             setTimeout(() =>
@@ -56,8 +57,6 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
 
         }
     }
-
-    console.log(charting)
 
     return (
         <div id='LHS-SingleGraphForChartingWrapper'>
@@ -83,7 +82,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 <br />
 
                 <p className='veryTinyText'>Utility</p>
-                <button disabled={!chartId || !charting?.chartingAltered} onClick={attemptSavingCharting}><Save size={20} color={charting?.chartingAltered ? 'white' : 'gray'} /></button>
+                <button disabled={!chartId || !chartingAltered} title='Direct Save' onClick={attemptSavingCharting}><Save size={20} color={chartingAltered ? 'white' : 'gray'} /></button>
                 {serverResponse === "positive" && <Check color='green' size={20} />}
                 {serverResponse === "negative" && <X color='red' size={20} />}
 

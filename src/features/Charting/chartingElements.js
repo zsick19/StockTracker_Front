@@ -172,6 +172,10 @@ export const makeSelectChartingByTicker = () => createSelector(
   (entities, ticker) => entities[ticker]
 )
 
+export const makeSelectChartAlteredByTicker = () => createSelector(
+  [(state) => state.chartingElement, (state, ticker) => ticker],
+  (entities, ticker) => entities[ticker]?.chartingAltered
+)
 
 // freeLines: [],
 //   freeLinesId: 1,
