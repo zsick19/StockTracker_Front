@@ -5,7 +5,17 @@ const chartingVisibilitySlice = createSlice({
     initialState: {
         trendLines: true,
         currentPrice: true,
-        enterExitPlan: true
+        enterExitPlan: true,
+        
+        anyFreeLines: true, freeLines: true, previousFreeLines: true,
+        anyLinesH: true, linesH: true, previousLinesH: true,
+        anyTrendLines: true, trendLines: true, previousTrendLines: true,
+        anyChannels: true, channels: true, previousChannels: true,
+        anyTriangles: true, triangles: true, previousTriangles: true,
+        anyWedges: true, wedges: true, previousWedges: true,
+        anyEnterExits: true, enterExits: true, previousEnterExits: true,
+        showAnyPrevious: true, showAnyCurrent: true,
+        showAll: true, showOnlyEnterExit: false
     },
     reducers: {
         setAllVisibility: (state, action) =>

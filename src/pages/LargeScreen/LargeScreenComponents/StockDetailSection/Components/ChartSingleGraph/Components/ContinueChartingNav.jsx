@@ -10,14 +10,14 @@ function ContinueChartingNav({ currentUnChartedTicker, handleNavigatingToNextUnC
             <p>Continue Charting</p>
 
             <div>
-                <button className='buttonIcon' disabled={!currentUnChartedTicker.previous} onClick={() => handleNavigatingToNextUnChartedStock(false)}><ChevronLeft color='white' /></button>
+                <button className='buttonIcon' disabled={!currentUnChartedTicker.previous} onClick={() => handleNavigatingToNextUnChartedStock(false)}><ChevronLeft color={currentUnChartedTicker.previous ? 'white' : 'gray'} /></button>
                 <p>Uncharted</p>
-                <button className='buttonIcon' disabled={!currentUnChartedTicker.next} onClick={() => handleNavigatingToNextUnChartedStock(true)}><ChevronRight color='white' /></button>
+                <button className='buttonIcon' disabled={!currentUnChartedTicker.next} onClick={() => handleNavigatingToNextUnChartedStock(true)}><ChevronRight color={currentUnChartedTicker.next ? 'white' : 'gray'} /></button>
             </div>
             <div>
-                <button className='buttonIcon' disabled={!currentUnChartedTicker.previous} onClick={() => handleNavigatingToNextUnChartedStock(false)}><ChevronLeft color='white' /></button>
+                <button className='buttonIcon' disabled={!currentUnChartedTicker.previous} onClick={() => handleNavigatingToNextUnChartedStock(false)}><ChevronLeft color={currentUnChartedTicker.previous ? 'white' : 'gray'} /></button>
                 <p>Unplanned</p>
-                <button className='buttonIcon' disabled={!currentUnChartedTicker.next} onClick={() => handleNavigatingToNextUnChartedStock(true)}><ChevronRight color='white' /></button>
+                <button className='buttonIcon' disabled={!currentUnChartedTicker.next} onClick={() => handleNavigatingToNextUnChartedStock(true)}><ChevronRight color={currentUnChartedTicker.next ? 'white' : 'gray'} /></button>
             </div>
             <button>Sync Progress</button>
         </div>

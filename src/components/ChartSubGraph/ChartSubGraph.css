@@ -76,6 +76,7 @@
 
 .ChartGraphWrapper {
   flex: 1;
+  position: relative;
 }
 
 .SVGGraphWrapper svg {
