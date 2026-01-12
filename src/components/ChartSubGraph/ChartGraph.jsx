@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addLine, makeSelectChartingByTicker } from '../../features/Charting/chartingElements'
+import { addLine, makeSelectChartingByTicker, removeChartingElement, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuitySkipWeekends, discontinuityRange } from '@d3fc/d3fc-discontinuous-scale'
 import { sub, subBusinessDays, addDays, isToday } from 'date-fns'
@@ -14,6 +14,7 @@ import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
 import ChartContextMenuContainer from './contextMenus/ChartContextMenuContainer'
 import { ChartingTools } from '../../Utilities/ChartingTools'
 import { defaultChartingStyles } from '../../Utilities/GraphStyles'
+import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
 
 function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
 {
@@ -33,10 +34,11 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
     //context menu show and positioning
     const [showContextMenu, setShowContextMenu] = useState({ display: false, style: {} })
 
-    //charting interaction create related
+    //charting interaction create, update, delete related
     const initialPixelSet = { X1: undefined, Y1: undefined, firstClick: true }
     const pixelSet = useRef(initialPixelSet)
     const [captureComplete, setCaptureComplete] = useState(false)
+    const [editChartElement, setEditChartElement] = useState()
 
     //chart plotting necessities
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
@@ -122,13 +124,19 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
         }
 
         if (pixelToPrice !== undefined) return Math.round(yScale.invert(pixelToPrice) * 100) / 100
-        else if (priceToPixel !== undefined) return yScale(priceToPixel)
+        else if (priceToPixel !== undefined)
+        {
+            return yScale(priceToPixel)
+        }
         else return yScale
 
     }, [candleData, currentYZoomState, priceDimensions])
 
-
-
+    //scaleRefs for user charting drag functionality
+    const yScaleRef = useRef()
+    yScaleRef.current = createPriceScale
+    const xScaleRef = useRef()
+    xScaleRef.current = createDateScale
 
 
 
@@ -263,6 +271,10 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
 
                 lineGroup.append('line').attr('class', 'drawnLine').attr('x1', linePixel.point1X).attr('y1', linePixel.point1Y).attr('x2', linePixel.point2X).attr('y2', linePixel.point2Y)
                     .attr('stroke', defaultChartingStyles.freeLine).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.freeLineStrokeWidth)
+                    .on('mouseover', function (e, d) { lineHover(select(this)); setEditChartElement({ chartingElement: d, group: 'freeLines' }); }).on('mouseleave', lineNoHover)
+
+                    .call(dragBehavior)
+
 
                 lineGroup.append('circle').attr('class', 'edgeCircle1').attr("cx", (d) => linePixel.point1X).attr("cy", linePixel.point1Y)
                     .attr("r", defaultChartingStyles.freeLineCirclesSize).attr('fill', defaultChartingStyles.freeLineCirclesColor)
@@ -709,6 +721,32 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
     }
 
 
+    //keyboard event listeners
+    useEffect(() =>
+    {
+        if (!captureComplete) { document.addEventListener('keydown', (e) => { resetTempBeforeCompletion(e); deleteSelectedEditChartElement(e) }) } else { document.removeEventListener('keydown', resetTempBeforeCompletion) }
+
+        function resetTempBeforeCompletion(e)
+        {
+            if (e.key === 'Escape')
+            {
+                if (document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.tagName.toLowerCase() === 'textarea') return;
+                e.preventDefault()
+                resetTemp()
+            }
+        }
+        function deleteSelectedEditChartElement(e)
+        {
+            if (e.key === 'Delete')
+            {
+                if (document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.tagName.toLowerCase() === 'textarea') return;
+                e.preventDefault()
+                dispatch(removeChartingElement({ ...editChartElement, ticker }))
+            }
+        }
+
+        return (() => { document.removeEventListener('keydown', resetTempBeforeCompletion) })
+    }, [editChartElement, captureComplete])
 
     //zoomXBehavior
     useEffect(() =>
@@ -737,6 +775,60 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
         })
         priceScaleSVG.call(zoomBehavior)
     }, [candleData, priceDimensions, timeFrame])
+
+
+
+
+    let dragPixelCopy = {}
+    function genX1X2PixelSet(d)
+    {
+        dragPixelCopy.X1 = xScaleRef.current({ dateToPixel: d.dateP1 })
+        dragPixelCopy.X2 = xScaleRef.current({ dateToPixel: d.dateP2 });
+        Object.keys(d).filter(t => t.includes('price')).map((price, i) => { dragPixelCopy[`Y${i + 1}`] = yScaleRef.current({ priceToPixel: d[price] }) })
+
+    }
+    function genX1X2PixelChange(e, d)
+    {
+        dragPixelCopy.X1 = dragPixelCopy.X1 + e.dx;
+        dragPixelCopy.X2 = dragPixelCopy.X2 + e.dx;
+        Object.keys(dragPixelCopy).filter(t => t.includes('Y')).map((price, i) => { dragPixelCopy[`Y${i + 1}`] = dragPixelCopy[`Y${i + 1}`] + e.dy })
+    }
+
+
+    const tickerRef = useRef()
+    tickerRef.current = ticker
+
+
+    function dragWholeLineStarted(e, d)
+    {
+        genX1X2PixelSet(d)
+        setEditChartElement({ chartingElement: d, group: 'freeLines' })
+        select(this).attr('stroke', 'blue').attr('stroke-width', 3)
+    }
+    function draggedWholeLine(e, d)
+    {
+        genX1X2PixelChange(e, d)
+        const parent = select(this.parentNode)
+        select(this).attr('x1', dragPixelCopy.X1).attr('y1', dragPixelCopy.Y1).attr('x2', dragPixelCopy.X2).attr('y2', dragPixelCopy.Y2)
+        parent.select('.edgeCircle1').attr('cx', dragPixelCopy.X1).attr('cy', dragPixelCopy.Y1);
+        parent.select('.edgeCircle2').attr('cx', dragPixelCopy.X2).attr('cy', dragPixelCopy.Y2)
+    }
+    function dragWholeLineEnded(e, d)
+    {
+        select(this).attr('stroke', 'black')
+        console.log(d)
+
+        dispatch(updateLine({
+            ticker: tickerRef.current, update: {
+                ...d, dateP1: xScaleRef.current({ pixelToDate: dragPixelCopy.X1 }), priceP1: yScaleRef.current({ pixelToPrice: dragPixelCopy.Y1 }),
+                dateP2: xScaleRef.current({ pixelToDate: dragPixelCopy.X2 }), priceP2: yScaleRef.current({ pixelToPrice: dragPixelCopy.Y2 })
+            }
+        }))
+    }
+
+    const dragBehavior = drag().on('start', dragWholeLineStarted).on('drag', draggedWholeLine).on('end', dragWholeLineEnded)
+
+
 
 
     return (

@@ -19,7 +19,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const currentTool = useSelector(selectCurrentTool)
     const selectedChartingMemo = useMemo(makeSelectChartAlteredByTicker, [])
     const chartingAltered = useSelector(state => selectedChartingMemo(state, ticker))
-    console.log(chartingAltered)
+
 
     const [serverResponse, setServerResponse] = useState(undefined)
 

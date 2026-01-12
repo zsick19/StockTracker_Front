@@ -15,12 +15,9 @@ const chartingElementSlice = createSlice({
     },
     updateLine: (state, action) =>
     {
-      state.freeLines = state.freeLines.map((line) =>
-      {
-        if (line.id === action.payload.id) return action.payload;
-        return line;
-      });
-      state.chartingAltered = true;
+      let { ticker, update } = action.payload
+      state[ticker].freeLines = state[ticker].freeLines.map((line) => { if (line.id === update.id) { return update; } else return line; });
+      state[ticker].chartingAltered = true;
     },
 
     // addKeyPrice: (state, action) =>
@@ -42,64 +39,20 @@ const chartingElementSlice = createSlice({
       state.chartingAltered = true;
     },
 
-    // removeViaChartingElement: (state, action) =>
-    // {
-    //   switch (action.payload.group)
-    //   {
-    //     case "freeLines":
-    //       state.freeLines = state.freeLines.filter((t) =>
-    //       {
-    //         return t.id !== action.payload.chartingElement.id;
-    //       });
-    //       break;
-    //     case "trendLines":
-    //       state.trendLines = state.trendLines.filter((t) =>
-    //       {
-    //         return t.id !== action.payload.chartingElement.id;
-    //       });
-    //       break;
-    //     case "channels":
-    //       state.channels = state.channels.filter((t) =>
-    //       {
-    //         return t.id !== action.payload.chartingElement.id;
-    //       });
-    //       break;
-    //     case "linesH":
-    //       state.linesH = state.linesH.filter((t) =>
-    //       {
-    //         return t.id !== action.payload.chartingElement.id;
-    //       });
-    //       break;
-    //     case "triangles":
-    //       state.triangles = state.triangles.filter((t) =>
-    //       {
-    //         return t.id !== action.payload.chartingElement.id;
-    //       });
-    //       break;
-    //     case "wedges":
-    //       state.wedges = state.wedges.filter((t) =>
-    //       {
-    //         return t.id !== action.payload.chartingElement.id;
-    //       });
-    //       break;
-    //     case "enterExitLines":
-    //       {
-    //         if (state.enterExitLines.length === 1) return;
-    //         state.enterExitLines = state.enterExitLines.filter((t) =>
-    //         {
-    //           return t.id !== action.payload.chartingElement.id;
-    //         });
-    //       }
-    //       break;
-    //     case "keyPriceLines":
-    //       state.keyPriceLines = state.keyPriceLines.filter((t) =>
-    //       {
-    //         return t.id !== action.payload.chartingElement.id;
-    //       });
-    //       break;
-    //   }
-    //   state.chartingAltered = true;
-    // },
+    removeChartingElement: (state, action) =>
+    {
+      let { group, ticker, chartingElement } = action.payload
+      switch (group)
+      {
+        case "freeLines": state[ticker].freeLines = state[ticker].freeLines.filter((t) => { return t.id !== chartingElement.id; }); break;
+        case "trendLines": state[ticker].trendLines = state[ticker].trendLines.filter((t) => { return t.id !== chartingElement.id; }); break;
+        case "channels": state[ticker].channels = state[ticker].channels.filter((t) => { return t.id !== chartingElement.id; }); break;
+        case "linesH": state[ticker].linesH = state[ticker].linesH.filter((t) => { return t.id !== chartingElement.id; }); break;
+        case "triangles": state[ticker].triangles = state[ticker].triangles.filter((t) => { return t.id !== chartingElement.id; }); break;
+        case "wedges": state[ticker].wedges = state[ticker].wedges.filter((t) => { return t.id !== action.payload.chartingElement.id; }); break;
+      }
+      state[ticker].chartingAltered = true;
+    },
     setPreviousCharting: (state, action) =>
     {
       if (action.payload.charting) { state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false } }
@@ -158,6 +111,7 @@ const chartingElementSlice = createSlice({
 export const {
   addLine,
   updateLine,
+  removeChartingElement,
   // addKeyPrice,
   updateKeyPrice,
   setPreviousCharting,
