@@ -59,6 +59,8 @@
   flex-direction: column;
   margin-inline: auto;
   padding-block: 1rem;
+  justify-items: center;
+  align-items: center;
 }
 
 #LHS-SingleGraphToolBar button {

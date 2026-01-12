@@ -607,7 +607,7 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
         //         point8y: createPriceScale({ priceToPixel: d.priceP8 })
         //     }
         // }
-    }, [charting, candleDimensions, currentXZoomState, currentYZoomState])
+    }, [charting, candleData, candleDimensions, currentXZoomState, currentYZoomState])
 
     //charting visibility
     useEffect(() =>
@@ -652,28 +652,20 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
     }, [currentTool, candleDimensions, candleData, currentXZoomState, currentYZoomState])
 
 
-    //update charting post trace
+    //update charting state post trace
     useEffect(() =>
     {
         if (!captureComplete) return
-        let dateP1 = createDateScale({ pixelToDate: pixelSet.current.X1 })
-        let dateP2 = createDateScale({ pixelToDate: pixelSet.current.X2 })
-        let priceP1; if (pixelSet.current?.Y1) priceP1 = createPriceScale({ pixelToPrice: pixelSet.current.Y1 })
-        let priceP2; if (pixelSet.current?.Y2) priceP2 = createPriceScale({ pixelToPrice: pixelSet.current.Y2 })
-        // let priceP3; if (pixelSet.current?.Y3) priceP3 = createPriceScale({ pixelToPrice: pixelSet.current.Y3 })
-        // let priceP4; if (pixelSet.current?.Y4) priceP4 = createPriceScale({ pixelToPrice: pixelSet.current.Y4 })
-        // let priceP5; if (pixelSet.current?.Y5) priceP5 = createPriceScale({ pixelToPrice: pixelSet.current.Y5 })
-        // let priceP6; if (pixelSet.current?.Y6) priceP6 = createPriceScale({ pixelToPrice: pixelSet.current.Y6 })
-        // let priceP7; if (pixelSet.current?.Y7) priceP7 = createPriceScale({ pixelToPrice: pixelSet.current.Y7 })
-        // let priceP8; if (pixelSet.current?.Y8) priceP8 = createPriceScale({ pixelToPrice: pixelSet.current.Y8 })
 
+        let completeCapture = {}
+        completeCapture.dateP1 = createDateScale({ pixelToDate: pixelSet.current.X1 })
+        completeCapture.dateP2 = createDateScale({ pixelToDate: pixelSet.current.X2 })
+        Object.keys(pixelSet.current).filter(t => t.includes('Y')).map((pixelForPrice, i) => { completeCapture[`priceP${i + 1}`] = createPriceScale({ pixelToPrice: pixelSet.current[pixelForPrice] }) })
 
         switch (currentTool)
         {
-            case ChartingTools[1].tool: dispatch(addLine({ line: { dateP1, dateP2, priceP1, priceP2 }, ticker })); break;
-
-            default:
-                break;
+            case ChartingTools[1].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
+            // case ChartingTools[2].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
         }
 
         resetTemp()
@@ -710,11 +702,10 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
 
     function resetTemp()
     {
-        select(candleSVG.current).select('.temp').selectAll('.traceLine').remove()
+        stockCandleSVG.select('.temp').selectAll('.traceLine').remove()
         pixelSet.current = initialPixelSet
         setEnableZoom(true)
         initializeMouseCrossHairBehavior()
-        console.log('hit')
     }
 
 

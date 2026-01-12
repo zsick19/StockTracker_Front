@@ -6,9 +6,22 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
       query: (args) =>
       {
         if (args.chartId) return { url: `/chartingData/${args.chartId}` };
-      }, providesTags: ['chartingData']
+      }, providesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
     }),
+
+    updateChartingData: builder.mutation({
+      query: (args) => 
+      {
+        if (args.chartId) return {
+          url: `/chartingData/${args.chartId}`,
+          method: 'PUT',
+          body: args.chartingUpdate
+        }
+      },
+      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
+    })
+
   }),
 });
 
-export const { useGetChartingDataQuery } = ChartingApiSlice;
+export const { useGetChartingDataQuery, useUpdateChartingDataMutation } = ChartingApiSlice;

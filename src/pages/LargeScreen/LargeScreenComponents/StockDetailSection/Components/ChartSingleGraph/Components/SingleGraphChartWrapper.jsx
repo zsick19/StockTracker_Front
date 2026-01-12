@@ -1,22 +1,29 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
 
 import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
-import { Info, KeyRound, Plane, Save, Siren } from 'lucide-react'
+import { Check, Info, KeyRound, Plane, Save, Siren, X } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool, setTool } from '../../../../../../../features/Charting/ChartingTool'
 import { AlertTools, ChartingTools, PlanningTools } from '../../../../../../../Utilities/ChartingTools'
+import { useUpdateChartingDataMutation } from '../../../../../../../features/Charting/ChartingSliceApi'
+import { makeSelectChartingByTicker } from '../../../../../../../features/Charting/chartingElements'
 
 
 function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay })
 {
     const dispatch = useDispatch()
+
     const currentTool = useSelector(selectCurrentTool)
+    const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
+    const charting = useSelector(state => selectedChartingMemo(state, ticker))
+
+    const [serverResponse, setServerResponse] = useState(undefined)
+
+
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, info: true })
-
-
     let actualGraph
     if (isSuccess && data.candleData.length > 0)
     {
@@ -25,6 +32,32 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     else if (isLoading) { actualGraph = <GraphLoadingSpinner /> }
     else if (isError) { actualGraph = <GraphLoadingError refetch={refetch} /> }
 
+    const [updateChartingData] = useUpdateChartingDataMutation()
+
+    async function attemptSavingCharting()
+    {
+        try
+        {
+            await updateChartingData({ chartingUpdate: charting, chartId })
+            setServerResponse("positive")
+
+            setTimeout(() =>
+            {
+                setServerResponse(undefined)
+            }, 2000);
+        } catch (error)
+        {
+            console.log(error)
+            setServerResponse("error")
+            setTimeout(() =>
+            {
+                setServerResponse(undefined)
+            }, 2000);
+
+        }
+    }
+
+    console.log(charting)
 
     return (
         <div id='LHS-SingleGraphForChartingWrapper'>
@@ -50,7 +83,11 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 <br />
 
                 <p className='veryTinyText'>Utility</p>
-                <button><Save size={20} color='white' /></button>
+                <button disabled={!chartId || !charting?.chartingAltered} onClick={attemptSavingCharting}><Save size={20} color={charting?.chartingAltered ? 'white' : 'gray'} /></button>
+                {serverResponse === "positive" && <Check color='green' size={20} />}
+                {serverResponse === "negative" && <X color='red' size={20} />}
+
+
             </div>
         </div>
     )

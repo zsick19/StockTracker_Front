@@ -24,8 +24,8 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
 
     return (
         <div className="ChartGraphWrapper">
-            <ChartGraph ticker={ticker} candleData={candleData.candleData} mostRecentPrice={candleData.mostRecentPrice} 
-            timeFrame={timeFrame} />
+            <ChartGraph ticker={ticker} candleData={candleData.candleData} mostRecentPrice={candleData.mostRecentPrice}
+                timeFrame={timeFrame} />
         </div>
     )
 }

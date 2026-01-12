@@ -19,7 +19,7 @@ import ContinueChartingNav from './Components/ContinueChartingNav'
 function ChartSingleGraph()
 {
     const dispatch = useDispatch()
-    const currentTool = useSelector(selectCurrentTool)
+    
     const selectedTicker = useSelector(selectSingleChartStock)
     const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
 
@@ -61,10 +61,7 @@ function ChartSingleGraph()
 
     }
 
-    async function attemptSavingCharting()
-    {
 
-    }
 
     function provideChartInfoDisplay()
     {
@@ -77,6 +74,12 @@ function ChartSingleGraph()
             default: return <InfoPanel />
         }
     }
+
+
+
+
+
+
 
     return (
         <div id='LHS-SingleGraphForCharting'>

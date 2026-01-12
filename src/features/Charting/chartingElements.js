@@ -11,7 +11,7 @@ const chartingElementSlice = createSlice({
       line.dateCreated = new Date().toLocaleDateString();
       state[ticker].freeLinesId = state[ticker].freeLinesId + 1;
       state[ticker].freeLines.push(line);
-      //state.chartingAltered = true;
+      state[ticker].chartingAltered = true;
     },
     updateLine: (state, action) =>
     {
@@ -102,7 +102,7 @@ const chartingElementSlice = createSlice({
     // },
     setPreviousCharting: (state, action) =>
     {
-      if (action.payload.charting) { state[action.payload.tickerSymbol] = { ...action.payload.charting } }
+      if (action.payload.charting) { state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false } }
       else
       {
         state[action.payload.tickerSymbol] = {
@@ -113,6 +113,7 @@ const chartingElementSlice = createSlice({
           trendLinesId: 1,
           linesH: [],
           linesHId: 1,
+          chartingAltered: false
           //   channels: [],
           //   channelsId: 1,
           //   triangles: [],
