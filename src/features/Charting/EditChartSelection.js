@@ -1,12 +1,20 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const editChartSelectionSlice = createSlice({
-    name: 'chartEditSelection',
+    name: 'editChartSelection',
     initialState: { editMode: undefined },
     reducers: {
         setChartEditMode: (state, action) =>
         {
-            state.editMode = action.payload
+            if (state.editMode)
+            {
+
+                state.editMode = undefined
+            } else
+            {
+
+                state.editMode = action.payload
+            }
         },
 
 
@@ -17,4 +25,4 @@ export const { setChartEditMode } = editChartSelectionSlice.actions
 
 export default editChartSelectionSlice.reducer
 
-export const selectChartEditMode = (state) => state.chartEditSelection.editMode
+export const selectChartEditMode = (state) => { return state.editChartSelection.editMode }

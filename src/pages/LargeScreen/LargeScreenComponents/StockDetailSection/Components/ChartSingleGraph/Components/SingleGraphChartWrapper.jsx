@@ -7,10 +7,11 @@ import GraphLoadingError from '../../../../../../../components/ChartSubGraph/Gra
 import { Binoculars, Check, Info, KeyRound, PiggyBank, Plane, Save, Siren, X } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool, setTool } from '../../../../../../../features/Charting/ChartingTool'
-import { AlertTools, ChartingTools, PlanningTools } from '../../../../../../../Utilities/ChartingTools'
+import { AlertTools, ChartingToolEdits, ChartingTools, PlanningTools } from '../../../../../../../Utilities/ChartingTools'
 import { useUpdateChartingDataMutation } from '../../../../../../../features/Charting/ChartingSliceApi'
 import { makeSelectChartAlteredByTicker, makeSelectChartingByTicker } from '../../../../../../../features/Charting/chartingElements'
 import { makeSelectEnterExitPlanAltered } from '../../../../../../../features/EnterExitPlans/EnterExitGraphElement'
+import { selectChartEditMode, setChartEditMode } from '../../../../../../../features/Charting/EditChartSelection'
 
 
 function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay })
@@ -24,9 +25,8 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const selectedEnterExitPlanAlteredMemo = useMemo(makeSelectEnterExitPlanAltered, [])
     const enterExitAltered = useSelector(state => selectedEnterExitPlanAlteredMemo(state, ticker))
 
+    const editMode = useSelector(selectChartEditMode)
 
-
-    console.log(chartingAltered)
 
 
     const [serverResponse, setServerResponse] = useState(undefined)
@@ -75,9 +75,9 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 {ChartingTools.map((tool, index) => { return <button key={tool.tool} title={tool.tool} onClick={() => dispatch(setTool(ChartingTools[index].tool))} className={currentTool === ChartingTools[index].tool ? 'currentTool' : 'notCurrentTool'} >{ChartingTools[index].icon}</button> })}
                 <br />
                 <br />
-                
+
                 <p className='veryTinyText'>Edit</p>
-                <button title='Edit Plan' onClick={() => console.log('')}><PiggyBank size={20} color='gray' /></button>
+                {ChartingToolEdits.map((editTool, index) => { return <button key={editTool.editTool} className={editMode === editTool.tool ? 'notCurrentTool' : 'currentEditMode'} title={editTool.editTool} onClick={() => dispatch(setChartEditMode(editTool.editTool))}>{editTool.icon}</button> })}
                 <br />
 
 
@@ -99,7 +99,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 {serverResponse === "positive" && <Check color='green' size={20} />}
                 {serverResponse === "negative" && <X color='red' size={20} />}
 
-                {(chartingAltered.hasPlanCharted && !enterExitAltered) && <button title='Initiate Tracking' ><Binoculars size={20} color='red' /></button>}
+                {(chartingAltered.hasPlanCharted && !enterExitAltered) && <button title='Initiate Tracking'  ><Binoculars size={20} color='red' /></button>}
             </div>
         </div>
     )

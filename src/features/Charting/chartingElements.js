@@ -27,6 +27,12 @@ const chartingElementSlice = createSlice({
       state[ticker].enterExitLines = enterExit
       state[ticker].chartingAltered = true
     },
+    updateEnterExitToCharting: (state, action) =>
+    {
+      let { updatedEnterExit, ticker } = action.payload
+      state[ticker].enterExitLines = updatedEnterExit
+      state[ticker].chartingAltered = true
+    },
     // addKeyPrice: (state, action) =>
     // {
     //   let keyPrice = action.payload;
@@ -57,6 +63,7 @@ const chartingElementSlice = createSlice({
         case "linesH": state[ticker].linesH = state[ticker].linesH.filter((t) => { return t.id !== chartingElement.id; }); break;
         case "triangles": state[ticker].triangles = state[ticker].triangles.filter((t) => { return t.id !== chartingElement.id; }); break;
         case "wedges": state[ticker].wedges = state[ticker].wedges.filter((t) => { return t.id !== action.payload.chartingElement.id; }); break;
+        case "enterExit": state[ticker].enterExitLines = undefined; break;
       }
       state[ticker].chartingAltered = true;
     },
@@ -120,6 +127,7 @@ export const {
   addLine,
   updateLine,
   addEnterExitToCharting,
+  updateEnterExitToCharting,
   removeChartingElement,
   // addKeyPrice,
   updateKeyPrice,

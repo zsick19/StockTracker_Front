@@ -8,6 +8,7 @@ export const ChartingTools = [
     { tool: 'High Volume Zone', icon: <PanelTopBottomDashed size={20} /> },
     { tool: 'Enter Exit', icon: <PiggyBank size={20} /> }]
 
+export const ChartingToolEdits = [{ editTool: 'EnterExit', icon: <PiggyBank size={20} /> }]
 
 export const PlanningTools = [{ tool: 'EnterExit', icon: <PiggyBank size={20} /> }]
 export const KeyLevelTools = []

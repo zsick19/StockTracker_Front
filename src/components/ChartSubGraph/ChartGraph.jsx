@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addEnterExitToCharting, addLine, makeSelectChartingByTicker, removeChartingElement, updateLine } from '../../features/Charting/chartingElements'
+import { addEnterExitToCharting, addLine, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuitySkipWeekends, discontinuityRange } from '@d3fc/d3fc-discontinuous-scale'
 import { sub, subBusinessDays, addDays, isToday } from 'date-fns'
@@ -12,10 +12,11 @@ import { selectCurrentTool } from '../../features/Charting/ChartingTool'
 import { selectChartVisibility } from '../../features/Charting/ChartingVisibility'
 import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
 import ChartContextMenuContainer from './contextMenus/ChartContextMenuContainer'
-import { ChartingTools } from '../../Utilities/ChartingTools'
+import { ChartingToolEdits, ChartingTools } from '../../Utilities/ChartingTools'
 import { defaultChartingStyles } from '../../Utilities/GraphStyles'
 import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
+import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
 {
@@ -26,6 +27,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
     const EnterExitPlan = useSelector(state => selectedEnterExitMemo(state, ticker))
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
+
+    const editMode = useSelector(selectChartEditMode)
+
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
 
 
@@ -220,7 +224,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
 
         stockCandleSVG.select('.currentPrice').selectAll('line').remove()
         stockCandleSVG.select('.keyLevels').selectAll('line').remove()
-        stockCandleSVG.select('.enterExits').selectAll('line').remove()
+        //   stockCandleSVG.select('.enterExits').selectAll('line').remove()
 
         if (KeyLevels.gammaFlip)
         {
@@ -244,16 +248,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
                 .attr('stroke-dasharray', '5 5')
         }
 
-        if (EnterExitPlan?.enterPrice)
-        {
-            let pixelPrice = createPriceScale({ priceToPixel: EnterExitPlan.enterPrice })
-            stockCandleSVG.select('.enterExits').append('line')
-                .attr('x1', 0).attr('x2', candleDimensions.width)
-                .attr('y1', pixelPrice).attr('y2', pixelPrice)
-                .attr('stroke', 'red')
-                .attr('stroke-width', '1px')
-                .attr('stroke-dasharray', '5 5')
-        }
+
     }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
 
     //plot user charting  
@@ -308,7 +303,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
         }
 
 
-
         //enter exit plan creation and update
         if (EnterExitPlan) { stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update)) }
         else if (charting?.enterExitLines) { stockCandleSVG.select('.enterExits').selectAll('.line_group').data([charting.enterExitLines]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update)) }
@@ -316,17 +310,37 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
         {
             enter.each(function (d)
             {
+                let startXPosition = candleDimensions.width * 0.9
+                let widthPosition = startXPosition + 100
                 var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
+
+                const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
+                const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
 
                 const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => yScaleRef.current({ priceToPixel: price }))
                 lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
+
+
+                yPositions.map((position, index) =>
+                {
+                    lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index]).attr('stroke-width', 10)
+                        .attr('visibility', 'hidden')
+                        .on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); select(this).transition().delay(250).attr('stroke-width', 10) })
+                        .on('mouseleave', select(this).transition().delay(250).attr('stroke-width', 5))
+
+                    //      lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', startXPosition).attr('y', position).text((d) => `$${100}`)
+                })
             })
         }
         function updateEnterExit(update)
         {
+            let startXPosition = candleDimensions.width * 0.9
+            let widthPosition = startXPosition + 100
+
+            const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
             update.each(function (d)
             {
                 const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => createPriceScale({ priceToPixel: price }))
@@ -334,6 +348,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
                 update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2])
                 update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
                 update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5])
+
+
+                yPositions.map((position, index) =>
+                {
+                    update.select(`.${names[index]}`).attr('y1', position).attr('y2', position)
+                    update.select(`.${names[index]}Text`).attr('x', startXPosition).attr('y', yPositions[index])
+                })
             })
         }
 
@@ -618,7 +639,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
         //         point8y: createPriceScale({ priceToPixel: d.priceP8 })
         //     }
         // }
-    }, [charting, candleData, candleDimensions, currentXZoomState, currentYZoomState])
+    }, [charting, EnterExitPlan, candleData, candleDimensions, currentXZoomState, currentYZoomState])
 
     //charting visibility
     useEffect(() =>
@@ -666,7 +687,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
     //update charting state post trace
     useEffect(() =>
     {
-        if (!captureComplete) return
+        if (!captureComplete || preDimensionsAndCandleCheck()) return
 
         let completeCapture = {}
         let pixelCapture = pixelSet.current
@@ -715,7 +736,23 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
 
     }, [currentTool, captureComplete])
 
+    //toggle edit visual aids
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
 
+        switch (editMode)
+        {
+            case ChartingToolEdits[0].editTool:
+                stockCandleSVG.select('.enterExits').selectAll('.edit').attr('visibility', 'visible').call(dragEnterExitBehavior);
+                break;
+            default:
+                stockCandleSVG.select('.enterExits').selectAll('.edit').attr('visibility', 'hidden').call(dragEnterExitBehavior);
+                break;
+        }
+
+
+    }, [editMode])
 
 
     async function attemptToUpdateEnterExit(args)
@@ -867,6 +904,62 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
     }
     const dragBehavior = drag().on('start', dragWholeLineStarted).on('drag', draggedWholeLine).on('end', dragWholeLineEnded)
 
+
+
+
+    function dragEnterExitLineVertStart(e, d)
+    {
+        dragPixelCopy.lineColor = select(this).attr('stroke')
+
+        let yPrice
+        switch (select(this).attr('class'))
+        {
+            case 'enterLine edit': dragPixelCopy.textClass = '.enterLineText'; yPrice = d.enterPrice; break;
+            case 'enterBufferLine edit': dragPixelCopy.textClass = '.enterBufferLineText'; yPrice = d.enterBufferPrice; break;
+            case 'stopLossLine edit': dragPixelCopy.textClass = '.stopLossLineText'; yPrice = d.stopLossPrice; break;
+            case 'exitLine edit': dragPixelCopy.textClass = '.exitLineText'; yPrice = d.exitPrice; break;
+            case 'exitBufferLine edit': dragPixelCopy.textClass = '.exitBufferLineText'; yPrice = d.exitBufferPrice; break;
+            case 'moonLine edit': dragPixelCopy.textClass = '.moonLineText'; yPrice = d.moonPrice; break;
+        }
+
+        dragPixelCopy.Y1 = yScaleRef.current({ priceToPixel: yPrice })
+    }
+    function dragEnterExitVertLine(e, d)
+    {
+        dragPixelCopy.Y1 = dragPixelCopy.Y1 + e.dy;
+        select(this).attr('y1', dragPixelCopy.Y1).attr('y2', dragPixelCopy.Y1).attr('x1', 0).attr('x2', 5000)
+
+        // const parent = select(this.parentNode)
+        // parent.select(dragPixelCopy.textClass).attr('y', dragPixelCopy.Y1).text((d) => `$${yScaleRef.current({ pixelToPrice: dragPixelCopy.Y1 })}`)
+    }
+    function dragEnterExitVertLineEnd(e, d)
+    {
+        //        select(this).attr('stroke', dragPixelCopy.lineColor).attr('x1', () => xScaleRef.current({ dateToPixel: d.enterDate })).attr('x2', () => createDateScale({ dateToPixel: d.enterDate }) + 100)
+
+
+        let update = { ...d }
+        let updatedPriceForY1 = yScaleRef.current({ pixelToPrice: dragPixelCopy.Y1 })
+        switch (dragPixelCopy.textClass)
+        {
+            case '.stopLossLineText': update.stopLossPrice = updatedPriceForY1; break;
+            case '.enterLineText': update.enterPrice = updatedPriceForY1; break;
+            case '.enterBufferLineText': update.enterBufferPrice = updatedPriceForY1; break;
+            case '.exitBufferLineText': update.exitBufferPrice = updatedPriceForY1; break;
+            case '.exitLineText': update.exitPrice = updatedPriceForY1; break;
+            case '.moonLineText': update.moonPrice = updatedPriceForY1; break;
+        }
+
+        if (EnterExitPlan)
+        {
+            console.log('Need to put in place update for tracking enter exit')
+            dispatch(defineEnterExitPlan({ ticker, enterExitPlan: update }))
+        } else
+        {
+            console.log('updating local charting copy of enter exit')
+            dispatch(updateEnterExitToCharting({ updatedEnterExit: update, ticker }))
+        }
+    }
+    const dragEnterExitBehavior = drag().on('start', dragEnterExitLineVertStart).on('drag', dragEnterExitVertLine).on('end', dragEnterExitVertLineEnd)
 
 
 

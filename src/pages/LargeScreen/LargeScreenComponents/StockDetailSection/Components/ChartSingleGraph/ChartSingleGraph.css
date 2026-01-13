@@ -90,6 +90,10 @@
   text-align: center;
 }
 
+.currentEditMode {
+  color: yellow;
+}
+
 #LHS-UnChartedNavigation {
   display: flex;
   flex-direction: column;

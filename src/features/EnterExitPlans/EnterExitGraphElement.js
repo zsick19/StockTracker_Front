@@ -14,9 +14,9 @@ const enterExitGraphElementsSlice = createSlice({
         defineEnterExitPlan: (state, action) =>
         {
             state[action.payload.ticker] = {
+                ...action.payload.enterExitPlan,
                 id: state[action.payload.ticker].id,
-                enterExitPlanAltered: true,
-                ...action.payload.enterExitPlan
+                enterExitPlanAltered: true
             }
         }
     },
