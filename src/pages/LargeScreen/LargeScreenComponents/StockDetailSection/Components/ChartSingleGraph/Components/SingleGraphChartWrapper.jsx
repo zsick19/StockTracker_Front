@@ -4,21 +4,29 @@ import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../feature
 import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
-import { Check, Info, KeyRound, Plane, Save, Siren, X } from 'lucide-react'
+import { Binoculars, Check, Info, KeyRound, PiggyBank, Plane, Save, Siren, X } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool, setTool } from '../../../../../../../features/Charting/ChartingTool'
 import { AlertTools, ChartingTools, PlanningTools } from '../../../../../../../Utilities/ChartingTools'
 import { useUpdateChartingDataMutation } from '../../../../../../../features/Charting/ChartingSliceApi'
 import { makeSelectChartAlteredByTicker, makeSelectChartingByTicker } from '../../../../../../../features/Charting/chartingElements'
+import { makeSelectEnterExitPlanAltered } from '../../../../../../../features/EnterExitPlans/EnterExitGraphElement'
 
 
 function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay })
 {
     const dispatch = useDispatch()
-
     const currentTool = useSelector(selectCurrentTool)
+
     const selectedChartingMemo = useMemo(makeSelectChartAlteredByTicker, [])
     const chartingAltered = useSelector(state => selectedChartingMemo(state, ticker))
+
+    const selectedEnterExitPlanAlteredMemo = useMemo(makeSelectEnterExitPlanAltered, [])
+    const enterExitAltered = useSelector(state => selectedEnterExitPlanAlteredMemo(state, ticker))
+
+
+
+    console.log(chartingAltered)
 
 
     const [serverResponse, setServerResponse] = useState(undefined)
@@ -67,6 +75,11 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 {ChartingTools.map((tool, index) => { return <button key={tool.tool} title={tool.tool} onClick={() => dispatch(setTool(ChartingTools[index].tool))} className={currentTool === ChartingTools[index].tool ? 'currentTool' : 'notCurrentTool'} >{ChartingTools[index].icon}</button> })}
                 <br />
                 <br />
+                
+                <p className='veryTinyText'>Edit</p>
+                <button title='Edit Plan' onClick={() => console.log('')}><PiggyBank size={20} color='gray' /></button>
+                <br />
+
 
 
                 <p className='veryTinyText'>Plan</p>
@@ -82,11 +95,11 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 <br />
 
                 <p className='veryTinyText'>Utility</p>
-                <button disabled={!chartId || !chartingAltered} title='Direct Save' onClick={attemptSavingCharting}><Save size={20} color={chartingAltered ? 'white' : 'gray'} /></button>
+                <button disabled={!chartId || !chartingAltered.altered} title='Direct Save' onClick={attemptSavingCharting}><Save size={20} color={chartingAltered.altered ? 'white' : 'gray'} /></button>
                 {serverResponse === "positive" && <Check color='green' size={20} />}
                 {serverResponse === "negative" && <X color='red' size={20} />}
 
-
+                {(chartingAltered.hasPlanCharted && !enterExitAltered) && <button title='Initiate Tracking' ><Binoculars size={20} color='red' /></button>}
             </div>
         </div>
     )

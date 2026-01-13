@@ -20,6 +20,13 @@ const chartingElementSlice = createSlice({
       state[ticker].chartingAltered = true;
     },
 
+    addEnterExitToCharting: (state, action) =>
+    {
+      let { enterExit, ticker } = action.payload
+      enterExit.dateCreated = new Date().toLocaleDateString();
+      state[ticker].enterExitLines = enterExit
+      state[ticker].chartingAltered = true
+    },
     // addKeyPrice: (state, action) =>
     // {
     //   let keyPrice = action.payload;
@@ -66,6 +73,7 @@ const chartingElementSlice = createSlice({
           trendLinesId: 1,
           linesH: [],
           linesHId: 1,
+          enterExitLines: undefined,
           chartingAltered: false
           //   channels: [],
           //   channelsId: 1,
@@ -111,6 +119,7 @@ const chartingElementSlice = createSlice({
 export const {
   addLine,
   updateLine,
+  addEnterExitToCharting,
   removeChartingElement,
   // addKeyPrice,
   updateKeyPrice,
@@ -128,7 +137,7 @@ export const makeSelectChartingByTicker = () => createSelector(
 
 export const makeSelectChartAlteredByTicker = () => createSelector(
   [(state) => state.chartingElement, (state, ticker) => ticker],
-  (entities, ticker) => entities[ticker]?.chartingAltered
+  (entities, ticker) => { return { altered: entities[ticker]?.chartingAltered, hasPlanCharted: entities[ticker]?.enterExitLines } }
 )
 
 // freeLines: [],

@@ -160,27 +160,39 @@ const horizontalLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete
         stockSVG.select('.temp').select('.priceInfo').attr('x', e.offsetX).attr('y', e.offsetY).text(updatePrice.toString())
     }
 }
+
+const traceClassName = 'traceLine'
+
 const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, yScale) =>
 {
     const stockSVG = select(svg)
     const temp = select(svg).select('.temp')
     const XOffset = 10
+    const mouseMoveXYOffset = 2
+
+    const svgPriceLineStyles = {
+        enter: { stroke: 'green', text: 'Enter Price', dxText: 20, dyText: 20, dxPrice: 150, dyPrice: 20 }
+    }
+
 
     if (pixelSet.current.firstClick)
     {
         initiateCaptureHideTemp(stockSVG, setCaptureComplete, setEnableZoom)
         pixelSet.current = { ...pixelSet.current, firstClick: false, secondClick: true }
+        temp.append('line').attr('class', `enterLine ${traceClassName}`).attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY).attr('stroke', svgPriceLineStyles.enter.stroke).attr('stroke-width', 1)
+        temp.append('text').attr('class', `enterInfo ${traceClassName}`).text(svgPriceLineStyles.enter.text).attr("x", e.offsetX).attr("y", e.offsetY).attr('dy', `${svgPriceLineStyles.enter.dyText}px`).attr('dx', `${svgPriceLineStyles.enter.dxText}px`)
+        temp.append('text').attr('class', `enterPrice ${traceClassName}`).text(`$${yScale({ pixelToPrice: e.offsetY })}`).attr("x", e.offsetX + XOffset).attr("y", e.offsetY).attr('dx', `${svgPriceLineStyles.enter.dxPrice}px`).attr('dy', `${svgPriceLineStyles.enter.dyPrice}px`)
+        stockSVG.on('mousemove', (e) =>
+        {
+            temp.select('.enterLine').attr('y1', e.offsetY - mouseMoveXYOffset).attr('y2', e.offsetY - mouseMoveXYOffset)
+            temp.select('.enterInfo').attr('x', e.offsetX).attr('y', e.offsetY - mouseMoveXYOffset)
+            temp.select('.enterPrice').attr('x', e.offsetX + 10).attr('y', e.offsetY - mouseMoveXYOffset).text((`$${yScale({ pixelToPrice: e.offsetY })}`))
+        })
 
-        temp.append('line').attr('class', 'enterLine traceLine').attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY).attr('stroke', 'green').attr('stroke-width', 1)
-        temp.append('text').attr('class', 'enterInfo traceLine').text('Enter Price').attr("x", e.offsetX).attr("y", e.offsetY).attr('dy', '20px').attr('dx', '20px')
-        temp.append('text').attr('class', 'enterPrice traceLine').text(`$${yScale({ pixelToPrice: e.offsetY })}`).attr("x", e.offsetX + XOffset).attr("y", e.offsetY).attr('dx', '150px').attr('dy', '20px')
-
-        stockSVG.on('mousemove', (e) => traceMouseX(e))
     } else if (pixelSet.current.secondClick)//capture enter price
     {
         pixelSet.current = { ...pixelSet.current, X1: e.offsetX, X1Offset: e.offsetX + XOffset, Y1: e.offsetY, Y1Price: yScale({ pixelToPrice: e.offsetY }), secondClick: false, thirdClick: true }
         temp.append('text').attr('class', 'enterPercentage traceLine').attr("x", pixelSet.current.X1Offset).attr("y", e.offsetY).attr('dx', '250px')
-
         setPricePositionRemoveInfoText('enter', pixelSet.current.X1Offset, e.offsetY, 'enterBuffer', 'Enter Buffer')
         recordPriorAddNextWithTrace('.enterLine', e.offsetY, 'enterBufferLine', 'yellow', 'enterBuffer')
     } else if (pixelSet.current.thirdClick) //capture enter buffer price
@@ -198,7 +210,6 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
     } else if (pixelSet.current.fifthClick)//capture exit
     {
         const percentage = temp.select('.enterPercentage').text()
-
         pixelSet.current = { ...pixelSet.current, Y4: e.offsetY, P3: parseFloat(percentage.slice(0, -12)), fifthClick: false, sixthClick: true }
         setPricePositionRemoveInfoText('exit', pixelSet.current.X1Offset, e.offsetY, 'exitBuffer', 'Exit Buffer')
         recordPriorAddNextWithTrace('.exitLine', e.offsetY, 'exitBufferLine', 'yellow', 'exitBuffer')
@@ -218,22 +229,6 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
         setCaptureComplete(true)
     }
 
-    function traceMouseX(e)
-    {
-        temp.select('.enterLine').attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-        temp.select('.enterInfo').attr('x', e.offsetX).attr('y', e.offsetY - 2)
-        temp.select('.enterPrice').attr('x', e.offsetX + 10).attr('y', e.offsetY - 2).text((`$${yScale({ pixelToPrice: e.offsetY })}`)).attr('dx', '150px')
-    }
-    function traceMouse(e, click, infoPriceClassName)
-    {
-        temp.select(click).attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-        temp.select(`.${infoPriceClassName}Info`).attr('y', e.offsetY - 2)
-        temp.select(`.${infoPriceClassName}Price`).attr('y', e.offsetY - 2).text((`$${yScale({ pixelToPrice: e.offsetY })}`))
-
-        let percentageOfEnterPrice = Math.abs((pixelSet.current.Y1Price - yScale({ pixelToPrice: e.offsetY })) / pixelSet.current.Y1Price * 100).toFixed(2)
-        temp.select('.enterPercentage').text(`${percentageOfEnterPrice}% From Enter`).attr('y', e.offsetY - 2).attr('dy', '20px')
-    }
-
     function setPricePositionRemoveInfoText(infoClassNamePrior, xPosition, yPosition, infoClassNameNext, textNext)
     {
         temp.select(`.${infoClassNamePrior}Price`).attr('y', yPosition)
@@ -247,9 +242,22 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
     {
         temp.select(priorClassName).attr('y1', yOffset).attr('y2', yOffset)
         temp.append('line').attr('class', `${className} traceLine`).attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY).attr('stroke', color).attr('stroke-width', 1)
-        stockSVG.on('mousemove', (e) => traceMouse(e, `.${className}`, infoPriceClassName))
+        stockSVG.on('mousemove', (e) =>
+        {
+            temp.select(`.${className}`).attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
+            temp.select(`.${infoPriceClassName}Info`).attr('y', e.offsetY - 2)
+            temp.select(`.${infoPriceClassName}Price`).attr('y', e.offsetY - 2).text((`$${yScale({ pixelToPrice: e.offsetY })}`))
+            let percentageOfEnterPrice = Math.abs((pixelSet.current.Y1Price - yScale({ pixelToPrice: e.offsetY })) / pixelSet.current.Y1Price * 100).toFixed(2)
+            temp.select('.enterPercentage').text(`${percentageOfEnterPrice}% From Enter`).attr('y', e.offsetY - 2).attr('dy', '20px')
+        })
     }
 }
+
+
+
+
+
+
 const keyPriceTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, yScale) =>
 {
     const stockSVG = select(svg)

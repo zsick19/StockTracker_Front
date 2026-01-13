@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, current } from "@reduxjs/toolkit";
 
 const previousNextStockSlice = createSlice({
     name: "previousNextStock",
@@ -6,7 +6,8 @@ const previousNextStockSlice = createSlice({
         confirmedUncharted: [{ ticker: 'AARD', chartId: '695eee1fbc2c64a116d5cbd7' }, { ticker: 'AAUC', chartId: '695eee1fbc2c64a116d5cbd8' }, { ticker: 'AAPL', chartId: '695ef093b364759947ace43c' },
         { ticker: 'AAP', chartId: "695ef093b364759947ace43d" }, { ticker: 'AAON', chartId: "695ef20ab364759947ace462" }, { ticker: 'AB', _id: '695ef2d8b364759947ace476' }
         ],
-        confirmedUnChartedLastIndex: 0
+        confirmedUnChartedLastIndex: 0,
+        totalUncharted: 6
     },
     reducers: {
         setConfirmedUnChartedData: (state, action) =>
@@ -47,6 +48,7 @@ export const selectConfirmedUnChartedTrio = (state) => ({
     previous: state.previousNextStock.confirmedUncharted[state.previousNextStock.confirmedUnChartedLastIndex - 1],
     current: state.previousNextStock.confirmedUncharted[state.previousNextStock.confirmedUnChartedLastIndex],
     next: state.previousNextStock.confirmedUncharted[state.previousNextStock.confirmedUnChartedLastIndex + 1],
+    indexInfo: { current: state.previousNextStock.confirmedUnChartedLastIndex, total: state.previousNextStock.totalUncharted }
 })
 
 export const selectCurrentUnConfirmed = (state) => state.previousNextStock.confirmedUncharted[state.previousNextStock.confirmedUnChartedLastIndex]

@@ -12,6 +12,7 @@ import previousNextStockReducers from '../features/SelectedStocks/PreviousNextSt
 import chartingToolReducers from '../features/Charting/ChartingTool'
 import chartingVisibilityReducers from '../features/Charting/ChartingVisibility'
 import enterExitChartingReducers from '../features/EnterExitPlans/EnterExitGraphElement'
+import editChartSelectionReducers from '../features/Charting/EditChartSelection'
 
 export const store = configureStore({
   reducer: {
@@ -24,7 +25,7 @@ export const store = configureStore({
     previousNextStock: previousNextStockReducers,
     chartingTool: chartingToolReducers,
     chartingVisibility: chartingVisibilityReducers,
-
+    editChartSelection:editChartSelectionReducers,
     auth: authReducer,
     test: testReducer,
   },

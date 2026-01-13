@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addLine, makeSelectChartingByTicker, removeChartingElement, updateLine } from '../../features/Charting/chartingElements'
+import { addEnterExitToCharting, addLine, makeSelectChartingByTicker, removeChartingElement, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuitySkipWeekends, discontinuityRange } from '@d3fc/d3fc-discontinuous-scale'
 import { sub, subBusinessDays, addDays, isToday } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
-import { makeSelectEnterExitByTicker, selectEnterExitByTickerMemo } from '../../features/EnterExitPlans/EnterExitGraphElement'
+import { defineEnterExitPlan, makeSelectEnterExitByTicker, selectEnterExitByTickerMemo } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { selectCurrentTool } from '../../features/Charting/ChartingTool'
 import { selectChartVisibility } from '../../features/Charting/ChartingVisibility'
 import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
@@ -15,8 +15,9 @@ import ChartContextMenuContainer from './contextMenus/ChartContextMenuContainer'
 import { ChartingTools } from '../../Utilities/ChartingTools'
 import { defaultChartingStyles } from '../../Utilities/GraphStyles'
 import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
+import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 
-function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
 {
     //redux charting data selectors
     const dispatch = useDispatch()
@@ -25,6 +26,7 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
     const EnterExitPlan = useSelector(state => selectedEnterExitMemo(state, ticker))
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
+    const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
 
 
     //redux graph functioning selectors
@@ -137,8 +139,8 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
     yScaleRef.current = createPriceScale
     const xScaleRef = useRef()
     xScaleRef.current = createDateScale
-
-
+    const tickerRef = useRef()
+    tickerRef.current = ticker
 
 
     const stockCandleSVG = select(candleSVG.current)
@@ -306,6 +308,37 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
         }
 
 
+
+        //enter exit plan creation and update
+        if (EnterExitPlan) { stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update)) }
+        else if (charting?.enterExitLines) { stockCandleSVG.select('.enterExits').selectAll('.line_group').data([charting.enterExitLines]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update)) }
+        function createEnterExit(enter)
+        {
+            enter.each(function (d)
+            {
+                var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
+
+                const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => yScaleRef.current({ priceToPixel: price }))
+                lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
+                lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
+                lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
+                lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
+            })
+        }
+        function updateEnterExit(update)
+        {
+            update.each(function (d)
+            {
+                const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => createPriceScale({ priceToPixel: price }))
+                update.select('.stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1])
+                update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2])
+                update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
+                update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5])
+            })
+        }
+
+
+
         //trendLine creation and update
         // stockCandleSVG.select('.trendLines').selectAll('.line_group').data(charting.trendLines).join((enter) => createTrendLine(enter), (update) => updateTrendLines(update))
         // function createTrendLine(enter)
@@ -432,41 +465,7 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
         //     })
         // }
 
-        //enter exit creation and update
-        // stockCandleSVG.select('.enterExits').selectAll('.line_group').data(charting.enterExitLines).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
-        // function createEnterExit(enter)
-        // {
-        //     enter.each(function (d)
-        //     {
-        //         let startXPosition = createDateScale({ dateToPixel: d.enterDate })
-        //         let widthPosition = startXPosition + 100
-        //         const pricePoints = [d.enterPrice, d.enterBufferPrice, d.stopLossPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
-        //         const yPositions = pricePoints.map((price) => createPriceScale({ priceToPixel: price }))
-        //         const names = ['enterLine', 'enterBufferLine', 'stopLossLine', 'exitBufferLine', 'exitLine', 'moonLine']
-        //         const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
 
-        //         var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
-
-        //         lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'yellow').attr('opacity', 0.1)
-        //         lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[0]).attr('width', candleDimensions.width).attr('height', yPositions[2] - yPositions[0]).attr('fill', 'red').attr('opacity', 0.1)
-        //         lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
-        //         lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0)
-        //             .attr('y', yPositions[5]).attr('width', candleDimensions.width)
-        //             .attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
-        //     })
-        // }
-        // function updateEnterExit(update)
-        // {
-        //     update.each(function (d)
-        //     {
-        //         const pricePoints = [d.enterPrice, d.enterBufferPrice, d.stopLossPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
-        //         const yPositions = pricePoints.map((price) => createPriceScale({ priceToPixel: price }))
-        //         update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1])
-        //         update.select('.stopLossShading').attr('x', 0).attr('y', yPositions[0]).attr('width', candleDimensions.width).attr('height', yPositions[2] - yPositions[0])
-        //         update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
-        //         update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5])
-        //     })
-        // }
 
         //NEED UPDATED DRAG FUNCTIONS
         //triangle creation and update
@@ -670,21 +669,65 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
         if (!captureComplete) return
 
         let completeCapture = {}
-        completeCapture.dateP1 = createDateScale({ pixelToDate: pixelSet.current.X1 })
-        completeCapture.dateP2 = createDateScale({ pixelToDate: pixelSet.current.X2 })
-        Object.keys(pixelSet.current).filter(t => t.includes('Y')).map((pixelForPrice, i) => { completeCapture[`priceP${i + 1}`] = createPriceScale({ pixelToPrice: pixelSet.current[pixelForPrice] }) })
-
-        switch (currentTool)
+        let pixelCapture = pixelSet.current
+        completeCapture.dateP1 = createDateScale({ pixelToDate: pixelCapture.X1 })
+        if (currentTool === 'Enter Exit')
         {
-            case ChartingTools[1].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
-            // case ChartingTools[2].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
-        }
 
+            completeCapture.enterPrice = createPriceScale({ pixelToPrice: pixelCapture.Y1 })
+            completeCapture.enterBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y2 })
+            completeCapture.stopLossPrice = createPriceScale({ pixelToPrice: pixelCapture.Y3 })
+
+            completeCapture.exitPrice = createPriceScale({ pixelToPrice: pixelCapture.Y4 })
+            completeCapture.exitBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y5 })
+            completeCapture.moonPrice = createPriceScale({ pixelToPrice: pixelCapture.Y6 })
+
+            completeCapture.percents = [pixelCapture.P1, pixelCapture.P2, pixelCapture.P3, pixelCapture.P4, pixelCapture.P5]
+
+            if (EnterExitPlan)
+            {
+                //enter exit plan exist with an ID attached to Enter Exit Plan
+                dispatch(defineEnterExitPlan({ ticker, enterExitPlan: completeCapture }))
+                //attemptToUpdateEnterExit({ ticker, chartId, update: completeCapture, id: EnterExitPlan.id })
+            } else
+            {
+                dispatch(addEnterExitToCharting({ ticker, enterExit: completeCapture }))
+                //enter exit plan does not exist and enter exit gets added to charting
+                //add to charting
+                //button shows up to inititate tracking//move enter exit from charting to actual enter/exit plan with tracking
+            }
+
+
+
+
+        } else
+        {
+            completeCapture.dateP2 = createDateScale({ pixelToDate: pixelCapture.X2 })
+            Object.keys(pixelSet.current).filter(t => t.includes('Y')).map((pixelForPrice, i) => { completeCapture[`priceP${i + 1}`] = createPriceScale({ pixelToPrice: pixelCapture[pixelForPrice] }) })
+
+            switch (currentTool)
+            {
+                case ChartingTools[1].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
+                // case ChartingTools[2].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
+            }
+        }
         resetTemp()
 
     }, [currentTool, captureComplete])
 
 
+
+
+    async function attemptToUpdateEnterExit(args)
+    {
+        try
+        {
+            await updateEnterExitPlan(args)
+        } catch (error)
+        {
+
+        }
+    }
 
 
     function initializeMouseCrossHairBehavior()
@@ -795,8 +838,6 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
     }
 
 
-    const tickerRef = useRef()
-    tickerRef.current = ticker
 
 
     function dragWholeLineStarted(e, d)
@@ -816,7 +857,6 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
     function dragWholeLineEnded(e, d)
     {
         select(this).attr('stroke', 'black')
-        console.log(d)
 
         dispatch(updateLine({
             ticker: tickerRef.current, update: {
@@ -825,7 +865,6 @@ function ChartGraph({ ticker, candleData, mostRecentPrice, timeFrame })
             }
         }))
     }
-
     const dragBehavior = drag().on('start', dragWholeLineStarted).on('drag', draggedWholeLine).on('end', dragWholeLineEnded)
 
 

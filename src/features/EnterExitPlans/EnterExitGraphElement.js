@@ -7,30 +7,24 @@ const enterExitGraphElementsSlice = createSlice({
         setEnterExitCharting: (state, action) =>
         {
             let chartingData = action.payload
-            if (action.payload.plannedId)
-            {
-                state[chartingData.tickerSymbol] = { ...chartingData.plannedId.plan }
-            } else
-            {
-                state[chartingData.tickerSymbol] = {
-                    enterBufferPrice: undefined,
-                    enterPrice: undefined,
-                    stoplossPrice: undefined,
-                    exitBufferPrice: undefined,
-                    exitPrice: undefined,
-                    moonPrice: undefined,
-                    risk: undefined,
-                    reward: undefined
-                }
-            }
 
+            if (action.payload.plannedId) { state[chartingData.tickerSymbol] = { ...chartingData.plannedId.plan, id: chartingData.plannedId._id, enterExitPlanAltered: false } }
+            else { state[chartingData.tickerSymbol] = undefined }
         },
-
+        defineEnterExitPlan: (state, action) =>
+        {
+            state[action.payload.ticker] = {
+                id: state[action.payload.ticker].id,
+                enterExitPlanAltered: true,
+                ...action.payload.enterExitPlan
+            }
+        }
     },
 });
 
 export const {
-    setEnterExitCharting
+    setEnterExitCharting,
+    defineEnterExitPlan
 } = enterExitGraphElementsSlice.actions;
 
 export default enterExitGraphElementsSlice.reducer;
@@ -47,4 +41,9 @@ export const selectEnterExitByTickerMemo = createSelector(
 export const makeSelectEnterExitByTicker = () => createSelector(
     [(state) => state.enterExitElement, (state, ticker) => ticker],
     (enterExitPlans, ticker) => enterExitPlans[ticker]
+)
+
+export const makeSelectEnterExitPlanAltered = () => createSelector(
+    [(state) => state.enterExitElement, (state, ticker) => ticker],
+    (enterExitPlans, ticker) => enterExitPlans[ticker]?.enterExitPlanAltered
 )
