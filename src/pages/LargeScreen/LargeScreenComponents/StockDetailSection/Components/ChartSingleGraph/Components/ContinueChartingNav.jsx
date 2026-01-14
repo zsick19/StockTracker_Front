@@ -14,7 +14,7 @@ function ContinueChartingNav({ currentUnChartedTicker, handleNavigatingToNextUnC
                 <button className='buttonIcon' disabled={!currentUnChartedTicker.next} onClick={() => handleNavigatingToNextUnChartedStock(true)}><ChevronRight color={currentUnChartedTicker.next ? 'white' : 'gray'} /></button>
             </div>
 
-            <p>{currentUnChartedTicker.indexInfo.current}/{currentUnChartedTicker.indexInfo.total} Completed</p>
+            <p>{currentUnChartedTicker.indexInfo.current + 1}/{currentUnChartedTicker.indexInfo.total} Completed</p>
 
             <button>Sync Progress</button>
         </div>

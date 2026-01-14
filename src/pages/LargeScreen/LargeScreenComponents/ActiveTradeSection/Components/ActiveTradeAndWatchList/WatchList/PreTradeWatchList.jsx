@@ -3,11 +3,11 @@ import { useDispatch } from 'react-redux'
 import { setSelectedStockAndTimelineFourSplit } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { CircleArrowRight } from 'lucide-react'
+import SinglePlannedTickerDisplay from './Components/SinglePlannedTickerDisplay'
 
-function PreTradeWatchList({ setActiveTradeLarger })
+function PreTradeWatchList({ setActiveTradeLarger, refetch, ids })
 {
     const dispatch = useDispatch()
-    const samplePreTradeAndBufferHit = [{ ticker: 'AA', _id: 'aa' }, { ticker: 'ZIM', _id: 'bb' }]
 
     const handleSettingTickerToFourWaySplit = (ticker) =>
     {
@@ -30,22 +30,20 @@ function PreTradeWatchList({ setActiveTradeLarger })
                     <button onClick={() => setActiveTradeLarger(prev => !prev)}><CircleArrowRight /></button>
                 </div>
                 <div>
-                    {samplePreTradeAndBufferHit.map((bufferHitPre) =>
-                    {
-                        return (
-                            <div className='flex'>
-                                <p>{bufferHitPre.ticker}</p>
-                                <button onClick={() => handleSettingTickerToFourWaySplit(bufferHitPre)}>Q</button>
-                            </div>
-                        )
-                    })}
+
+                    <button onClick={() => refetch()}>refetch</button>
                 </div>
             </div>
 
 
 
-            <div>Stoploss hit List</div>
-            <div>Planned Tickers Watch</div>
+            <div>Stoploss hit List
+
+            </div>
+            <div>
+                Planned Tickers Watch
+                {ids.map((id) => { return <SinglePlannedTickerDisplay id={id} /> })}
+            </div>
         </div >
     )
 }

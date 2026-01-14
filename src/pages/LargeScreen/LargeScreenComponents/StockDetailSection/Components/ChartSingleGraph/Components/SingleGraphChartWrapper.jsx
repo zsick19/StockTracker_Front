@@ -12,6 +12,7 @@ import { useUpdateChartingDataMutation } from '../../../../../../../features/Cha
 import { makeSelectChartAlteredByTicker, makeSelectChartingByTicker } from '../../../../../../../features/Charting/chartingElements'
 import { makeSelectEnterExitPlanAltered } from '../../../../../../../features/EnterExitPlans/EnterExitGraphElement'
 import { selectChartEditMode, setChartEditMode } from '../../../../../../../features/Charting/EditChartSelection'
+import { useUpdateEnterExitPlanMutation } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 
 
 function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay })
@@ -27,7 +28,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
 
     const editMode = useSelector(selectChartEditMode)
 
-
+    const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
 
     const [serverResponse, setServerResponse] = useState(undefined)
 
@@ -49,7 +50,6 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
         {
             await updateChartingData({ ticker, chartId })
             setServerResponse("positive")
-
             setTimeout(() =>
             {
                 setServerResponse(undefined)
@@ -64,6 +64,28 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
             }, 2000);
 
         }
+    }
+
+    async function attemptInitiatingPlanTracking()
+    {
+        try
+        {
+            await updateEnterExitPlan({ ticker, chartId })
+            setServerResponse("positive")
+            setTimeout(() =>
+            {
+                setServerResponse(undefined)
+            }, 2000);
+        } catch (error)
+        {
+            console.log(error)
+            setServerResponse("error")
+            setTimeout(() =>
+            {
+                setServerResponse(undefined)
+            }, 2000);
+        }
+
     }
 
     return (
@@ -99,7 +121,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 {serverResponse === "positive" && <Check color='green' size={20} />}
                 {serverResponse === "negative" && <X color='red' size={20} />}
 
-                {(chartingAltered.hasPlanCharted && !enterExitAltered) && <button title='Initiate Tracking'  ><Binoculars size={20} color='red' /></button>}
+                {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) && <button title='Initiate Tracking' onClick={() => attemptInitiatingPlanTracking()} ><Binoculars size={20} color='red' /></button>}
             </div>
         </div>
     )

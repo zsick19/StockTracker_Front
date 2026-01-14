@@ -8,7 +8,13 @@ const enterExitGraphElementsSlice = createSlice({
         {
             let chartingData = action.payload
 
-            if (action.payload.plannedId) { state[chartingData.tickerSymbol] = { ...chartingData.plannedId.plan, id: chartingData.plannedId._id, enterExitPlanAltered: false } }
+            if (action.payload.plannedId)
+            {
+                state[chartingData.tickerSymbol] = {
+                    ...chartingData.plannedId.plan,
+                    id: chartingData.plannedId._id, enterExitPlanAltered: false
+                }
+            }
             else { state[chartingData.tickerSymbol] = undefined }
         },
         defineEnterExitPlan: (state, action) =>
@@ -24,7 +30,8 @@ const enterExitGraphElementsSlice = createSlice({
 
 export const {
     setEnterExitCharting,
-    defineEnterExitPlan
+    defineEnterExitPlan,
+
 } = enterExitGraphElementsSlice.actions;
 
 export default enterExitGraphElementsSlice.reducer;

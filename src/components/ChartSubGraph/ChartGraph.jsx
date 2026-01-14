@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addEnterExitToCharting, addLine, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
@@ -20,18 +20,28 @@ import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
 {
-    //redux charting data selectors
+
     const dispatch = useDispatch()
+
+    const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
+    async function attemptToUpdateEnterExit(args)
+    {
+        try
+        {
+            await updateEnterExitPlan({ ticker, chartId })
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
+    //redux charting data selectors
     const KeyLevels = useSelector((state) => selectTickerKeyLevels(state, ticker.ticker))
     const selectedEnterExitMemo = useMemo(makeSelectEnterExitByTicker, [])
     const EnterExitPlan = useSelector(state => selectedEnterExitMemo(state, ticker))
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
-
     const editMode = useSelector(selectChartEditMode)
-
-    const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
-
 
     //redux graph functioning selectors
     const currentTool = useSelector(selectCurrentTool)
@@ -302,7 +312,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
             }
         }
 
-
         //enter exit plan creation and update
         if (EnterExitPlan) { stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update)) }
         else if (charting?.enterExitLines) { stockCandleSVG.select('.enterExits').selectAll('.line_group').data([charting.enterExitLines]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update)) }
@@ -326,10 +335,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
 
                 yPositions.map((position, index) =>
                 {
-                    lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index]).attr('stroke-width', 10)
-                        .attr('visibility', 'hidden')
-                        .on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); select(this).transition().delay(250).attr('stroke-width', 10) })
-                        .on('mouseleave', select(this).transition().delay(250).attr('stroke-width', 5))
+                    lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
+                        .attr('stroke-width', 10).attr('visibility', 'hidden').on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); })
 
                     //      lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', startXPosition).attr('y', position).text((d) => `$${100}`)
                 })
@@ -339,7 +346,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
         {
             let startXPosition = candleDimensions.width * 0.9
             let widthPosition = startXPosition + 100
-
             const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
             update.each(function (d)
             {
@@ -359,287 +365,81 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
         }
 
 
-
-        //trendLine creation and update
-        // stockCandleSVG.select('.trendLines').selectAll('.line_group').data(charting.trendLines).join((enter) => createTrendLine(enter), (update) => updateTrendLines(update))
-        // function createTrendLine(enter)
-        // {
-        //     enter.each(function (d)
-        //     {
-        //         let linePixel = {
-        //             point1: { x: createDateScale({ dateToPixel: d.dateP1 }), y: createPriceScale({ priceToPixel: d.priceP1 }) },
-        //             point2: { x: createDateScale({ dateToPixel: d.dateP2 }), y: createPriceScale({ priceToPixel: d.priceP2 }) },
-        //             point3: { y: createPriceScale({ priceToPixel: d.priceP3 }) },
-        //             point4: { y: createPriceScale({ priceToPixel: d.priceP4 }) }
-        //         }
-        //         var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
-
-        //         lineGroup.append('line').attr('class', 'drawnLineMain').attr('x1', linePixel.point1.x).attr('y1', linePixel.point1.y).attr('x2', linePixel.point2.x).attr('y2', linePixel.point2.y)
-        //             .attr('stroke', defaultChartingStyles.trendLineColor).attr('stroke-linecap', 'round').attr('stroke-width', 3)
-
-        //         lineGroup.append('line').attr('class', 'drawnLineMargin').attr('x1', linePixel.point1.x).attr('y1', linePixel.point3.y).attr('x2', linePixel.point2.x).attr('y2', linePixel.point4.y)
-        //             .attr('stroke', defaultChartingStyles.trendLineDotted).style("stroke-dasharray", ("3, 3")).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.trendLineDottedStroke)
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircle1').attr("cx", linePixel.point1.x).attr("cy", linePixel.point1.y).attr("r", 4).attr('fill', 'red')
-        //         lineGroup.append('circle').attr('class', 'edgeCircle2').attr("cx", linePixel.point2.x).attr("cy", linePixel.point2.y).attr("r", 4).attr('fill', 'red')
-        //         lineGroup.append('circle').attr('class', 'marginCircle').attr("cx", linePixel.point1.x).attr("cy", linePixel.point3.y).attr("r", 4).attr('fill', 'red')
-        //     })
-        // }
-        // function updateTrendLines(update)
-        // {
-        //     update.select('.drawnLineMain').each(function (d)
-        //     {
-        //         let linePixel = {
-        //             point1: { x: createDateScale({ dateToPixel: d.dateP1 }), y: createPriceScale({ priceToPixel: d.priceP1 }) },
-        //             point2: { x: createDateScale({ dateToPixel: d.dateP2 }), y: createPriceScale({ priceToPixel: d.priceP2 }) },
-        //             point3: { y: createPriceScale({ priceToPixel: d.priceP3 }) },
-        //             point4: { y: createPriceScale({ priceToPixel: d.priceP4 }) }
-        //         }
-
-        //         select(this).attr('x1', linePixel.point1.x).attr('y1', linePixel.point1.y).attr('x2', linePixel.point2.x).attr('y2', linePixel.point2.y)
-
-        //         const parent = select(this.parentNode)
-        //         parent.select('.drawnLineMargin').attr('x1', linePixel.point1.x).attr('y1', linePixel.point3.y).attr('x2', linePixel.point2.x).attr('y2', linePixel.point4.y)
-        //         parent.select('.edgeCircle1').attr("cx", linePixel.point1.x).attr("cy", linePixel.point1.y)
-        //         parent.select('.edgeCircle2').attr("cx", linePixel.point2.x).attr("cy", linePixel.point2.y)
-        //         parent.select('.marginCircle').attr("cx", linePixel.point1.x).attr("cy", linePixel.point3.y)
-        //     })
-        // }
-
-        // //horizontal Line creation and update
-        // stockCandleSVG.select('.linesH').selectAll('.line_group').data(charting.linesH).join((enter) => createHorizontalLine(enter), (update) => updateHorizontalLine(update))
-        // function createHorizontalLine(enter)
-        // {
-        //     enter.each(function (d)
-        //     {
-        //         let priceLinePixel = { pointX: candleDimensions.width * 0.95, pointY: createPriceScale({ priceToPixel: d.priceP1 }) }
-
-        //         var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
-        //         lineGroup.append('line').attr('class', 'drawnLine').attr('x1', 0).attr('y1', priceLinePixel.pointY).attr('x2', candleDimensions.width).attr('y2', priceLinePixel.pointY).attr('stroke', defaultChartingStyles.hLineRColor).attr('stroke-width', defaultChartingStyles.hLineStrokeWidth)
-        //         lineGroup.append('circle').attr('class', 'edgeCircle').attr('cx', priceLinePixel.pointX).attr("cy", priceLinePixel.pointY).attr("r", 4).attr('fill', 'red')
-        //         lineGroup.append('text').attr('class', 'info').text((d) => `$${d.priceP1}`).attr("x", candleDimensions.width).attr("y", priceLinePixel.pointY).attr('dx', '-75px').attr('dy', '20px').attr('font-size', '10px');
-        //     })
-        // }
-        // function updateHorizontalLine(update)
-        // {
-        //     update.each(function (d)
-        //     {
-        //         let priceLinePixel = { pointY: createPriceScale({ priceToPixel: d.priceP1 }) }
-
-        //         const parent = select(this)
-        //         parent.select('.drawnLine').attr('y1', priceLinePixel.pointY).attr('y2', priceLinePixel.pointY)
-        //         parent.select('.edgeCircle').attr('cy', priceLinePixel.pointY)
-        //         parent.select('.info').text((d) => `$${d.priceP1}`).attr("x", candleDimensions.width).attr("y", priceLinePixel.pointY)
-        //     })
-        // }
-
-        //channel creation and update
-        // stockCandleSVG.select('.channels').selectAll('.line_group').data(charting.channels).join((enter) => createChannelLine(enter), (update) => updateChannelLine(update))
-        // function createChannelLine(enter)
-        // {
-        //     enter.each(function (d, i)
-        //     {
-        //         let datePixels = genChannelDatePixelSet(d)
-        //         let channelPixel = genPixelSet(d)
-
-        //         var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
-
-
-        //         lineGroup.append('line').attr('class', 'drawnLine1Main').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point1y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point2y)
-        //             .attr('stroke', defaultChartingStyles.channelMainColor).attr('stroke-linecap', 'round').attr('stroke-width', 3)
-        //         lineGroup.append('line').attr('class', 'drawnLine1Margin').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point3y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point4y)
-        //             .attr('stroke', defaultChartingStyles.channelLineDottedColor).style("stroke-dasharray", ("3, 3")).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.trendLineDottedStroke)
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircle1').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point1y).attr("r", 4).attr('fill', 'red')
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircle2').attr("cx", datePixels.rightDatePixel).attr("cy", channelPixel.point2y).attr("r", 4).attr('fill', 'red')
-        //         lineGroup.append('circle').attr('class', 'edgeCircleMargin1').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point3y).attr("r", 4).attr('fill', 'red')
-
-
-        //         //second channel line
-        //         lineGroup.append('line').attr('class', 'drawnLine2Main').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point5y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point6y)
-        //             .attr('stroke', defaultChartingStyles.channelMainColor).attr('stroke-linecap', 'round').attr('stroke-width', 3)
-        //         lineGroup.append('line').attr('class', 'drawnLine2Margin').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point7y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point8y)
-        //             .attr('stroke', defaultChartingStyles.channelLineDottedColor).style("stroke-dasharray", ("3, 3")).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.trendLineDottedStroke)
-        //         lineGroup.append('circle').attr('class', 'edgeCircle3').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point5y).attr("r", 4).attr('fill', 'red')
-        //         lineGroup.append('circle').attr('class', 'edgeCircleMargin2').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point7y).attr("r", 4).attr('fill', 'red')
-        //     })
-        // }
-        // function updateChannelLine(update)
-        // {
-        //     update.each(function (d)
-        //     {
-        //         let datePixels = genChannelDatePixelSet(d)
-        //         let channelPixel = genPixelSet(d)
-        //         const parent = select(this)
-        //         parent.select('.drawnLine1Main').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point1y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point2y)
-
-        //         parent.select('.drawnLine1Margin').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point3y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point4y)
-        //         parent.select('.drawnLine2Main').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point5y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point6y)
-        //         parent.select('.drawnLine2Margin').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point7y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point8y)
-        //         parent.select('.edgeCircle1').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point1y)
-        //         parent.select('.edgeCircle2').attr("cx", datePixels.rightDatePixel).attr("cy", channelPixel.point2y)
-        //         parent.select('.edgeCircleMargin1').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point3y)
-        //         parent.select('.edgeCircleMargin2').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point7y)
-
-        //         parent.select('.edgeCircle3').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point5y)
-        //     })
-        // }
-
-
-
-        //NEED UPDATED DRAG FUNCTIONS
-        //triangle creation and update
-        // stockCandleSVG.select('.triangles').selectAll('.line_group').data(charting.triangles).join((enter) => createTriangleLine(enter), (update) => updateTriangleLine(update))
-        // function createTriangleLine(enter)
-        // {
-        //     enter.each(function (d, i)
-        //     {
-        //         let datePixels = genChannelDatePixelSet(d)
-        //         let channelPixel = genPixelSet(d)
-
-        //         var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
-
-        //         lineGroup.append('line').attr('class', 'drawnLine1Main').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point1y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point2y)
-        //             .attr('stroke', defaultChartingStyles.channelMainColor).attr('stroke-linecap', 'round').attr('stroke-width', 3)
-
-        //         lineGroup.append('line').attr('class', 'drawnLine1Margin').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point3y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point4y)
-        //             .attr('stroke', defaultChartingStyles.channelLineDottedColor).style("stroke-dasharray", ("3, 3")).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.trendLineDottedStroke)
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircle1').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point1y).attr("r", 4).attr('fill', 'red')
-        //         lineGroup.append('circle').attr('class', 'edgeCircle2').attr("cx", datePixels.rightDatePixel).attr("cy", channelPixel.point2y).attr("r", 4).attr('fill', 'red')
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircleMargin1').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point3y).attr("r", 4).attr('fill', 'red')
-
-
-        //         //second channel line
-        //         lineGroup.append('line').attr('class', 'drawnLine2Main').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point5y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point6y)
-        //             .attr('stroke', defaultChartingStyles.channelMainColor).attr('stroke-linecap', 'round').attr('stroke-width', 3)
-        //         lineGroup.append('line').attr('class', 'drawnLine2Margin').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point7y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point8y)
-        //             .attr('stroke', defaultChartingStyles.channelLineDottedColor).style("stroke-dasharray", ("3, 3")).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.trendLineDottedStroke)
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircle3').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point5y).attr("r", 4).attr('fill', 'red')
-        //         lineGroup.append('circle').attr('class', 'edgeCircleMargin2').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point7y).attr("r", 4).attr('fill', 'red')
-
-        //     })
-        // }
-        // function updateTriangleLine(update)
-        // {
-        //     update.each(function (d)
-        //     {
-        //         let datePixels = genChannelDatePixelSet(d)
-        //         let channelPixel = genPixelSet(d)
-        //         const parent = select(this)
-        //         parent.select('.drawnLine1Main').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point1y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point2y)
-
-        //         parent.select('.drawnLine1Margin').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point3y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point4y)
-        //         parent.select('.drawnLine2Main').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point5y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point6y)
-        //         parent.select('.drawnLine2Margin').attr('x1', datePixels.leftDatePixel).attr('y1', channelPixel.point7y).attr('x2', datePixels.rightDatePixel).attr('y2', channelPixel.point8y)
-        //         parent.select('.edgeCircle1').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point1y)
-        //         parent.select('.edgeCircle2').attr("cx", datePixels.rightDatePixel).attr("cy", channelPixel.point2y)
-        //         parent.select('.edgeCircleMargin1').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point3y)
-        //         parent.select('.edgeCircleMargin2').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point7y)
-
-        //         parent.select('.edgeCircle3').attr("cx", datePixels.leftDatePixel).attr("cy", channelPixel.point5y)
-        //     })
-        // }
-
-        //wedge creation and update
-        // stockCandleSVG.select('.wedges').selectAll('.line_group').data(charting.wedges).join((enter) => createWedgeLine(enter), (update) => updateWedgeLine(update))
-        // function createWedgeLine(enter)
-        // {
-        //     enter.each(function (d, i)
-        //     {
-        //         let datePixels = genChannelDatePixelSet(d)
-        //         let wedgePixelSet = genPixelSet(d)
-
-
-        //         var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
-
-        //         lineGroup.append('line').attr('class', 'drawnLine1Main').attr('x1', datePixels.leftDatePixel).attr('y1', wedgePixelSet.point1y).attr('x2', datePixels.rightDatePixel).attr('y2', wedgePixelSet.point2y)
-        //             .attr('stroke', defaultChartingStyles.channelMainColor).attr('stroke-linecap', 'round').attr('stroke-width', 3)
-
-        //         lineGroup.append('line').attr('class', 'drawnLine2Main').attr('x1', datePixels.leftDatePixel).attr('y1', wedgePixelSet.point5y).attr('x2', datePixels.rightDatePixel).attr('y2', wedgePixelSet.point6y)
-        //             .attr('stroke', defaultChartingStyles.channelMainColor).attr('stroke-linecap', 'round').attr('stroke-width', 3)
-
-        //         lineGroup.append('line').attr('class', 'drawnLine1Margin').attr('x1', datePixels.leftDatePixel).attr('y1', wedgePixelSet.point3y).attr('x2', datePixels.rightDatePixel).attr('y2', wedgePixelSet.point4y)
-        //             .attr('stroke', defaultChartingStyles.channelLineDottedColor).style("stroke-dasharray", ("3, 3")).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.trendLineDottedStroke)
-
-        //         lineGroup.append('line').attr('class', 'drawnLine2Margin').attr('x1', datePixels.leftDatePixel).attr('y1', wedgePixelSet.point7y).attr('x2', datePixels.rightDatePixel).attr('y2', wedgePixelSet.point8y)
-        //             .attr('stroke', defaultChartingStyles.channelLineDottedColor).style("stroke-dasharray", ("3, 3")).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.trendLineDottedStroke)
-
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircle1').attr("cx", datePixels.leftDatePixel).attr("cy", wedgePixelSet.point1y).attr("r", 4).attr('fill', 'red')
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircle2').attr("cx", datePixels.rightDatePixel).attr("cy", wedgePixelSet.point2y).attr("r", 4).attr('fill', 'red')
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircleMargin1').attr("cx", datePixels.leftDatePixel).attr("cy", wedgePixelSet.point3y).attr("r", 4).attr('fill', 'red')
-
-        //         lineGroup.append('circle').attr('class', 'edgeCircleMargin2').attr("cx", datePixels.leftDatePixel).attr("cy", wedgePixelSet.point7y).attr("r", 4).attr('fill', 'red')
-
-
-        //         if (d?.wedgeHLine)
-        //         {
-        //             let hWedge = createPriceScale({ priceToPixel: d.wedgeHLine })
-        //             lineGroup.append('line').attr('class', 'drawnLineHWedge').attr('x1', datePixels.leftDatePixel).attr('y1', hWedge).attr('x2', datePixels.rightDatePixel).attr('y2', hWedge)
-        //                 .attr('stroke', defaultChartingStyles.channelLineDottedColor).style("stroke-dasharray", ("3, 3")).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.trendLineDottedStroke)
-
-        //         }
-        //     })
-        // }
-        // function updateWedgeLine(update)
-        // {
-        //     update.each(function (d)
-        //     {
-        //         let datePixels = genChannelDatePixelSet(d)
-        //         let wedgePixelSet = genPixelSet(d)
-
-
-        //         const parent = select(this)
-        //         parent.select('.drawnLine1Main').attr('x1', datePixels.leftDatePixel).attr('y1', wedgePixelSet.point1y).attr('x2', datePixels.rightDatePixel).attr('y2', wedgePixelSet.point2y)
-
-        //         parent.select('.drawnLine2Main').attr('x1', datePixels.leftDatePixel).attr('y1', wedgePixelSet.point5y).attr('x2', datePixels.rightDatePixel).attr('y2', wedgePixelSet.point6y)
-        //         parent.select('.drawnLine1Margin').attr('x1', datePixels.leftDatePixel).attr('y1', wedgePixelSet.point3y).attr('x2', datePixels.rightDatePixel).attr('y2', wedgePixelSet.point4y)
-        //         parent.select('.drawnLine2Margin').attr('x1', datePixels.leftDatePixel).attr('y1', wedgePixelSet.point7y).attr('x2', datePixels.rightDatePixel).attr('y2', wedgePixelSet.point8y)
-
-        //         parent.select('.edgeCircle1').attr("cx", datePixels.leftDatePixel).attr("cy", wedgePixelSet.point1y)
-        //         parent.select('.edgeCircle2').attr("cx", datePixels.rightDatePixel).attr("cy", wedgePixelSet.point2y)
-
-        //         parent.select('.edgeCircleMargin1').attr("cx", datePixels.leftDatePixel).attr("cy", wedgePixelSet.point3y)
-        //         parent.select('.edgeCircleMargin2').attr("cx", datePixels.leftDatePixel).attr("cy", wedgePixelSet.point7y)
-
-        //         parent.select('.edgeCircle3').attr("cx", datePixels.leftDatePixel).attr("cy", wedgePixelSet.point5y)
-
-        //         if (d?.wedgeHLine)
-        //         {
-        //             let hWedge = createPriceScale({ priceToPixel: d.wedgeHLine })
-        //             parent.select('.drawnLineHWedge').attr('x1', datePixels.leftDatePixel).attr('y1', hWedge).attr('x2', datePixels.rightDatePixel).attr('y2', hWedge)
-
-        //         }
-        //     })
-        // }
-
-        // function genChannelDatePixelSet(d)
-        // {
-        //     return {
-        //         leftDatePixel: createDateScale({ dateToPixel: d.dateP1 }),
-        //         rightDatePixel: createDateScale({ dateToPixel: d.dateP2 })
-        //     }
-        // }
-        // function genPixelSet(d)
-        // {
-        //     return {
-        //         point1y: createPriceScale({ priceToPixel: d.priceP1 }),
-        //         point2y: createPriceScale({ priceToPixel: d.priceP2 }),
-        //         point3y: createPriceScale({ priceToPixel: d.priceP3 }),
-        //         point4y: createPriceScale({ priceToPixel: d.priceP4 }),
-        //         point5y: createPriceScale({ priceToPixel: d.priceP5 }),
-        //         point6y: createPriceScale({ priceToPixel: d.priceP6 }),
-        //         point7y: createPriceScale({ priceToPixel: d.priceP7 }),
-        //         point8y: createPriceScale({ priceToPixel: d.priceP8 })
-        //     }
-        // }
     }, [charting, EnterExitPlan, candleData, candleDimensions, currentXZoomState, currentYZoomState])
+
+
+    //configure svg cross hair, context menu, and tool interactions
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+        initializeMouseCrossHairBehavior()
+        if (!stockCandleSVG.on('contextmenu')) { stockCandleSVG.on('contextmenu', (e) => { e.preventDefault(); setShowContextMenu({ display: true, style: { left: `${e.offsetX}px`, top: `${e.offsetY}px` } }) }) }
+
+        let toolingFunction = toolFunctionExports[ChartingTools.findIndex(t => t.tool === currentTool)]
+        stockCandleSVG.on('click', (e) => toolingFunction(e, setEnableZoom, candleSVG.current, pixelSet, setCaptureComplete, createDateScale, createPriceScale))
+
+    }, [currentTool, candleDimensions, candleData, currentXZoomState, currentYZoomState])
+
+    //update charting state post trace
+    useEffect(() =>
+    {
+        if (!captureComplete || preDimensionsAndCandleCheck()) return
+
+        let completeCapture = {}
+        let pixelCapture = pixelSet.current
+        completeCapture.dateP1 = createDateScale({ pixelToDate: pixelCapture.X1 })
+        if (currentTool === 'Enter Exit')
+        {
+
+            completeCapture.enterPrice = createPriceScale({ pixelToPrice: pixelCapture.Y1 })
+            completeCapture.enterBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y2 })
+            completeCapture.stopLossPrice = createPriceScale({ pixelToPrice: pixelCapture.Y3 })
+
+            completeCapture.exitPrice = createPriceScale({ pixelToPrice: pixelCapture.Y4 })
+            completeCapture.exitBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y5 })
+            completeCapture.moonPrice = createPriceScale({ pixelToPrice: pixelCapture.Y6 })
+
+            completeCapture.percents = [pixelCapture.P1, pixelCapture.P2, pixelCapture.P3, pixelCapture.P4, pixelCapture.P5]
+
+            if (EnterExitPlan)
+            {
+                dispatch(defineEnterExitPlan({ ticker, enterExitPlan: completeCapture }))
+                attemptToUpdateEnterExit()
+            } else
+            {
+                dispatch(addEnterExitToCharting({ ticker, enterExit: completeCapture }))
+            }
+
+        } else
+        {
+            completeCapture.dateP2 = createDateScale({ pixelToDate: pixelCapture.X2 })
+            Object.keys(pixelSet.current).filter(t => t.includes('Y')).map((pixelForPrice, i) => { completeCapture[`priceP${i + 1}`] = createPriceScale({ pixelToPrice: pixelCapture[pixelForPrice] }) })
+
+            switch (currentTool)
+            {
+                case ChartingTools[1].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
+
+                //Add other charting tool dispatches to update different charting
+                // case ChartingTools[2].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
+            }
+        }
+        resetTemp()
+
+    }, [currentTool, captureComplete])
+
+    //toggle edit visual aids
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+        stockCandleSVG.selectAll('.edit').attr('visibility', 'hidden');
+
+        switch (editMode)
+        {
+            case ChartingToolEdits[0].editTool: stockCandleSVG.select('.enterExits').selectAll('.edit').attr('visibility', 'visible').call(dragEnterExitBehavior); break;
+        }
+
+
+    }, [editMode])
 
     //charting visibility
     useEffect(() =>
@@ -669,137 +469,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
         {
             stockCandleSVG.select(className).selectAll(lineGroupClassName).attr('visibility', 'hidden')
         }
-    }, [charting, chartingVisibility])
-
-    //configure svg cross hair, context menu, and tool interactions
-    useEffect(() =>
-    {
-        if (preDimensionsAndCandleCheck()) return
-        initializeMouseCrossHairBehavior()
-        if (!stockCandleSVG.on('contextmenu')) { stockCandleSVG.on('contextmenu', (e) => { e.preventDefault(); setShowContextMenu({ display: true, style: { left: `${e.offsetX}px`, top: `${e.offsetY}px` } }) }) }
-
-        let toolingFunction = toolFunctionExports[ChartingTools.findIndex(t => t.tool === currentTool)]
-        stockCandleSVG.on('click', (e) => toolingFunction(e, setEnableZoom, candleSVG.current, pixelSet, setCaptureComplete, createDateScale, createPriceScale))
-
-    }, [currentTool, candleDimensions, candleData, currentXZoomState, currentYZoomState])
-
-
-    //update charting state post trace
-    useEffect(() =>
-    {
-        if (!captureComplete || preDimensionsAndCandleCheck()) return
-
-        let completeCapture = {}
-        let pixelCapture = pixelSet.current
-        completeCapture.dateP1 = createDateScale({ pixelToDate: pixelCapture.X1 })
-        if (currentTool === 'Enter Exit')
-        {
-
-            completeCapture.enterPrice = createPriceScale({ pixelToPrice: pixelCapture.Y1 })
-            completeCapture.enterBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y2 })
-            completeCapture.stopLossPrice = createPriceScale({ pixelToPrice: pixelCapture.Y3 })
-
-            completeCapture.exitPrice = createPriceScale({ pixelToPrice: pixelCapture.Y4 })
-            completeCapture.exitBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y5 })
-            completeCapture.moonPrice = createPriceScale({ pixelToPrice: pixelCapture.Y6 })
-
-            completeCapture.percents = [pixelCapture.P1, pixelCapture.P2, pixelCapture.P3, pixelCapture.P4, pixelCapture.P5]
-
-            if (EnterExitPlan)
-            {
-                //enter exit plan exist with an ID attached to Enter Exit Plan
-                dispatch(defineEnterExitPlan({ ticker, enterExitPlan: completeCapture }))
-                //attemptToUpdateEnterExit({ ticker, chartId, update: completeCapture, id: EnterExitPlan.id })
-            } else
-            {
-                dispatch(addEnterExitToCharting({ ticker, enterExit: completeCapture }))
-                //enter exit plan does not exist and enter exit gets added to charting
-                //add to charting
-                //button shows up to inititate tracking//move enter exit from charting to actual enter/exit plan with tracking
-            }
-
-
-
-
-        } else
-        {
-            completeCapture.dateP2 = createDateScale({ pixelToDate: pixelCapture.X2 })
-            Object.keys(pixelSet.current).filter(t => t.includes('Y')).map((pixelForPrice, i) => { completeCapture[`priceP${i + 1}`] = createPriceScale({ pixelToPrice: pixelCapture[pixelForPrice] }) })
-
-            switch (currentTool)
-            {
-                case ChartingTools[1].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
-                // case ChartingTools[2].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
-            }
-        }
-        resetTemp()
-
-    }, [currentTool, captureComplete])
-
-    //toggle edit visual aids
-    useEffect(() =>
-    {
-        if (preDimensionsAndCandleCheck()) return
-
-        switch (editMode)
-        {
-            case ChartingToolEdits[0].editTool:
-                stockCandleSVG.select('.enterExits').selectAll('.edit').attr('visibility', 'visible').call(dragEnterExitBehavior);
-                break;
-            default:
-                stockCandleSVG.select('.enterExits').selectAll('.edit').attr('visibility', 'hidden').call(dragEnterExitBehavior);
-                break;
-        }
-
-
-    }, [editMode])
-
-
-    async function attemptToUpdateEnterExit(args)
-    {
-        try
-        {
-            await updateEnterExitPlan(args)
-        } catch (error)
-        {
-
-        }
-    }
-
-
-    function initializeMouseCrossHairBehavior()
-    {
-        stockCandleSVG.on('mousemove', (e) => drawCrossHairs(e))
-        stockCandleSVG.on('mouseout', (e) => clearCrossHairs(e))
-    }
-
-    function drawCrossHairs(e)
-    {
-        if (preDimensionsAndCandleCheck()) return
-
-        const svgCoordinates = new DOMPoint(e.clientX, e.clientY).matrixTransform(candleSVG.current.getScreenCTM().inverse());
-        const crossHairCoordinates = { svgX: svgCoordinates.x, svgY: svgCoordinates.y, mouseHoverOffset: 3 }
-
-        const SVG = stockCandleSVG.select('.crossHairs')
-        SVG.select('.crossY').attr('x1', 0).attr('y1', crossHairCoordinates.svgY - crossHairCoordinates.mouseHoverOffset).attr('x2', candleDimensions.width - 75).attr('y2', crossHairCoordinates.svgY - crossHairCoordinates.mouseHoverOffset).attr('visibility', 'visible')
-        SVG.select('.crossX').attr('x1', crossHairCoordinates.svgX - crossHairCoordinates.mouseHoverOffset).attr('y1', 0).attr('x2', crossHairCoordinates.svgX - crossHairCoordinates.mouseHoverOffset).attr('y2', candleDimensions.height).attr('visibility', 'visible')
-        SVG.select('.priceY').text(`$${createPriceScale({ pixelToPrice: e.offsetY })}`).attr("x", candleDimensions.width - 75).attr("y", e.offsetY).attr('visibility', 'visible');
-    }
-
-    function clearCrossHairs(e)
-    {
-        stockCandleSVG.select('.crossHairs').selectAll('line').attr('visibility', 'hidden')
-        stockCandleSVG.select('.crossHairs').selectAll('text').attr('visibility', 'hidden')
-    }
-
-    function resetTemp()
-    {
-        stockCandleSVG.select('.temp').selectAll('.traceLine').remove()
-        pixelSet.current = initialPixelSet
-        setEnableZoom(true)
-        initializeMouseCrossHairBehavior()
-    }
-
+    }, [charting, EnterExitPlan, chartingVisibility])
 
     //keyboard event listeners
     useEffect(() =>
@@ -856,6 +526,38 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
         priceScaleSVG.call(zoomBehavior)
     }, [candleData, priceDimensions, timeFrame])
 
+    function initializeMouseCrossHairBehavior()
+    {
+        stockCandleSVG.on('mousemove', (e) => drawCrossHairs(e))
+        stockCandleSVG.on('mouseout', (e) => clearCrossHairs(e))
+    }
+
+    function drawCrossHairs(e)
+    {
+        if (preDimensionsAndCandleCheck()) return
+
+        const svgCoordinates = new DOMPoint(e.clientX, e.clientY).matrixTransform(candleSVG.current.getScreenCTM().inverse());
+        const crossHairCoordinates = { svgX: svgCoordinates.x, svgY: svgCoordinates.y, mouseHoverOffset: 3 }
+
+        const SVG = stockCandleSVG.select('.crossHairs')
+        SVG.select('.crossY').attr('x1', 0).attr('y1', crossHairCoordinates.svgY - crossHairCoordinates.mouseHoverOffset).attr('x2', candleDimensions.width - 75).attr('y2', crossHairCoordinates.svgY - crossHairCoordinates.mouseHoverOffset).attr('visibility', 'visible')
+        SVG.select('.crossX').attr('x1', crossHairCoordinates.svgX - crossHairCoordinates.mouseHoverOffset).attr('y1', 0).attr('x2', crossHairCoordinates.svgX - crossHairCoordinates.mouseHoverOffset).attr('y2', candleDimensions.height).attr('visibility', 'visible')
+        SVG.select('.priceY').text(`$${createPriceScale({ pixelToPrice: e.offsetY })}`).attr("x", candleDimensions.width - 75).attr("y", e.offsetY).attr('visibility', 'visible');
+    }
+
+    function clearCrossHairs(e)
+    {
+        stockCandleSVG.select('.crossHairs').selectAll('line').attr('visibility', 'hidden')
+        stockCandleSVG.select('.crossHairs').selectAll('text').attr('visibility', 'hidden')
+    }
+
+    function resetTemp()
+    {
+        stockCandleSVG.select('.temp').selectAll('.traceLine').remove()
+        pixelSet.current = initialPixelSet
+        setEnableZoom(true)
+        initializeMouseCrossHairBehavior()
+    }
 
 
 
@@ -875,8 +577,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
     }
 
 
-
-
+    const dragBehavior = drag().on('start', dragWholeLineStarted).on('drag', draggedWholeLine).on('end', dragWholeLineEnded)
     function dragWholeLineStarted(e, d)
     {
         genX1X2PixelSet(d)
@@ -902,11 +603,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
             }
         }))
     }
-    const dragBehavior = drag().on('start', dragWholeLineStarted).on('drag', draggedWholeLine).on('end', dragWholeLineEnded)
 
 
-
-
+    const dragEnterExitBehavior = drag().on('start', dragEnterExitLineVertStart).on('drag', dragEnterExitVertLine).on('end', dragEnterExitVertLineEnd)
     function dragEnterExitLineVertStart(e, d)
     {
         dragPixelCopy.lineColor = select(this).attr('stroke')
@@ -949,18 +648,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
             case '.moonLineText': update.moonPrice = updatedPriceForY1; break;
         }
 
+        //update the percentages
         if (EnterExitPlan)
         {
-            console.log('Need to put in place update for tracking enter exit')
-            dispatch(defineEnterExitPlan({ ticker, enterExitPlan: update }))
+            dispatch(defineEnterExitPlan({ enterExitPlan: update, ticker }))
+            attemptToUpdateEnterExit()
         } else
         {
-            console.log('updating local charting copy of enter exit')
             dispatch(updateEnterExitToCharting({ updatedEnterExit: update, ticker }))
         }
-    }
-    const dragEnterExitBehavior = drag().on('start', dragEnterExitLineVertStart).on('drag', dragEnterExitVertLine).on('end', dragEnterExitVertLineEnd)
 
+    }
 
 
     return (
