@@ -22,18 +22,24 @@ function CurrentTradePositionContainer()
 
     return (
         <div className='LSH-ActiveTradeContainer'>
-            {sampleActiveTrades.map((trade) =>
-            {
-                return <div className='LSH-ActiveTradeBlock'>
-                    <div className='flex'>
-                        <p>{trade.ticker}</p>
+            <div>
+                <button>Record a Trade</button>
+                <button>Trading Journal</button>
+            </div>
+            <div id='LSH-ActiveTradeBlockWrapper' className='hide-scrollbar'>
+                {sampleActiveTrades.map((trade) =>
+                {
+                    return <div className='LSH-ActiveTradeBlock'>
+                        <div className='flex'>
+                            <p>{trade.ticker}</p>
 
-                        <button onClick={() => trialHandleStockToSingleChart(trade)}>Single Chart</button>
-                        <button onClick={() => trialHandleStockToFourWay(trade)}>4way</button>
+                            <button onClick={() => trialHandleStockToSingleChart(trade)}>Single Chart</button>
+                            <button onClick={() => trialHandleStockToFourWay(trade)}>4way</button>
+                        </div>
+                        <p>Trade/Stock Chart will go here</p>
                     </div>
-                    <p>Trade/Stock Chart will go here</p>
-                </div>
-            })}
+                })}
+            </div>
         </div>
     )
 }

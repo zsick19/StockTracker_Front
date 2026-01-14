@@ -12,10 +12,6 @@
   --clr-chartFooter: 58, 58, 63;
   background-color: rgb(58, 58, 63);
 
-
-
-
-
   /* font-sizes */
   --fs-900: 9.375rem;
   --fs-800: 6.25rem;
@@ -25,6 +21,7 @@
   --fs-400: 1.125rem;
   --fs-300: 1rem;
   --fs-200: 0.875rem;
+  --fs-100: 0.75rem;
 
   /* font-families */
   --ff-serif: "Bellefair", serif;
@@ -35,7 +32,6 @@
 /* ------------------- */
 /* Reset               */
 /* ------------------- */
-
 
 /* Box sizing */
 *,
@@ -68,7 +64,6 @@ p {
   font-weight: 400;
 }
 
-
 /* set up the body */
 body {
   font-family: var(--ff-sans-normal);
@@ -93,8 +88,7 @@ select {
   font: inherit;
 }
 
-@media (prefers-reduced-motion:reduce) {
-
+@media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
@@ -153,13 +147,10 @@ select {
   width: auto;
 }
 
-
 .grid {
   display: grid;
   gap: var(--gap, 1rem);
 }
-
-
 
 .container {
   padding-inline: 2em;
@@ -179,7 +170,6 @@ select {
   /* added line */
   border: 0;
 }
-
 
 .capitalize {
   text-transform: capitalize;
@@ -209,9 +199,6 @@ select {
 .text-white {
   color: hsl(var(--clr-white));
 }
-
-
-
 
 /* typography */
 
@@ -282,5 +269,26 @@ select {
   line-height: 1.1;
 }
 
+/* For Firefox */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
+/* For Chrome, Safari, Opera, and other WebKit browsers */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+}
+.iconButton svg {
+  display: block;
+}

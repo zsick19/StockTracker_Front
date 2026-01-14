@@ -1,0 +1,48 @@
+#LSH-PreTradeWatchAsList > div {
+  background-color: rgb(73, 73, 73);
+
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+#LSH-PreTradeWatchAsList > div > div:first-child {
+  font-size: var(--fs-300);
+  background-color: rgb(36, 37, 39);
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  padding: 0.25rem;
+  padding-inline: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+#LSH-PreTradeWatchAsList > div > div:last-child {
+  height: 100%;
+  overflow-y: scroll;
+}
+
+.SingleBufferHitWatchList:nth-child(odd) {
+  background-color: rgb(48, 52, 58);
+}
+.SingleBufferHitWatchList {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-100);
+}
+
+.SingleWatchListTicker {
+  margin-block: 0.125rem;
+  padding-inline: 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 2rem;
+  justify-items: center;
+}
+
+.SingleTickerDiagram {
+  display: flex;
+  justify-content: space-between;
+  height: 2rem;
+  padding-inline: 0.5rem;
+  align-items: center;
+}
