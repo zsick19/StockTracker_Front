@@ -15,13 +15,15 @@ function ActiveTradeAndWatchList()
     let preTradeWatchListContent
     if (isSuccess)
     {
-        preTradeWatchListContent = <PreTradeWatchList setActiveTradeLarger={setActiveTradeLarger} refetch={refetch} ids={data.ids} />
+        preTradeWatchListContent = <PreTradeWatchList setActiveTradeLarger={setActiveTradeLarger} refetch={refetch} />
     } else if (isLoading)
     {
         preTradeWatchListContent = <div>Loading...</div>
     } else if (isError)
     {
-        preTradeWatchListContent = <div>Error...</div>
+        preTradeWatchListContent = <div>Error...
+            <button onClick={() => refetch()}>refetch</button>
+        </div>
     }
 
 

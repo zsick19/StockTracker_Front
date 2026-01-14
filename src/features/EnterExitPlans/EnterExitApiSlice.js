@@ -3,8 +3,14 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 
 
 const enterExitAdapter = createEntityAdapter({})
+const enterBufferHitAdapter = createEntityAdapter({})
+const stopLossHitAdapter = createEntityAdapter({})
 
-const initialState = enterExitAdapter.getInitialState()
+const initialState = {
+  enterExit: enterExitAdapter.getInitialState(),
+  enterBufferHit: enterBufferHitAdapter.getInitialState(),
+  stopLossHit: stopLossHitAdapter.getInitialState()
+}
 
 export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -20,14 +26,41 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
       {
         const listOfTickers = responseData.mostRecentPrice.map((ticker) => ticker.symbol)
 
-        const loadedEnterExitPlans = responseData.plans.map((enterExit) =>
+        const enterBufferResponse = []
+        const stopLossResponse = []
+        const plansResponse = []
+        const currentTime = new Date().getUTCDate()
+        const target = new Date()
+        target.setHours(9, 30, 0, 0)
+
+
+
+        responseData.plans.forEach((enterExit) =>
         {
+          let stockTradeData = responseData.mostRecentPrice[listOfTickers.indexOf(enterExit.tickerSymbol)]
+
           enterExit.id = enterExit.tickerSymbol
-          enterExit.mostRecentPrice = responseData.mostRecentPrice[listOfTickers.indexOf(enterExit.tickerSymbol)]
-          return enterExit
+          enterExit.mostRecentPrice = stockTradeData.LatestTrade.Price
+          enterExit.dailyOpenPrice = stockTradeData.DailyBar.OpenPrice
+          enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.dailyOpenPrice) / enterExit.dailyOpenPrice) * 100)
+          enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
+
+          switch (enterExit.priceHitSinceTracked)
+          {
+            case 0: plansResponse.push(enterExit); break;
+            case 1: enterBufferResponse.push(enterExit); break;
+            case 2: enterBufferResponse.push(enterExit); break;
+            case 3: stopLossResponse.push(enterExit); break;
+          }
         })
-        return enterExitAdapter.setAll(initialState, loadedEnterExitPlans)
-      },
+
+
+        return {
+          plannedTickers: enterExitAdapter.setAll(enterExitAdapter.getInitialState(), plansResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
+          enterBufferHit: enterBufferHitAdapter.setAll(enterBufferHitAdapter.getInitialState(), enterBufferResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
+          stopLossHit: stopLossHitAdapter.setAll(stopLossHitAdapter.getInitialState(), stopLossResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter))
+        }
+      }
       // async onCacheEntryAdded(arg, { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
       //   {
 
@@ -93,6 +126,7 @@ export const { useGetUsersEnterExitPlanQuery, useUpdateEnterExitPlanMutation } =
 
 
 
-export const selectors = enterExitAdapter.getSelectors()
-
+export const enterExitPlannedSelectors = enterExitAdapter.getSelectors()
+export const enterBufferSelectors = enterBufferHitAdapter.getSelectors()
+export const stopLossHitSelectors = stopLossHitAdapter.getSelectors()
 
