@@ -43,6 +43,7 @@ function PreTradePlanPresent({ selectedStock })
             {serverTradeResponse ? <div>
                 Trade Recorded!!!
                 <button>Alter Trade</button>
+                <button>Go To Watch All Trades</button>
             </div> :
                 <form onSubmit={attemptToInitiateTradeRecord} onChange={(e) => setTradeRecordDetails(prev => ({ ...prev, [e.target.name]: parseFloat(e.target.value) }))}>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { enterBufferSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { CircleChevronLeft, CircleChevronRight, X } from 'lucide-react'
 import { useDispatch } from 'react-redux'
@@ -30,8 +30,18 @@ function SingleEnterBufferHitDisplay({ id })
         dispatch(setStockDetailState(8))
     }
 
+
+
+    const [updatedPrice, setUpdatedPrice] = useState(false)
+    useEffect(() =>
+    {
+        setUpdatedPrice(prev => !prev)
+        setTimeout(() => { setUpdatedPrice(prev => !prev) }, [2000])
+    }, [plan])
+
+
     return (
-        <div className='SingleBufferHitWatchList'>
+        <div className={`${updatedPrice ? 'updatedTicker' : ''} SingleBufferHitWatchList`}>
             {showDiagram ?
                 <div className='SingleTickerDiagram'>
                     Diagram Of Position
@@ -40,18 +50,15 @@ function SingleEnterBufferHitDisplay({ id })
                         <button className='iconButton'> <X /></button>
                     </div>
                 </div> :
-                <div className='SingleWatchListTicker'>
+                <div className={`${updatedPrice ? 'updatedTicker' : ''} SingleWatchListTicker`}>
                     <p onClick={handleSingleViewTicker} onDoubleClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
-                    <p onClick={handleTradeView}>${plan.mostRecentPrice}</p>
+                    <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
                     <p>{plan.currentDayPercentGain.toFixed(2)}%</p>
-
                     <p>{plan.percentFromEnter.toFixed()}%</p>
-                    <button className='iconButton' onClick={() => setShowDiagram(true)}>
-                        <CircleChevronRight size={12} color='white' /></button>
-
+                    <button className='iconButton' onClick={() => setShowDiagram(true)}><CircleChevronRight size={12} color='white' /></button>
                 </div>
             }
-        </div>
+        </div >
     )
 }
 

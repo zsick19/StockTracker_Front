@@ -19,12 +19,17 @@ function TradePresent({ selectedStock })
         }
     }
 
+
     return (
         <div>
             trade present and display trade stats here once configured
             current number of shares
             average price per share
             gain/loss
+
+            <p>
+                {selectedStock.trade.averagePurchasePrice}
+            </p>
             <div className='flex'>
                 <div>
                     add to trade

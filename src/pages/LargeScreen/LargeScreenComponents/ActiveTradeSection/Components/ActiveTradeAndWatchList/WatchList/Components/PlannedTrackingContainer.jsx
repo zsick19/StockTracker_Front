@@ -1,15 +1,26 @@
 import React from 'react'
 import SinglePlannedTickerDisplay from './SinglePlannedTickerDisplay'
-import { Grip } from 'lucide-react'
+import { Grip, SpellCheck } from 'lucide-react'
+import { useDispatch } from 'react-redux'
+import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 
 function PlannedTrackingContainer({ enterExitPlansIds })
 {
+    const dispatch = useDispatch()
+    function handlePlannedNavigateToViewMany()
+    {
+        dispatch(setStockDetailState(6))
+    }
 
     return (
         <div id='LSH-PreWatchPlanList'>
             <div>
                 <p>Planned Tickers</p>
-                <button className='iconButton'><Grip size={20} color='white' /></button>
+
+                <div className='flex'>
+                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(4))}><SpellCheck size={18} color='white' /></button>
+                    <button className='iconButton' onClick={handlePlannedNavigateToViewMany}><Grip size={20} color='white' /></button>
+                </div>
             </div>
             <div className='hide-scrollbar'>
                 {enterExitPlansIds.map((id) => { return <SinglePlannedTickerDisplay id={id} /> })}

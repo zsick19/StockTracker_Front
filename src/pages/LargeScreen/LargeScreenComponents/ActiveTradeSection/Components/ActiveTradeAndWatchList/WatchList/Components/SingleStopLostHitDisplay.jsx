@@ -9,9 +9,9 @@ function SingleStopLostHitDisplay({ id })
             ({ plan: data ? stopLossHitSelectors.selectById(data.stopLossHit, id) : undefined })
     })
     return (
-        <div>
+        <div className='flex'>
             {plan.tickerSymbol}
-            <p>${plan.mostRecentPrice}</p>
+            <p>${plan.mostRecentPrice.toFixed(2)}</p>
             <p>{plan.currentDayPercentGain.toFixed(2)}%</p>
             <p>{plan.percentFromEnter.toFixed()}%</p>
         </div>

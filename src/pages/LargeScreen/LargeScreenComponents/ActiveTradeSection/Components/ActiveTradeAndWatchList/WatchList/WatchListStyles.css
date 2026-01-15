@@ -46,3 +46,7 @@
   padding-inline: 0.5rem;
   align-items: center;
 }
+
+.updateTicker {
+  font-size: large;
+}

@@ -1,29 +1,35 @@
 import React from 'react'
 import { activeTradeSelectors, useGetUsersActiveTradesQuery } from '../../../../../../../../features/Trades/TradeSliceApi'
-import { data } from 'react-router-dom'
+import { setSelectedStockAndTimelineFourSplit, setSingleChartToTickerTimeFrameTradeId } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
+import { useDispatch } from 'react-redux'
+import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import { Expand } from 'lucide-react'
 
 function SingleActiveTradeBlock({ id })
 {
+    const dispatch = useDispatch()
     const { activeTrade } = useGetUsersActiveTradesQuery(undefined, { selectFromResult: ({ data }) => ({ activeTrade: data ? activeTradeSelectors.selectById(data, id) : undefined }) })
 
-    const trialHandleStockToFourWay = (trade) =>
+    const handleStockToFourWay = () =>
     {
-        //    dispatch(setStockDetailState(0))
-        //  dispatch(setSelectedStockAndTimelineFourSplit(trade))
+        dispatch(setStockDetailState(0))
+        dispatch(setSelectedStockAndTimelineFourSplit({ ticker: activeTrade.tickerSymbol, trade: activeTrade }))
     }
-    const trialHandleStockToSingleChart = (trade) =>
+    const handleStockToTradeChart = () =>
     {
-        //dispatch(setStockDetailState(5))
-        // dispatch(setSelectedStockAndTimelineFourSplit(trade))
+        dispatch(setStockDetailState(8))
+        dispatch(setSingleChartToTickerTimeFrameTradeId({ ticker: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
     }
     return (<div className='LSH-ActiveTradeBlock'>
         <div className='flex'>
             <p>{activeTrade.tickerSymbol}</p>
             <p>Most Recent Trade Price: {activeTrade.mostRecentPrice}</p>
-            <button onClick={() => trialHandleStockToSingleChart(trade)}>Single Chart</button>
-            <button onClick={() => trialHandleStockToFourWay(trade)}>4way</button>
+            <button onClick={() => handleStockToTradeChart()}>Trade</button>
+            <button onClick={() => handleStockToFourWay()}><Expand /></button>
         </div>
-        <p>Trade/Stock Chart will go here</p>
+        <p>Trade/Stock Visual will go here</p>
+
+
     </div>)
 }
 

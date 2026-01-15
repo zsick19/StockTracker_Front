@@ -67,7 +67,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             query: (args) => ({
                 url: '/trades',
                 method: 'PUT',
-                body: { ...args.trade }
+                body: { ...args }
             }),
             invalidatesTags: ['activeTrades']
         }),

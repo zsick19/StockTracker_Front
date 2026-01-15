@@ -18,7 +18,7 @@ const selectedStockSlice = createSlice({
         setSelectedStockAndTimelineFourSplit: (state, action) =>
         {
             return [
-                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, trade: action.payload?.trade },
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayFiveMin },
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneHour },
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear },

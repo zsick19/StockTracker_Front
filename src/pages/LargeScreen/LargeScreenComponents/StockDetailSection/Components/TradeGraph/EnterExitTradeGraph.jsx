@@ -10,9 +10,6 @@ function EnterExitTradeGraph()
     const dispatch = useDispatch()
     const selectedStock = useSelector(selectTradeChartStock)
 
-
-
-
     return (
         <div id='LHS-TradeRecord'>
             <div>

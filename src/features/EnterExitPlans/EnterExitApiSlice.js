@@ -1,6 +1,7 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
-
+import { setupWebSocket } from '../../AppRedux/api/ws'
+const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 const enterExitAdapter = createEntityAdapter({})
 const enterBufferHitAdapter = createEntityAdapter({})
@@ -60,35 +61,57 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
           enterBufferHit: enterBufferHitAdapter.setAll(enterBufferHitAdapter.getInitialState(), enterBufferResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
           stopLossHit: stopLossHitAdapter.setAll(stopLossHitAdapter.getInitialState(), stopLossResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter))
         }
+      },
+      async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
+      {
+
+        const userId = getState().auth.userId
+        const ws = getWebSocket(userId, 'PlannedWatchListTickers')
+
+        const incomingTradeListener = (data) =>
+        {
+          updateCachedData((draft) =>
+          {
+            let enterBufferEntity = draft.enterBufferHit.entities[data.ticker]
+            if (enterBufferEntity === undefined) { enterBufferEntity = draft.stopLossHit.entities[data.ticker] }
+            if (enterBufferEntity === undefined) enterBufferEntity = draft.plannedTickers.entities[data.ticker]
+
+            if (enterBufferEntity)
+            {
+              enterBufferEntity.mostRecentPrice = data.price
+              enterBufferEntity.percentFromEnter = ((enterBufferEntity.plan.enterPrice - data.price) / enterBufferEntity.plan.enterPrice) * 100
+            }
+
+
+            // console.log(data)
+
+            // let stopLossHitEntity = draft.stopLossHit.entities[data.ticker]
+            // if (stopLossHitEntity)
+            // {
+            //   stopLossHitEntity.mostRecentPrice = data.price
+            //   stopLossHitEntity.percentFromEnter = ((stopLossHitEntity.plan.enterPrice - data.price) / stopLossHitEntity.plan.enterPrice) * 100
+            // }
+
+            // let enter
+
+            // enterExitAdapter.updateOne(draft.enterBufferHit, { id: data.ticker, changes: { mostRecentPrice: data.price } })
+          })
+
+        }
+
+        try
+        {
+          await cacheDataLoaded
+          subscribe('enterExitWatchListPrice', incomingTradeListener, 'PlannedWatchListTickers')
+        } catch (error)
+        {
+          await cacheEntryRemoved
+          unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'PlannedWatchListTickers')
+        }
+
+        await cacheEntryRemoved
+        unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'PlannedWatchListTickers')
       }
-      // async onCacheEntryAdded(arg, { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
-      //   {
-
-      //     const ws = getWebSocket(arg.userId, 'Single Stock Trade Stream')
-
-      //     const incomingTradeListener = (data) =>
-      //     {
-      //       if (data.Symbol === arg.Symbol)
-      //       {
-      //         dispatch(singleStockTradeStreamApiSlice.util.upsertQueryData('getSingleStockTradeStream', { Symbol: arg.Symbol, userId: arg.userId }, { mostRecentPrice: data }))
-      //       }
-      //     }
-
-      //     try
-      //     {
-      //       await cacheDataLoaded
-      //       subscribe('tradeStreamForUser', incomingTradeListener, 'singleStockTrade')
-      //     } catch (error)
-      //     {
-      //       await cacheEntryRemoved
-      //       unsubscribe('tradeStreamForUser', incomingTradeListener, arg.userId, 'singleStockTrade')
-      //     }
-
-      //     await cacheEntryRemoved
-      //     console.log('removed cache entry')
-      //     unsubscribe('tradeStreamForUser', incomingTradeListener, arg.userId, 'singleStockTrade')
-      //   }
-      // }),
 
     }),
     updateEnterExitPlan: builder.mutation({
