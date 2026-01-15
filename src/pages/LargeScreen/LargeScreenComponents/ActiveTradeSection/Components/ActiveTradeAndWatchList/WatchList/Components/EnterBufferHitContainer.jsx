@@ -15,13 +15,6 @@ function EnterBufferHitContainer({ enterBufferHitIds })
             </div>
             <div id='LSH-PreWatchBufferHitList' className='hide-scrollbar'>
                 {enterBufferHitIds.map((id) => <SingleEnterBufferHitDisplay id={id} />)}
-                {enterBufferHitIds.map((id) => <SingleEnterBufferHitDisplay id={id} />)}
-                {enterBufferHitIds.map((id) => <SingleEnterBufferHitDisplay id={id} />)}
-                {enterBufferHitIds.map((id) => <SingleEnterBufferHitDisplay id={id} />)}
-                {enterBufferHitIds.map((id) => <SingleEnterBufferHitDisplay id={id} />)}
-                {enterBufferHitIds.map((id) => <SingleEnterBufferHitDisplay id={id} />)}
-                {enterBufferHitIds.map((id) => <SingleEnterBufferHitDisplay id={id} />)}
-                {enterBufferHitIds.map((id) => <SingleEnterBufferHitDisplay id={id} />)}
             </div>
         </div>
     )

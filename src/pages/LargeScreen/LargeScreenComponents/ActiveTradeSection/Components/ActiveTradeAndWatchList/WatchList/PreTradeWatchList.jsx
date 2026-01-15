@@ -38,23 +38,6 @@ function PreTradeWatchList({ setActiveTradeLarger })
         plannedTrackedContent = <div>Loading</div>
     }
 
-    const dispatch = useDispatch()
-
-    const handleSettingTickerToFourWaySplit = (ticker) =>
-    {
-        dispatch(setStockDetailState(0))
-        dispatch(setSelectedStockAndTimelineFourSplit(ticker))
-    }
-
-    const handleBufferHitToVisualPreWatch = () =>
-    {
-        dispatch(setStockDetailState(4))
-        //dispatch selected stock to show pre-watch many
-    }
-
-
-
-
 
     return (
         <div id='LSH-PreTradeWatchAsList' >

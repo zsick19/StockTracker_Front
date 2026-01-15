@@ -4,11 +4,13 @@ import './StockDetailSection.css'
 import MarketSearch from './Components/MarketSearch/MarketSearch';
 import ConfirmMarketSearch from './Components/ConfirmMarketSearch/ConfirmMarketSearch';
 import ChartSingleGraph from './Components/ChartSingleGraph/ChartSingleGraph';
-import PreWatchMany from './Components/PreWatchMany/PreWatchMany';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectStockDetailControl, setStockDetailState } from '../../../../features/SelectedStocks/StockDetailControlSlice';
 import PlanViabilityStatus from './Components/PlanViabilityStatus/PlanViabilityStatus';
 import ConfirmedStatus from './Components/ConfirmedStatus/ConfirmedStatus';
+import EnterExitTradeGraph from './Components/TradeGraph/EnterExitTradeGraph';
+import TradingJournal from './Components/TradingJournal/TradingJournal';
+import PreWatchMany from './Components/PrewatchMany/PrewatchMany';
 
 function StockDetailSection()
 {
@@ -30,6 +32,8 @@ function StockDetailSection()
       case 5: return <ChartSingleGraph />
       case 6: return <PreWatchMany />
       case 7: return <div>Build Large Plan List Like Confirmed</div>
+      case 8: return <EnterExitTradeGraph />
+      case 9: return <TradingJournal />
     }
   }
 
@@ -48,6 +52,8 @@ function StockDetailSection()
         <button onClick={() => dispatch(setStockDetailState(4))}>Plan Viability Status</button>
         <button onClick={() => dispatch(setStockDetailState(6))}>PreWatch</button>
         <button onClick={() => dispatch(setStockDetailState(7))}>Plan List</button>
+        <button onClick={() => dispatch(setStockDetailState(8))}>Trade Graph</button>
+        <button onClick={() => dispatch(setStockDetailState(9))}>Trading Journal</button>
       </nav>
       {provideDetailContent()}
     </section>

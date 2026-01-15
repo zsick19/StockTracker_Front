@@ -15,6 +15,8 @@ function ActiveTradeSection()
         <p>  //4 Plan Viability        </p>
         <p>  //5 Chart Single Graph        </p>
         <p>  //6 PreWatch many        </p>
+        <p>  //7 View All Plans        </p>
+        <p>  //8 Trade Graph        </p>
       </div>
       <div id='MessageCenterSection'>
         Message Center
