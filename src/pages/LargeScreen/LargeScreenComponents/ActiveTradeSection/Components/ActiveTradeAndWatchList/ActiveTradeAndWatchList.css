@@ -19,24 +19,3 @@
   height: 100%;
   background-color: rgb(63, 63, 63);
 }
-
-.LSH-ActiveTradeContainer {
-}
-
-.LSH-ActiveTradeContainer div:first-child {
-  margin-bottom: 1rem;
-}
-
-#LSH-ActiveTradeBlockWrapper {
-  overflow-y: scroll;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.LSH-ActiveTradeBlock {
-  height: 400px;
-  background-color: rgb(128, 128, 128);
-  border-radius: 5px;
-  padding: 0.5rem;
-}

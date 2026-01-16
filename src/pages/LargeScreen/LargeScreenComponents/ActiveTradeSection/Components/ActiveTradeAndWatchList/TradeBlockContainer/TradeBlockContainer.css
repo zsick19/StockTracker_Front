@@ -1,0 +1,138 @@
+.LSH-ActiveTradesMessage {
+  display: flex;
+  gap: 2rem;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  align-items: center;
+  border-radius: 10px;
+  border: 3px solid rgba(128, 128, 128, 0.527);
+  background-color: rgba(58, 58, 58, 0.336);
+}
+
+#LSH-ActiveTradeBlockWrapper {
+  background-color: rgba(87, 87, 87, 0.336);
+  overflow-y: scroll;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  height: 100%;
+  border-radius: 10px;
+  border: 1px solid white;
+}
+
+.LSH-ActiveTradeBlock {
+  background-color: rgba(0, 0, 0, 0.521);
+  height: 275px;
+  border-radius: 5px;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 20% 1fr;
+  gap: 1rem;
+  border: 1px solid white;
+  width: 100%;
+}
+
+.VerticalPlanDiagrams {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-around;
+}
+
+.VerticalPlanDiagrams div {
+  background-color: aliceblue;
+  width: 100%;
+  border-radius: 20px;
+}
+
+.TradeInfoSection {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.PriceTickerInfo {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  justify-items: center;
+  gap: 1rem;
+}
+
+.PriceMovementPerTrade {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.TimeFrameOptions {
+  display: flex;
+  justify-content: space-between;
+  height: 1.25rem;
+}
+.timeFrameButton {
+  background: rgba(35, 34, 61, 0.507);
+  border: 1px solid rgba(255, 255, 255, 0.493);
+  border-radius: 10px;
+  color: white;
+  font-size: var(--fs-100);
+}
+
+.CurrentPL {
+  display: flex;
+  justify-content: space-evenly;
+  gap: 2rem;
+  font-size: var(--fs-200);
+  background-color: green;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  padding: 0.5rem;
+  align-items: center;
+  height: 4rem;
+}
+
+.PlanStopEnterExit {
+  display: flex;
+  justify-content: space-around;
+  font-size: var(--fs-200);
+  background-color: green;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  height: 4rem;
+}
+.PlanStopEnterExit div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.MoveCaptured {
+  display: grid;
+  justify-content: center;
+  border: 2px solid green;
+  padding: 0.5rem;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.TradeOptionControl {
+  color: white;
+  height: 1.25rem;
+  display: flex;
+  justify-content: space-around;
+}
+
+.TradeOptionControl p {
+  color: rgb(160, 160, 160);
+  margin-right: 0.5rem;
+}
+
+.VerticalPlanDiagram {
+  width: 25px;
+  overflow: hidden;
+}
+.VerticalPlanDiagram svg {
+  width: 100%;
+  height: 100%;
+}

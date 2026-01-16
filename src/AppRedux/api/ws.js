@@ -1,8 +1,8 @@
 import io from 'socket.io-client'
 
 // Create a singleton to manage the single WebSocket connection
-let listeners = { 'enterExitWatchListPrice': [] }
-let listenersCount = { 'enterExitWatchListPrice': 0 }
+let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [] }
+let listenersCount = { 'enterExitWatchListPrice': 0, 'activeTradePrice': [] }
 let ws;
 
 export const setupWebSocket = () =>
@@ -16,12 +16,7 @@ export const setupWebSocket = () =>
 
             ws.onAny((eventName, payload) =>
             {
-                console.log(eventName, payload)
-                if (eventName in listeners)
-                {
-                    console.log(eventName, payload)
-                    listeners[eventName].map((fnSource, i) => { fnSource.fn(payload) })
-                }
+                if (eventName in listeners) { listeners[eventName].map((fnSource, i) => { fnSource.fn(payload) }) }
             })
 
             ws.on('disconnect', () =>

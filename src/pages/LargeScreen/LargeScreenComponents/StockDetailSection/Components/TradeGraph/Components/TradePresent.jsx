@@ -34,7 +34,10 @@ function TradePresent({ selectedStock })
                 <div>
                     add to trade
                     <div>
-                        <input type="number" min={1} />
+                        <label htmlFor="additionalSharePurchase">Number of Shares</label>
+                        <input type="number" id="additionalSharePurchase" min={1} />
+                        <label htmlFor="additionalSharePrice">Price Per Share</label>
+                        <input type="double" id='additionalSharePrice' />
                         <button onClick={attemptToAlterTradeRecord('additionalBuy')}>Add Shares</button>
                     </div>
                 </div>

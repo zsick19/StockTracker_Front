@@ -1,6 +1,7 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
-
+import { setupWebSocket } from '../../AppRedux/api/ws'
+const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 const activeTradeAdapter = createEntityAdapter()
 
@@ -16,38 +17,55 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 {
                     trade.id = trade.tickerSymbol
                     trade.mostRecentPrice = response.mostRecentPrices[trade.tickerSymbol]
+                    trade.percentOfGain = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * 100)
+                    trade.gainPerShare = trade.mostRecentPrice - trade.averagePurchasePrice
+                    trade.percentFromOpen = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / trade.tradingPlanPrices[1]) * 100
+
+                    trade.percentFromPlanPrices = [(trade.mostRecentPrice - trade.tradingPlanPrices[0]) * 100 / trade.tradingPlanPrices[0],
+                    (trade.mostRecentPrice - trade.tradingPlanPrices[1]) * 100 / trade.tradingPlanPrices[1],
+                    (trade.mostRecentPrice - trade.tradingPlanPrices[2]) * 100 / trade.tradingPlanPrices[2],
+                    (trade.mostRecentPrice - trade.tradingPlanPrices[3]) * 100 / trade.tradingPlanPrices[3],
+                    (trade.mostRecentPrice - trade.tradingPlanPrices[4]) * 100 / trade.tradingPlanPrices[4],
+                    (trade.mostRecentPrice - trade.tradingPlanPrices[5]) * 100 / trade.tradingPlanPrices[5]
+                    ]
+
+
+
                     return trade
                 })
                 return activeTradeAdapter.setAll(activeTradeAdapter.getInitialState(), tradeResponse)
             },
-            // async onCacheEntryAdded(arg, { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
-            //   {
+            async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
+            {
 
-            //     const ws = getWebSocket(arg.userId, 'Single Stock Trade Stream')
+                const userId = getState().auth.userId
+                const ws = getWebSocket(userId, 'ActiveTrades')
 
-            //     const incomingTradeListener = (data) =>
-            //     {
-            //       if (data.Symbol === arg.Symbol)
-            //       {
-            //         dispatch(singleStockTradeStreamApiSlice.util.upsertQueryData('getSingleStockTradeStream', { Symbol: arg.Symbol, userId: arg.userId }, { mostRecentPrice: data }))
-            //       }
-            //     }
 
-            //     try
-            //     {
-            //       await cacheDataLoaded
-            //       subscribe('tradeStreamForUser', incomingTradeListener, 'singleStockTrade')
-            //     } catch (error)
-            //     {
-            //       await cacheEntryRemoved
-            //       unsubscribe('tradeStreamForUser', incomingTradeListener, arg.userId, 'singleStockTrade')
-            //     }
+                const incomingTradeListener = (data) =>
+                {
+                    updateCachedData((draft) =>
+                    {
+                        let activeTradeToUpdate = draft.entities[data.ticker]
+                        activeTradeToUpdate.mostRecentPrice = data.price
+                        return draft
+                    })
+                }
 
-            //     await cacheEntryRemoved
-            //     console.log('removed cache entry')
-            //     unsubscribe('tradeStreamForUser', incomingTradeListener, arg.userId, 'singleStockTrade')
-            //   }
-            // }),
+                try
+                {
+                    await cacheDataLoaded
+                    subscribe('activeTradePrice', incomingTradeListener, 'ActiveTrades')
+                } catch (error)
+                {
+                    await cacheEntryRemoved
+                    unsubscribe('activeTradePrice', incomingTradeListener, arg.userId, 'ActiveTrades')
+                }
+
+                await cacheEntryRemoved
+                console.log('removed cache entry')
+                unsubscribe('activeTradePrice', incomingTradeListener, arg.userId, 'ActiveTrades')
+            },
             providesTags: ['activeTrades']
         }),
         getUsersTradeHistory: builder.query({

@@ -16,14 +16,13 @@ function PlannedTrackingContainer({ enterExitPlansIds })
         <div id='LSH-PreWatchPlanList'>
             <div>
                 <p>Planned Tickers</p>
-
                 <div className='flex'>
                     <button className='iconButton' onClick={() => dispatch(setStockDetailState(4))}><SpellCheck size={18} color='white' /></button>
                     <button className='iconButton' onClick={handlePlannedNavigateToViewMany}><Grip size={20} color='white' /></button>
                 </div>
             </div>
             <div className='hide-scrollbar'>
-                {enterExitPlansIds.map((id) => { return <SinglePlannedTickerDisplay id={id} /> })}
+                {enterExitPlansIds.map((id) => { return <SinglePlannedTickerDisplay id={id} watchList={2} /> })}
             </div>
         </div>
     )

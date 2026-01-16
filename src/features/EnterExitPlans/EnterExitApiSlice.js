@@ -57,9 +57,9 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
 
         return {
-          plannedTickers: enterExitAdapter.setAll(enterExitAdapter.getInitialState(), plansResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
           enterBufferHit: enterBufferHitAdapter.setAll(enterBufferHitAdapter.getInitialState(), enterBufferResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
-          stopLossHit: stopLossHitAdapter.setAll(stopLossHitAdapter.getInitialState(), stopLossResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter))
+          stopLossHit: stopLossHitAdapter.setAll(stopLossHitAdapter.getInitialState(), stopLossResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
+          plannedTickers: enterExitAdapter.setAll(enterExitAdapter.getInitialState(), plansResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter))
         }
       },
       async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
@@ -81,24 +81,8 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
               enterBufferEntity.mostRecentPrice = data.price
               enterBufferEntity.percentFromEnter = ((enterBufferEntity.plan.enterPrice - data.price) / enterBufferEntity.plan.enterPrice) * 100
             }
-
-
-            // console.log(data)
-
-            // let stopLossHitEntity = draft.stopLossHit.entities[data.ticker]
-            // if (stopLossHitEntity)
-            // {
-            //   stopLossHitEntity.mostRecentPrice = data.price
-            //   stopLossHitEntity.percentFromEnter = ((stopLossHitEntity.plan.enterPrice - data.price) / stopLossHitEntity.plan.enterPrice) * 100
-            // }
-
-            // let enter
-
-            // enterExitAdapter.updateOne(draft.enterBufferHit, { id: data.ticker, changes: { mostRecentPrice: data.price } })
           })
-
         }
-
         try
         {
           await cacheDataLoaded
@@ -112,7 +96,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         await cacheEntryRemoved
         unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'PlannedWatchListTickers')
       }
-
     }),
     updateEnterExitPlan: builder.mutation({
       async queryFn(args, api, extraOptions, baseQuery)

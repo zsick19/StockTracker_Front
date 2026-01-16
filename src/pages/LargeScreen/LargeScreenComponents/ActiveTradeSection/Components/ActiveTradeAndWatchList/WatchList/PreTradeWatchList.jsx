@@ -18,10 +18,10 @@ function PreTradeWatchList({ setActiveTradeLarger })
     let enterBufferHitContent
     let stopLossHitContent
     let plannedTrackedContent
-    
+
     if (isSuccess)
     {
-        enterBufferHitContent = <EnterBufferHitContainer enterBufferHitIds={data.enterBufferHit.ids} />
+        enterBufferHitContent = <EnterBufferHitContainer enterBufferHitIds={data.enterBufferHit.ids} refetch={refetch} />
         stopLossHitContent = <StopLossHitContainer stopLossHitIds={data.stopLossHit.ids} />
         plannedTrackedContent = <PlannedTrackingContainer enterExitPlansIds={data.plannedTickers.ids} />
     }
@@ -31,11 +31,12 @@ function PreTradeWatchList({ setActiveTradeLarger })
         stopLossHitContent = <div>Loading</div>
         plannedTrackedContent = <div>Loading</div>
     }
-    else if(isError){
-        
-        enterBufferHitContent = <div>Loading</div>
-        stopLossHitContent = <div>Loading</div>
-        plannedTrackedContent = <div>Loading</div>
+    else if (isError)
+    {
+
+        enterBufferHitContent = <div>Error</div>
+        stopLossHitContent = <div>Error</div>
+        plannedTrackedContent = <div>Error</div>
     }
 
 

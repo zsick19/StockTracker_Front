@@ -1,8 +1,8 @@
 import React from 'react'
-import SingleStopLostHitDisplay from './SingleStopLostHitDisplay'
 import { Grip, SpellCheck } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import SinglePlannedTickerDisplay from './SinglePlannedTickerDisplay'
 
 function StopLossHitContainer({ stopLossHitIds })
 {
@@ -21,7 +21,7 @@ function StopLossHitContainer({ stopLossHitIds })
             </div>
 
             <div className='hide-scrollbar'>
-                {stopLossHitIds.map((id) => <SingleStopLostHitDisplay id={id} />)}
+                {stopLossHitIds.map((id) => <SinglePlannedTickerDisplay id={id} watchList={1} />)}
             </div>
         </div>
     )

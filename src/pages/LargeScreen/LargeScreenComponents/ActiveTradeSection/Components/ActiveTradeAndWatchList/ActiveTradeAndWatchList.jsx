@@ -4,7 +4,6 @@ import PreTradeWatchList from './WatchList/PreTradeWatchList'
 import CurrentTradePositionContainer from './TradeBlockContainer/CurrentTradePositionContainer'
 import PreTradeBlockContainer from './TradeBlockContainer/PreTradeBlockContainer'
 import ActiveTradeAsWatchList from './WatchList/ActiveTradeAsWatchList'
-import { useGetUsersEnterExitPlanQuery } from '../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 
 function ActiveTradeAndWatchList()
 {
