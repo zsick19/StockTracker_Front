@@ -3,13 +3,17 @@ import { activeTradeSelectors, useGetUsersActiveTradesQuery } from '../../../../
 import { setSelectedStockAndTimelineFourSplit, setSingleChartToTickerTimeFrameTradeId } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
-import { ArrowUp, ChartCandlestick, ChevronDown, CopySlash, Expand, X } from 'lucide-react'
+import { ArrowUp, ChartCandlestick, ChevronDown, ChevronUp, CopySlash, Expand, X } from 'lucide-react'
 import VerticalPlanDiagram from './VerticalPlanDiagram'
 import VerticalMoveDiagram from './VerticalMoveDiagram'
 
 function SingleActiveTradeBlock({ id })
 {
     const dispatch = useDispatch()
+    const [showStopEnterExit, setShowStopEnterExit] = useState(0)
+    const [showTradeOptions, setShowTradeOptions] = useState(false)
+    const [showPositionInfo, setShowPositionInfo] = useState(false)
+
     const { activeTrade } = useGetUsersActiveTradesQuery(undefined, { selectFromResult: ({ data }) => ({ activeTrade: data ? activeTradeSelectors.selectById(data, id) : undefined }) })
 
     const handleStockToFourWay = () =>
@@ -22,12 +26,10 @@ function SingleActiveTradeBlock({ id })
         dispatch(setStockDetailState(8))
         dispatch(setSingleChartToTickerTimeFrameTradeId({ ticker: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
     }
-    console.log(activeTrade)
-    const [showTradeOptions, setShowTradeOptions] = useState(false)
-    const [showStopEnterExit, setShowStopEnterExit] = useState(false)
-    const [showPositionInfo, setShowPositionInfo] = useState(false)
+
+
     return (
-        <div className='LSH-ActiveTradeBlock'>
+        <div className={`LSH-ActiveTradeBlock ${activeTrade.classVisual}`}>
             <div className='VerticalPlanDiagrams'>
                 <VerticalPlanDiagram idealPrices={activeTrade.tradingPlanPrices} currentPrice={activeTrade.mostRecentPrice} />
                 <VerticalMoveDiagram currentPrice={activeTrade.mostRecentPrice} percentOfGain={activeTrade.percentOfGain} />
@@ -38,11 +40,11 @@ function SingleActiveTradeBlock({ id })
 
                     <div className='PriceTickerInfo'>
                         <h2 onClick={() => { setShowTradeOptions(prev => !prev); }}>{activeTrade.tickerSymbol}</h2>
-                        <div className='PriceMovementPerTrade'>
-                            <h2 onClick={() => handleStockToTradeChart()}>${activeTrade.mostRecentPrice.toFixed(2)}</h2>
-                            <ChevronDown size={18} />
+                        <div className='PriceMovementPerTrade' onClick={() => handleStockToTradeChart()}>
+                            <h2>${activeTrade.mostRecentPrice.toFixed(2)}</h2>
+                            {activeTrade.priceDirection === 'negativeDirection' && < ChevronDown size={18} color='red' />}
+                            {activeTrade.priceDirection === 'positiveDirection' && <ChevronUp size={18} color='green' />}
                         </div>
-                        <p>4.3%</p>
                     </div>
 
 
@@ -66,34 +68,51 @@ function SingleActiveTradeBlock({ id })
 
                 </div>
                 <div>
-                    {showStopEnterExit ?
-                        <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(prev => !prev)}>
-                            <div>
-                                <p>{activeTrade.percentFromPlanPrices[0].toFixed(2)}%</p>
-                                <p>StopLoss</p>
-                                <p>${activeTrade.tradingPlanPrices[0]}</p>
-                            </div>
-                            <div>
-                                <p>+1%</p>
-                                <p>Enter</p>
-                                <p>${activeTrade.tradingPlanPrices[1]}</p>
-                            </div>
-                            <div>
-                                <p>-23%</p>
-                                <p>Exit</p>
-                                <p>${activeTrade.tradingPlanPrices[4]}</p>
-                            </div>
-                        </div> :
-                        <div className='CurrentPL' onClick={() => setShowStopEnterExit(prev => !prev)}>
+                    {showStopEnterExit === 0 ?
+                        <div className='CurrentPL' onClick={() => setShowStopEnterExit(1)}>
                             <h2>{activeTrade.percentFromOpen > 0 && '+'}{activeTrade.percentFromOpen.toFixed(2)}%</h2>
                             <div>
                                 <p>Per Share: ${activeTrade.gainPerShare.toFixed(2)}</p>
-                                <p>Total P/L:${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</p>
+                                <p>Position Size: {activeTrade.availableShares}</p>
+
                             </div>
-                        </div>
+                        </div> : showStopEnterExit === 1 ?
+                            <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(2)}>
+                                <div>
+                                    <p>{activeTrade.percentFromPlanPrices[0].toFixed(2)}%</p>
+                                    <p>StopLoss</p>
+                                    <p>${activeTrade.tradingPlanPrices[0]}</p>
+                                </div>
+                                <div>
+                                    <p>{activeTrade.percentFromPlanPrices[1].toFixed(2)}%</p>
+                                    <p>Enter</p>
+                                    <p>${activeTrade.tradingPlanPrices[1]}</p>
+                                </div>
+                                <div>
+                                    <p>{activeTrade.percentFromPlanPrices[2].toFixed(2)}%</p>
+                                    <p>EnterBuffer</p>
+                                    <p>${activeTrade.tradingPlanPrices[2]}</p>
+                                </div>
+                            </div> : <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(0)}>
+                                <div>
+                                    <p>{activeTrade.percentFromPlanPrices[3].toFixed(2)}%</p>
+                                    <p>ExitBuffer</p>
+                                    <p>${activeTrade.tradingPlanPrices[3]}</p>
+                                </div>
+                                <div>
+                                    <p>{activeTrade.percentFromPlanPrices[4].toFixed(2)}%</p>
+                                    <p>Exit</p>
+                                    <p>${activeTrade.tradingPlanPrices[4]}</p>
+                                </div>
+                                <div>
+                                    <p>{activeTrade.percentFromPlanPrices[5].toFixed(2)}%</p>
+                                    <p>Moon</p>
+                                    <p>${activeTrade.tradingPlanPrices[5]}</p>
+                                </div>
+                            </div>
                     }
                     <div className='MoveCaptured'>
-                        <p>{activeTrade.percentOfGain.toFixed(2)}% E/x Move Captured</p>
+                        <p>{activeTrade.percentOfGain.toFixed(2)}% E/X Captured</p>
                     </div>
                 </div>
                 {showPositionInfo ?
@@ -102,8 +121,8 @@ function SingleActiveTradeBlock({ id })
                         <p>Hold: 2 Days</p>
                     </div>
                     : <div className='flex' onClick={() => setShowPositionInfo(true)}>
-                        <p>Position Size: {activeTrade.availableShares}</p>
-                        <p>Total: ${(activeTrade.availableShares * activeTrade.mostRecentPrice).toFixed(2)}</p>
+                        <p>Total P/L: ${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</p>
+                        <p>Market Value: ${(activeTrade.availableShares * activeTrade.mostRecentPrice).toFixed(2)}</p>
                     </div>
                 }
             </div>

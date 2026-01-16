@@ -1,10 +1,8 @@
-import React from 'react'
 import { useDispatch } from 'react-redux'
-import { setSelectedStockAndTimelineFourSplit } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
-import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { useGetUsersActiveTradesQuery } from '../../../../../../../features/Trades/TradeSliceApi'
 import ActiveTradeBlockWrapper from './Components/ActiveTradeBlockWrapper'
 import './TradeBlockContainer.css'
+import './TradePriceVisualAlert.css'
 
 function CurrentTradePositionContainer()
 {

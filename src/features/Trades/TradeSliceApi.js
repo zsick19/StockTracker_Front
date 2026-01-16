@@ -13,6 +13,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             }),
             transformResponse: (response) =>
             {
+                console.log(response.mostRecentPrices)
                 let tradeResponse = response.activeTrades.map((trade) =>
                 {
                     trade.id = trade.tickerSymbol
@@ -29,6 +30,24 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     (trade.mostRecentPrice - trade.tradingPlanPrices[5]) * 100 / trade.tradingPlanPrices[5]
                     ]
 
+                    function getInsertionIndex(arr, num)
+                    {
+                        const index = arr.findIndex(element => element >= num);
+                        return index === -1 ? arr.length : index;
+                    }
+
+                    switch (getInsertionIndex(trade.tradingPlanPrices, trade.mostRecentPrice))
+                    {
+                        case 0: trade.classVisual = 'belowStopLoss'; break;
+                        case 1: trade.percentFromPlanPrices[0] < 0.5 ? trade.classVisual = 'nearStopLoss' : trade.classVisual = 'belowEnter'; break;
+                        case 2: trade.percentFromPlanPrices[1] < 0.5 ? trade.classVisual = 'nearEnter' : trade.classVisual = 'belowEnterBuffer'; break;
+                        case 3: trade.percentFromPlanPrices[2] < 0.5 ? trade.classVisual = 'nearEnterBuffer' : trade.classVisual = 'belowExitBuffer'; break;
+                        case 4: trade.percentFromPlanPrices[3] < 0.5 ? trade.classVisual = 'nearExitBuffer' : trade.classVisual = 'belowExit'; break;
+                        case 5: trade.percentFromPlanPrices[4] < 0.5 ? trade.classVisual = 'nearExit' : trade.classVisual = 'belowMoon'; break;
+                        case 6: trade.classVisual = 'aboveMoon'; break;
+                    }
+
+                    trade.priceDirection = undefined
 
 
                     return trade
@@ -47,7 +66,49 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     updateCachedData((draft) =>
                     {
                         let activeTradeToUpdate = draft.entities[data.ticker]
+
+                        if (data.price > activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'positiveDirection'
+                        else if (data.price < activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'negativeDirection'
+
                         activeTradeToUpdate.mostRecentPrice = data.price
+
+
+                        activeTradeToUpdate.percentOfGain = ((activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) / (activeTradeToUpdate.tradingPlanPrices[4] - activeTradeToUpdate.tradingPlanPrices[1]) * 100)
+                        activeTradeToUpdate.gainPerShare = activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.averagePurchasePrice
+                        activeTradeToUpdate.percentFromOpen = ((activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) / activeTradeToUpdate.tradingPlanPrices[1]) * 100
+
+                        activeTradeToUpdate.percentFromPlanPrices = [(activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[0]) * 100 / activeTradeToUpdate.tradingPlanPrices[0],
+                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) * 100 / activeTradeToUpdate.tradingPlanPrices[1],
+                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[2]) * 100 / activeTradeToUpdate.tradingPlanPrices[2],
+                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[3]) * 100 / activeTradeToUpdate.tradingPlanPrices[3],
+                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[4]) * 100 / activeTradeToUpdate.tradingPlanPrices[4],
+                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[5]) * 100 / activeTradeToUpdate.tradingPlanPrices[5]
+                        ]
+
+
+
+
+
+
+                        function getInsertionIndex(arr, num)
+                        {
+                            const index = arr.findIndex(element => element >= num);
+                            return index === -1 ? arr.length : index;
+                        }
+
+                        switch (getInsertionIndex(activeTradeToUpdate.tradingPlanPrices, activeTradeToUpdate.mostRecentPrice))
+                        {
+                            case 0: activeTradeToUpdate.classVisual = 'belowStopLoss'; break;
+                            case 1: activeTradeToUpdate.percentFromPlanPrices[0] < 0.5 ? activeTradeToUpdate.classVisual = 'nearStopLoss' : activeTradeToUpdate.classVisual = 'belowEnter'; break;
+                            case 2: activeTradeToUpdate.percentFromPlanPrices[1] < 0.5 ? activeTradeToUpdate.classVisual = 'nearEnter' : activeTradeToUpdate.classVisual = 'belowEnterBuffer'; break;
+                            case 3: activeTradeToUpdate.percentFromPlanPrices[2] < 0.5 ? activeTradeToUpdate.classVisual = 'nearEnterBuffer' : activeTradeToUpdate.classVisual = 'belowExitBuffer'; break;
+                            case 4: activeTradeToUpdate.percentFromPlanPrices[3] < 0.5 ? activeTradeToUpdate.classVisual = 'nearExitBuffer' : activeTradeToUpdate.classVisual = 'belowExit'; break;
+                            case 5: activeTradeToUpdate.percentFromPlanPrices[4] < 0.5 ? activeTradeToUpdate.classVisual = 'nearExit' : activeTradeToUpdate.classVisual = 'belowMoon'; break;
+                            case 6: activeTradeToUpdate.classVisual = 'aboveMoon'; break;
+                        }
+
+
+
                         return draft
                     })
                 }

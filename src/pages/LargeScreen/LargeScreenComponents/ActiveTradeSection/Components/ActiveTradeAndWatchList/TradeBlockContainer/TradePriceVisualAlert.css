@@ -1,0 +1,96 @@
+.belowStopLoss {
+  border: 3px solid red;
+  background-color: rgba(255, 0, 0, 0.05);
+  animation: belowStopLoss 0.5s infinite;
+}
+
+@keyframes belowStopLoss {
+  0% {
+    background-color: rgba(255, 0, 0, 0.05);
+  }
+
+  50% {
+    background-color: rgba(0, 0, 0, 0.25);
+  }
+
+  100% {
+    background-color: rgba(255, 0, 0, 0.05);
+  }
+}
+
+.nearStopLoss {
+  border: 3px solid red;
+  background-color: rgba(255, 0, 0, 0.05);
+  animation: belowStopLoss 1.5s infinite;
+}
+
+.belowEnter {
+  border: 3px solid orange;
+}
+
+.nearEnter {
+  border: 3px solid yellow;
+}
+
+.belowEnterBuffer {
+  border: 3px solid yellowgreen;
+}
+.nearEnterBuffer {
+  border: 3px solid green;
+}
+.belowExitBuffer {
+  border: 3px solid rgb(0, 54, 0);
+}
+
+
+.nearExitBuffer {
+  border: 3px solid rgb(0, 54, 0);
+  background-color: rgba(11, 66, 0, 0.534);
+  animation: nearExitBuffer 1.5s infinite;
+}
+
+@keyframes nearExitBuffer {
+  0% {
+    background-color: rgba(11, 66, 0, 0.25);
+  }
+  50% {
+    background-color: rgba(11, 66, 0, 0.534);
+  }
+  100% {
+    background-color: rgba(11, 66, 0, 0.25);
+  }
+}
+
+.belowExit {
+  border: 3px solid rgb(0, 54, 0);
+  background-color: rgba(11, 66, 0, 0.534);
+  animation: nearExitBuffer 1s infinite;
+}
+
+.nearExit {
+  border: 3px solid rgb(0, 54, 0);
+  background-color: rgba(11, 66, 0, 0.534);
+  animation: moonAlert 0.5s infinite;
+}
+
+.belowMoon {
+  border: 3px solid rgb(0, 22, 54);
+  background-color: rgba(0, 22, 54, 0.534);
+  animation: moonAlert 0.5s infinite;
+}
+.aboveMoon {
+  border: 3px solid rgb(0, 22, 54);
+  background-color: rgba(0, 22, 54, 0.534);
+  animation: moonAlert 0.25s infinite;
+}
+@keyframes moonAlert {
+  0% {
+    background-color: rgba(0, 22, 54, 0.25);
+  }
+  50% {
+    background-color: rgba(0, 22, 54, 0.5);
+  }
+  100% {
+    background-color: rgba(0, 22, 54, 0.25);
+  }
+}
