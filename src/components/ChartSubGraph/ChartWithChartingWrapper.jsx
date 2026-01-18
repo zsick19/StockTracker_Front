@@ -22,12 +22,12 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
         }
     }, [chartingData])
 
-    console.log(candleData.mostRecentPrice)
+    console.log(candleData?.nonLivePrice)
 
     return (
         <div className="ChartGraphWrapper">
             <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData} mostRecentPrice={candleData.mostRecentPrice}
-                timeFrame={timeFrame} />
+                timeFrame={timeFrame} nonLivePrice={candleData?.nonLivePrice} />
         </div>
     )
 }

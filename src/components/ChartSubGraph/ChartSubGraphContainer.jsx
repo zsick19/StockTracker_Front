@@ -15,7 +15,10 @@ function ChartSubGraphContainer({ ticker })
   const [subCharts, setSubCharts] = useState([])
 
 
-  const { data: stockData, isSuccess, isLoading, isError, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: ticker.ticker, timeFrame, liveFeed: false })
+  const { data: stockData, isSuccess, isLoading, isError, refetch } = useGetStockDataUsingTimeFrameQuery({
+    ticker: ticker.ticker,
+    liveFeed: true, timeFrame
+  })
 
   let actualChart
   if (isSuccess && stockData.candleData.length > 0)

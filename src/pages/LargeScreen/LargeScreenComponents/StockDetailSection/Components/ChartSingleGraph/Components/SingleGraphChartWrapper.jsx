@@ -29,11 +29,11 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const editMode = useSelector(selectChartEditMode)
 
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
-
     const [serverResponse, setServerResponse] = useState(undefined)
 
 
-    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true })
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, 
+        liveFeed: false, info: true })
     let actualGraph
     if (isSuccess && data.candleData.length > 0)
     {

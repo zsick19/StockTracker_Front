@@ -18,7 +18,7 @@ import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice })
 {
     const dispatch = useDispatch()
 
@@ -246,17 +246,16 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
                 .attr('stroke-dasharray', '5 5')
         }
 
-        if (mostRecentPrice.Price)
+        if (nonLivePrice)
         {
             let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
-            stockCandleSVG.select('.currentPrice').append('line')
-                .attr('x1', 0).attr('x2', candleDimensions.width)
+            stockCandleSVG.select('.currentPrice').append('line').attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('y1', pixelPrice).attr('y2', pixelPrice)
                 .attr('stroke', 'blue')
                 .attr('stroke-width', '1px')
                 .attr('stroke-dasharray', '5 5')
+                .attr('y1', pixelPrice).attr('y2', pixelPrice)
         }
-
 
     }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
 
@@ -265,16 +264,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !mostRecentPrice) return
-        if (mostRecentPrice.Price)
-        {
-            let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
-            stockCandleSVG.select('.currentPrice').append('line')
-                .attr('x1', 0).attr('x2', candleDimensions.width)
+
+        let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
+        stockCandleSVG.select('.currentPrice').selectAll('line').data([mostRecentPrice.Price]).join(enter =>
+            enter.append('line').attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('y1', pixelPrice).attr('y2', pixelPrice)
                 .attr('stroke', 'blue')
                 .attr('stroke-width', '1px')
-                .attr('stroke-dasharray', '5 5')
-        }
+                .attr('stroke-dasharray', '5 5'),
+            update => update.attr('y1', createPriceScale({ priceToPixel: mostRecentPrice.Price })).attr('y2', createPriceScale({ priceToPixel: mostRecentPrice.Price }))
+        )
+
     }, [mostRecentPrice, candleData, currentYZoomState, currentXZoomState, timeFrame])
 
 

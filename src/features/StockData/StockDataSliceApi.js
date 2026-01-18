@@ -9,8 +9,9 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
         url: `/stockData/ticker/${args.ticker}?liveFeed=${args.liveFeed}&info=${args?.info || false}`,
         method: "POST",
         body: { timeFrame: args.timeFrame },
-      }), transformResponse: (response) =>
+      }), transformResponse: (response, args) =>
       {
+        if (!args.liveFeed) response.nonLivePrice = response.mostRecentPrice.Price
         response.mostRecentMinuteChartData = {}
         return response
       },
