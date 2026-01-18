@@ -13,7 +13,6 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             }),
             transformResponse: (response) =>
             {
-                console.log(response.mostRecentPrices)
                 let tradeResponse = response.activeTrades.map((trade) =>
                 {
                     trade.id = trade.tickerSymbol
@@ -77,12 +76,13 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                         activeTradeToUpdate.gainPerShare = activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.averagePurchasePrice
                         activeTradeToUpdate.percentFromOpen = ((activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) / activeTradeToUpdate.tradingPlanPrices[1]) * 100
 
-                        activeTradeToUpdate.percentFromPlanPrices = [(activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[0]) * 100 / activeTradeToUpdate.tradingPlanPrices[0],
-                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) * 100 / activeTradeToUpdate.tradingPlanPrices[1],
-                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[2]) * 100 / activeTradeToUpdate.tradingPlanPrices[2],
-                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[3]) * 100 / activeTradeToUpdate.tradingPlanPrices[3],
-                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[4]) * 100 / activeTradeToUpdate.tradingPlanPrices[4],
-                        (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[5]) * 100 / activeTradeToUpdate.tradingPlanPrices[5]
+                        activeTradeToUpdate.percentFromPlanPrices = [
+                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[0]) * 100 / activeTradeToUpdate.tradingPlanPrices[0],
+                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) * 100 / activeTradeToUpdate.tradingPlanPrices[1],
+                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[2]) * 100 / activeTradeToUpdate.tradingPlanPrices[2],
+                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[3]) * 100 / activeTradeToUpdate.tradingPlanPrices[3],
+                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[4]) * 100 / activeTradeToUpdate.tradingPlanPrices[4],
+                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[5]) * 100 / activeTradeToUpdate.tradingPlanPrices[5]
                         ]
 
 

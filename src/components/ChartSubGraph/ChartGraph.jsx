@@ -20,7 +20,6 @@ import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
 {
-
     const dispatch = useDispatch()
 
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
@@ -260,6 +259,28 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame })
 
 
     }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
+
+
+    //plot live trade stream
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck() || !mostRecentPrice) return
+        if (mostRecentPrice.Price)
+        {
+            let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
+            stockCandleSVG.select('.currentPrice').append('line')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', pixelPrice).attr('y2', pixelPrice)
+                .attr('stroke', 'blue')
+                .attr('stroke-width', '1px')
+                .attr('stroke-dasharray', '5 5')
+        }
+    }, [mostRecentPrice, candleData, currentYZoomState, currentXZoomState, timeFrame])
+
+
+
+
+
 
     //plot user charting  
     useEffect(() =>

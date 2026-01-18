@@ -102,7 +102,8 @@ function ChartSingleGraph()
 
 
 
-            {selectedTicker ? <SingleGraphChartWrapper ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setChartInfoDisplay={setChartInfoDisplay} />
+            {selectedTicker ? <SingleGraphChartWrapper 
+            ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setChartInfoDisplay={setChartInfoDisplay} />
                 : <div>No Chart Selected</div>}
 
 

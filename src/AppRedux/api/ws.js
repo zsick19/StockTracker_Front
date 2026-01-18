@@ -1,8 +1,8 @@
 import io from 'socket.io-client'
 
 // Create a singleton to manage the single WebSocket connection
-let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [] }
-let listenersCount = { 'enterExitWatchListPrice': 0, 'activeTradePrice': [] }
+let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [], 'singleLiveChart': [] }
+let listenersCount = { 'enterExitWatchListPrice': 0, 'activeTradePrice': 0, 'singleLiveChart': 0 }
 let ws;
 
 export const setupWebSocket = () =>
@@ -36,12 +36,12 @@ export const setupWebSocket = () =>
         listenersCount[channel] = listenersCount[channel] + 1
     };
 
-    const unsubscribe = (channel, callback, userId, source) =>
+    const unsubscribe = (channel, callback, userId, source, ticker) =>
     {
         listeners[channel] = listeners[channel].filter((t) => t.source !== source)
         listenersCount[channel] = listenersCount[channel] - 1
 
-        ws.emit('disconnectedStream', { userId, source })
+        if (source === 'tempLiveChart') ws.emit('disconnectTempStream', { userId, ticker })
         console.log(`${source} unsubscribed from web socket`)
     }
 

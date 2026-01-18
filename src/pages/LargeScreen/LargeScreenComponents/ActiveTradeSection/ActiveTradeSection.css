@@ -11,6 +11,14 @@
 }
 
 #NewsAndMessageSection div {
+  padding: 1rem;
+  border-radius: 1rem;
+  display: grid;
+  justify-content: center;
+  align-content: center;
+}
+
+#NewsAndMessageSection div {
   background-color: rgb(37, 38, 39);
 }
 

@@ -1,5 +1,31 @@
 #LHS-TradeRecord {
   height: 100%;
-  display: grid;
-  grid-template-rows: 1fr 20%;
+  display: flex;
+  flex-direction: column;
+  grid-template-rows: 1fr 1fr 20%;
+}
+
+#LHS-TradeChartWrapper {
+  display: flex;
+  /* flex-direction: column; */
+  height: 100%;
+  margin-bottom: 1rem;
+}
+
+#LHS-TradeChartWrapper > div:last-child {
+  width: 35px;
+  display: flex;
+  flex-direction: column;
+  margin-inline: auto;
+  padding-block: 1rem;
+  justify-items: center;
+  align-items: center;
+  background: gray;
+}
+
+#LHS-PlanPresentBeforeTrade {
+  height: 20%;
+  background: gray;
+  padding: 1rem;
+  border-radius: 10px;
 }

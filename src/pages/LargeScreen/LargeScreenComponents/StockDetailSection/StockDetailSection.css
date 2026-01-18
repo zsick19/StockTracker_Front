@@ -1,6 +1,23 @@
 #StockDetailSection {
-  background-color: rgb(34, 34, 34);
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+#StockDetailSection nav {
+  font-size: small;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+#StockDetailSection nav button {
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(128, 128, 128, 0.493);
+  border: 1px solid white;
+  border-radius: 5px;
+  cursor: pointer;
 }

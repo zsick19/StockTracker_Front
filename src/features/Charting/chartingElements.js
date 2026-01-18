@@ -69,6 +69,7 @@ const chartingElementSlice = createSlice({
     },
     setPreviousCharting: (state, action) =>
     {
+      console.log(action.payload)
       if (action.payload.charting) { state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false } }
       else
       {
@@ -80,7 +81,7 @@ const chartingElementSlice = createSlice({
           trendLinesId: 1,
           linesH: [],
           linesHId: 1,
-          enterExitLines: undefined,
+          enterExitLines: {},
           chartingAltered: false
           //   channels: [],
           //   channelsId: 1,

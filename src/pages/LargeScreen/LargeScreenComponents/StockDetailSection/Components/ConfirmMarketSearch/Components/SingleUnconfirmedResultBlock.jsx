@@ -30,6 +30,7 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
 
     function handleConfirmingTicker(e)
     {
+        console.log('hit')
         e.stopPropagation();
         if (confirmed === 0)
         {
@@ -75,10 +76,10 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
 
 
     return (
-        <div className='UnconfirmedPatternBlock ' onClick={() => setShowKeepOrRemove(true)}>
+        <div className='UnconfirmedPatternBlock ' onClick={(e) => { e.stopPropagation(); setShowKeepOrRemove(true) }}>
             {(showKeepOrRemove && confirmed === 0) ?
                 <div className='UnconfirmedKeepRemoveDialog'>
-                    <button onClick={(e) => handleRemovingTicker(e)}>Remove</button>
+                    <button onClick={(e) => { console.log('hit'); handleRemovingTicker(e) }}>Remove</button>
                     <button onClick={(e) => handleConfirmingTicker(e)}>Confirm</button>
                 </div> :
                 (showKeepOrRemove && confirmed === 1) ? <div className='UnconfirmedKeepRemoveDialog'>
@@ -88,6 +89,7 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
                     <div className='UnconfirmedKeepRemoveDialog'>
                         <button onClick={(e) => handleConfirmingTicker(e)}>Confirm</button>
                     </div>}
+
             {graphContent}
             <div>
                 {tickerInfoContent}

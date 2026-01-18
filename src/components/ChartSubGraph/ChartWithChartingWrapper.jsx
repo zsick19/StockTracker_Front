@@ -8,6 +8,7 @@ import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGra
 
 function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
 {
+
     const dispatch = useDispatch()
     const { data: chartingData, isSuccess, isLoading, isError, refetch } = useGetChartingDataQuery({ chartId })
 
@@ -21,6 +22,7 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
         }
     }, [chartingData])
 
+    console.log(candleData.mostRecentPrice)
 
     return (
         <div className="ChartGraphWrapper">

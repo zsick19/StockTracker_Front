@@ -51,7 +51,7 @@
   height: 100%;
   width: 100%;
   display: flex;
-
+  z-index: 1000;
   align-items: center;
   justify-content: space-around;
   background-color: rgba(240, 248, 255, 0.274);

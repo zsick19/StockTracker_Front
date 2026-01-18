@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useGetUsersConfirmedSummaryQuery } from '../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
 import { useDispatch, useSelector } from 'react-redux'
-import { ArrowBigRight, ArrowDown, ArrowUp, ChevronDown, ChevronUp, Dot, Info } from 'lucide-react'
+import { ArrowBigRight, ChevronDown, ChevronUp, Dot } from 'lucide-react'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { confirmedStatuses } from '../../../../../../Utilities/ConfirmedStatuses'
@@ -83,7 +83,7 @@ function ConfirmedStatus()
 
     function jumpToChart(confirmed)
     {
-        dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: confirmed.tickerSymbol, chartingId: confirmed._id }))
+        dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: confirmed.tickerSymbol, chartId: confirmed._id }))
         dispatch(setStockDetailState(5))
     }
     function handleDirectSearchChange()

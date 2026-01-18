@@ -11,6 +11,7 @@ import ConfirmedStatus from './Components/ConfirmedStatus/ConfirmedStatus';
 import EnterExitTradeGraph from './Components/TradeGraph/EnterExitTradeGraph';
 import TradingJournal from './Components/TradingJournal/TradingJournal';
 import PreWatchMany from './Components/PrewatchMany/PrewatchMany';
+import { Binoculars, ChartCandlestick, ListChecks, ListTodo, NotebookPen, SpellCheck } from 'lucide-react';
 
 function StockDetailSection()
 {
@@ -42,18 +43,19 @@ function StockDetailSection()
   return (
     <section id="StockDetailSection">
       <nav>
-        <button onClick={() => dispatch(setStockDetailState(0))}>Four Graph Split</button>
-        <button onClick={() => dispatch(setStockDetailState(5))}>Single Graph For Charting</button>
+        <button onClick={() => dispatch(setStockDetailState(0))}><p>Four Graph Split</p></button>
+        <button onClick={() => dispatch(setStockDetailState(5))}><p>Single Graph For Charting</p></button>
 
-        <button onClick={() => dispatch(setStockDetailState(1))}>Market Search</button>
-        <button onClick={() => dispatch(setStockDetailState(2))}>Confirmation</button>
-        <button onClick={() => dispatch(setStockDetailState(3))}>Confirmed Status</button>
+        <button onClick={() => dispatch(setStockDetailState(1))}><Binoculars /><p>Market Search</p></button>
+        <button onClick={() => dispatch(setStockDetailState(2))}><ListTodo /><p>Confirmation</p></button>
+        <button onClick={() => dispatch(setStockDetailState(3))}><ListChecks /><p>Confirmed</p></button>
+        <button onClick={() => dispatch(setStockDetailState(4))}><SpellCheck /><p>Viability Check</p></button>
+        <button onClick={() => dispatch(setStockDetailState(6))}><p>PreWatch</p></button>
 
-        <button onClick={() => dispatch(setStockDetailState(4))}>Plan Viability Status</button>
-        <button onClick={() => dispatch(setStockDetailState(6))}>PreWatch</button>
-        <button onClick={() => dispatch(setStockDetailState(7))}>Plan List</button>
-        <button onClick={() => dispatch(setStockDetailState(8))}>Trade Graph</button>
-        <button onClick={() => dispatch(setStockDetailState(9))}>Trading Journal</button>
+        <button onClick={() => dispatch(setStockDetailState(7))}><p>Plan List</p></button>
+
+        <button onClick={() => dispatch(setStockDetailState(8))}><ChartCandlestick /><p>Trade Graph</p></button>
+        <button onClick={() => dispatch(setStockDetailState(9))}><NotebookPen /><p>Trading Journal</p></button>
       </nav>
       {provideDetailContent()}
     </section>

@@ -1,26 +1,15 @@
 import './ActiveTradeSection.css'
 import ActiveTradeAndWatchList from './Components/ActiveTradeAndWatchList/ActiveTradeAndWatchList';
+import MessageCenterContainer from './Components/MessageCenter/MessageCenterContainer';
+import NewsCenterContainer from './Components/NewsCenter/NewsCenterContainer';
 
 function ActiveTradeSection()
 {
   return <section id="LSH-ActiveTradeSection">
 
     <div id='NewsAndMessageSection'>
-      <div id='NewsDisplaySection'>
-        News
-        <p>          //0 FourWay        </p>
-        <p>  //1 MarketSearch        </p>
-        <p>  //2 Confirm Market Search        </p>
-        <p>  //3 Confirmed Status Page        </p>
-        <p>  //4 Plan Viability        </p>
-        <p>  //5 Chart Single Graph        </p>
-        <p>  //6 PreWatch many        </p>
-        <p>  //7 View All Plans        </p>
-        <p>  //8 Trade Graph        </p>
-      </div>
-      <div id='MessageCenterSection'>
-        Message Center
-      </div>
+      <NewsCenterContainer />
+      <MessageCenterContainer />
     </div>
 
     <ActiveTradeAndWatchList />
