@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useAddTickerToUserPatternsMutation, useRemoveTickerFromUserPatternsMutation } from '../../../../../../../features/StockActions/PatternSliceApi'
 import { useGetUserInitializationQuery } from '../../../../../../../features/Initializations/InitializationSliceApi'
+import ChartGraph from '../../../../../../../components/ChartSubGraph/ChartGraph'
+import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 
 function SingleSearchResultBlock({ search, found })
 {
@@ -47,7 +49,7 @@ function SingleSearchResultBlock({ search, found })
     return (
         <div className='LHS-MarketSearchResultGraphWrapper' onClick={() => handleClickToggleAction(search)}>
             <div className='ChartGraphWrapper'>
-                <p>Chart Goes Here</p>
+                <ChartGraph ticker={{ ticker: search.Symbol }} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} />
             </div>
 
             <div className={`MarketSearchResultInfoBar ${found ? mostRecentAction : ''}`}>

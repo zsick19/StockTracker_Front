@@ -8,7 +8,7 @@ import { Binoculars, Check, Info, KeyRound, PiggyBank, Plane, Save, Siren, X } f
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool, setTool } from '../../../../../../../features/Charting/ChartingTool'
 import { AlertTools, ChartingToolEdits, ChartingTools, PlanningTools } from '../../../../../../../Utilities/ChartingTools'
-import { useUpdateChartingDataMutation } from '../../../../../../../features/Charting/ChartingSliceApi'
+import { useRemoveChartableStockMutation, useUpdateChartingDataMutation } from '../../../../../../../features/Charting/ChartingSliceApi'
 import { makeSelectChartAlteredByTicker, makeSelectChartingByTicker } from '../../../../../../../features/Charting/chartingElements'
 import { makeSelectEnterExitPlanAltered } from '../../../../../../../features/EnterExitPlans/EnterExitGraphElement'
 import { selectChartEditMode, setChartEditMode } from '../../../../../../../features/Charting/EditChartSelection'
@@ -32,8 +32,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const [serverResponse, setServerResponse] = useState(undefined)
 
 
-    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, 
-        liveFeed: false, info: true })
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true })
     let actualGraph
     if (isSuccess && data.candleData.length > 0)
     {
@@ -43,6 +42,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     else if (isError) { actualGraph = <GraphLoadingError refetch={refetch} /> }
 
     const [updateChartingData] = useUpdateChartingDataMutation()
+    const [removeChartableStock] = useRemoveChartableStockMutation()
 
     async function attemptSavingCharting()
     {
@@ -70,7 +70,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     {
         try
         {
-            await updateEnterExitPlan({ ticker, chartId })
+            await updateEnterExitPlan({ ticker, chartId }).unwrap()
             setServerResponse("positive")
             setTimeout(() =>
             {
@@ -88,6 +88,18 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
 
     }
 
+    async function attemptRemoveOfConfirmedStock()
+    {
+        if (!chartId) return
+        try
+        {
+            const results = await removeChartableStock({ chartId }).unwrap()
+            console.log(results)
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
     return (
         <div id='LHS-SingleGraphForChartingWrapper'>
             {actualGraph}
@@ -120,6 +132,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 <button disabled={!chartId || !chartingAltered.altered} title='Direct Save' onClick={attemptSavingCharting}><Save size={20} color={chartingAltered.altered ? 'white' : 'gray'} /></button>
                 {serverResponse === "positive" && <Check color='green' size={20} />}
                 {serverResponse === "negative" && <X color='red' size={20} />}
+                <button onClick={attemptRemoveOfConfirmedStock}>RC</button>
 
                 {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) && <button title='Initiate Tracking' onClick={() => attemptInitiatingPlanTracking()} ><Binoculars size={20} color='red' /></button>}
             </div>

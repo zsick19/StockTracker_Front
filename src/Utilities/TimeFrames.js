@@ -6,6 +6,7 @@ export const defaultTimeFrames = {
   threeDayThirtyMin: { increment: "30", unitOfIncrement: "M", duration: 3, unitOfDuration: "D", },
   threeDayOneHour: { increment: "1", unitOfIncrement: "H", duration: 3, unitOfDuration: "D", },
   dailyOneYear: { increment: "1", unitOfIncrement: "D", duration: 1, unitOfDuration: "Y", },
+  dailyHalfYear: { increment: "1", unitOfIncrement: "D", duration: 180, unitOfDuration: "D", },
   weeklyOneYear: { increment: "1", unitOfIncrement: "W", duration: 1, unitOfDuration: "Y", },
   fourHourOneYear: { increment: "4", unitOfIncrement: "H", duration: 1, unitOfDuration: "Y" }
 };

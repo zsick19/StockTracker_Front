@@ -22,7 +22,6 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
         }
     }, [chartingData])
 
-    console.log(candleData?.nonLivePrice)
 
     return (
         <div className="ChartGraphWrapper">

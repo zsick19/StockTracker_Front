@@ -18,7 +18,7 @@ import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive })
 {
     const dispatch = useDispatch()
 
@@ -86,8 +86,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         }
         else if (timeFrame.unitOfDuration === 'D')
         {
-            startDate = new Date()
-            futureForwardEndDate = addDays(startDate, 1)
+            startDate = sub(new Date(), { days: timeFrame.duration })
+            futureForwardEndDate = addDays(new Date(), 1)
         }
 
         //const xScaleNotForUse = scaleTime().domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
@@ -285,7 +285,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //plot user charting  
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !charting) return
+        if (preDimensionsAndCandleCheck() || !charting || nonInteractive) return
 
         //free line creation and update
         stockCandleSVG.select('.freeLines').selectAll('.line_group').data(charting.freeLines).join((enter) => createLineAndCircle(enter), (update) => updateLines(update))
@@ -392,7 +392,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //configure svg cross hair, context menu, and tool interactions
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck()) return
+        if (preDimensionsAndCandleCheck() || nonInteractive) return
         initializeMouseCrossHairBehavior()
         if (!stockCandleSVG.on('contextmenu')) { stockCandleSVG.on('contextmenu', (e) => { e.preventDefault(); setShowContextMenu({ display: true, style: { left: `${e.offsetX}px`, top: `${e.offsetY}px` } }) }) }
 
@@ -404,7 +404,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //update charting state post trace
     useEffect(() =>
     {
-        if (!captureComplete || preDimensionsAndCandleCheck()) return
+        if (!captureComplete || preDimensionsAndCandleCheck() || nonInteractive) return
 
         let completeCapture = {}
         let pixelCapture = pixelSet.current
@@ -451,7 +451,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //toggle edit visual aids
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck()) return
+        if (preDimensionsAndCandleCheck() || nonInteractive) return
         stockCandleSVG.selectAll('.edit').attr('visibility', 'hidden');
 
         switch (editMode)
@@ -465,7 +465,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //charting visibility
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck()) return
+        if (preDimensionsAndCandleCheck() || nonInteractive) return
 
         let lineGroupClassName = '.line_group'
         let allPossibleClassNames = ['.freeLines', '.linesH', '.trendLines', '.wedges', '.channels', '.triangles', '.enterExits']
@@ -522,7 +522,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //zoomXBehavior
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck()) return
+        if (preDimensionsAndCandleCheck() || nonInteractive) return
         const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         {
             if (enableZoom)
@@ -538,7 +538,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //zoomYBehavior
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck()) return
+        if (preDimensionsAndCandleCheck() || nonInteractive) return
         const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         {
             const zoomState = zoomTransform(priceScaleSVG.node())

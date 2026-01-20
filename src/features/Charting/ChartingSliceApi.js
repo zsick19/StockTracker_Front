@@ -24,9 +24,15 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
         return result.data ? { data: result.data } : { error: result.error }
       },
       invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
+    }),
+    removeChartableStock: builder.mutation({
+      query: (args) => ({
+        url: `/chartingData/${args.chartId}`,
+        method: 'DELETE'
+      }),
+      //  invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
     })
-
   }),
 });
 
-export const { useGetChartingDataQuery, useUpdateChartingDataMutation } = ChartingApiSlice;
+export const { useGetChartingDataQuery, useUpdateChartingDataMutation, useRemoveChartableStockMutation } = ChartingApiSlice;

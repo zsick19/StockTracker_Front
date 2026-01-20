@@ -56,10 +56,7 @@ function ChartSingleGraph()
         }
     }
 
-    async function attemptRemoveOfConfirmedStock()
-    {
-
-    }
+   
 
 
 

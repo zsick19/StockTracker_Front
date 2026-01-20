@@ -15,7 +15,6 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetMarketSearchStockDataQuery({ currentPage: currentMarketSearchPage, resultsPerPage, searchFilter: marketSearchFilter })
 
     let searchResults
-
     if (isSuccess && data.results?.length > 0) { searchResults = <MarketSearchResults searchResults={data.results} /> }
     else if (isSuccess) { searchResults = <div><p>No results for this filter</p></div> }
     else if (isLoading) { searchResults = <div id='LHS-MarketSearchResultLoading'>Loading...</div> }
