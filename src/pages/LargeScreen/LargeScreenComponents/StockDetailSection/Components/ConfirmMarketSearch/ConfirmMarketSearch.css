@@ -2,6 +2,20 @@
   display: grid;
   height: 100%;
   grid-template-columns: 75px 1fr 75px;
+  gap: 1rem;
+}
+.ConfirmMarketNavBtns {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.274);
+  color: white;
+  background-color: rgb(13, 29, 59);
+  height: 66%;
+  margin-block: auto;
+  cursor: pointer;
+}
+.ConfirmMarketNavBtns:disabled {
+  cursor: not-allowed;
+  background-color: rgb(53, 53, 54);
 }
 
 #LHS-UserUnconfirmedPatternResults {
@@ -11,7 +25,17 @@
   position: relative;
 }
 
-#SubmitWindow {
+#LHS-UnconfirmedReviewBar {
+  display: flex;
+  background-color: rgb(55, 55, 59);
+  height: 3rem;
+  padding-inline: 1rem;
+  align-items: center;
+  justify-content: space-around;
+  border-radius: 10px;
+}
+
+#SubmitConfirmationWindow {
   position: absolute;
   top: 12.5%;
   left: 5%;
@@ -21,6 +45,22 @@
   z-index: 100;
   padding: 1rem;
   border-radius: 15px;
+}
+
+#SubmitConfirmationWindow > div:first-of-type {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.ConfirmationList {
+  display: flex;
+  flex-direction: column;
+}
+.ConfirmationList div {
+  height: 400px;
+  background-color: blue;
+  overflow-y: scroll;
 }
 
 #UnconfirmedPatternTickerResults {
@@ -36,6 +76,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  border-radius: 10px;
+  background-color: rgb(31, 31, 31);
 }
 
 .StockInfoBlock {
@@ -44,6 +86,10 @@
   background-color: rgb(0, 36, 70);
   height: 3rem;
   font-size: var(--fs-200);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  padding-inline: 1rem;
+  align-items: center;
 }
 
 .UnconfirmedKeepRemoveDialog {
@@ -63,4 +109,10 @@
 
 .removeConfirmed {
   background-color: rgba(255, 0, 0, 0.445);
+}
+
+.UnconfirmedPatternBlock .SVGGraphWrapper {
+  background-color: rgba(255, 0, 0, 0);
+  border-top-right-radius: 10px;
+  border-top-left-radius: 10px;
 }

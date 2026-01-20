@@ -49,7 +49,7 @@ function SingleSearchResultBlock({ search, found })
     return (
         <div className='LHS-MarketSearchResultGraphWrapper' onClick={() => handleClickToggleAction(search)}>
             <div className='ChartGraphWrapper'>
-                <ChartGraph ticker={{ ticker: search.Symbol }} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} />
+                <ChartGraph ticker={{ ticker: search.Symbol }} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} nonZoomAble={true} />
             </div>
 
             <div className={`MarketSearchResultInfoBar ${found ? mostRecentAction : ''}`}>

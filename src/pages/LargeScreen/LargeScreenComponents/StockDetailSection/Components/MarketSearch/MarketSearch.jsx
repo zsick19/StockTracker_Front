@@ -9,10 +9,9 @@ import { PaginationInfo } from '../../../../../../components/Pagination/Paginati
 
 function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, marketSearchFilter, setMarketSearchFilter })
 {
-    const [resultsPerPage, setResultsPerPage] = useState(9)
     const [paginationInfo, setPaginationInfo] = useState(null)
 
-    const { data, isSuccess, isLoading, isError, error, refetch } = useGetMarketSearchStockDataQuery({ currentPage: currentMarketSearchPage, resultsPerPage, searchFilter: marketSearchFilter })
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetMarketSearchStockDataQuery({ currentPage: currentMarketSearchPage, resultsPerPage: 9, searchFilter: marketSearchFilter })
 
     let searchResults
     if (isSuccess && data.results?.length > 0) { searchResults = <MarketSearchResults searchResults={data.results} /> }
@@ -30,7 +29,7 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
 
     useEffect(() =>
     {
-        if (isSuccess) { setPaginationInfo(new PaginationInfo(currentMarketSearchPage, data.totalResults, resultsPerPage)) }
+        if (isSuccess) { setPaginationInfo(new PaginationInfo(currentMarketSearchPage, data.totalResults, 9)) }
     }, [data])
 
 
@@ -38,7 +37,7 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
 
     return (
         <div id='LHS-MarketSearchContainer'>
-            <MarketSearchFilterBar searchFilter={marketSearchFilter} setSearchFilter={setMarketSearchFilter} setResultsPerPage={setResultsPerPage} />
+            <MarketSearchFilterBar searchFilter={marketSearchFilter} setSearchFilter={setMarketSearchFilter} />
             <div id='LHS-MarketSearchResultContainer'>
                 <button onClick={() => setCurrentMarketSearchPage(prev => prev - 1)} disabled={!paginationInfo?.hasPrevious}>Prev</button>
                 {searchResults}

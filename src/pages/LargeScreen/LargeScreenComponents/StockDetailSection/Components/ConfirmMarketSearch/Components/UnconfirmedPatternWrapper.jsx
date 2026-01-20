@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import SingleUnconfirmedResultBlock from './SingleUnconfirmedResultBlock'
 
 function UnconfirmedPatternWrapper({ unconfirmedPatterns, currentPage, keepTheseTickers, setKeepTheseTickers })
@@ -6,13 +6,14 @@ function UnconfirmedPatternWrapper({ unconfirmedPatterns, currentPage, keepThese
     const patternsPerPage = 4
     const [currentPageTickers, setCurrentPageTickers] = useState(unconfirmedPatterns.slice((currentPage - 1) * patternsPerPage, patternsPerPage))
 
-    let tickerSearchResult = currentPageTickers.map((ticker) => <SingleUnconfirmedResultBlock ticker={ticker} keepTheseTickers={keepTheseTickers} setKeepTheseTickers={setKeepTheseTickers} />)
-
-
+    useEffect(() =>
+    {
+        setCurrentPageTickers(unconfirmedPatterns.slice((currentPage - 1) * patternsPerPage, patternsPerPage * currentPage))
+    }, [currentPage])
 
     return (
         <div id='UnconfirmedPatternTickerResults'>
-            {tickerSearchResult}
+            {currentPageTickers.map((ticker) => <SingleUnconfirmedResultBlock ticker={ticker} keepTheseTickers={keepTheseTickers} setKeepTheseTickers={setKeepTheseTickers} />)}
         </div>
     )
 }

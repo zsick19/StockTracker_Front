@@ -99,13 +99,7 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
         <div id='LHS-MarketSearchFilterBarClosed'>
             <p>Filter Info</p>
             <button onClick={() => setFilterBarOpen(true)}>Open Filter</button>
-            <form>
-                <label htmlFor="ResultsPerPage">Results Per Page</label>
-                <select id='ResultsPerPage'>
-                    <option>9</option>
-                    <option>4</option>
-                </select>
-            </form>
+
 
             {filterBarOpen &&
                 <div id='LHS-MarketSearchFilterBarOpen'>

@@ -7,7 +7,7 @@ import { sub, subBusinessDays, addDays, isToday } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
-import { defineEnterExitPlan, makeSelectEnterExitByTicker, selectEnterExitByTickerMemo } from '../../features/EnterExitPlans/EnterExitGraphElement'
+import { defineEnterExitPlan, makeSelectEnterExitByTicker } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { selectCurrentTool } from '../../features/Charting/ChartingTool'
 import { selectChartVisibility } from '../../features/Charting/ChartingVisibility'
 import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
@@ -18,7 +18,7 @@ import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive, nonZoomAble })
 {
     const dispatch = useDispatch()
 
@@ -522,7 +522,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //zoomXBehavior
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || nonInteractive) return
+        if (preDimensionsAndCandleCheck() || nonZoomAble) return
         const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         {
             if (enableZoom)
@@ -538,7 +538,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //zoomYBehavior
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || nonInteractive) return
+        if (preDimensionsAndCandleCheck() || nonZoomAble) return
         const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         {
             const zoomState = zoomTransform(priceScaleSVG.node())

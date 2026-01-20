@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
 import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
+import ChartGraph from '../../../../../../../components/ChartSubGraph/ChartGraph'
 function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTickers })
 {
     const [showKeepOrRemove, setShowKeepOrRemove] = useState(false)
@@ -16,8 +17,8 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
     if (isSuccess)
     {
         let stockInfo = data.tickerInfo
-        graphContent = <div className={`ChartGraphWrapper ${confirmed === 1 ? "keepConfirmed" : confirmed === 2 ? 'removeConfirmed' : ''}`}>
-            Graph goes here
+        graphContent = <div className={`ChartGraphWrapper `}>
+            <ChartGraph ticker={{ ticker: ticker }} candleData={data.candleData} nonInteractive={true} timeFrame={defaultTimeFrames.dailyHalfYear} />
         </div>
         tickerInfoContent = <div className='StockInfoBlock'>
             <p>{stockInfo.Symbol}</p>
@@ -28,9 +29,14 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
     } else if (isLoading) { graphContent = <GraphLoadingSpinner /> }
     else if (isError) { graphContent = <GraphLoadingError refetch={refetch} /> }
 
+    useEffect(() =>
+    {
+        setConfirmed(keepTheseTickers.keep.includes(ticker) ? 1 : keepTheseTickers.remove.includes(ticker) ? 2 : 0)
+    }, [data])
+
+    
     function handleConfirmingTicker(e)
     {
-        console.log('hit')
         e.stopPropagation();
         if (confirmed === 0)
         {
@@ -76,7 +82,7 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
 
 
     return (
-        <div className='UnconfirmedPatternBlock ' onClick={(e) => { e.stopPropagation(); setShowKeepOrRemove(true) }}>
+        <div className={`UnconfirmedPatternBlock ${confirmed === 1 ? "keepConfirmed" : confirmed === 2 ? 'removeConfirmed' : ""}`} onClick={(e) => { e.stopPropagation(); setShowKeepOrRemove(true) }}>
             {(showKeepOrRemove && confirmed === 0) ?
                 <div className='UnconfirmedKeepRemoveDialog'>
                     <button onClick={(e) => { console.log('hit'); handleRemovingTicker(e) }}>Remove</button>

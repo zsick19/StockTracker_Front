@@ -4,6 +4,7 @@ import { useGetUsersUnconfirmedPatternsQuery, useSubmitConfirmedPatternsMutation
 import UnconfirmedPatternWrapper from './Components/UnconfirmedPatternWrapper'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import SubmitConfirmedWindow from './Components/SubmitConfirmedWindow'
 
 function ConfirmMarketSearch()
 {
@@ -19,7 +20,11 @@ function ConfirmMarketSearch()
     let canContinue = keepTheseTickers.total == (patternsPerPage * currentPage)
 
     let confirmVisual
-    if (isSuccess && data.length > 0) { confirmVisual = <UnconfirmedPatternWrapper unconfirmedPatterns={data} currentPage={currentPage} keepTheseTickers={keepTheseTickers} setKeepTheseTickers={setKeepTheseTickers} /> }
+    if (isSuccess && data.length > 0)
+    {
+        confirmVisual = <UnconfirmedPatternWrapper unconfirmedPatterns={data}
+            currentPage={currentPage} keepTheseTickers={keepTheseTickers} setKeepTheseTickers={setKeepTheseTickers} />
+    }
     else if (isSuccess) { confirmVisual = <div>No more patterns to confirm.</div> }
     else if (isLoading) { confirmVisual = <div>Loading...</div> }
     else if (isError) { confirmVisual = <div>Error</div> }
@@ -46,29 +51,19 @@ function ConfirmMarketSearch()
 
     return (
         <div id='LHS-ConfirmMarketSearchContainer'>
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)}>Prev</button>
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className='ConfirmMarketNavBtns'>Prev</button>
             <div id='LHS-UserUnconfirmedPatternResults'>
-                <div>
-                    <button onClick={() => setShowSubmit(true)} disabled={isSuccess && data.length === 0}>Submit Progress</button>
-                    {showSubmit &&                        <div id='SubmitWindow'>
-                            <div>
-                                <h4>Keep</h4>
-                                {keepTheseTickers.keep.map((keep) => { return <p>{keep}</p> })}
-                            </div>
-                            <div>
-                                <h4>Remove</h4>
-                                {keepTheseTickers.remove.map((remove) => { return <p>{remove}</p> })}
-                            </div>
-                            {submitServerResponse && <div>
-                                {submitServerResponse}
-                            </div>}
-                            <button disabled={keepTheseTickers.total === 0} onClick={attemptSubmittingConfirmations}>Submit</button>
-                            <button onClick={() => setShowSubmit(false)}>Close</button>
-                        </div>}
-                </div>
+                {showSubmit && <SubmitConfirmedWindow keepTheseTickers={keepTheseTickers} setShowSubmit={setShowSubmit} attemptSubmittingConfirmations={attemptSubmittingConfirmations} submitServerResponse={submitServerResponse} />}
                 {confirmVisual}
+                <div id='LHS-UnconfirmedReviewBar'>
+                    <p>Stocks For Review: {data.length}</p>
+                    <p>Current Page: {currentPage}</p>
+                    <p>Total Pages: {totalPages}</p>
+
+                    <button onClick={() => setShowSubmit(true)} disabled={isSuccess && data.length === 0}>Submit Progress</button>
+                </div>
             </div>
-            <button disabled={(totalPages >= currentPage) || canContinue} onClick={() => setCurrentPage(prev => prev + 1)}>Next</button>
+            <button disabled={(currentPage >= totalPages) || !canContinue} onClick={() => setCurrentPage(prev => prev + 1)} className='ConfirmMarketNavBtns'>Next</button>
         </div>
     )
 }

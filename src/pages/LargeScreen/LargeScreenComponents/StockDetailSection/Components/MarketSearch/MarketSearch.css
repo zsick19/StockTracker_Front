@@ -23,6 +23,7 @@
   display: grid;
   grid-template-columns: 1fr 25% min-content;
   gap: 1rem;
+  z-index: 100;
 }
 
 #LHS-FilterOptions {
