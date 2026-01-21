@@ -1,44 +1,68 @@
 import { createSlice, current } from "@reduxjs/toolkit";
+import { ChartingApiSlice } from "../Charting/ChartingSliceApi";
 
 const previousNextStockSlice = createSlice({
     name: "previousNextStock",
     initialState: {
-        confirmedUncharted: [{ ticker: 'AARD', chartId: '695eee1fbc2c64a116d5cbd7' }, { ticker: 'AAUC', chartId: '695eee1fbc2c64a116d5cbd8' }, { ticker: 'AAPL', chartId: '695ef093b364759947ace43c' },
-        { ticker: 'AAP', chartId: "695ef093b364759947ace43d" }, { ticker: 'AAON', chartId: "695ef20ab364759947ace462" }, { ticker: 'AB', _id: '695ef2d8b364759947ace476' }
-        ],
+        confirmedUncharted: [],
         confirmedUnChartedLastIndex: 0,
-        totalUncharted: 6
+        totalUncharted: 0,
+        fetchedData: false,
+        startedCharting: false
     },
     reducers: {
         setConfirmedUnChartedData: (state, action) =>
         {
-            state.confirmedUncharted = action.payload
+            state.confirmedUncharted = []
+            action.payload.forEach((confirmed) => { if (confirmed.status < 2) state.confirmedUncharted.push({ chartId: confirmed._id, ticker: confirmed.tickerSymbol, reviewed: false }) })
+            state.totalUncharted = state.confirmedUncharted.length
+            state.confirmedUnChartedLastIndex = 0
+            state.fetchedData = true
         },
-        // setConfirmedUnChartedLastIndex: (state, action) =>
-        // {
-        //     state.confirmedUnChartedLastIndex = state.payload
-        // },
+
         setConfirmedUnChartedNavIndex: (state, action) =>
         {
+            let visit = state.confirmedUncharted[state.confirmedUnChartedLastIndex]
+
+
             if (action.payload.next && state.confirmedUnChartedLastIndex + 1 < state.confirmedUncharted.length)
             {
+                state.confirmedUncharted[state.confirmedUnChartedLastIndex] = { ...visit, reviewed: true }
                 state.confirmedUnChartedLastIndex = state.confirmedUnChartedLastIndex + 1
             } else if (!action.payload.next && state.confirmedUnChartedLastIndex - 1 >= 0)
             {
                 state.confirmedUnChartedLastIndex = state.confirmedUnChartedLastIndex - 1
             }
+            state.startedCharting = true
         },
-        setClearConfirmedUnChartedFromPreviousNext: (state, action) =>
+        setStartedCharting: (state, action) =>
         {
-            //
+            state.startedCharting = true
+        },
+        setFetchedChartingToSync: (state, action) =>
+        {
+            //state.fetchedData = false
+            state.confirmedUnChartedLastIndex = 0
         }
     },
+    extraReducers: (builder) =>
+    {
+        builder.addMatcher(
+            ChartingApiSlice.endpoints.removeChartableStock.matchFulfilled,
+            (state, { payload }) =>
+            {
+                state.confirmedUncharted = state.confirmedUncharted.filter((t) => { return t.ticker !== payload.removedChart.tickerSymbol })
+                state.totalUncharted = state.confirmedUncharted.length
+            }
+        )
+    }
 });
 
 export const {
     setConfirmedUnChartedData,
-    //setConfirmedUnChartedLastIndex,
-    setConfirmedUnChartedNavIndex
+    setConfirmedUnChartedNavIndex,
+    setStartedCharting,
+    setFetchedChartingToSync
 } = previousNextStockSlice.actions;
 
 export default previousNextStockSlice.reducer;
@@ -52,3 +76,8 @@ export const selectConfirmedUnChartedTrio = (state) => ({
 })
 
 export const selectCurrentUnConfirmed = (state) => state.previousNextStock.confirmedUncharted[state.previousNextStock.confirmedUnChartedLastIndex]
+export const selectFetchUnchartedState = (state) => { return { fetchedData: state.previousNextStock.fetchedData, startedCharting: state.previousNextStock.startedCharting } }
+export const provideFirstUncharted = (state) => state.previousNextStock.confirmedUncharted[0]
+
+
+export const unchartedVisitedList = (state) => state.previousNextStock.confirmedUncharted

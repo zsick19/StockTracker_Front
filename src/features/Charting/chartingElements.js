@@ -146,7 +146,7 @@ export const makeSelectChartingByTicker = () => createSelector(
 
 export const makeSelectChartAlteredByTicker = () => createSelector(
   [(state) => state.chartingElement, (state, ticker) => ticker],
-  (entities, ticker) => { return { altered: entities[ticker]?.chartingAltered, hasPlanCharted: entities[ticker]?.enterExitLines } }
+  (entities, ticker) => { return { altered: entities[ticker]?.chartingAltered, hasPlanCharted: entities[ticker]?.enterExitLines?.enterPrice } }
 )
 
 // freeLines: [],

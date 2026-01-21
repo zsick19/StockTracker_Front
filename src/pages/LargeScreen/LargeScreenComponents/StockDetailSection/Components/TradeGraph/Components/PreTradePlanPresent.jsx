@@ -6,7 +6,6 @@ function PreTradePlanPresent({ selectedStock })
     const [initiateTradeRecord] = useInitiateTradeRecordMutation()
 
 
-    let planPricing = selectedStock.plan
 
     const [tradeRecordDetails, setTradeRecordDetails] = useState({ positionSize: undefined, purchasePrice: undefined })
     const [serverTradeResponse, setServerTradeResponse] = useState(undefined)
@@ -15,6 +14,7 @@ function PreTradePlanPresent({ selectedStock })
     {
         e.preventDefault()
         if (selectedStock?.tradeId || !tradeRecordDetails.positionSize > 0 || !tradeRecordDetails.purchasePrice > 0) return
+        let planPricing = selectedStock.plan
 
         try
         {

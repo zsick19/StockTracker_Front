@@ -1,4 +1,5 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
+import { ChartingApiSlice } from "../Charting/ChartingSliceApi";
 
 const enterExitGraphElementsSlice = createSlice({
     name: "enterExitGraphElements",
@@ -7,8 +8,8 @@ const enterExitGraphElementsSlice = createSlice({
         setEnterExitCharting: (state, action) =>
         {
             let chartingData = action.payload
-
-            if (action.payload.plannedId)
+            console.log(chartingData)
+            if (action.payload?.plannedId)
             {
                 state[chartingData.tickerSymbol] = {
                     ...chartingData.plannedId.plan,
@@ -24,8 +25,19 @@ const enterExitGraphElementsSlice = createSlice({
                 id: state[action.payload.ticker].id,
                 enterExitPlanAltered: true
             }
+
         }
     },
+    extraReducers: (builder) =>
+    {
+        builder.addMatcher(
+            ChartingApiSlice.endpoints.removeChartableStock.matchFulfilled,
+            (state, { payload }) =>
+            {
+                if (payload.removedEnterExit) { delete state[payload.removedEnterExit.tickerSymbol] }
+            }
+        )
+    }
 });
 
 export const {
@@ -39,11 +51,12 @@ export default enterExitGraphElementsSlice.reducer;
 
 const enterExitPlans = (state) => { return state.enterExitElement }
 const selectedTicker = (state, ticker) => ticker
+
+
 export const selectEnterExitByTickerMemo = createSelector(
     [enterExitPlans, selectedTicker],
     (enterExitPlans, ticker) => { return enterExitPlans[ticker] }
 )
-
 
 export const makeSelectEnterExitByTicker = () => createSelector(
     [(state) => state.enterExitElement, (state, ticker) => ticker],

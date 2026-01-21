@@ -24,7 +24,7 @@ function SingleActiveTradeBlock({ id })
     const handleStockToTradeChart = () =>
     {
         dispatch(setStockDetailState(8))
-        dispatch(setSingleChartToTickerTimeFrameTradeId({ ticker: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
+        dispatch(setSingleChartToTickerTimeFrameTradeId({ tickerSymbol: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
     }
 
 

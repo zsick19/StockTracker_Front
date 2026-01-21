@@ -21,7 +21,7 @@ function EnterBufferHitContainer({ enterBufferHitIds, refetch })
                     <button className='iconButton' onClick={handleEnterBufferNavigateToViewMany}><Grip size={20} color='white' /></button>
                 </div>
             </div>
-            <div id='LSH-PreWatchBufferHitList' className='hide-scrollbar'>
+            <div id='LSH-PreWatchBufferHitList' className='hide-scrollbar PreWatchListContainersEveryOther'>
                 {enterBufferHitIds.map((id) => <SinglePlannedTickerDisplay id={id} watchList={0} />)}
             </div>
         </div>

@@ -21,7 +21,7 @@ function PlannedTrackingContainer({ enterExitPlansIds })
                     <button className='iconButton' onClick={handlePlannedNavigateToViewMany}><Grip size={20} color='white' /></button>
                 </div>
             </div>
-            <div className='hide-scrollbar'>
+            <div className='hide-scrollbar PreWatchListContainersEveryOther'>
                 {enterExitPlansIds.map((id) => { return <SinglePlannedTickerDisplay id={id} watchList={2} /> })}
             </div>
         </div>

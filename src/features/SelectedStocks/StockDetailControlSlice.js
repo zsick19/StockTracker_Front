@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const stockDetailControlSlice = createSlice({
     name: "stockDetailControl",
-    initialState: 5,
+    initialState: 1,
     reducers: {
         setStockDetailState: (state, action) =>
         {

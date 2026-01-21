@@ -54,14 +54,16 @@ function ConfirmMarketSearch()
             <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className='ConfirmMarketNavBtns'>Prev</button>
             <div id='LHS-UserUnconfirmedPatternResults'>
                 {showSubmit && <SubmitConfirmedWindow keepTheseTickers={keepTheseTickers} setShowSubmit={setShowSubmit} attemptSubmittingConfirmations={attemptSubmittingConfirmations} submitServerResponse={submitServerResponse} />}
-                {confirmVisual}
                 <div id='LHS-UnconfirmedReviewBar'>
-                    <p>Stocks For Review: {data.length}</p>
+                    <p>Stocks For Review: {data?.length || 0}</p>
                     <p>Current Page: {currentPage}</p>
                     <p>Total Pages: {totalPages}</p>
 
-                    <button onClick={() => setShowSubmit(true)} disabled={isSuccess && data.length === 0}>Submit Progress</button>
+                    <button onClick={() => setShowSubmit(true)} disabled={isSuccess && data.length === 0}>Progress</button>
+                    <button disabled={keepTheseTickers.total === 0} onClick={attemptSubmittingConfirmations}>Submit And Chart</button>
                 </div>
+                {confirmVisual}
+
             </div>
             <button disabled={(currentPage >= totalPages) || !canContinue} onClick={() => setCurrentPage(prev => prev + 1)} className='ConfirmMarketNavBtns'>Next</button>
         </div>

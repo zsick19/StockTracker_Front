@@ -11,7 +11,12 @@ function SingleSearchResultBlock({ search, found })
     const [showConfirmDeletion, setShowConfirmDeletion] = useState(false)
     const [addRemoveErrorMessage, setAddRemoveErrorMessage] = useState(undefined)
 
-    const { item } = useGetUserInitializationQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.userStockHistory.find((i) => i.symbol === search.Symbol), }), skip: !found, });
+    const { item } = useGetUserInitializationQuery(undefined, {
+        selectFromResult: ({ data }) => ({
+            item: data?.userStockHistory.find((i) => i.symbol === search.Symbol),
+        }), skip: !found,
+    });
+
     let mostRecentAction = item ? item.history.at(-1).action : undefined
 
     async function attemptToAddPattern(search)
@@ -41,15 +46,17 @@ function SingleSearchResultBlock({ search, found })
 
     function handleClickToggleAction(search)
     {
+        if (!search.candleData) return
         if (mostRecentAction && mostRecentAction !== 'patterned') { setShowConfirmDeletion(true) }
         else if (mostRecentAction) { attemptToRemovePatter() }
         else { attemptToAddPattern(search) }
     }
-
+    
+    
     return (
         <div className='LHS-MarketSearchResultGraphWrapper' onClick={() => handleClickToggleAction(search)}>
             <div className='ChartGraphWrapper'>
-                <ChartGraph ticker={{ ticker: search.Symbol }} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} nonZoomAble={true} />
+                {search.candleData ? <ChartGraph ticker={{ ticker: search.Symbol }} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} nonZoomAble={true} /> : <div></div>}
             </div>
 
             <div className={`MarketSearchResultInfoBar ${found ? mostRecentAction : ''}`}>

@@ -13,12 +13,12 @@ function EnterExitTradeGraph()
 {
     const dispatch = useDispatch()
     const selectedStock = useSelector(selectTradeChartStock)
-
     const [timeFrame, setTimeFrame] = useState(selectedStock?.timeFrame || defaultTimeFrames.threeDayOneMin)
+
     return (
         <div id='LHS-TradeRecord'>
             <div id='LHS-SingleGraphMenuBar'>
-                {selectedStock?.ticker || 'No ticker selected'}
+                {selectedStock?.tickerSymbol || 'No ticker selected'}
                 {/* <button onClick={() => { setShowStudiesModal(true) }}>Studies</button> */}
                 {/* <button onClick={() => { setShowVisibilityModal(true) }} title='Visibility Control'><EyeOff size={20} /></button> */}
 

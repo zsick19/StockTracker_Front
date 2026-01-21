@@ -23,7 +23,7 @@
   font-size: var(--fs-100);
 }
 
-#LSH-PreTradeWatchAsList > div > div:last-child > div:nth-child(odd) {
+.PreWatchListContainersEveryOther > div:nth-child(odd) {
   background-color: rgb(48, 52, 58);
 }
 
@@ -51,4 +51,23 @@
 
 .updateTicker {
   font-size: large;
+}
+
+#LSH-PreTradeWatchAsList .blinkForListUpdate {
+  background-color: red;
+  animation: belowStopLoss 0.5s infinite;
+}
+
+@keyframes belowStopLoss {
+  0% {
+    background-color: rgba(255, 0, 0, 0.05);
+  }
+
+  50% {
+    background-color: rgba(0, 0, 0, 0.25);
+  }
+
+  100% {
+    background-color: rgba(255, 0, 0, 0.05);
+  }
 }

@@ -23,7 +23,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     const dispatch = useDispatch()
 
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
-    async function attemptToUpdateEnterExit(args)
+    async function attemptToUpdateEnterExit()
     {
         try
         {
@@ -426,6 +426,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
             {
                 dispatch(defineEnterExitPlan({ ticker, enterExitPlan: completeCapture }))
                 attemptToUpdateEnterExit()
+
             } else
             {
                 dispatch(addEnterExitToCharting({ ticker, enterExit: completeCapture }))

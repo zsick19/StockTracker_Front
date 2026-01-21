@@ -3,9 +3,9 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
-const enterExitAdapter = createEntityAdapter({})
-const enterBufferHitAdapter = createEntityAdapter({})
-const stopLossHitAdapter = createEntityAdapter({})
+export const enterExitAdapter = createEntityAdapter({})
+export const enterBufferHitAdapter = createEntityAdapter({})
+export const stopLossHitAdapter = createEntityAdapter({})
 
 const initialState = {
   enterExit: enterExitAdapter.getInitialState(),
@@ -46,12 +46,21 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
           enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.dailyOpenPrice) / enterExit.dailyOpenPrice) * 100)
           enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
 
-          switch (enterExit.priceHitSinceTracked)
+          function getInsertionIndexLinear(arr, num)
           {
-            case 0: plansResponse.push(enterExit); break;
+            for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
+            return 3;
+          }
+          let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
+          enterExit.priceVsPlanUponFetch = priceVsPlan
+          enterExit.listChange = false
+
+          switch (priceVsPlan)
+          {
+            case 0: stopLossResponse.push(enterExit); break;
             case 1: enterBufferResponse.push(enterExit); break;
             case 2: enterBufferResponse.push(enterExit); break;
-            case 3: stopLossResponse.push(enterExit); break;
+            case 3: plansResponse.push(enterExit); break;
           }
         })
 
@@ -62,6 +71,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
           plannedTickers: enterExitAdapter.setAll(enterExitAdapter.getInitialState(), plansResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter))
         }
       },
+      providesTags: (result, error, args) => [{ type: 'enterExitPlans' }],
       async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
       {
 
@@ -72,14 +82,23 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         {
           updateCachedData((draft) =>
           {
-            let enterBufferEntity = draft.enterBufferHit.entities[data.ticker]
-            if (enterBufferEntity === undefined) { enterBufferEntity = draft.stopLossHit.entities[data.ticker] }
-            if (enterBufferEntity === undefined) enterBufferEntity = draft.plannedTickers.entities[data.ticker]
+            let entityToUpdate
+            if (draft.enterBufferHit.ids.includes(data.ticker)) { entityToUpdate = draft.enterBufferHit.entities[data.ticker] }
+            else if (draft.stopLossHit.ids.includes(data.ticker)) { entityToUpdate = draft.stopLossHit.entities[data.ticker] }
+            else { entityToUpdate = draft.plannedTickers.entities[data.ticker] }
 
-            if (enterBufferEntity)
+            if (entityToUpdate)
             {
-              enterBufferEntity.mostRecentPrice = data.price
-              enterBufferEntity.percentFromEnter = ((enterBufferEntity.plan.enterPrice - data.price) / enterBufferEntity.plan.enterPrice) * 100
+              entityToUpdate.mostRecentPrice = data.price
+              entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.price) / entityToUpdate.plan.enterPrice) * 100
+
+              function getInsertionIndexLinear(arr, num)
+              {
+                for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
+                return 3;
+              }
+              let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
+              if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch) entityToUpdate.listChange = true
             }
           })
         }
@@ -123,7 +142,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
         return result.data ? { data: result.data } : { error: result.error }
       },
-      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
+      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }, 'enterExitPlans']
     })
   }),
 });

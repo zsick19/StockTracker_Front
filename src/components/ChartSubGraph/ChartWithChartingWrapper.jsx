@@ -8,9 +8,8 @@ import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGra
 
 function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
 {
-
     const dispatch = useDispatch()
-    const { data: chartingData, isSuccess, isLoading, isError, refetch } = useGetChartingDataQuery({ chartId })
+    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ chartId })
 
     useEffect(() =>
     {
@@ -19,9 +18,12 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
             dispatch(setEnterExitCharting(chartingData))
             dispatch(setKeyLevelsCharting(chartingData))
             dispatch(setPreviousCharting(chartingData))
+        } else if (isError)
+        {
+            console.log(error);
         }
-    }, [chartingData])
 
+    }, [chartingData])
 
     return (
         <div className="ChartGraphWrapper">

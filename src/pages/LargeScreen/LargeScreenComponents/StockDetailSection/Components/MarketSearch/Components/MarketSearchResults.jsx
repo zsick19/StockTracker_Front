@@ -9,7 +9,6 @@ function MarketSearchResults({ searchResults })
     const patterns = useSelector(memoizedUserPatterns)
 
 
-
     return (
         <div id='LHS-MarketSearchResultBlocks'>
             {searchResults.map((search) => { return <SingleSearchResultBlock search={search} found={patterns.includes(search.Symbol)} /> })}

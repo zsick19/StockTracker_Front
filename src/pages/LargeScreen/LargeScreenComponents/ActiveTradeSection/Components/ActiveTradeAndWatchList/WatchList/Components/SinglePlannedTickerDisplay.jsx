@@ -45,7 +45,7 @@ function SinglePlannedTickerDisplay({ id, watchList })
                     <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePoints={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
                     <button className='iconButton' onClick={(e) => e.stopPropagation()}> <X size={16} color='white' /></button>
                 </div> :
-                <div className={`SingleWatchListTicker`}>
+                <div className={`SingleWatchListTicker ${plan.listChange ? 'blinkForListUpdate' : ''}`}>
                     <p onClick={handleSingleViewTicker} onDoubleClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
                     <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
                     <p onClick={() => setShowDiagram(true)}>{plan.currentDayPercentGain.toFixed()}%</p>

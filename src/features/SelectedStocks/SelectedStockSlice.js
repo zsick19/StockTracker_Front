@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { defaultTimeFrames } from "../../Utilities/TimeFrames";
-import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
+import { selectConfirmedUnChartedTrio } from "./PreviousNextStockSlice";
 
 const selectedStockSlice = createSlice({
     name: "selectedStock",
@@ -30,18 +30,19 @@ const selectedStockSlice = createSlice({
         },
         setSingleChartTickerTimeFrameChartIdPlanIdForTrade: (state, action) =>
         {
-            return [{ ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, chartId: action.payload.chartId, planId: action.payload.planId, plan: action.payload.plan.plan }]
+            return [{ tickerSymbol: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, chartId: action.payload.chartId, planId: action.payload.planId, plan: action.payload.plan.plan }]
         },
         setSingleChartToTickerTimeFrameTradeId: (state, action) =>
         {
             return [{
-                ticker: action.payload.ticker,
+                tickerSymbol: action.payload.tickerSymbol,
                 timeFrame: defaultTimeFrames.threeDayOneMin,
                 chartId: action.payload.chartId,
                 planId: action.payload.planId,
                 trade: action.payload.trade
             }]
-        }
+        },
+
     },
 });
 
@@ -51,6 +52,7 @@ export const {
     setSingleChartTickerTimeFrameAndChartingId,
     setSingleChartTickerTimeFrameChartIdPlanIdForTrade,
     setSingleChartToTickerTimeFrameTradeId
+
 } = selectedStockSlice.actions;
 
 export default selectedStockSlice.reducer;

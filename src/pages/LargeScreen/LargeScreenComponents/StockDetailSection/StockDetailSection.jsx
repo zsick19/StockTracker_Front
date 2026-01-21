@@ -35,6 +35,7 @@ function StockDetailSection()
       case 7: return <div>Build Large Plan List Like Confirmed</div>
       case 8: return <EnterExitTradeGraph />
       case 9: return <TradingJournal />
+      case 10: return <div>Sync Visual Here</div>
     }
   }
 

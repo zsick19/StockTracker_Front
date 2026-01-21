@@ -13,6 +13,9 @@ import { makeSelectChartAlteredByTicker, makeSelectChartingByTicker } from '../.
 import { makeSelectEnterExitPlanAltered } from '../../../../../../../features/EnterExitPlans/EnterExitGraphElement'
 import { selectChartEditMode, setChartEditMode } from '../../../../../../../features/Charting/EditChartSelection'
 import { useUpdateEnterExitPlanMutation } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { selectConfirmedUnChartedTrio } from '../../../../../../../features/SelectedStocks/PreviousNextStockSlice'
+import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
+import { selectSPYIdFromUser } from '../../../../../../../features/Initializations/InitializationSliceApi'
 
 
 function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay })
@@ -27,10 +30,14 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const enterExitAltered = useSelector(state => selectedEnterExitPlanAlteredMemo(state, ticker))
 
     const editMode = useSelector(selectChartEditMode)
+    const userSpyId = useSelector(selectSPYIdFromUser)
+
+    const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
+
+
 
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
     const [serverResponse, setServerResponse] = useState(undefined)
-
 
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true })
     let actualGraph
@@ -43,6 +50,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
 
     const [updateChartingData] = useUpdateChartingDataMutation()
     const [removeChartableStock] = useRemoveChartableStockMutation()
+
 
     async function attemptSavingCharting()
     {
@@ -90,16 +98,19 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
 
     async function attemptRemoveOfConfirmedStock()
     {
-        if (!chartId) return
+        if (!chartId || chartId === userSpyId) return
         try
         {
             const results = await removeChartableStock({ chartId }).unwrap()
-            console.log(results)
+            if (currentUnChartedTicker.next) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.next.ticker, chartId: currentUnChartedTicker.next.chartId })) }
+            else if (currentUnChartedTicker.previous) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.previous.ticker, chartId: currentUnChartedTicker.previous.chartId })) }
+            else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: 'SPY', chartId: undefined })) }
         } catch (error)
         {
             console.log(error)
         }
     }
+
     return (
         <div id='LHS-SingleGraphForChartingWrapper'>
             {actualGraph}
@@ -132,7 +143,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 <button disabled={!chartId || !chartingAltered.altered} title='Direct Save' onClick={attemptSavingCharting}><Save size={20} color={chartingAltered.altered ? 'white' : 'gray'} /></button>
                 {serverResponse === "positive" && <Check color='green' size={20} />}
                 {serverResponse === "negative" && <X color='red' size={20} />}
-                <button onClick={attemptRemoveOfConfirmedStock}>RC</button>
+                {(chartId && (chartId !== userSpyId)) && <button onClick={attemptRemoveOfConfirmedStock}>RC</button>}
 
                 {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) && <button title='Initiate Tracking' onClick={() => attemptInitiatingPlanTracking()} ><Binoculars size={20} color='red' /></button>}
             </div>

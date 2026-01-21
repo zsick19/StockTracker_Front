@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useGetUsersConfirmedSummaryQuery } from '../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
+import { useAddTickerDirectlyToConfirmedListMutation, useGetUsersConfirmedSummaryQuery } from '../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
 import { useDispatch, useSelector } from 'react-redux'
 import { ArrowBigRight, ChevronDown, ChevronUp, Dot } from 'lucide-react'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
@@ -7,7 +7,7 @@ import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../fe
 import { confirmedStatuses } from '../../../../../../Utilities/ConfirmedStatuses'
 import { subDays } from 'date-fns'
 import './ConfirmedStatus.css'
-import { selectCurrentUnConfirmed } from '../../../../../../features/SelectedStocks/PreviousNextStockSlice'
+import { selectCurrentUnConfirmed, setConfirmedUnChartedData } from '../../../../../../features/SelectedStocks/PreviousNextStockSlice'
 
 function ConfirmedStatus()
 {
@@ -16,6 +16,7 @@ function ConfirmedStatus()
     const directSearch = useRef()
 
     const { data, isSuccess, isError, isLoading, error, refetch } = useGetUsersConfirmedSummaryQuery()
+    const [addTickerDirectlyToConfirmedList] = useAddTickerDirectlyToConfirmedListMutation()
 
     const [tableFilters, setTableFilters] = useState({ tickerSearch: undefined, status: 0, addedWithin: 0, olderThan: 0 })
     const [tableSort, setTableSort] = useState({ sort: undefined, direction: undefined })
@@ -44,7 +45,7 @@ function ConfirmedStatus()
         }
 
         //older than x amount of days
-        if (tableFilters.olderThan !== NaN && tableFilters.olderThan !== 0)
+        if (!Number.isNaN(tableFilters.olderThan) && tableFilters.olderThan !== 0)
         {
             let olderThanDate = subDays(new Date(), tableFilters.olderThan).setHours(0, 0, 0, 0)
             filteredResultsForDisplay = filteredResultsForDisplay.filter(t => new Date(t.dateAdded) <= olderThanDate)
@@ -61,7 +62,11 @@ function ConfirmedStatus()
 
     }, [data, tableFilters, tableSort])
 
-
+    useEffect(() =>
+    {
+        if (isSuccess)
+            dispatch(setConfirmedUnChartedData(data))
+    }, [data])
 
     let dataTableBody
     if (isSuccess)
@@ -72,8 +77,6 @@ function ConfirmedStatus()
                 <td>{confirmed.tickerSymbol}</td>
                 <td>{confirmed.status >= 0 ? confirmedStatuses[confirmed.status] : 'Quick Add'}</td>
                 <td>{new Date(confirmed.dateAdded).toLocaleDateString()}</td>
-                <td>y</td>
-                <td></td>
                 <td><button><ArrowBigRight size={16} onClick={(e) => { e.stopPropagation(); jumpToChart(confirmed) }} /></button></td>
             </tr>
         })
@@ -93,9 +96,28 @@ function ConfirmedStatus()
 
     function handlePickUpFromLastUncharted()
     {
-        dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: pickUpUncharted.ticker, chartingId: pickUpUncharted._id }))
+        console.log(pickUpUncharted)
+        //dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: pickUpUncharted.ticker, chartingId: pickUpUncharted._id }))
         dispatch(setStockDetailState(5))
     }
+
+    const directAddTicker = useRef()
+    async function attemptAddingDirectTicker()
+    {
+        try
+        {
+            if (directAddTicker.current !== '')
+            {
+                await addTickerDirectlyToConfirmedList({ tickerToAdd: directAddTicker.current.value.toUpperCase() }).unwrap()
+                directAddTicker.current.value = ''
+            }
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
+
 
     return (
         <div id='LHS-ConfirmedStockStatusContainer'>
@@ -209,12 +231,6 @@ function ConfirmedStatus()
                             <th onClick={() => setTableSort(prev => ({ sort: 'date', direction: !prev.direction }))}>
                                 <div>Date Added{tableSort.sort === 'date' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
                             </th>
-                            <th onClick={() => setTableSort(prev => ({ sort: 'enterHit', direction: !prev.direction }))}>
-                                <div>Enter Hit{tableSort.sort === 'enterHit' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
-                            </th>
-                            <th onClick={() => setTableSort(prev => ({ sort: 'stopLossHit', direction: !prev.direction }))}>
-                                <div>Stoploss Hit{tableSort.sort === 'stopLossHit' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
-                            </th>
                             <th>Chart</th>
                         </tr>
                     </thead>
@@ -226,8 +242,11 @@ function ConfirmedStatus()
 
             <div id='LHS-ConfirmedSelectedStatus'>
                 <div>
-                    Graph here
-                    <button onClick={() => handlePickUpFromLastUncharted()}>Begin Charting/Pick up Where you left off</button>
+                    <form onSubmit={(e) => { e.preventDefault(); attemptAddingDirectTicker() }}>
+                        <input type="text" ref={directAddTicker} />
+                        <button>Add Ticker</button>
+                    </form>
+                    <button onClick={() => handlePickUpFromLastUncharted()}>Continue Charting</button>
                 </div>
                 <div>
                     {selectedConfirmed ?
@@ -235,7 +254,7 @@ function ConfirmedStatus()
                             <h2>{selectedConfirmed?.tickerSymbol}</h2>
                         </div> :
                         <div>
-                            <h1>Select</h1>
+                            <h1>Select A Stock</h1>
                         </div>
                     }
                 </div>

@@ -150,6 +150,6 @@
 }
 
 #LHS-ConfirmedSelectedStatus {
-  display: grid;
-  grid-template-columns: 60% 40%;
+  /* display: grid;
+  grid-template-columns: 60% 40%; */
 }
