@@ -2,6 +2,7 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
+let TotalPages
 export const StockDataApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getStockDataUsingTimeFrame: builder.query({
@@ -45,21 +46,30 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
           unsubscribe('singleLiveChart', incomingTradeListener, userId, 'tempLiveChart', args.ticker)
         }
       }
-
-
-
     }),
-    // getStockDataAndInfoUsingTimeFrame: builder.query({
-    //   query: (args) => ({
-    //     url: `/stockData/ticker/${args.ticker}?liveFeed=${args.liveFeed}`,
-    //     method: "POST",
-    //     body: { timeFrame: args.timeFrame },
-    //   }),
-    //   keepUnusedDataFor: 60000,
-    // })
+    getGroupedBy12StockData: builder.infiniteQuery({
+      infiniteQueryOptions: {
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams, queryArg) =>
+        {
+          const nextIndex = lastPageParam + 12
+          return nextIndex < queryArg.total ? nextIndex : undefined
+        },
+      },
+      query: ({ queryArg, pageParam }) =>
+      {
+        const nextBatch = queryArg.ids.slice(pageParam, pageParam + 12);
+        return {
+          url: `/stockData/tickerGroup`,
+          method: 'POST',
+          body: { tickerGroup: nextBatch }
+        }
+      },
+    })
   }),
 });
 
 export const { useGetStockDataUsingTimeFrameQuery,
+  useGetGroupedBy12StockDataInfiniteQuery
   //useGetStockDataAndInfoUsingTimeFrameQuery 
 } = StockDataApiSlice;

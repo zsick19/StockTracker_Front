@@ -1,2 +1,35 @@
 #LSH-PlanViabilityStatus {
+  display: grid;
+  grid-template-rows: 1fr 1000px;
+  height: 100%;
+  position: relative;
+}
+
+#PlanViabilityChartsWrapper {
+  display: grid;
+  height: 1000px;
+  grid-template-columns: 1fr 1fr 1fr;
+  overflow-y: scroll;
+  gap: 1rem;
+}
+
+.SingleViabilityChartBlock {
+  height: 300px;
+  background-color: blue;
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-100);
+}
+
+.setForRemoval {
+  background-color: red;
+}
+
+#LSH-ViabilityRemoveList {
+  position: absolute;
+  height: 500px;
+  width: 500px;
+  background-color: black;
 }

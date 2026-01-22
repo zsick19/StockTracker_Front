@@ -8,7 +8,7 @@ const enterExitGraphElementsSlice = createSlice({
         setEnterExitCharting: (state, action) =>
         {
             let chartingData = action.payload
-            console.log(chartingData)
+
             if (action.payload?.plannedId)
             {
                 state[chartingData.tickerSymbol] = {
