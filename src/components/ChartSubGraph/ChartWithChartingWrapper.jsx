@@ -6,10 +6,11 @@ import { setPreviousCharting } from '../../features/Charting/chartingElements'
 import { setKeyLevelsCharting } from '../../features/KeyLevels/KeyLevelGraphElements'
 import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGraphElement'
 
-function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
+function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame })
 {
     const dispatch = useDispatch()
     const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ chartId })
+
 
     useEffect(() =>
     {
@@ -27,8 +28,9 @@ function ChartWithChartingWrapper({ ticker, candleData, chartId, timeFrame })
 
     return (
         <div className="ChartGraphWrapper">
-            <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData} mostRecentPrice={candleData.mostRecentPrice}
-                timeFrame={timeFrame} nonLivePrice={candleData?.nonLivePrice} />
+            <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData}
+                mostRecentPrice={candleData.mostRecentPrice}
+                timeFrame={timeFrame} nonLivePrice={interactionController?.nonLivePrice} nonInteractive={interactionController?.nonInteractive} nonZoomAble={interactionController?.nonZoomAble} />
         </div>
     )
 }

@@ -1,9 +1,9 @@
 import React from 'react'
 import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
-
-function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPlansForRemoval, handleRemovalToggle })
+import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
+import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
+function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate, handleUpdateToggle })
 {
-
 
     function provideSelector(data)
     {
@@ -15,17 +15,19 @@ function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPl
         }
     }
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
-    console.log(plan)
 
 
 
     return (
         <div className='SingleViabilityChartBlock' >
             <div onClick={() => handleRemovalToggle(plan.tickerSymbol, plan._id)} className={selectedPlansForRemoval.find((t) => t.tickerSymbol === plan.tickerSymbol) ? 'setForRemoval' : ''}>
-                Chart goes here
+                <ChartWithChartingWrapper ticker={id} candleData={{ candleData: candleData }}
+                    interactionController={{ nonLivePrice: false, nonInteractive: true, nonZoomAble: true }}
+                    chartId={plan._id} timeFrame={defaultTimeFrames.threeDayOneMin} />
             </div>
-            <div>
+            <div className='flex'>
                 {id}
+                <button onClick={() => handleUpdateToggle(plan.tickerSymbol, plan._id)}>{selectedPlansForUpdate.find((t) => t.tickerSymbol === plan.tickerSymbol) ? <p>Remove From Update</p> : <p>Mark For Update</p>}</button>
             </div>
         </div>
     )

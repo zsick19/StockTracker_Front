@@ -2,7 +2,10 @@
   display: grid;
   grid-template-rows: 1fr 1000px;
   height: 100%;
+  gap: 1rem;
   position: relative;
+  background-color: gray;
+  padding-inline: 1rem;
 }
 
 #PlanViabilityChartsWrapper {
@@ -17,14 +20,28 @@
   height: 300px;
   background-color: blue;
   border-radius: 10px;
-  padding: 1rem;
+
   display: flex;
   flex-direction: column;
   font-size: var(--fs-100);
 }
+.SingleViabilityChartBlock > div:first-child {
+  flex: 1;
+}
+.SingleViabilityChartBlock > div:first-child > div {
+  height: 100%;
+}
 
-.setForRemoval {
-  background-color: red;
+.SingleViabilityChartBlock > div:first-child div {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.SingleViabilityChartBlock > div:first-child svg {
+  border-radius: 10px;
+}
+
+#PlanViabilityChartsWrapper .setForRemoval div {
+  background-color: rgb(66, 8, 8);
 }
 
 #LSH-ViabilityRemoveList {

@@ -33,6 +33,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
             console.log(error)
         }
     }
+    console.log(nonLivePrice, nonInteractive, nonZoomAble)
 
     //redux charting data selectors
     const KeyLevels = useSelector((state) => selectTickerKeyLevels(state, ticker.ticker))

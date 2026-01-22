@@ -10,14 +10,18 @@ function PlanViabilityStatus()
 
   const [planListToDisplay, setPlanListToDisplay] = useState(2)
   const [selectedPlansForRemoval, setSelectedPlansForRemoval] = useState([])
-
+  const [selectedPlansForUpdate, setSelectedPlansForUpdate] = useState([])
+  const [showTickersForRemoval, setShowTickersForRemoval] = useState(false)
   function provideListToDisplay()
   {
     switch (planListToDisplay)
     {
-      case 0: return <PlanGraphWrapper ids={data.stopLossHit.ids} watchList={planListToDisplay} />;
-      case 1: return <PlanGraphWrapper ids={data.enterBufferHit.ids} watchList={planListToDisplay} />;
-      case 2: return <PlanGraphWrapper ids={data.plannedTickers.ids} watchList={planListToDisplay} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} />;
+      case 0: return <PlanGraphWrapper ids={data.stopLossHit.ids} watchList={planListToDisplay} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
+        handleUpdateToggle={handleUpdateToggle} />;
+      case 1: return <PlanGraphWrapper ids={data.enterBufferHit.ids} watchList={planListToDisplay} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
+        handleUpdateToggle={handleUpdateToggle} />;
+      case 2: return <PlanGraphWrapper ids={data.plannedTickers.ids} watchList={planListToDisplay} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
+        handleUpdateToggle={handleUpdateToggle} />;
 
     }
   }
@@ -40,7 +44,18 @@ function PlanViabilityStatus()
     }
   }
 
-  const [showTickersForRemoval, setShowTickersForRemoval] = useState(false)
+  function handleUpdateToggle(tickerSymbol, id)
+  {
+    if (selectedPlansForUpdate.find(t => t.tickerSymbol === tickerSymbol))
+    {
+      setSelectedPlansForUpdate(prev => prev.filter(t => t.tickerSymbol !== tickerSymbol))
+    } else
+    {
+      setSelectedPlansForUpdate(prev => [...prev, { tickerSymbol, id }])
+    }
+  }
+
+
   return (
     <div id='LSH-PlanViabilityStatus'>
       <div className='flex'>
