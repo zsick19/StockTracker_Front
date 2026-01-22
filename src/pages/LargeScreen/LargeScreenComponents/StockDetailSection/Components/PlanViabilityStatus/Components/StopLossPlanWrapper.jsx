@@ -3,13 +3,12 @@ import SinglePlanViabilityChartWrapper from './SinglePlanViabilityChartWrapper'
 import { useGetGroupedBy12StockDataInfiniteQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
 import { Virtuoso } from 'react-virtuoso';
 
-function PlanGraphWrapper({ ids, watchList, selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate,
+function StopLossPlanWrapper({ ids, watchList, selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate,
     handleUpdateToggle })
 {
     let totalIdsPreWatch = ids.length
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isSuccess, isFetching, isError } = useGetGroupedBy12StockDataInfiniteQuery({ ids, total: totalIdsPreWatch }, { refetchOnMountOrArgChange: true });
     const candleStockData = data?.pages.flat() || [];
-    console.log(ids, candleStockData)
 
     const handleScroll = (e) =>
     {
@@ -36,4 +35,4 @@ function PlanGraphWrapper({ ids, watchList, selectedPlansForRemoval, handleRemov
 
 
 
-export default PlanGraphWrapper
+export default StopLossPlanWrapper

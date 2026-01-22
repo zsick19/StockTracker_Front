@@ -2,7 +2,6 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
-let TotalPages
 export const StockDataApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getStockDataUsingTimeFrame: builder.query({
@@ -58,6 +57,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
       },
       query: ({ queryArg, pageParam }) =>
       {
+        if (queryArg.total === 0) return undefined
         const nextBatch = queryArg.ids.slice(pageParam, pageParam + 12);
         return {
           url: `/stockData/tickerGroup`,
@@ -71,5 +71,5 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
 
 export const { useGetStockDataUsingTimeFrameQuery,
   useGetGroupedBy12StockDataInfiniteQuery
-  //useGetStockDataAndInfoUsingTimeFrameQuery 
+
 } = StockDataApiSlice;

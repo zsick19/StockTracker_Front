@@ -143,11 +143,18 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         return result.data ? { data: result.data } : { error: result.error }
       },
       invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }, 'enterExitPlans']
+    }),
+    removeGroupedEnterExitPlan: builder.mutation({
+      query: (args) => ({
+        url: `/enterExitPlan/viability`,
+        method: 'DELETE',
+        body: args.removeIds,
+      }),
     })
   }),
 });
 
-export const { useGetUsersEnterExitPlanQuery, useUpdateEnterExitPlanMutation } = EnterExitPlanApiSlice;
+export const { useGetUsersEnterExitPlanQuery, useUpdateEnterExitPlanMutation, useRemoveGroupedEnterExitPlanMutation } = EnterExitPlanApiSlice;
 
 
 

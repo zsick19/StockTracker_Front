@@ -18,7 +18,7 @@ import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive, nonZoomAble })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive, nonZoomAble, initialTrackingPrice })
 {
     const dispatch = useDispatch()
 
@@ -33,7 +33,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
             console.log(error)
         }
     }
-    console.log(nonLivePrice, nonInteractive, nonZoomAble)
 
     //redux charting data selectors
     const KeyLevels = useSelector((state) => selectTickerKeyLevels(state, ticker.ticker))
@@ -42,6 +41,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
     const editMode = useSelector(selectChartEditMode)
+
 
     //redux graph functioning selectors
     const currentTool = useSelector(selectCurrentTool)
@@ -234,7 +234,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
 
         stockCandleSVG.select('.currentPrice').selectAll('line').remove()
         stockCandleSVG.select('.keyLevels').selectAll('line').remove()
-        //   stockCandleSVG.select('.enterExits').selectAll('line').remove()
 
         if (KeyLevels.gammaFlip)
         {
@@ -258,13 +257,32 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 .attr('y1', pixelPrice).attr('y2', pixelPrice)
         }
 
+        if (initialTrackingPrice)
+        {
+            let pixelPrice = createPriceScale({ priceToPixel: initialTrackingPrice.price })
+            let pixelDate = createDateScale({ dateToPixel: initialTrackingPrice.date })
+            let trackingLines = stockCandleSVG.select('.initialTrack')
+            trackingLines.append('line').attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', pixelPrice).attr('y2', pixelPrice)
+                .attr('stroke', 'green')
+                .attr('stroke-width', '0.5px')
+                .attr('stroke-dasharray', '5 2 5')
+                .attr('opacity', 0.75)
+
+            trackingLines.append('line').attr('x1', pixelDate).attr('x2', pixelDate)
+                .attr('y1', 0).attr('y2', candleDimensions.height)
+                .attr('stroke', 'green')
+                .attr('stroke-width', '0.5px')
+                .attr('stroke-dasharray', '5 2 5')
+                .attr('opacity', 0.75)
+
+        }
+
     }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
-
-
     //plot live trade stream
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !mostRecentPrice) return
+        if (preDimensionsAndCandleCheck() || !mostRecentPrice || nonLivePrice) return
 
         let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
         stockCandleSVG.select('.currentPrice').selectAll('line').data([mostRecentPrice.Price]).join(enter =>
@@ -286,7 +304,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //plot user charting  
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !charting || nonInteractive) return
+        if (preDimensionsAndCandleCheck() || !charting) return
 
         //free line creation and update
         stockCandleSVG.select('.freeLines').selectAll('.line_group').data(charting.freeLines).join((enter) => createLineAndCircle(enter), (update) => updateLines(update))
@@ -335,15 +353,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         }
 
         //enter exit plan creation and update
-        if (EnterExitPlan) { stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update)) }
-        else if (charting?.enterExitLines) { stockCandleSVG.select('.enterExits').selectAll('.line_group').data([charting.enterExitLines]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update)) }
+        if (charting?.enterExitLines && !EnterExitPlan)
+        {
+            stockCandleSVG.select('.enterExits').selectAll('.line_group').data([charting.enterExitLines]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
+        }
         function createEnterExit(enter)
         {
             enter.each(function (d)
             {
                 let startXPosition = candleDimensions.width * 0.9
                 let widthPosition = startXPosition + 100
-                var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
+                var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today chartingEnterExit' : 'line_group previous chartingEnterExit')
 
                 const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
                 const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
@@ -354,7 +374,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
 
-
+                console.log(EnterExitPlan)
                 yPositions.map((position, index) =>
                 {
                     lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
@@ -387,7 +407,73 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         }
 
 
-    }, [charting, EnterExitPlan, candleData, candleDimensions, currentXZoomState, currentYZoomState])
+    }, [charting, candleData, candleDimensions, currentXZoomState, currentYZoomState])
+    //plot user EnterExit Plan removing any possible charting enter exit  
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck() || !EnterExitPlan) return
+
+        //enter exit plan creation and update
+        stockCandleSVG.select('.enterExit').selectAll('chartingEnterExit').remove()
+        stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
+        function createEnterExit(enter)
+        {
+            enter.each(function (d)
+            {
+                let startXPosition = candleDimensions.width * 0.9
+                let widthPosition = startXPosition + 100
+                var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
+
+                const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
+                const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
+
+                const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => yScaleRef.current({ priceToPixel: price }))
+                lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
+                lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
+                lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
+                lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
+
+                console.log(EnterExitPlan)
+                yPositions.map((position, index) =>
+                {
+                    lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
+                        .attr('stroke-width', 10).attr('visibility', 'hidden').on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); })
+
+                    //      lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', startXPosition).attr('y', position).text((d) => `$${100}`)
+                })
+            })
+        }
+        function updateEnterExit(update)
+        {
+            let startXPosition = candleDimensions.width * 0.9
+            let widthPosition = startXPosition + 100
+            const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
+            update.each(function (d)
+            {
+                const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => createPriceScale({ priceToPixel: price }))
+                update.select('.stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1])
+                update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2])
+                update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
+                update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5])
+
+
+                yPositions.map((position, index) =>
+                {
+                    update.select(`.${names[index]}`).attr('y1', position).attr('y2', position)
+                    update.select(`.${names[index]}Text`).attr('x', startXPosition).attr('y', yPositions[index])
+                })
+            })
+        }
+
+        //remove the charting svg for enter exit plans 
+
+    }, [EnterExitPlan, candleData, candleDimensions, currentXZoomState, currentYZoomState])
+
+
+
+
+
+
 
 
     //configure svg cross hair, context menu, and tool interactions

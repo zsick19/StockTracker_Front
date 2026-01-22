@@ -1,7 +1,9 @@
 import React from 'react'
 import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
-import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
 import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
+import ChartWithoutPlanFetchChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithoutPlanFetchChartingWrapper'
+import { ClipboardPen } from 'lucide-react'
+import { differenceInCalendarDays } from 'date-fns'
 function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate, handleUpdateToggle })
 {
 
@@ -14,20 +16,25 @@ function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPl
             case 2: return enterExitPlannedSelectors.selectById(data.plannedTickers, id)
         }
     }
+    console.log(watchList, id)
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
-
-
-
+    console.log(plan)
     return (
         <div className='SingleViabilityChartBlock' >
             <div onClick={() => handleRemovalToggle(plan.tickerSymbol, plan._id)} className={selectedPlansForRemoval.find((t) => t.tickerSymbol === plan.tickerSymbol) ? 'setForRemoval' : ''}>
-                <ChartWithChartingWrapper ticker={id} candleData={{ candleData: candleData }}
-                    interactionController={{ nonLivePrice: false, nonInteractive: true, nonZoomAble: true }}
-                    chartId={plan._id} timeFrame={defaultTimeFrames.threeDayOneMin} />
+                <ChartWithoutPlanFetchChartingWrapper ticker={id} candleData={{ candleData: candleData }}
+                    interactionController={{ nonLivePrice: true, nonInteractive: true, nonZoomAble: true }}
+                    chartId={plan._id} timeFrame={defaultTimeFrames.threeDayOneMin}
+                    planData={plan.plan} mostRecentPrice={plan.mostRecentPrice}
+                    initialTrackingPrice={{ price: plan.initialTrackingPrice, date: plan.dateAdded }}
+                />
             </div>
-            <div className='flex'>
+            <div className='SingleViabilityChartBlockTitle' onClick={() => handleUpdateToggle(plan.tickerSymbol, plan._id)}>
                 {id}
-                <button onClick={() => handleUpdateToggle(plan.tickerSymbol, plan._id)}>{selectedPlansForUpdate.find((t) => t.tickerSymbol === plan.tickerSymbol) ? <p>Remove From Update</p> : <p>Mark For Update</p>}</button>
+                <p>{differenceInCalendarDays(new Date(), plan.dateAdded)} Days</p>
+
+                <button className='iconButton'>
+                    <ClipboardPen size={18} color={selectedPlansForUpdate.find((t) => t.tickerSymbol === plan.tickerSymbol) ? 'green' : 'white'} /> </button>
             </div>
         </div>
     )

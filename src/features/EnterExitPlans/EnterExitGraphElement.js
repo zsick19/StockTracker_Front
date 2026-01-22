@@ -25,7 +25,12 @@ const enterExitGraphElementsSlice = createSlice({
                 id: state[action.payload.ticker].id,
                 enterExitPlanAltered: true
             }
-
+        },
+        setEnterExitChartingFromPlan: (state, action) =>
+        {
+            state[action.payload.tickerSymbol] = {
+                ...action.payload.plan, id: action.payload.planId, enterExitPlanAltered: false
+            }
         }
     },
     extraReducers: (builder) =>
@@ -43,7 +48,7 @@ const enterExitGraphElementsSlice = createSlice({
 export const {
     setEnterExitCharting,
     defineEnterExitPlan,
-
+    setEnterExitChartingFromPlan
 } = enterExitGraphElementsSlice.actions;
 
 export default enterExitGraphElementsSlice.reducer;
