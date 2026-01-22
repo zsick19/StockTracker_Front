@@ -1,6 +1,7 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
+import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 export const enterExitAdapter = createEntityAdapter({})
@@ -145,11 +146,25 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }, 'enterExitPlans']
     }),
     removeGroupedEnterExitPlan: builder.mutation({
-      query: (args) => ({
-        url: `/enterExitPlan/viability`,
-        method: 'DELETE',
-        body: args.removeIds,
-      }),
+      async queryFn(args, api, extraOptions, baseQuery)
+      {
+        const state = api.getState()
+        const initializationEndpointDataSelector = InitializationApiSlice.endpoints.getUserInitialization.select(undefined)
+        const userInitializationData = initializationEndpointDataSelector(state);
+        const userStockHistory = userInitializationData?.data.userStockHistory
+
+        let historyIds = []
+        userStockHistory.forEach((t) => { if (args.removeTickers.includes(t.symbol)) historyIds.push(t._id) })
+
+        let result = await baseQuery({
+          url: `/enterExitPlan/viability`,
+          method: 'DELETE',
+          body: { removeThesePlans: args.removeIds, removeTheseTickers: args.removeTickers, removeHistory: historyIds },
+        })
+
+        return result.data ? { data: result.data } : { error: result.error }
+      },
+      invalidatesTags: (result, error, args) => ['userData', 'chartingData', 'enterExitPlans']
     })
   }),
 });

@@ -23,10 +23,13 @@ function EnterBufferPlanWrapper({ ids, watchList, selectedPlansForRemoval, handl
 
     return (
         <div onScroll={handleScroll} id='PlanViabilityChartsWrapper' className='hide-scrollbar'>
-            {candleStockData.map(item =>
-            (<SinglePlanViabilityChartWrapper id={item.ticker} watchList={watchList} candleData={item.candleData} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
-                handleUpdateToggle={handleUpdateToggle} />))}
-            {isFetchingNextPage && <div>Loading more...</div>}
+            {totalIdsPreWatch > 0 ? <>
+                {candleStockData.map(item =>
+                (<SinglePlanViabilityChartWrapper id={item.ticker} watchList={watchList} candleData={item.candleData} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
+                    handleUpdateToggle={handleUpdateToggle} />))}
+                {isFetchingNextPage && <div>Loading more...</div>}
+            </>
+                : <div>Currently No Plans</div>}
         </div>
     );
 }

@@ -4,7 +4,8 @@ import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import ChartWithoutPlanFetchChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithoutPlanFetchChartingWrapper'
 import { ClipboardPen } from 'lucide-react'
 import { differenceInCalendarDays } from 'date-fns'
-function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate, handleUpdateToggle })
+function SinglePlanViabilityChartWrapper({ id, watchList, candleData, 
+    selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate, handleUpdateToggle })
 {
 
     function provideSelector(data)
@@ -16,9 +17,9 @@ function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPl
             case 2: return enterExitPlannedSelectors.selectById(data.plannedTickers, id)
         }
     }
-    console.log(watchList, id)
+
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
-    console.log(plan)
+
     return (
         <div className='SingleViabilityChartBlock' >
             <div onClick={() => handleRemovalToggle(plan.tickerSymbol, plan._id)} className={selectedPlansForRemoval.find((t) => t.tickerSymbol === plan.tickerSymbol) ? 'setForRemoval' : ''}>

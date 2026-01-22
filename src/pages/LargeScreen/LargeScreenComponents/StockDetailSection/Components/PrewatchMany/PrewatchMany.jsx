@@ -1,10 +1,29 @@
 import React from 'react'
+import { useGetUsersEnterExitPlanQuery } from '../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import PreWatchManyPlanWrapper from './Components/PreWatchManyPlanWrapper'
+import './PrewatchMany.css'
 
-function PreWatchMany()
+function PreWatchMany({ watchList })
 {
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetUsersEnterExitPlanQuery()
+
+    let planDisplayContent
+    if (isSuccess)
+    {
+        let watchListIds
+        switch (watchList)
+        {
+            case 0: watchListIds = data.stopLossHit.ids; break;
+            case 1: watchListIds = data.enterBufferHit.ids; break;
+            case 2: watchListIds = data.plannedTickers.ids; break
+        }
+        planDisplayContent = <PreWatchManyPlanWrapper ids={watchListIds} watchList={watchList} />
+    }
+
     return (
-        <div>Pre watch Many Tickers here
-            include buttons to jump straight to trade record
+        <div id='PrewatchMany'>
+            {watchList === 0 ? <h1>StopLoss Hit Pre-Watch</h1> : watchList === 1 ? <h1>Buffer Hit Pre-Watch</h1> : <h1>Planned Stocks Pre-Watch</h1>}
+            {planDisplayContent}
         </div>
     )
 }

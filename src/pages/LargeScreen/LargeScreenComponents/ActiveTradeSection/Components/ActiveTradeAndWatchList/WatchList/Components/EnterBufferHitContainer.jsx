@@ -7,10 +7,7 @@ import SinglePlannedTickerDisplay from './SinglePlannedTickerDisplay'
 function EnterBufferHitContainer({ enterBufferHitIds, refetch })
 {
     const dispatch = useDispatch()
-    function handleEnterBufferNavigateToViewMany()
-    {
-        dispatch(setStockDetailState(6))
-    }
+
 
     return (
         <div>
@@ -18,7 +15,7 @@ function EnterBufferHitContainer({ enterBufferHitIds, refetch })
                 <p>Enter Buffer</p>
                 <div className='flex'>
                     <button className='iconButton' onClick={() => refetch()}><RefreshCcwDot size={20} color='gray' /></button>
-                    <button className='iconButton' onClick={handleEnterBufferNavigateToViewMany}><Grip size={20} color='white' /></button>
+                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(11))}><Grip size={20} color='white' /></button>
                 </div>
             </div>
             <div id='LSH-PreWatchBufferHitList' className='hide-scrollbar PreWatchListContainersEveryOther'>

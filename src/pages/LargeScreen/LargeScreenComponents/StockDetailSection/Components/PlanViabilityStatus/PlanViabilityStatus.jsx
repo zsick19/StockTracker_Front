@@ -1,16 +1,18 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useGetUsersEnterExitPlanQuery, useRemoveGroupedEnterExitPlanMutation } from '../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import './PlanViabilityStatus.css'
 import PlanGraphWrapper from './Components/PlanGraphWrapper'
 import StopLossPlanWrapper from './Components/StopLossPlanWrapper'
 import EnterBufferPlanWrapper from './Components/EnterBufferPlanWrapper'
+import { useDispatch } from 'react-redux'
+import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 
 function PlanViabilityStatus()
 {
   const { data, isSuccess, isLoading, isError, error, refetch } = useGetUsersEnterExitPlanQuery()
   const [removeGroupedEnterExitPlan] = useRemoveGroupedEnterExitPlanMutation()
 
-  const [planListToDisplay, setPlanListToDisplay] = useState(2)
+  const [planListToDisplay, setPlanListToDisplay] = useState(0)
   const [selectedPlansForRemoval, setSelectedPlansForRemoval] = useState([])
   const [selectedPlansForUpdate, setSelectedPlansForUpdate] = useState([])
   const [showTickersForRemoval, setShowTickersForRemoval] = useState(false)
@@ -35,21 +37,29 @@ function PlanViabilityStatus()
     }
   }
 
-
+  const dispatch = useDispatch()
   async function attemptGroupRemovalOfNonViablePlans(params)
   {
 
     try
     {
       if (selectedPlansForRemoval.length === 0) return
-      const results = await removeGroupedEnterExitPlan({ removeIds: selectedPlansForRemoval.map(t => t.id) })
-      console.log(results)
+      const results = await removeGroupedEnterExitPlan({ removeIds: selectedPlansForRemoval.map(t => t.id), removeTickers: selectedPlansForRemoval.map(t => t.tickerSymbol) })
+      dispatch(setStockDetailState(10))
+      setTimeout(() => dispatch(setStockDetailState(4)), [2000])
     } catch (error)
     {
       console.log(error)
     }
   }
 
+  useEffect(() =>
+  {
+    let index = 0
+    if (data.stopLossHit.ids.length < 1 && data.enterBufferHit.ids.length > 0) { index = 1 }
+    else if (data.stopLossHit.ids.length < 1 && data.enterBufferHit.ids.length < 1) { index = 2 }
+    setPlanListToDisplay(index)
+  }, [])
 
 
 

@@ -234,6 +234,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
 
         stockCandleSVG.select('.currentPrice').selectAll('line').remove()
         stockCandleSVG.select('.keyLevels').selectAll('line').remove()
+        stockCandleSVG.select('.initialTrack').selectAll('line').remove()
 
         if (KeyLevels.gammaFlip)
         {
@@ -283,6 +284,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !mostRecentPrice || nonLivePrice) return
+
 
         let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
         stockCandleSVG.select('.currentPrice').selectAll('line').data([mostRecentPrice.Price]).join(enter =>
@@ -433,7 +435,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
 
-                console.log(EnterExitPlan)
                 yPositions.map((position, index) =>
                 {
                     lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])

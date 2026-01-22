@@ -1,5 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { ChartingApiSlice } from "../Charting/ChartingSliceApi";
+import { EnterExitPlanApiSlice } from "./EnterExitApiSlice";
 
 const enterExitGraphElementsSlice = createSlice({
     name: "enterExitGraphElements",
@@ -41,7 +42,20 @@ const enterExitGraphElementsSlice = createSlice({
             {
                 if (payload.removedEnterExit) { delete state[payload.removedEnterExit.tickerSymbol] }
             }
-        )
+        ),
+            builder.addMatcher(
+                EnterExitPlanApiSlice.endpoints.removeGroupedEnterExitPlan.matchFulfilled,
+                (state, { payload }) =>
+                {
+                    if (payload.removeTheseTickers)
+                    {
+                        payload.removeTheseTickers.forEach((removedTicker) =>
+                        {
+                            delete state[removedTicker]
+                        })
+                    }
+                }
+            )
     }
 });
 

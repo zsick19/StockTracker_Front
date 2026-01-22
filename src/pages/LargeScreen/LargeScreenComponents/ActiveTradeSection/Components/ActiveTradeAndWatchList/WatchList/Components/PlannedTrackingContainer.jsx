@@ -7,10 +7,6 @@ import { setStockDetailState } from '../../../../../../../../features/SelectedSt
 function PlannedTrackingContainer({ enterExitPlansIds })
 {
     const dispatch = useDispatch()
-    function handlePlannedNavigateToViewMany()
-    {
-        dispatch(setStockDetailState(6))
-    }
 
     return (
         <div id='LSH-PreWatchPlanList'>
@@ -18,7 +14,7 @@ function PlannedTrackingContainer({ enterExitPlansIds })
                 <p>Planned Tickers</p>
                 <div className='flex'>
                     <button className='iconButton' onClick={() => dispatch(setStockDetailState(4))}><SpellCheck size={18} color='white' /></button>
-                    <button className='iconButton' onClick={handlePlannedNavigateToViewMany}><Grip size={20} color='white' /></button>
+                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(12))}><Grip size={20} color='white' /></button>
                 </div>
             </div>
             <div className='hide-scrollbar PreWatchListContainersEveryOther'>

@@ -11,7 +11,7 @@ import ConfirmedStatus from './Components/ConfirmedStatus/ConfirmedStatus';
 import EnterExitTradeGraph from './Components/TradeGraph/EnterExitTradeGraph';
 import TradingJournal from './Components/TradingJournal/TradingJournal';
 import PreWatchMany from './Components/PrewatchMany/PrewatchMany';
-import { Binoculars, ChartCandlestick, ListChecks, ListTodo, NotebookPen, SpellCheck } from 'lucide-react';
+import { Binoculars, ChartCandlestick, ListChecks, ListTodo, NotebookPen, PiggyBank, SpellCheck } from 'lucide-react';
 
 function StockDetailSection()
 {
@@ -31,7 +31,9 @@ function StockDetailSection()
       case 3: return <ConfirmedStatus />
       case 4: return <PlanViabilityStatus />
       case 5: return <ChartSingleGraph />
-      case 6: return <PreWatchMany />
+      case 6: return <PreWatchMany watchList={0} />
+      case 11: return <PreWatchMany watchList={1} />
+      case 12: return <PreWatchMany watchList={2} />
       case 7: return <div>Build Large Plan List Like Confirmed</div>
       case 8: return <EnterExitTradeGraph />
       case 9: return <TradingJournal />
@@ -51,9 +53,8 @@ function StockDetailSection()
         <button onClick={() => dispatch(setStockDetailState(2))}><ListTodo /><p>Confirmation</p></button>
         <button onClick={() => dispatch(setStockDetailState(3))}><ListChecks /><p>Confirmed</p></button>
         <button onClick={() => dispatch(setStockDetailState(4))}><SpellCheck /><p>Viability Check</p></button>
-        <button onClick={() => dispatch(setStockDetailState(6))}><p>PreWatch</p></button>
 
-        <button onClick={() => dispatch(setStockDetailState(7))}><p>Plan List</p></button>
+        <button onClick={() => dispatch(setStockDetailState(7))}><PiggyBank /><p>Plans</p></button>
 
         <button onClick={() => dispatch(setStockDetailState(8))}><ChartCandlestick /><p>Trade Graph</p></button>
         <button onClick={() => dispatch(setStockDetailState(9))}><NotebookPen /><p>Trading Journal</p></button>
