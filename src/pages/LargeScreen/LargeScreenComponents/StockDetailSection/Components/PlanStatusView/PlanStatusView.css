@@ -18,7 +18,7 @@
 }
 
 #LHS-PlanDisplays > div {
-  grid-template-columns: 1fr 1fr 1fr 450px 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 450px 1fr;
 }
 
 #LHS-PlanColumn {
@@ -39,6 +39,7 @@
   height: 600px;
   background-color: rgba(128, 128, 128, 0.226);
   overflow-y: scroll;
+  padding-top: 0.5rem;
 }
 
 #LHS-PlanDetailsAndChart {
@@ -58,10 +59,10 @@
 
 .LHS-SinglePlanResult {
   font-size: var(--fs-100);
-  background-color: gray;
+  background-color: rgba(3, 0, 32, 0.479);
   margin-bottom: 0.5rem;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 450px 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 450px 1fr;
   height: 50px;
   padding-inline: 1rem;
   align-items: center;

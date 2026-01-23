@@ -12,7 +12,7 @@ function ConfirmMarketSearch()
     const [submitConfirmedPatterns] = useSubmitConfirmedPatternsMutation()
 
     const [currentPage, setCurrentPage] = useState(1)
-    const [keepTheseTickers, setKeepTheseTickers] = useState({ keep: [], remove: [], total: 0 })
+    const [keepTheseTickers, setKeepTheseTickers] = useState({ keepInfo: [], remove: [], total: 0 })
     const [showSubmit, setShowSubmit] = useState(false)
     const [totalPages, setTotalPages] = useState(1)
     const [submitServerResponse, setSubmitServerResponse] = useState(undefined)
@@ -39,7 +39,7 @@ function ConfirmMarketSearch()
     {
         try
         {
-            await submitConfirmedPatterns({ confirmed: keepTheseTickers.keep, remove: keepTheseTickers.remove }).unwrap()
+            await submitConfirmedPatterns({ confirmed: keepTheseTickers.keepInfo, remove: keepTheseTickers.remove }).unwrap()
             setSubmitServerResponse('Patterns Confirmed!')
             setTimeout(() => { dispatch(setStockDetailState(3)) }, [2000])
         } catch (error)

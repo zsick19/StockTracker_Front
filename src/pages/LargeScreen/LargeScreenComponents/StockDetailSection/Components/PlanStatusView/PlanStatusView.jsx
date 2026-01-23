@@ -38,9 +38,19 @@ function PlanStatusView()
       case 3: results = combinedData.combined; break;
     }
 
-    console.log(planFilters)
+
+    switch (planSort.sort)
+    {
+      case 'ticker': results = results.sort((a, b) => { return planSort.direction ? a.tickerSymbol.localeCompare(b.tickerSymbol) : b.tickerSymbol.localeCompare(a.tickerSymbol) }); break;
+
+
+      default:
+        break;
+    }
+
+
     return results
-  }, [planFilters])
+  }, [planFilters, planSort])
 
   function handleTickerSearch()
   {
@@ -92,9 +102,10 @@ function PlanStatusView()
 
       <div id='LHS-PlanDisplays'>
         <div id='LHS-PlanColumn'>
-          <p>Ticker/Price</p>
+          <p onClick={() => setPlanSort(prev => ({ sort: 'ticker', direction: !prev.direction }))}>Ticker/Price</p>
           <p>Enter Price</p>
-          <p>Tracking Period</p>
+          <p>RvR</p>
+          <p>Tracking</p>
           <p>Plan Diagram</p>
         </div>
         <div id='LHS-PlanResults' className='hide-scrollbar'>
@@ -112,6 +123,7 @@ function PlanStatusView()
 
           <div id='LHS-SelectedPlanDetails'>
             <h1>{selectedPlan.tickerSymbol}</h1>
+            <button onClick={() => setSelectedPlan(undefined)}>Clear</button>
           </div>
         </div> :
         <div id='LHS-NoPlanSelected'>

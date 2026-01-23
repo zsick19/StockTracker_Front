@@ -7,7 +7,7 @@ import ChartGraph from '../../../../../../../components/ChartSubGraph/ChartGraph
 function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTickers })
 {
     const [showKeepOrRemove, setShowKeepOrRemove] = useState(false)
-    const [confirmed, setConfirmed] = useState(keepTheseTickers.keep.includes(ticker) ? 1 : keepTheseTickers.remove.includes(ticker) ? 2 : 0)
+    const [confirmed, setConfirmed] = useState(keepTheseTickers.keepInfo.find(t => t.ticker === ticker) ? 1 : keepTheseTickers.remove.includes(ticker) ? 2 : 0)
 
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame: defaultTimeFrames.dailyOneYear, lifeFeed: false, info: true })
 
@@ -31,24 +31,24 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
 
     useEffect(() =>
     {
-        setConfirmed(keepTheseTickers.keep.includes(ticker) ? 1 : keepTheseTickers.remove.includes(ticker) ? 2 : 0)
+        setConfirmed(keepTheseTickers.keepInfo.find(t => t.ticker === ticker) ? 1 : keepTheseTickers.remove.includes(ticker) ? 2 : 0)
     }, [data])
 
-    
+
     function handleConfirmingTicker(e)
     {
         e.stopPropagation();
         if (confirmed === 0)
         {
             setKeepTheseTickers(prev => ({
-                keep: [...prev.keep, ticker],
+                keepInfo: [...prev.keepInfo, { ticker: ticker, sector: data.tickerInfo.Sector }],
                 remove: prev.remove.filter(t => t !== ticker),
                 total: prev.total + 1
             }));
         } else
         {
             setKeepTheseTickers(prev => ({
-                keep: [...prev.keep, ticker],
+                keepInfo: [...prev.keepInfo, { ticker: ticker, sector: data.tickerInfo.Sector }],
                 remove: prev.remove.filter(t => t !== ticker),
                 total: prev.total
             }));
@@ -63,14 +63,14 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
         if (confirmed === 0)
         {
             setKeepTheseTickers(prev => ({
-                keep: prev.keep.filter(t => t !== ticker),
+                keepInfo: prev.keepInfo.filter(t => t.ticker !== ticker),
                 remove: [...prev.remove, ticker],
                 total: prev.total + 1
             }))
         } else
         {
             setKeepTheseTickers(prev => ({
-                keep: prev.keep.filter(t => t !== ticker),
+                keepInfo: prev.keepInfo.filter(t => t.ticker !== ticker),
                 remove: [...prev.remove, ticker],
                 total: prev.total
             }))

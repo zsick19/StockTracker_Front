@@ -192,7 +192,6 @@ export const selectAllPlansAndCombined = createSelector([(res) => res.data],
       stopLoss: stopLossHit.length,
       enterBuffer: enterBuffer.length,
       allOtherPlans: allOtherPlans.length,
-
     }
 
 
