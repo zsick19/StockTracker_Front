@@ -1,7 +1,8 @@
-import { createEntityAdapter } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
+import { differenceInDays } from "date-fns";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 export const enterExitAdapter = createEntityAdapter({})
@@ -31,7 +32,8 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         const enterBufferResponse = []
         const stopLossResponse = []
         const plansResponse = []
-        const currentTime = new Date().getUTCDate()
+        const today = new Date()
+        const currentTime = today.getUTCDate()
         const target = new Date()
         target.setHours(9, 30, 0, 0)
 
@@ -46,6 +48,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
           enterExit.dailyOpenPrice = stockTradeData.DailyBar.OpenPrice
           enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.dailyOpenPrice) / enterExit.dailyOpenPrice) * 100)
           enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
+          enterExit.trackingDays = differenceInDays(today, enterExit.dateAdded)
 
           function getInsertionIndexLinear(arr, num)
           {
@@ -177,3 +180,29 @@ export const enterExitPlannedSelectors = enterExitAdapter.getSelectors()
 export const enterBufferSelectors = enterBufferHitAdapter.getSelectors()
 export const stopLossHitSelectors = stopLossHitAdapter.getSelectors()
 
+export const selectAllPlansAndCombined = createSelector([(res) => res.data],
+  (data) =>
+  {
+    if (!data) return { stopLossHit: [], enterBuffer: [], allOtherPlans: [], combined: [] }
+
+    const stopLossHit = stopLossHitAdapter.getSelectors().selectAll(data.stopLossHit)
+    const enterBuffer = enterBufferHitAdapter.getSelectors().selectAll(data.enterBufferHit)
+    const allOtherPlans = enterExitAdapter.getSelectors().selectAll(data.plannedTickers)
+    const counts = {
+      stopLoss: stopLossHit.length,
+      enterBuffer: enterBuffer.length,
+      allOtherPlans: allOtherPlans.length,
+
+    }
+
+
+    return {
+      stopLossHit,
+      counts,
+      enterBuffer,
+      allOtherPlans,
+      allOtherPlansCount: allOtherPlans.length,
+      totalCount: counts.stopLoss + counts.enterBuffer + counts.allOtherPlans,
+      combined: [...stopLossHit, ...enterBuffer, ...allOtherPlans]
+    }
+  })

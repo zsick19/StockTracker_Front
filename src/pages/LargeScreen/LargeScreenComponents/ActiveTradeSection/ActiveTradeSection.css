@@ -20,6 +20,7 @@
 
 #NewsAndMessageSection div {
   background-color: rgb(37, 38, 39);
+  font-size: var(--fs-200);
 }
 
 #ActiveTradeSection {

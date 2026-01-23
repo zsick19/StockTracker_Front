@@ -1,0 +1,88 @@
+#LHS-PlanStatusView {
+  display: grid;
+  grid-template-rows: 15% 650px 1fr;
+  gap: 0.5rem;
+  height: 100%;
+}
+
+#LHS-PlanStatusFilterControl {
+  font-size: var(--fs-100);
+  background-color: gray;
+  padding: 1rem;
+  border-radius: 10px;
+}
+#LHS-PlanStatusFilterControl fieldset {
+  display: flex;
+
+  gap: 1rem;
+}
+
+#LHS-PlanDisplays > div {
+  grid-template-columns: 1fr 1fr 1fr 450px 1fr;
+}
+
+#LHS-PlanColumn {
+  display: grid;
+  height: 40px;
+  align-items: center;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+
+  justify-items: center;
+  padding-inline: 1rem;
+  background-color: rgb(32, 32, 32);
+}
+
+#LHS-PlanResults {
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  height: 600px;
+  background-color: rgba(128, 128, 128, 0.226);
+  overflow-y: scroll;
+}
+
+#LHS-PlanDetailsAndChart {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  gap: 1rem;
+}
+
+#LHS-NoPlanSelected {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  justify-content: center;
+  background-color: gray;
+  border-radius: 10px;
+}
+
+.LHS-SinglePlanResult {
+  font-size: var(--fs-100);
+  background-color: gray;
+  margin-bottom: 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 450px 1fr;
+  height: 50px;
+  padding-inline: 1rem;
+  align-items: center;
+  border-radius: 5px;
+  justify-items: center;
+}
+.highLightForSelectedPlan {
+  border: 2px solid red;
+}
+.LHS-SinglePlanResult > .HorizontalPlanSVGWrapper {
+  width: 400px;
+  height: 30px;
+}
+
+.LHS-SinglePlanResult > .HorizontalPlanSVGWrapper svg {
+  background-color: rgb(177, 177, 177);
+  height: 100%;
+  width: 100%;
+}
+
+#LHS-SelectedPlanChartContainer {
+  background-color: rgb(23, 23, 58);
+  border-radius: 10px;
+}

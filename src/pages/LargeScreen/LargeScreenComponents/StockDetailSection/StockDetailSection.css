@@ -9,9 +9,11 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 #StockDetailSection nav button {
+  flex: 1;
   color: white;
   display: flex;
   flex-direction: column;

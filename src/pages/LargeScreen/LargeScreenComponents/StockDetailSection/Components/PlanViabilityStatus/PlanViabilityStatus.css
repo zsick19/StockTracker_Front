@@ -25,6 +25,7 @@
   display: grid;
   height: 1050px;
   grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
   overflow-y: scroll;
   gap: 1rem;
   padding-bottom: 1rem;

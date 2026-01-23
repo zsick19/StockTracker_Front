@@ -18,9 +18,9 @@ function HorizontalPlanDiagram({ mostRecentPrice, planPricePoints, initialTracki
         return scale(priceToPixel)
     }, [horizontalDimensions])
 
-
     const planPriceSVG = select(priceSVG.current)
     const idealPrices = [planPricePoints.stopLossPrice, planPricePoints.enterPrice, planPricePoints.enterBufferPrice, planPricePoints.exitBufferPrice, planPricePoints.exitPrice, planPricePoints.moonPrice]
+
     useEffect(() =>
     {
         if (dimPreCheck()) return
