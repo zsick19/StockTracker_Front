@@ -3,7 +3,8 @@ import ChartGraph from './ChartGraph'
 import { useDispatch } from 'react-redux'
 import { setEnterExitChartingFromPlan } from '../../features/EnterExitPlans/EnterExitGraphElement'
 
-function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, planData, mostRecentPrice, initialTrackingPrice })
+function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame,
+     planData, mostRecentPrice, initialTrackingPrice })
 {
     const dispatch = useDispatch()
     useEffect(() => { dispatch(setEnterExitChartingFromPlan({ tickerSymbol: ticker, plan: planData, planId: chartId })) }, [])

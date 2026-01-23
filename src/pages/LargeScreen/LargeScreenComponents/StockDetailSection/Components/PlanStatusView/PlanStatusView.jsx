@@ -3,6 +3,8 @@ import { selectAllPlansAndCombined, useGetUsersEnterExitPlanQuery } from '../../
 import SinglePlanView from './Components/SinglePlanView'
 import './PlanStatusView.css'
 import { defaultSectors } from '../../../../../../Utilities/SectorsAndIndustries'
+import SelectedStockChartBlock from './Components/SelectedStockChartBlock'
+import SelectedStockPlanDetails from './Components/SelectedStockPlanDetails'
 
 function PlanStatusView()
 {
@@ -41,16 +43,15 @@ function PlanStatusView()
 
     switch (planSort.sort)
     {
-      case 'ticker': results = results.sort((a, b) => { return planSort.direction ? a.tickerSymbol.localeCompare(b.tickerSymbol) : b.tickerSymbol.localeCompare(a.tickerSymbol) }); break;
-
-
-      default:
-        break;
+      case 'ticker': results = results.sort((a, b) => { return planSort.direction ? a.tickerSymbol.localeCompare(b.tickerSymbol) : b.tickerSymbol.localeCompare(a.tickerSymbol) }); break
     }
 
 
     return results
   }, [planFilters, planSort])
+
+
+
 
   function handleTickerSearch()
   {
@@ -104,7 +105,9 @@ function PlanStatusView()
         <div id='LHS-PlanColumn'>
           <p onClick={() => setPlanSort(prev => ({ sort: 'ticker', direction: !prev.direction }))}>Ticker/Price</p>
           <p>Enter Price</p>
-          <p>RvR</p>
+          <p><span onClick={() => setPlanSort(prev => ({ sort: 'risk', direction: !prev.direction }))}>Ri.</span> vs <span
+            onClick={() => setPlanSort(prev => ({ sort: 'reward', direction: !prev.direction }))}>Re.</span></p>
+          <p>Sector</p>
           <p>Tracking</p>
           <p>Plan Diagram</p>
         </div>
@@ -117,15 +120,12 @@ function PlanStatusView()
 
       {selectedPlan ?
         <div id='LHS-PlanDetailsAndChart'>
-          <div id='LHS-SelectedPlanChartContainer'>
-            <p>Chart Goes here</p>
-          </div>
+          <SelectedStockChartBlock ticker={selectedPlan.tickerSymbol} plan={selectedPlan} />
 
-          <div id='LHS-SelectedPlanDetails'>
-            <h1>{selectedPlan.tickerSymbol}</h1>
-            <button onClick={() => setSelectedPlan(undefined)}>Clear</button>
-          </div>
+          <SelectedStockPlanDetails selectedPlan={selectedPlan} setSelectedPlan={setSelectedPlan} />
         </div> :
+
+
         <div id='LHS-NoPlanSelected'>
           <p>Select a Plan For Details</p>
           <p>Below StopLoss: {combinedData.counts.stopLoss} Plans</p>

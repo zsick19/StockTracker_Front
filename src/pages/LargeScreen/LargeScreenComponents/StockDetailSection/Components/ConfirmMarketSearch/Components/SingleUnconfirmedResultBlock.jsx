@@ -9,7 +9,7 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
     const [showKeepOrRemove, setShowKeepOrRemove] = useState(false)
     const [confirmed, setConfirmed] = useState(keepTheseTickers.keepInfo.find(t => t.ticker === ticker) ? 1 : keepTheseTickers.remove.includes(ticker) ? 2 : 0)
 
-    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame: defaultTimeFrames.dailyOneYear, lifeFeed: false, info: true })
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame: defaultTimeFrames.dailyOneYear, liveFeed: false, info: true })
 
     let graphContent
     let tickerInfoContent = <div>{ticker}</div>

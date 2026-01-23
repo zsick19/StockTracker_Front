@@ -4,7 +4,7 @@ import HorizontalPlanDiagram from '../../../../ActiveTradeSection/Components/Act
 
 function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
 {
-    console.log(plan)
+
 
     function provideGroup()
     {
@@ -26,7 +26,8 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
                 <p>${plan.plan.enterPrice}</p>
                 <p>{plan.percentFromEnter.toFixed(2)}%</p>
             </div>
-            <div>r</div>
+            <div> {plan.plan.percents[0]} vs {plan.plan.percents[4]}</div>
+            <div>{plan?.sector}</div>
             <div>
                 <p>{plan.trackingDays > 1 ? `${plan.trackingDays} Days` : `${plan.trackingDays} Day`}</p>
                 <p>{provideGroup()}</p>
