@@ -17,9 +17,10 @@ import { selectConfirmedUnChartedTrio } from '../../../../../../../features/Sele
 import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { selectSPYIdFromUser } from '../../../../../../../features/Initializations/InitializationSliceApi'
 import { clearStockInfo, setStockInfoAndNews } from '../../../../../../../features/StockData/StockInfoElement'
+import * as short from 'short-uuid'
 
 
-function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay })
+function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay, uuid })
 {
     const dispatch = useDispatch()
     const currentTool = useSelector(selectCurrentTool)
@@ -36,7 +37,6 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
 
 
-
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
     const [serverResponse, setServerResponse] = useState(undefined)
 
@@ -46,7 +46,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     let actualGraph
     if (isSuccess && data.candleData.length > 0)
     {
-        actualGraph = <ChartWithChartingWrapper ticker={ticker} candleData={data} chartId={chartId} timeFrame={timeFrame} />
+        actualGraph = <ChartWithChartingWrapper ticker={ticker} candleData={data} chartId={chartId} timeFrame={timeFrame} uuid={uuid} />
     } else if (isSuccess) { actualGraph = <div>No Data To Display</div> }
     else if (isLoading) { actualGraph = <GraphLoadingSpinner /> }
     else if (isError)

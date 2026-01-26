@@ -14,6 +14,7 @@ import chartingVisibilityReducers from '../features/Charting/ChartingVisibility'
 import enterExitChartingReducers from '../features/EnterExitPlans/EnterExitGraphElement'
 import editChartSelectionReducers from '../features/Charting/EditChartSelection'
 import stockInfoReducers from '../features/StockData/StockInfoElement'
+import graphHoverZoomReducers from '../features/Charting/GraphHoverZoomElement'
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
     chartingVisibility: chartingVisibilityReducers,
     editChartSelection: editChartSelectionReducers,
     stockInfo: stockInfoReducers,
+    graphHoverZoom: graphHoverZoomReducers,
     auth: authReducer,
     test: testReducer,
   },

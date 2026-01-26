@@ -14,7 +14,7 @@ function SelectedStockChartBlock({ ticker, plan })
     if (isSuccess)
     {
         chartContent = <ChartWithoutPlanFetchChartingWrapper ticker={ticker} candleData={data} interactionController={interactions}
-            chartId={plan._id} timeFrame={defaultTimeFrames.dailyHalfYear} planData={plan.plan} mostRecentPrice={plan.mostRecentPrice} initialTrackingPrice={plan.initialTrackingPrice}
+            chartId={plan._id} timeFrame={defaultTimeFrames.dailyHalfYear} planData={plan.plan} mostRecentPrice={plan.mostRecentPrice} initialTracking={{ price: plan.initialTrackingPrice, date: plan.dateAdded }}
         />
     } else if (isLoading)
     {

@@ -5,15 +5,15 @@ import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/G
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
 import { Circle } from 'lucide-react'
 
-function TradeGraphChartWrapper({ selectedStock })
+function TradeGraphChartWrapper({ selectedStock, uuid })
 {
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ...selectedStock, ticker: selectedStock.tickerSymbol, liveFeed: true, info: true })
 
-
+    console.log(uuid)
     let chartContent
     if (isSuccess && data.candleData.length > 0)
     {
-        chartContent = <ChartWithChartingWrapper ticker={selectedStock.tickerSymbol} candleData={data} chartId={selectedStock.chartId} timeFrame={selectedStock.timeFrame} />
+        chartContent = <ChartWithChartingWrapper ticker={selectedStock.tickerSymbol} candleData={data} chartId={selectedStock.chartId} timeFrame={selectedStock.timeFrame} uuid={uuid} />
     } else if (isSuccess) { chartContent = <div>No Data To Display for this ticker</div> }
     else if (isLoading) { chartContent = <GraphLoadingSpinner /> }
     else if (isError) { chartContent = <GraphLoadingError refetch={refetch} /> }

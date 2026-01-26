@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import './ChartSingleGraph.css'
 import './PanelDisplayStyles.css'
 import { useDispatch, useSelector } from 'react-redux'
@@ -17,6 +17,8 @@ import StudiesModal from './Components/StudiesModal'
 import ContinueChartingNav from './Components/ContinueChartingNav'
 import UnChartedProgressDisplay from './Components/UnChartedProgressDisplay'
 import NewsPanel from './Components/ChartControlPanels/NewsPanel'
+import * as short from 'short-uuid'
+import { setResetXYZoomState } from '../../../../../../features/Charting/GraphHoverZoomElement'
 
 function ChartSingleGraph()
 {
@@ -32,7 +34,6 @@ function ChartSingleGraph()
     const [showCustomTimeFrameModal, setShowCustomTimeFrameModal] = useState(false)
     const [showVisibilityModal, setShowVisibilityModal] = useState(false)
     const [showStudiesModal, setShowStudiesModal] = useState(false)
-
 
 
     function handleNavigatingToNextUnChartedStock(nextDirection)
@@ -73,7 +74,7 @@ function ChartSingleGraph()
         }
     }
 
-
+    const uuid = useMemo(() => short.generate(), [])
     return (
         <div id='LHS-SingleGraphForCharting'>
             {showVisibilityModal && <VisibilityModal setShowVisibilityModal={setShowVisibilityModal} />}
@@ -90,12 +91,12 @@ function ChartSingleGraph()
                     {interDayTimeFrames.map((timeFrame) => { return <button onClick={() => setTimeFrame(timeFrame.timeFrame)}>{timeFrame.label}</button> })}
                     <button onClick={() => { setShowCustomTimeFrameModal(true) }}><CalendarCog size={20} /></button>
                 </div>
-                <button onClick={() => handleResetScale()} className='buttonIcon'><Scale3D color='white' size={20} /></button>
+                <button onClick={() => dispatch(setResetXYZoomState({ uuid }))} className='buttonIcon'><Scale3D color='white' size={20} /></button>
             </div>
 
 
             {selectedTicker ?
-                <SingleGraphChartWrapper ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setChartInfoDisplay={setChartInfoDisplay} /> :
+                <SingleGraphChartWrapper ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setChartInfoDisplay={setChartInfoDisplay} uuid={uuid} /> :
                 <div>No Chart Selected</div>
             }
 

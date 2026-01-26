@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux'
 import { setEnterExitChartingFromPlan } from '../../features/EnterExitPlans/EnterExitGraphElement'
 
 function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame,
-     planData, mostRecentPrice, initialTrackingPrice })
+    planData, mostRecentPrice, initialTracking })
 {
     const dispatch = useDispatch()
     useEffect(() => { dispatch(setEnterExitChartingFromPlan({ tickerSymbol: ticker, plan: planData, planId: chartId })) }, [])
@@ -14,7 +14,7 @@ function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionC
             <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData}
                 mostRecentPrice={{ Price: mostRecentPrice }}
                 timeFrame={timeFrame} nonLivePrice={interactionController?.nonLivePrice} nonInteractive={interactionController?.nonInteractive} nonZoomAble={interactionController?.nonZoomAble}
-                initialTrackingPrice={initialTrackingPrice} />
+                initialTracking={initialTracking} />
         </div>)
 }
 

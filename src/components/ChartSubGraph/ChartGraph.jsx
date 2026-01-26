@@ -4,7 +4,7 @@ import { addEnterExitToCharting, addLine, makeSelectChartingByTicker, removeChar
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuitySkipWeekends, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
 import { sub, subBusinessDays, addDays, isToday, subMonths, addYears, subDays } from 'date-fns'
-import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group, timeMonths, timeDays } from 'd3'
+import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group, timeMonths, timeDays, zoomIdentity } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
 import { defineEnterExitPlan, makeSelectEnterExitByTicker } from '../../features/EnterExitPlans/EnterExitGraphElement'
@@ -18,8 +18,9 @@ import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates } from '../../Utilities/TimeFrames'
+import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive, nonZoomAble, initialTrackingPrice })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive, nonZoomAble, initialTracking, uuid })
 {
     const dispatch = useDispatch()
 
@@ -44,6 +45,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     const editMode = useSelector(selectChartEditMode)
 
 
+
     //redux graph functioning selectors
     const currentTool = useSelector(selectCurrentTool)
     const chartingVisibility = useSelector(selectChartVisibility)
@@ -66,9 +68,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     let priceDimensions = useResizeObserver(priceSVGWrapper)
     let candleDimensions = useResizeObserver(candleSVGWrapper)
 
-    //chart zoom states
-    const [currentYZoomState, setCurrentYZoomState] = useState()
-    const [currentXZoomState, setCurrentXZoomState] = useState()
+    //chart zoom states    
+    const selectedChartZoomStateMemo = useMemo(makeSelectZoomStateByUUID, [])
+    const chartZoomState = useSelector(state => selectedChartZoomStateMemo(state, uuid))
     const [enableZoom, setEnableZoom] = useState(true)
 
     //chart scale creation
@@ -118,9 +120,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
 
 
 
-        if (currentXZoomState)
+        if (chartZoomState?.x)
         {
-            const newZoomState = currentXZoomState.rescaleX(xDateScale)
+            const zoomValues = zoomIdentity.translate(chartZoomState.x.x, chartZoomState.x.y).scale(chartZoomState.x.k)
+            const newZoomState = zoomValues.rescaleX(xDateScale)
             xDateScale.domain(newZoomState.domain())
         }
 
@@ -128,8 +131,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         else if (dateToPixel !== undefined) return xDateScale(new Date(dateToPixel))
         else return xDateScale
 
-    }, [candleData, currentXZoomState, candleDimensions, timeFrame])
-
+    }, [candleData, chartZoomState?.x, candleDimensions, timeFrame])
 
     const createPriceScale = useCallback(({ priceToPixel = undefined, pixelToPrice = undefined } = {}) =>
     {
@@ -144,9 +146,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 return function (t) { return +(a + t * c).toFixed(2); };
             })
 
-        if (currentYZoomState)
+        if (chartZoomState?.y)
         {
-            const newZoomScale = currentYZoomState.rescaleY(yScale)
+            const zoomValues = zoomIdentity.translate(chartZoomState.y.x, chartZoomState.y.y).scale(chartZoomState.y.k)
+            const newZoomScale = zoomValues.rescaleY(yScale)
             yScale.domain(newZoomScale.domain())
         }
 
@@ -157,7 +160,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         }
         else return yScale
 
-    }, [candleData, currentYZoomState, priceDimensions])
+    }, [candleData, chartZoomState?.y, priceDimensions])
 
     //scaleRefs for user charting drag functionality
     const yScaleRef = useRef()
@@ -266,10 +269,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 .attr('y1', pixelPrice).attr('y2', pixelPrice)
         }
 
-        if (initialTrackingPrice)
+        if (initialTracking)
         {
-            let pixelPrice = createPriceScale({ priceToPixel: initialTrackingPrice.price })
-            let pixelDate = createDateScale({ dateToPixel: initialTrackingPrice.date })
+            console.log(initialTracking)
+            let pixelPrice = createPriceScale({ priceToPixel: initialTracking.price })
+            let pixelDate = createDateScale({ dateToPixel: initialTracking.date })
+
             let trackingLines = stockCandleSVG.select('.initialTrack')
             trackingLines.append('line').attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('y1', pixelPrice).attr('y2', pixelPrice)
@@ -287,7 +292,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
 
         }
 
-    }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, currentXZoomState, currentYZoomState, timeFrame])
+    }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+
+
     //plot live trade stream
     useEffect(() =>
     {
@@ -304,10 +311,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
             update => update.attr('y1', createPriceScale({ priceToPixel: mostRecentPrice.Price })).attr('y2', createPriceScale({ priceToPixel: mostRecentPrice.Price }))
         )
 
-    }, [mostRecentPrice, candleData, currentYZoomState, currentXZoomState, timeFrame])
-
-
-
+    }, [mostRecentPrice, candleData, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
 
 
@@ -417,7 +421,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         }
 
 
-    }, [charting, candleData, candleDimensions, currentXZoomState, currentYZoomState])
+    }, [charting, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
     //plot user EnterExit Plan removing any possible charting enter exit  
     useEffect(() =>
     {
@@ -476,7 +480,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
 
         //remove the charting svg for enter exit plans 
 
-    }, [EnterExitPlan, candleData, candleDimensions, currentXZoomState, currentYZoomState])
+    }, [EnterExitPlan, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
 
@@ -495,7 +499,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         let toolingFunction = toolFunctionExports[ChartingTools.findIndex(t => t.tool === currentTool)]
         stockCandleSVG.on('click', (e) => toolingFunction(e, setEnableZoom, candleSVG.current, pixelSet, setCaptureComplete, createDateScale, createPriceScale))
 
-    }, [currentTool, candleDimensions, candleData, currentXZoomState, currentYZoomState])
+    }, [currentTool, candleDimensions, candleData, chartZoomState?.x, chartZoomState?.y,])
 
     //update charting state post trace
     useEffect(() =>
@@ -625,7 +629,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
             if (enableZoom)
             {
                 const zoomState = zoomTransform(stockCandleSVG.node())
-                setCurrentXZoomState(zoomState)
+                dispatch(setXZoomState({ uuid, zoom: { x: zoomState.x, y: zoomState.y, k: zoomState.k } }))
             }
             return null
         })
@@ -639,7 +643,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         {
             const zoomState = zoomTransform(priceScaleSVG.node())
-            setCurrentYZoomState(zoomState)
+            dispatch(setYZoomState({ uuid, zoom: { x: zoomState.x, y: zoomState.y, k: zoomState.k } }))
         })
         priceScaleSVG.call(zoomBehavior)
     }, [candleData, priceDimensions, timeFrame])

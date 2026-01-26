@@ -1,27 +1,38 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
 import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
 import ChartGraph from '../../../../../../../components/ChartSubGraph/ChartGraph'
 import { abbreviateNumber } from '../../../../../../../Utilities/UtilityHelperFunctions'
+import * as short from 'short-uuid'
+import { useDispatch } from 'react-redux'
+import { clearGraphControl, setInitialGraphControl } from '../../../../../../../features/Charting/GraphHoverZoomElement'
 
 function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTickers })
 {
     const [showKeepOrRemove, setShowKeepOrRemove] = useState(false)
     const [confirmed, setConfirmed] = useState(keepTheseTickers.keepInfo.find(t => t.ticker === ticker) ? 1 : keepTheseTickers.remove.includes(ticker) ? 2 : 0)
 
+    const dispatch = useDispatch()
+    const uuid = useMemo(() => short.generate(), [])
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame: defaultTimeFrames.dailyOneYear, liveFeed: false, info: true })
 
     let graphContent
     let tickerInfoContent = <div className='StockInfoBlock'><p>{ticker}</p></div>
+
+    useEffect(() =>
+    {
+        dispatch(setInitialGraphControl(uuid))
+        return (() => { if (uuid) dispatch(clearGraphControl(uuid)) })
+    }, [])
 
 
     if (isSuccess)
     {
         let stockInfo = data.tickerInfo
         graphContent = <div className={`ChartGraphWrapper `}>
-            <ChartGraph ticker={{ ticker: ticker }} candleData={data.candleData} nonInteractive={true} timeFrame={defaultTimeFrames.dailyHalfYear} />
+            <ChartGraph ticker={{ ticker: ticker }} candleData={data.candleData} nonInteractive={true} timeFrame={defaultTimeFrames.dailyHalfYear} uuid={uuid} />
         </div>
         tickerInfoContent = <div className='StockInfoBlock'>
             <p>{stockInfo.Symbol}</p>

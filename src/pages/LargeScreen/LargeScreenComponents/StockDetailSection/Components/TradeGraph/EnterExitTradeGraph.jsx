@@ -5,15 +5,26 @@ import PreTradePlanPresent from './Components/PreTradePlanPresent'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import './EnterExitTradeGraph.css'
 import TradeGraphChartWrapper from './Components/TradeGraphChartWrapper'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { defaultTimeFrames, interDayTimeFrames } from '../../../../../../Utilities/TimeFrames'
 import { CalendarCog, Scale3D } from 'lucide-react'
+import * as short from 'short-uuid'
+import { clearGraphControl, setInitialGraphControl, setResetXYZoomState } from '../../../../../../features/Charting/GraphHoverZoomElement'
 
 function EnterExitTradeGraph()
 {
     const dispatch = useDispatch()
     const selectedStock = useSelector(selectTradeChartStock)
     const [timeFrame, setTimeFrame] = useState(selectedStock?.timeFrame || defaultTimeFrames.threeDayOneMin)
+
+    const uuid = useMemo(() => short.generate(), [])
+
+    useEffect(() =>
+    {
+        dispatch(setInitialGraphControl(uuid))
+        return (() => { if (uuid) dispatch(clearGraphControl(uuid)) })
+    }, [])
+
 
     return (
         <div id='LHS-TradeRecord'>
@@ -26,10 +37,10 @@ function EnterExitTradeGraph()
                     {interDayTimeFrames.map((timeFrame) => { return <button onClick={() => setTimeFrame(timeFrame.timeFrame)}>{timeFrame.label}</button> })}
                     <button onClick={() => { setShowCustomTimeFrameModal(true) }}><CalendarCog size={20} /></button>
                 </div>
-                <button onClick={() => handleResetScale()} className='buttonIcon'><Scale3D color='white' size={20} /></button>
+                <button onClick={() => dispatch(setResetXYZoomState({ uuid }))} className='buttonIcon'><Scale3D color='white' size={20} /></button>
             </div>
 
-            <TradeGraphChartWrapper selectedStock={selectedStock} />
+            <TradeGraphChartWrapper selectedStock={selectedStock} uuid={uuid} />
             <div id='LHS-PlanPresentBeforeTrade'>
                 {selectedStock?.planId ?
                     selectedStock?.trade ?
