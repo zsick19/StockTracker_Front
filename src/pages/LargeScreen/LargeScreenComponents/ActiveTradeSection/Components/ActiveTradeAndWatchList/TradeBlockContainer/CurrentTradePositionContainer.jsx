@@ -3,6 +3,7 @@ import { useGetUsersActiveTradesQuery } from '../../../../../../../features/Trad
 import ActiveTradeBlockWrapper from './Components/ActiveTradeBlockWrapper'
 import './TradeBlockContainer.css'
 import './TradePriceVisualAlert.css'
+import AccountPLVisual from './Components/AccountPLVisual'
 
 function CurrentTradePositionContainer()
 {
@@ -22,7 +23,6 @@ function CurrentTradePositionContainer()
             <h2>No Active Trades</h2>
             <div className='flex'>
                 <button>Record A Trade</button>
-                <button>Trading Journal</button>
             </div>
         </div>
     }
@@ -39,7 +39,8 @@ function CurrentTradePositionContainer()
 
 
     return (
-        <div className='LSH-ActiveTradeContainer'>
+        <div id='LSH-ActiveTradeContainer'>
+            <AccountPLVisual />
             {tradeDisplayContent}
         </div>
     )

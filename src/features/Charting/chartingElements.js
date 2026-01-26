@@ -69,7 +69,6 @@ const chartingElementSlice = createSlice({
     },
     setPreviousCharting: (state, action) =>
     {
-      console.log(action.payload)
       if (action.payload.charting) { state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false } }
       else
       {
@@ -83,14 +82,6 @@ const chartingElementSlice = createSlice({
           linesHId: 1,
           enterExitLines: {},
           chartingAltered: false
-          //   channels: [],
-          //   channelsId: 1,
-          //   triangles: [],
-          //   trianglesId: 1,
-          //   wedges: [],
-          //   wedgesId: 1,
-
-
         }
       }
     },
@@ -105,15 +96,6 @@ const chartingElementSlice = createSlice({
 
     //   state.linesH = [];
     //   state.linesHId = 1;
-
-    //   state.channels = [];
-    //   state.channelsId = 1;
-
-    //   state.triangles = [];
-    //   state.trianglesId = 1;
-
-    //   state.wedges = [];
-    //   state.wedgesId = 1;
 
     //   state.enterExitLines = [];
     //   state.enterExitsId = 1;
@@ -148,20 +130,3 @@ export const makeSelectChartAlteredByTicker = () => createSelector(
   [(state) => state.chartingElement, (state, ticker) => ticker],
   (entities, ticker) => { return { altered: entities[ticker]?.chartingAltered, hasPlanCharted: entities[ticker]?.enterExitLines?.enterPrice } }
 )
-
-// freeLines: [],
-//   freeLinesId: 1,
-//   trendLines: [],
-//   trendLinesId: 1,
-//   linesH: [],
-//   linesHId: 1,
-//   channels: [],
-//   channelsId: 1,
-//   triangles: [],
-//   trianglesId: 1,
-//   wedges: [],
-//   wedgesId: 1,
-//   enterExitLines: [],
-//   enterExitsId: 1,
-//   keyPriceLines: [],
-//   keyPriceLinesId: 1,

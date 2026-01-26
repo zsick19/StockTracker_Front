@@ -1,9 +1,8 @@
 import React from 'react'
 import SinglePlanViabilityChartWrapper from './SinglePlanViabilityChartWrapper'
 import { useGetGroupedBy12StockDataInfiniteQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
-import { Virtuoso } from 'react-virtuoso';
 
-function PlanGraphWrapper({ ids, watchList, selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate,
+function HighImportancePlanWrapper({ ids, watchList, selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate,
     handleUpdateToggle })
 {
     let totalIdsPreWatch = ids.length
@@ -39,4 +38,4 @@ function PlanGraphWrapper({ ids, watchList, selectedPlansForRemoval, handleRemov
 
 
 
-export default PlanGraphWrapper
+export default HighImportancePlanWrapper

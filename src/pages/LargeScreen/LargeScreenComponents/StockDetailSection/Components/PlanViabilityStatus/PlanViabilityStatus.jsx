@@ -6,6 +6,7 @@ import StopLossPlanWrapper from './Components/StopLossPlanWrapper'
 import EnterBufferPlanWrapper from './Components/EnterBufferPlanWrapper'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import HighImportancePlanWrapper from './Components/HighImportancePlanWrapper'
 
 function PlanViabilityStatus()
 {
@@ -34,6 +35,8 @@ function PlanViabilityStatus()
         handleUpdateToggle={handleUpdateToggle} />;
       case 2: return <PlanGraphWrapper ids={data.plannedTickers.ids} watchList={planListToDisplay} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
         handleUpdateToggle={handleUpdateToggle} />;
+      case 3: return <HighImportancePlanWrapper ids={data.highImportance.ids} watchList={planListToDisplay} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
+        handleUpdateToggle={handleUpdateToggle} />
     }
   }
 
@@ -90,6 +93,8 @@ function PlanViabilityStatus()
     <div id='LSH-PlanViabilityStatus'>
       <div id='LSH-ViabilityActionBar'>
         <div>
+
+          <button onClick={() => setPlanListToDisplay(3)} className={planListToDisplay === 3 ? 'selectedPlanList' : ''}>High Importance</button>
           <button onClick={() => setPlanListToDisplay(0)} className={planListToDisplay === 0 ? 'selectedPlanList' : ''}>Stop Loss</button>
           <button onClick={() => setPlanListToDisplay(1)} className={planListToDisplay === 1 ? 'selectedPlanList' : ''}>Enter Buffer</button>
           <button onClick={() => setPlanListToDisplay(2)} className={planListToDisplay === 2 ? 'selectedPlanList' : ''}>All Other Plans</button>

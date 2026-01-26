@@ -8,6 +8,7 @@ const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 export const enterExitAdapter = createEntityAdapter({})
 export const enterBufferHitAdapter = createEntityAdapter({})
 export const stopLossHitAdapter = createEntityAdapter({})
+export const highImportanceAdapter = createEntityAdapter({})
 
 const initialState = {
   enterExit: enterExitAdapter.getInitialState(),
@@ -29,6 +30,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
       {
         const listOfTickers = responseData.mostRecentPrice.map((ticker) => ticker.symbol)
 
+        const highImportanceResponse = []
         const enterBufferResponse = []
         const stopLossResponse = []
         const plansResponse = []
@@ -55,21 +57,29 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
             return 3;
           }
+
           let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
           enterExit.priceVsPlanUponFetch = priceVsPlan
           enterExit.listChange = false
 
-          switch (priceVsPlan)
+          if (enterExit?.highImportance)
           {
-            case 0: stopLossResponse.push(enterExit); break;
-            case 1: enterBufferResponse.push(enterExit); break;
-            case 2: enterBufferResponse.push(enterExit); break;
-            case 3: plansResponse.push(enterExit); break;
+            highImportanceResponse.push(enterExit)
+          } else
+          {
+            switch (priceVsPlan)
+            {
+              case 0: stopLossResponse.push(enterExit); break;
+              case 1: enterBufferResponse.push(enterExit); break;
+              case 2: enterBufferResponse.push(enterExit); break;
+              case 3: plansResponse.push(enterExit); break;
+            }
           }
         })
 
 
         return {
+          highImportance: highImportanceAdapter.setAll(highImportanceAdapter.getInitialState(), highImportanceResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
           enterBufferHit: enterBufferHitAdapter.setAll(enterBufferHitAdapter.getInitialState(), enterBufferResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
           stopLossHit: stopLossHitAdapter.setAll(stopLossHitAdapter.getInitialState(), stopLossResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
           plannedTickers: enterExitAdapter.setAll(enterExitAdapter.getInitialState(), plansResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter))
@@ -87,7 +97,8 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
           updateCachedData((draft) =>
           {
             let entityToUpdate
-            if (draft.enterBufferHit.ids.includes(data.ticker)) { entityToUpdate = draft.enterBufferHit.entities[data.ticker] }
+            if (draft.highImportance.ids.includes(data.ticker)) { entityToUpdate = draft.highImportance.entities[data.ticker] }
+            else if (draft.enterBufferHit.ids.includes(data.ticker)) { entityToUpdate = draft.enterBufferHit.entities[data.ticker] }
             else if (draft.stopLossHit.ids.includes(data.ticker)) { entityToUpdate = draft.stopLossHit.entities[data.ticker] }
             else { entityToUpdate = draft.plannedTickers.entities[data.ticker] }
 
@@ -175,7 +186,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 export const { useGetUsersEnterExitPlanQuery, useUpdateEnterExitPlanMutation, useRemoveGroupedEnterExitPlanMutation } = EnterExitPlanApiSlice;
 
 
-
+export const highImportanceSelectors = highImportanceAdapter.getSelectors()
 export const enterExitPlannedSelectors = enterExitAdapter.getSelectors()
 export const enterBufferSelectors = enterBufferHitAdapter.getSelectors()
 export const stopLossHitSelectors = stopLossHitAdapter.getSelectors()
@@ -183,12 +194,14 @@ export const stopLossHitSelectors = stopLossHitAdapter.getSelectors()
 export const selectAllPlansAndCombined = createSelector([(res) => res.data],
   (data) =>
   {
-    if (!data) return { stopLossHit: [], enterBuffer: [], allOtherPlans: [], combined: [] }
+    if (!data) return { highImportance: [], stopLossHit: [], enterBuffer: [], allOtherPlans: [], combined: [] }
 
+    const highImportanceTickers = highImportanceAdapter.getSelectors().selectAll(data.highImportance)
     const stopLossHit = stopLossHitAdapter.getSelectors().selectAll(data.stopLossHit)
     const enterBuffer = enterBufferHitAdapter.getSelectors().selectAll(data.enterBufferHit)
     const allOtherPlans = enterExitAdapter.getSelectors().selectAll(data.plannedTickers)
     const counts = {
+      highImportance: highImportanceTickers.length,
       stopLoss: stopLossHit.length,
       enterBuffer: enterBuffer.length,
       allOtherPlans: allOtherPlans.length,
@@ -196,12 +209,14 @@ export const selectAllPlansAndCombined = createSelector([(res) => res.data],
 
 
     return {
-      stopLossHit,
       counts,
+      stopLossHit,
       enterBuffer,
       allOtherPlans,
+      highImportance: highImportanceTickers,
       allOtherPlansCount: allOtherPlans.length,
-      totalCount: counts.stopLoss + counts.enterBuffer + counts.allOtherPlans,
-      combined: [...stopLossHit, ...enterBuffer, ...allOtherPlans]
+
+      totalCount: counts.stopLoss + counts.enterBuffer + counts.allOtherPlans + counts.highImportance,
+      combined: [...stopLossHit, ...enterBuffer, ...allOtherPlans, ...highImportanceTickers]
     }
   })

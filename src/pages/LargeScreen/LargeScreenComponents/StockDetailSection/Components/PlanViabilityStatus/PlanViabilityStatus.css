@@ -23,7 +23,7 @@
 
 #PlanViabilityChartsWrapper {
   display: grid;
-  height: 1050px;
+  height: 1025px;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   overflow-y: scroll;

@@ -36,7 +36,9 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
 
             <div className='flex'>
                 <button onClick={(e) => { e.stopPropagation(); setSelectedPlan(plan) }}>Remove</button>
-                <button onClick={(e) => { e.stopPropagation(); console.log('putting in for high importance') }}>High</button>
+                <button onClick={(e) => { e.stopPropagation(); console.log('putting in for high importance') }}>
+                    {plan?.highImportance ? 'Remove Importance' : 'Set Importance'}
+                </button>
             </div>
 
         </div>

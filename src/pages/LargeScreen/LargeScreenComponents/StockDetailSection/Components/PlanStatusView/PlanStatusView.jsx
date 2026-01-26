@@ -37,7 +37,8 @@ function PlanStatusView()
       case 0: results = combinedData.stopLossHit; break
       case 1: results = combinedData.enterBuffer; break;
       case 2: results = combinedData.allOtherPlans; break;
-      case 3: results = combinedData.combined; break;
+      case 3: results = combinedData.highImportance; break;
+      case 4: results = combinedData.combined; break;
     }
 
 
@@ -87,8 +88,12 @@ function PlanStatusView()
             <input type="radio" name="groupForDisplay" id="otherPlansGroup" value={2} />
           </div>
           <div>
+            <label htmlFor="highImportance">High Importance</label>
+            <input type="radio" name="groupForDisplay" id="highImportance" value={3} />
+          </div>
+          <div>
             <label htmlFor="allPlansGroup">All Plans</label>
-            <input type="radio" name="groupForDisplay" id="allPlansGroup" value={3} defaultChecked />
+            <input type="radio" name="groupForDisplay" id="allPlansGroup" value={4} defaultChecked />
           </div>
         </fieldset>
 

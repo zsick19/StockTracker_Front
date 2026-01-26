@@ -1,0 +1,20 @@
+#LHS-AccountPLVisual {
+  border: 1px solid white;
+  background-color: rgba(87, 87, 87, 0.336);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding-inline: 1rem;
+  justify-content: space-between;
+}
+
+#LHS-AccountPLVisual p {
+  font-size: var(--fs-100);
+}
+
+#LHS-AccountPLVisual > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding-inline: 1rem;
+}

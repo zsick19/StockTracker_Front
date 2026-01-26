@@ -1,10 +1,10 @@
 import React from 'react'
-import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { enterBufferSelectors, enterExitPlannedSelectors, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import ChartWithoutPlanFetchChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithoutPlanFetchChartingWrapper'
 import { ClipboardPen } from 'lucide-react'
 import { differenceInCalendarDays } from 'date-fns'
-function SinglePlanViabilityChartWrapper({ id, watchList, candleData, 
+function SinglePlanViabilityChartWrapper({ id, watchList, candleData,
     selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate, handleUpdateToggle })
 {
 
@@ -15,6 +15,7 @@ function SinglePlanViabilityChartWrapper({ id, watchList, candleData,
             case 0: return stopLossHitSelectors.selectById(data.stopLossHit, id)
             case 1: return enterBufferSelectors.selectById(data.enterBufferHit, id)
             case 2: return enterExitPlannedSelectors.selectById(data.plannedTickers, id)
+            case 3: return highImportanceSelectors.selectById(data.highImportance, id)
         }
     }
 
@@ -34,6 +35,7 @@ function SinglePlanViabilityChartWrapper({ id, watchList, candleData,
                 {id}
                 <p>{differenceInCalendarDays(new Date(), plan.dateAdded)} Days</p>
 
+                {watchList === 3 && <button>Remove Importance</button>}
                 <button className='iconButton'>
                     <ClipboardPen size={18} color={selectedPlansForUpdate.find((t) => t.tickerSymbol === plan.tickerSymbol) ? 'green' : 'white'} /> </button>
             </div>

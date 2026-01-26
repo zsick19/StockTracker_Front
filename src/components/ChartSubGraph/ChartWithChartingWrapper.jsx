@@ -30,7 +30,7 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
     return (
         <div className="ChartGraphWrapper">
 
-            <ChartGraphTrial ticker={ticker} chartId={chartId} candleData={candleData.candleData}
+            <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData}
                 mostRecentPrice={candleData.mostRecentPrice}
                 timeFrame={timeFrame} nonLivePrice={interactionController?.nonLivePrice} nonInteractive={interactionController?.nonInteractive} nonZoomAble={interactionController?.nonZoomAble} />
         </div>

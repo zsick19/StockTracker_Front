@@ -13,3 +13,10 @@ export function abbreviateNumber(value)
     if (scaledValue % 1 !== 0) { return scaledValue.toFixed(1) + suffix; }
     else { return scaledValue + suffix; }
 }
+
+
+export function getInsertionIndexLinear(arr, num)
+{
+    for (let i = 0; i < arr.length; i++) { if (arr[i] >= num) { return i; } }
+    return arr.length;
+}
