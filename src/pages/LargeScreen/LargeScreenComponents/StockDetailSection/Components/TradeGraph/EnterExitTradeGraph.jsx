@@ -40,7 +40,7 @@ function EnterExitTradeGraph()
                 <button onClick={() => dispatch(setResetXYZoomState({ uuid }))} className='buttonIcon'><Scale3D color='white' size={20} /></button>
             </div>
 
-            <TradeGraphChartWrapper selectedStock={selectedStock} uuid={uuid} />
+            <TradeGraphChartWrapper selectedStock={selectedStock} uuid={uuid} timeFrame={timeFrame} />
             <div id='LHS-PlanPresentBeforeTrade'>
                 {selectedStock?.planId ?
                     selectedStock?.trade ?

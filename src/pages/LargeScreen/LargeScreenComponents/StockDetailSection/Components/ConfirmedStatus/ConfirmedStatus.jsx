@@ -14,6 +14,7 @@ function ConfirmedStatus()
     const dispatch = useDispatch()
     const pickUpUncharted = useSelector(selectCurrentUnConfirmed)
     const directSearch = useRef()
+    const [directAddServerResponse, setDirectAddServerResponse] = useState(undefined)
 
     const { data, isSuccess, isError, isLoading, error, refetch } = useGetUsersConfirmedSummaryQuery()
     const [addTickerDirectlyToConfirmedList] = useAddTickerDirectlyToConfirmedListMutation()
@@ -113,6 +114,11 @@ function ConfirmedStatus()
             }
         } catch (error)
         {
+            setDirectAddServerResponse(error.data.message)
+            setTimeout(() =>
+            {
+                setDirectAddServerResponse(undefined)
+            }, [2000])
             console.log(error)
         }
     }
@@ -219,13 +225,15 @@ function ConfirmedStatus()
             <div id='DirectAddContinueCharting'>
                 <button onClick={() => handlePickUpFromLastUncharted()}>Continue Charting</button>
 
-                <div className='flex'>
-                    <form onSubmit={(e) => { e.preventDefault(); attemptAddingDirectTicker() }}>
-                        <input type="text" ref={directAddTicker} placeholder='Direct Add' />
-                        <button>Add Ticker</button>
-                    </form>
-                    <button>Add List (Future Add)</button>
-                </div>
+                {directAddServerResponse ? <div>{directAddServerResponse}</div> :
+                    <div className='flex'>
+                        <form onSubmit={(e) => { e.preventDefault(); attemptAddingDirectTicker() }}>
+                            <input type="text" ref={directAddTicker} placeholder='Direct Add' />
+                            <button>Add Ticker</button>
+                        </form>
+                        <button>Add List (Future Add)</button>
+                    </div>
+                }
 
                 <p>Total Confirmed: {data?.length || 0}</p>
             </div>

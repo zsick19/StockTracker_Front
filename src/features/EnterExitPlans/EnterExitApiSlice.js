@@ -94,25 +94,27 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
         const incomingTradeListener = (data) =>
         {
+          console.log(data)
+
           updateCachedData((draft) =>
           {
             let entityToUpdate
-            if (draft.highImportance.ids.includes(data.ticker)) { entityToUpdate = draft.highImportance.entities[data.ticker] }
-            else if (draft.enterBufferHit.ids.includes(data.ticker)) { entityToUpdate = draft.enterBufferHit.entities[data.ticker] }
-            else if (draft.stopLossHit.ids.includes(data.ticker)) { entityToUpdate = draft.stopLossHit.entities[data.ticker] }
-            else { entityToUpdate = draft.plannedTickers.entities[data.ticker] }
-
+            if (draft.highImportance.ids.includes(data.tickerSymbol)) { entityToUpdate = draft.highImportance.entities[data.tickerSymbol] }
+            else if (draft.enterBufferHit.ids.includes(data.tickerSymbol)) { entityToUpdate = draft.enterBufferHit.entities[data.tickerSymbol] }
+            else if (draft.stopLossHit.ids.includes(data.tickerSymbol)) { entityToUpdate = draft.stopLossHit.entities[data.tickerSymbol] }
+            else { entityToUpdate = draft.plannedTickers.entities[data.tickerSymbol] }
+            console.log(entityToUpdate)
             if (entityToUpdate)
             {
-              entityToUpdate.mostRecentPrice = data.price
-              entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.price) / entityToUpdate.plan.enterPrice) * 100
+              entityToUpdate.mostRecentPrice = data.tradePrice
+              entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.tradePrice) / entityToUpdate.plan.enterPrice) * 100
 
               function getInsertionIndexLinear(arr, num)
               {
                 for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
                 return 3;
               }
-              let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
+              let priceVsPlan = getInsertionIndexLinear([entityToUpdate.plan.stopLossPrice, entityToUpdate.plan.enterPrice, entityToUpdate.plan.enterBufferPrice], data.tradePrice)
               if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch) entityToUpdate.listChange = true
             }
           })

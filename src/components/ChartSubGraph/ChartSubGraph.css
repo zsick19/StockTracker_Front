@@ -138,3 +138,7 @@
 .monthEven {
   fill: rgb(28, 27, 29);
 }
+
+.veryLastCandle {
+  fill: white;
+}

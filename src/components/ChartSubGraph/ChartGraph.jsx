@@ -20,7 +20,7 @@ import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive, nonZoomAble, initialTracking, uuid })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive, nonZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery })
 {
     const dispatch = useDispatch()
 
@@ -293,6 +293,71 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         }
 
     }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+
+    //plot candle Data and Liv
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck() || !candlesToKeepSinceLastQuery || !lastCandleData) return
+
+        console.log(candlesToKeepSinceLastQuery, lastCandleData)
+
+        stockCandleSVG.select('.lastCandleUpdate').selectAll('.previousCandles').data(candlesToKeepSinceLastQuery, d => d.Timestamp).join(enter => createCandles(enter), update => updateCandles(update))
+        function createCandles(enter)
+        {
+            enter.each(function (d, i)
+            {
+                var tickerGroups = select(this).append('g').attr('class', 'previousCandles')
+                tickerGroups.append('line').attr('class', 'lowHigh').attr('stroke', 'black').attr('stroke-width', 1).attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
+                tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+                tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
+            })
+        }
+        function updateCandles(update)
+        {
+            update.each(function (d, i)
+            {
+                const candle = select(this)
+                candle.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
+                candle.select('.lowHigh').attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
+                candle.select('.openClose').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+            })
+        }
+
+        stockCandleSVG.select('.lastCandleUpdate').selectAll('.veryLastCandle').data([lastCandleData]).join(enter => createCandles(enter), update => updateCandles(update))
+        function createCandles(enter)
+        {
+            enter.each(function (d, i)
+            {
+                var tickerGroups = select(this).append('g').attr('class', 'veryLastCandle')
+                tickerGroups.append('line').attr('class', 'lowHigh').attr('stroke', 'white')
+                    .attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
+                tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'white' : 'white' })
+                    .attr('stroke-width', 3).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+                tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
+            })
+        }
+        function updateCandles(update)
+        {
+            update.each(function (d, i)
+            {
+                const candle = select(this)
+                candle.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
+                candle.select('.lowHigh').attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
+                candle.select('.openClose').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+            })
+
+        }
+
+
+
+
+
+
+    }, [lastCandleData, candlesToKeepSinceLastQuery, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+
+
+
+
 
 
     //plot live trade stream
@@ -797,6 +862,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                     <g className='initialTrack' />
                     <g className='enterExits' />
                     <g className='tickerVal' />
+                    <g className='lastCandleUpdate' />
                     <g className='crossHairs' >
                         <line className='crossY' strokeWidth='0.5px' stroke='black'></line>
                         <line className='crossX' strokeWidth='0.5px' stroke='black'></line>
