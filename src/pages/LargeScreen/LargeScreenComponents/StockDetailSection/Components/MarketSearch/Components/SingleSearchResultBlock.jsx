@@ -3,12 +3,13 @@ import { useAddTickerToUserPatternsMutation, useRemoveTickerFromUserPatternsMuta
 import { useGetUserInitializationQuery } from '../../../../../../../features/Initializations/InitializationSliceApi'
 import ChartGraph from '../../../../../../../components/ChartSubGraph/ChartGraph'
 import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
+import { abbreviateNumber } from '../../../../../../../Utilities/UtilityHelperFunctions'
 
 function SingleSearchResultBlock({ search, found })
 {
     const [addTickerToUserPatterns] = useAddTickerToUserPatternsMutation()
     const [removeTickerFromUserPatterns] = useRemoveTickerFromUserPatternsMutation()
-    const [showConfirmDeletion, setShowConfirmDeletion] = useState(false)
+
     const [addRemoveErrorMessage, setAddRemoveErrorMessage] = useState(undefined)
 
     const { item } = useGetUserInitializationQuery(undefined, {
@@ -30,9 +31,8 @@ function SingleSearchResultBlock({ search, found })
         }
     }
 
-    async function attemptToRemovePatter()
+    async function attemptToRemovePattern()
     {
-        setShowConfirmDeletion(false)
         try
         {
             const results = await removeTickerFromUserPatterns({ historyId: item._id, ticker: search.Symbol })
@@ -47,30 +47,28 @@ function SingleSearchResultBlock({ search, found })
     function handleClickToggleAction(search)
     {
         if (!search.candleData) return
-        if (mostRecentAction && mostRecentAction !== 'patterned') { setShowConfirmDeletion(true) }
-        else if (mostRecentAction) { attemptToRemovePatter() }
+        if (mostRecentAction && mostRecentAction !== 'patterned') return
+        else if (mostRecentAction) { attemptToRemovePattern() }
         else { attemptToAddPattern(search) }
     }
-    
-    
+
+    let avgVolumeAbbreviated = abbreviateNumber(search.AvgVolume)
+
     return (
         <div className='LHS-MarketSearchResultGraphWrapper' onClick={() => handleClickToggleAction(search)}>
-            <div className='ChartGraphWrapper'>
-                {search.candleData ? <ChartGraph ticker={{ ticker: search.Symbol }} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} nonZoomAble={true} /> : <div></div>}
-            </div>
+
+            {search.candleData ?
+                <div className='ChartGraphWrapper'>
+                    <ChartGraph ticker={{ ticker: search.Symbol }} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} nonZoomAble={true} /> :
+                </div > : <div className='MarketSearchNoCandleData'>
+                    <p >No Data For This Ticker</p>
+                </div>
+            }
 
             <div className={`MarketSearchResultInfoBar ${found ? mostRecentAction : ''}`}>
-                {showConfirmDeletion ?
-                    <>
-                        <button onClick={(e) => { e.stopPropagation(); attemptToRemovePatter() }}>Confirm Deletion</button>
-                        <button onClick={(e) => { e.stopPropagation(); setShowConfirmDeletion(false) }}>Cancel</button>
-                    </> :
-                    <>
-                        <p>{search.Symbol}</p>
-                        <p>{search.Sector}</p>
-                        <p>{search.AvgVolume}</p>
-                    </>
-                }
+                <p>{search.Symbol}</p>
+                <p>{search.Sector}</p>
+                <p className={search.AvgVolume > 300000 ? 'MarketSearchHighVol' : 'MarketSearchLowVol'}>{avgVolumeAbbreviated}</p>
             </div>
 
         </div>

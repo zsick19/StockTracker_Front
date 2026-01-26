@@ -3,6 +3,7 @@ import { useGetUsersTradingJournalQuery } from '../../../../../../../features/Tr
 import TradeStats from './TradeStats'
 import SingleSelectedTrade from './SingleSelectedTrade'
 import { endOfMonth, isThisWeek, isToday, isYesterday, startOfMonth, startOfQuarter, startOfWeek, startOfYear, sub } from 'date-fns'
+import SelectedTradeDisplay from './SelectedTradeDisplay'
 
 function PreviousTradeJournal({ tradeFilter })
 {
@@ -22,6 +23,8 @@ function PreviousTradeJournal({ tradeFilter })
 
         if (tradeFilter.tradeGains === 'positiveGains') tempForReturn = tempForReturn.filter(t => t?.exitPercentCapture > 0)
         else if (tradeFilter.tradeGains === 'negativeGains') tempForReturn = tempForReturn.filter(t => t?.exitPercentCapture < 0)
+
+        if (tradeFilter.sectorFilter !== 'allSectors') tempForReturn = tempForReturn.filter(t => t.sector === tradeFilter.sectorFilter)
 
         switch (tradeFilter.closeDate)
         {
@@ -44,8 +47,6 @@ function PreviousTradeJournal({ tradeFilter })
             case 'closedThisQuarter': tempForReturn = tempForReturn.filter(t => new Date(t?.exitDate) > startOfQuarter(new Date())); break;
             case 'closedThisYear': tempForReturn = tempForReturn.filter(t => new Date(t?.exitDate) > startOfYear(new Date())); break;
         }
-
-
 
 
 
@@ -102,10 +103,8 @@ function PreviousTradeJournal({ tradeFilter })
                 </div>
 
                 {showSelectedTradeOrStats ?
-                    <div>
-                        Selected Trade Details
-                        <button onClick={() => setShowSelectedTradeOrStats(prev => !prev)}>View Trade Stats</button>
-                    </div> :
+                    <SelectedTradeDisplay setShowSelectedTradeOrStats={setShowSelectedTradeOrStats} selectedTrade={selectedTrade} />
+                    :
                     tradeStatContent}
 
             </div>

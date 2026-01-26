@@ -22,6 +22,7 @@
   width: 200px;
   right: 0px;
   background-color: rgb(85, 85, 85);
+
   font-size: var(--fs-200);
 }
 
@@ -128,4 +129,12 @@
 .subChartXAxis {
   flex: 1;
   background-color: blue;
+}
+
+.monthOdd {
+  fill: rgba(37, 36, 49, 0.452);
+}
+
+.monthEven {
+  fill: rgb(28, 27, 29);
 }

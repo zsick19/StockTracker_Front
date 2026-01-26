@@ -11,7 +11,7 @@ function TradingJournal()
 
 
     const [showFilter, setShowFilter] = useState(undefined)
-    const [tradeFilter, setTradeFilter] = useState({ tickerSearch: undefined, tradeGains: 'allGains', closedDate: 'allClosed' })
+    const [tradeFilter, setTradeFilter] = useState({ tickerSearch: undefined, tradeGains: 'allGains', closedDate: 'allClosed', sectorFilter: 'allSectors' })
 
     const tickerSearch = useRef()
 
@@ -42,7 +42,7 @@ function TradingJournal()
                     <div>
 
                         {showFilter === 'gains' &&
-                            <fieldset className='flex' onChange={(e) => { setTradeFilter(prev => ({ ...prev, [e.target.name]: e.target.id })); setShowFilter(und) }}>
+                            <fieldset className='flex' onChange={(e) => { setTradeFilter(prev => ({ ...prev, [e.target.name]: e.target.id })); setShowFilter(undefined) }}>
                                 <div>
                                     <label htmlFor="negativeGains">Losses</label>
                                     <input type="radio" name="tradeGains" id="negativeGains" />
@@ -57,7 +57,7 @@ function TradingJournal()
                                 </div>
                             </fieldset>}
                         {showFilter === 'closeDate' &&
-                            <fieldset className='flex' onChange={(e) => { setTradeFilter(prev => ({ ...prev, [e.target.name]: e.target.id })); setShowFilter(und) }}>
+                            <fieldset className='flex' onChange={(e) => { setTradeFilter(prev => ({ ...prev, [e.target.name]: e.target.id })); setShowFilter(undefined) }}>
                                 <div>
                                     <label htmlFor="closedToday">Today</label>
                                     <input type="radio" name="closeDate" id="closedToday" />
@@ -102,8 +102,8 @@ function TradingJournal()
 
                 <div>
                     <label htmlFor="sectorFilter">Sector Filter</label>
-                    <select name="sector" id="sectorFilter" onChange={() => console.log('need to patch this up')}>
-                        <option value="All">All Sectors</option>
+                    <select name="sectorFilter" id="sectorFilter" onChange={(e) => { setTradeFilter(prev => ({ ...prev, [e.target.name]: e.target.value })); }}>
+                        <option value="allSectors">All Sectors</option>
                         {defaultSectors.map((sector) => <option value={sector}>{sector}</option>)}
                     </select>
                 </div>
@@ -114,6 +114,8 @@ function TradingJournal()
                 <CurrentTradeJournal /> :
                 <PreviousTradeJournal tradeFilter={tradeFilter} />
             }
+
+
 
         </div>
     )

@@ -124,7 +124,7 @@ function ConfirmedStatus()
 
             <div id='LHS-StatusTableControl'>
                 <h3>Filter Options</h3>
-                <div>
+                <div className='StatusControlFilter'>
                     <form onSubmit={(e) => { e.preventDefault(); setTableFilters(prev => ({ ...prev, tickerSearch: directSearch.current.value.toUpperCase() })) }}>
                         <fieldset className='DirectSearchFieldSet'>
                             <legend>Ticker Search</legend>
@@ -152,7 +152,7 @@ function ConfirmedStatus()
                     </fieldset>
                 </div>
 
-                <div>
+                <div className='StatusControlFilter'>
                     <fieldset className='ShowOnlyAddedWithin' onChange={(e) => setTableFilters(prev => ({ ...prev, olderThan: 0, addedWithin: parseInt(e.target.value) }))}>
                         <legend>Confirmed Added</legend>
                         <div className='ShowOnlyRadioBtn'>
@@ -216,6 +216,19 @@ function ConfirmedStatus()
                     </fieldset>
                 </div>
             </div>
+            <div id='DirectAddContinueCharting'>
+                <button onClick={() => handlePickUpFromLastUncharted()}>Continue Charting</button>
+
+                <div className='flex'>
+                    <form onSubmit={(e) => { e.preventDefault(); attemptAddingDirectTicker() }}>
+                        <input type="text" ref={directAddTicker} placeholder='Direct Add' />
+                        <button>Add Ticker</button>
+                    </form>
+                    <button>Add List (Future Add)</button>
+                </div>
+
+                <p>Total Confirmed: {data?.length || 0}</p>
+            </div>
 
 
             <div id='LHS-ConfirmedStatusTable'>
@@ -240,25 +253,7 @@ function ConfirmedStatus()
                 </table>
             </div>
 
-            <div id='LHS-ConfirmedSelectedStatus'>
-                <div>
-                    <form onSubmit={(e) => { e.preventDefault(); attemptAddingDirectTicker() }}>
-                        <input type="text" ref={directAddTicker} />
-                        <button>Add Ticker</button>
-                    </form>
-                    <button onClick={() => handlePickUpFromLastUncharted()}>Continue Charting</button>
-                </div>
-                <div>
-                    {selectedConfirmed ?
-                        <div>
-                            <h2>{selectedConfirmed?.tickerSymbol}</h2>
-                        </div> :
-                        <div>
-                            <h1>Select A Stock</h1>
-                        </div>
-                    }
-                </div>
-            </div>
+
         </div >
     )
 }

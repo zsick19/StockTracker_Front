@@ -43,7 +43,6 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
                 <button onClick={() => setCurrentMarketSearchPage(prev => prev - 1)} disabled={!paginationInfo?.hasPrevious}>Prev</button>
                 {searchResults}
                 <button onClick={() => setCurrentMarketSearchPage(prev => prev + 1)} disabled={!paginationInfo?.hasNext}>Next</button>
-
             </div>
             <MarketSearchPageControl currentPage={currentMarketSearchPage} paginationInfo={paginationInfo} setCurrentPage={setCurrentMarketSearchPage} />
         </div>

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import './ChartSingleGraph.css'
+import './PanelDisplayStyles.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectSingleChartStock, setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 import SingleGraphChartWrapper from './Components/SingleGraphChartWrapper'
 import { CalendarCog, ChevronLeft, ChevronRight, EyeOff, Scale3D } from 'lucide-react'
-import { selectConfirmedUnChartedTrio, setConfirmedUnChartedNavIndex, setStartedCharting } from '../../../../../../features/SelectedStocks/PreviousNextStockSlice'
-import { selectCurrentTool } from '../../../../../../features/Charting/ChartingTool'
+import { selectConfirmedUnChartedTrio, setConfirmedUnChartedNavIndex } from '../../../../../../features/SelectedStocks/PreviousNextStockSlice'
 import VisibilityModal from './Components/VisibilityModal'
 import { interDayTimeFrames } from '../../../../../../Utilities/TimeFrames'
 import KeyLevelsPanel from './Components/ChartControlPanels/KeyLevelsPanel'
@@ -71,7 +71,7 @@ function ChartSingleGraph()
         }
     }
 
-    
+
     return (
         <div id='LHS-SingleGraphForCharting'>
             {showVisibilityModal && <VisibilityModal setShowVisibilityModal={setShowVisibilityModal} />}
@@ -99,7 +99,9 @@ function ChartSingleGraph()
 
 
             <div id='LHS-SingleChartControls'>
-                {showUnChartedList ? <UnChartedProgressDisplay setShowUnchartedList={setShowUnchartedList} /> : provideChartInfoDisplay()}
+                {showUnChartedList ?
+                    <UnChartedProgressDisplay setShowUnchartedList={setShowUnchartedList} /> :
+                    provideChartInfoDisplay()}
                 <ContinueChartingNav currentUnChartedTicker={currentUnChartedTicker} setShowUnchartedList={setShowUnchartedList} handleNavigatingToNextUnChartedStock={handleNavigatingToNextUnChartedStock} />
             </div>
         </div>

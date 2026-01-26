@@ -12,7 +12,7 @@ function SubmitConfirmedWindow({ keepTheseTickers, setShowSubmit, attemptSubmitt
                 <div className='ConfirmationList'>
                     <h4>Confirm These Tickers</h4>
                     <div className='hide-scrollbar'>
-                        {keepTheseTickers.keep.map((keep) => { return <p>{keep}</p> })}
+                        {keepTheseTickers.keepInfo.map((keep) => { return <p>{keep.ticker}</p> })}
                     </div>
                 </div>
                 <div className='ConfirmationList'>

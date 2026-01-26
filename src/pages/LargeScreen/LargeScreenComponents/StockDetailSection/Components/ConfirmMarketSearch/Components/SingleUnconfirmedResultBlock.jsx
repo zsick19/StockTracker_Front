@@ -4,6 +4,8 @@ import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
 import ChartGraph from '../../../../../../../components/ChartSubGraph/ChartGraph'
+import { abbreviateNumber } from '../../../../../../../Utilities/UtilityHelperFunctions'
+
 function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTickers })
 {
     const [showKeepOrRemove, setShowKeepOrRemove] = useState(false)
@@ -12,7 +14,8 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame: defaultTimeFrames.dailyOneYear, liveFeed: false, info: true })
 
     let graphContent
-    let tickerInfoContent = <div>{ticker}</div>
+    let tickerInfoContent = <div className='StockInfoBlock'><p>{ticker}</p></div>
+
 
     if (isSuccess)
     {
@@ -24,7 +27,7 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
             <p>{stockInfo.Symbol}</p>
             <p>{stockInfo.CompanyName}</p>
             <p>{stockInfo.MarketCap}</p>
-            <p>{stockInfo.AvgVolume}</p>
+            <p className={stockInfo.AvgVolume > 300000 ? 'MarketSearchHighVol' : 'MarketSearchLowVol'}>{abbreviateNumber(stockInfo.AvgVolume)}</p>
         </div>
     } else if (isLoading) { graphContent = <GraphLoadingSpinner /> }
     else if (isError) { graphContent = <GraphLoadingError refetch={refetch} /> }
@@ -85,7 +88,7 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
         <div className={`UnconfirmedPatternBlock ${confirmed === 1 ? "keepConfirmed" : confirmed === 2 ? 'removeConfirmed' : ""}`} onClick={(e) => { e.stopPropagation(); setShowKeepOrRemove(true) }}>
             {(showKeepOrRemove && confirmed === 0) ?
                 <div className='UnconfirmedKeepRemoveDialog'>
-                    <button onClick={(e) => { console.log('hit'); handleRemovingTicker(e) }}>Remove</button>
+                    <button onClick={(e) => handleRemovingTicker(e)}>Remove</button>
                     <button onClick={(e) => handleConfirmingTicker(e)}>Confirm</button>
                 </div> :
                 (showKeepOrRemove && confirmed === 1) ? <div className='UnconfirmedKeepRemoveDialog'>

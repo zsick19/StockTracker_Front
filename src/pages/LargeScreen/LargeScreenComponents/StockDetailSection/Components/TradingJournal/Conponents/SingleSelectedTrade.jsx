@@ -7,7 +7,11 @@ function SingleSelectedTrade({ trade, selectedTrade, setSelectedTrade, setShowSe
     const enterNumeric = new Date(trade.enterDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
     const exitNumeric = new Date(trade.exitDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
     const holdPeriod = differenceInDays(trade.exitDate, trade.enterDate)
-
+    const riskRewardIdeal = {
+        risk: (trade.tradingPlanPrices[1] - trade.tradingPlanPrices[0]).toFixed(2),
+        reward: (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]).toFixed(2),
+        actualReward: (trade.averageSellPrice - trade.tradingPlanPrices[1]).toFixed(2)
+    }
     return (
         <div className={`${selectedTrade?.tickerSymbol === trade.tickerSymbol ? 'selectedTradeHighLite' : ''} singleTradeResult`} onClick={() => { setSelectedTrade(trade); setShowSelectedTradeOrStats(true) }}>
             <p>{trade.tickerSymbol}</p>
@@ -20,7 +24,11 @@ function SingleSelectedTrade({ trade, selectedTrade, setSelectedTrade, setShowSe
                 <p>${trade?.averagePurchasePrice}</p>
                 <p>${trade?.averageSellPrice}</p>
             </div>
-            <p>1.3 vs. 2.33</p>
+            <div>
+                <p>{riskRewardIdeal.risk} vs {riskRewardIdeal.reward}</p>
+                <p>Actual Reward: {riskRewardIdeal.actualReward}</p>
+            </div>
+
             <p>+{trade?.exitGainPercent}%</p>
             <p>{trade?.exitPercentCapture}%</p>
             <div>

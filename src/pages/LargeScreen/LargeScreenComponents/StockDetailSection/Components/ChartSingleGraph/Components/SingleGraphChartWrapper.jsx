@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
 
 import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
@@ -16,6 +16,7 @@ import { useUpdateEnterExitPlanMutation } from '../../../../../../../features/En
 import { selectConfirmedUnChartedTrio } from '../../../../../../../features/SelectedStocks/PreviousNextStockSlice'
 import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { selectSPYIdFromUser } from '../../../../../../../features/Initializations/InitializationSliceApi'
+import { clearStockInfo, setStockInfo } from '../../../../../../../features/StockData/StockInfoElement'
 
 
 function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay })
@@ -40,16 +41,23 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const [serverResponse, setServerResponse] = useState(undefined)
 
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true })
+
+
     let actualGraph
     if (isSuccess && data.candleData.length > 0)
     {
         actualGraph = <ChartWithChartingWrapper ticker={ticker} candleData={data} chartId={chartId} timeFrame={timeFrame} />
     } else if (isSuccess) { actualGraph = <div>No Data To Display</div> }
     else if (isLoading) { actualGraph = <GraphLoadingSpinner /> }
-    else if (isError) { actualGraph = <GraphLoadingError refetch={refetch} /> }
+    else if (isError)
+    {
+        actualGraph = <GraphLoadingError refetch={refetch} />
+        dispatch(clearStockInfo())
+    }
 
     const [updateChartingData] = useUpdateChartingDataMutation()
     const [removeChartableStock] = useRemoveChartableStockMutation()
+
 
 
     async function attemptSavingCharting()
@@ -110,6 +118,13 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
             console.log(error)
         }
     }
+
+    useEffect(() =>
+    {
+        if (data?.tickerInfo) dispatch(setStockInfo(data.tickerInfo))
+        else { dispatch(clearStockInfo()) }
+    }, [data])
+
 
     return (
         <div id='LHS-SingleGraphForChartingWrapper'>
