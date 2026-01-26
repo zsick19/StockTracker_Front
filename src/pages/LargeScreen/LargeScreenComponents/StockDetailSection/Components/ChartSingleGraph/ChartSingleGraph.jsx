@@ -16,6 +16,7 @@ import CustomTimeFrameModal from './Components/CustomTimeFrameModal'
 import StudiesModal from './Components/StudiesModal'
 import ContinueChartingNav from './Components/ContinueChartingNav'
 import UnChartedProgressDisplay from './Components/UnChartedProgressDisplay'
+import NewsPanel from './Components/ChartControlPanels/NewsPanel'
 
 function ChartSingleGraph()
 {
@@ -67,6 +68,7 @@ function ChartSingleGraph()
             case 1: return <EnterExitPanel />
             case 2: return <KeyLevelsPanel />
             case 3: return <AlertPanel />
+            case 4: return <NewsPanel />
             default: return <InfoPanel />
         }
     }

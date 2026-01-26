@@ -6,7 +6,6 @@ function InfoPanel()
 {
   const stockInfo = useSelector(selectStockInfo)
 
-
   return (
     <div id='StockInfoPanel'>
       <p>{stockInfo.Symbol}</p>

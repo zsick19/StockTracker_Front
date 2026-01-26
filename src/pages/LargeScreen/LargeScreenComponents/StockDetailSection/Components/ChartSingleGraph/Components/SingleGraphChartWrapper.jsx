@@ -4,7 +4,7 @@ import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../feature
 import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
-import { Binoculars, Check, Info, KeyRound, PiggyBank, Plane, Save, Siren, X } from 'lucide-react'
+import { Binoculars, Check, Info, KeyRound, Newspaper, PiggyBank, Plane, Save, Siren, X } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool, setTool } from '../../../../../../../features/Charting/ChartingTool'
 import { AlertTools, ChartingToolEdits, ChartingTools, PlanningTools } from '../../../../../../../Utilities/ChartingTools'
@@ -16,7 +16,7 @@ import { useUpdateEnterExitPlanMutation } from '../../../../../../../features/En
 import { selectConfirmedUnChartedTrio } from '../../../../../../../features/SelectedStocks/PreviousNextStockSlice'
 import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { selectSPYIdFromUser } from '../../../../../../../features/Initializations/InitializationSliceApi'
-import { clearStockInfo, setStockInfo } from '../../../../../../../features/StockData/StockInfoElement'
+import { clearStockInfo, setStockInfoAndNews } from '../../../../../../../features/StockData/StockInfoElement'
 
 
 function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay })
@@ -40,7 +40,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
     const [serverResponse, setServerResponse] = useState(undefined)
 
-    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true })
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true, provideNews: true })
 
 
     let actualGraph
@@ -121,8 +121,11 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
 
     useEffect(() =>
     {
-        if (data?.tickerInfo) dispatch(setStockInfo(data.tickerInfo))
+        if (!isSuccess) return
+
+        if (data?.tickerInfo) { dispatch(setStockInfoAndNews({ info: data.tickerInfo, news: data.news })) }
         else { dispatch(clearStockInfo()) }
+
     }, [data])
 
 
@@ -148,6 +151,8 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 <button title='Key Levels' onClick={() => setChartInfoDisplay(2)}><KeyRound size={20} color='white' /></button>
                 <p className='veryTinyText'>Alerts</p>
                 <button title='Alerts' onClick={() => setChartInfoDisplay(3)}><Siren size={20} color='white' /></button>
+                <p className='veryTinyText'>News</p>
+                <button onClick={() => setChartInfoDisplay(4)}><Newspaper size={20} color='white' /></button>
                 <p className='veryTinyText'>Info</p>
                 <button onClick={() => setChartInfoDisplay(0)}><Info size={20} color='white' /></button>
 

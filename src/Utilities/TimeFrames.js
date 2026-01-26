@@ -62,7 +62,6 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
     }
   } else if (breakPeriod === 'days')
   {
-    console.log(startDate, endDate)
     let start = startDate
     while (start < endDate)
     {
