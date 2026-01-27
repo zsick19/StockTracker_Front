@@ -23,7 +23,7 @@ function PreTradePlanPresent({ selectedStock })
                 tradingPlanPrices: [planPricing.stopLossPrice, tradeRecordDetails.purchasePrice, planPricing.enterBufferPrice,
                 planPricing.exitBufferPrice, planPricing.exitPrice, planPricing.moonPrice],
                 enterExitPlanId: selectedStock.planId,
-                tickerSymbol: selectedStock.ticker
+                tickerSymbol: selectedStock.tickerSymbol
             })
             console.log(results)
             setServerTradeResponse(results)

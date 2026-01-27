@@ -299,14 +299,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     {
         if (preDimensionsAndCandleCheck() || !candlesToKeepSinceLastQuery || !lastCandleData) return
 
-        console.log(mostRecentPrice)
-
         stockCandleSVG.select('.lastCandleUpdate').selectAll('.previousCandles').data(candlesToKeepSinceLastQuery, d => d.Timestamp).join(enter => createPreviousCandles(enter), update => updatePreviousCandles(update))
         function createPreviousCandles(enter)
         {
             enter.each(function (d, i)
             {
-                console.log(d)
                 var tickerGroups = select(this).append('g').attr('class', 'previousCandles')
                 tickerGroups.append('line').attr('class', 'lowHigh').attr('stroke', 'black').attr('stroke-width', 1).attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
                 tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
@@ -317,7 +314,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         {
             update.each(function (d, i)
             {
-
                 const candle = select(this)
                 candle.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
                 candle.select('.lowHigh').attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))

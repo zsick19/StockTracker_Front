@@ -8,10 +8,11 @@ function TradePresent({ selectedStock })
 
     async function attemptToAlterTradeRecord(action)
     {
-        if (!selectedStock?.tradeId) return
+        console.log(selectedStock)
+        if (!selectedStock?.trade._id) return
         try
         {
-            const results = await alterTradeRecord({ action })
+            const results = await alterTradeRecord({ action, selectedStock })
             console.log(results)
         } catch (error)
         {
@@ -38,7 +39,7 @@ function TradePresent({ selectedStock })
                         <input type="number" id="additionalSharePurchase" min={1} />
                         <label htmlFor="additionalSharePrice">Price Per Share</label>
                         <input type="double" id='additionalSharePrice' />
-                        <button onClick={attemptToAlterTradeRecord('additionalBuy')}>Add Shares</button>
+                        <button onClick={() => attemptToAlterTradeRecord('additionalBuy')}>Add Shares</button>
                     </div>
                 </div>
                 <br />
@@ -46,9 +47,9 @@ function TradePresent({ selectedStock })
                     sell trade options
                     <div>
                         <input type="number" min={1} />
-                        <button onClick={attemptToAlterTradeRecord('partialSell')}>Sell Partial</button>
+                        <button onClick={() => attemptToAlterTradeRecord('partialSell')}>Sell Partial</button>
                     </div>
-                    <button onClick={attemptToAlterTradeRecord('closeAll')}>Close Position</button>
+                    <button onClick={() => attemptToAlterTradeRecord('closeAll')}>Close Position</button>
                 </div>
             </div>
         </div>

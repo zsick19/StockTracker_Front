@@ -1,6 +1,7 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
+import { enterBufferHitAdapter, enterExitAdapter, EnterExitPlanApiSlice, highImportanceAdapter, stopLossHitAdapter } from "../EnterExitPlans/EnterExitApiSlice";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 const activeTradeAdapter = createEntityAdapter()
@@ -13,8 +14,10 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             }),
             transformResponse: (response) =>
             {
+                console.log(response)
                 let tradeResponse = response.activeTrades.map((trade) =>
                 {
+                    console.log(response.mostRecentPrices[trade.tickerSymbol])
                     trade.id = trade.tickerSymbol
                     trade.mostRecentPrice = response.mostRecentPrices[trade.tickerSymbol]
                     trade.percentOfGain = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * 100)
@@ -48,9 +51,9 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
 
                     trade.priceDirection = undefined
 
-
                     return trade
                 })
+                console.log(tradeResponse)
                 return activeTradeAdapter.setAll(activeTradeAdapter.getInitialState(), tradeResponse)
             },
             async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
@@ -64,12 +67,13 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 {
                     updateCachedData((draft) =>
                     {
-                        let activeTradeToUpdate = draft.entities[data.ticker]
 
-                        if (data.price > activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'positiveDirection'
-                        else if (data.price < activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'negativeDirection'
+                        let activeTradeToUpdate = draft.entities[data.tickerSymbol]
 
-                        activeTradeToUpdate.mostRecentPrice = data.price
+                        if (data.Price > activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'positiveDirection'
+                        else if (data.Price < activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'negativeDirection'
+
+                        activeTradeToUpdate.mostRecentPrice = data.Price
 
 
                         activeTradeToUpdate.percentOfGain = ((activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) / (activeTradeToUpdate.tradingPlanPrices[4] - activeTradeToUpdate.tradingPlanPrices[1]) * 100)
@@ -140,11 +144,35 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 method: 'POST',
                 body: { ...args }
             }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                // 1. Manually update the 'getPosts' query cache
+                const patchResult = dispatch(
+                    EnterExitPlanApiSlice.util.updateQueryData('getUsersEnterExitPlan', undefined, (draft) =>
+                    {
+                        enterBufferHitAdapter.removeOne(draft.enterBufferHit, args.tickerSymbol)
+                        stopLossHitAdapter.removeOne(draft.stopLossHit, args.tickerSymbol)
+                        enterExitAdapter.removeOne(draft.plannedTickers, args.tickerSymbol)
+                        highImportanceAdapter.removeOne(draft.highImportance, args.tickerSymbol)
+                    })
+
+                )
+
+                try
+                {
+                    // 2. Wait for the actual server request to finish
+                    await queryFulfilled;
+                } catch
+                {
+                    // 3. If the server request fails, roll back the manual change
+                    patchResult.undo();
+                }
+            },
             invalidatesTags: ['activeTrades']
         }),
         alterTradeRecord: builder.mutation({
             query: (args) => ({
-                url: '/trades',
+                url: '/trades/alter',
                 method: 'PUT',
                 body: { ...args }
             }),

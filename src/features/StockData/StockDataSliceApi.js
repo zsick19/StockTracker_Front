@@ -12,7 +12,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
         body: { timeFrame: args.timeFrame },
       }), transformResponse: (response, meta, args) =>
       {
-        console.log(args)
+
         if (!args.liveFeed) response.nonLivePrice = response.mostRecentPrice.Price
         else
         {

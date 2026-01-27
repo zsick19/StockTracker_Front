@@ -16,6 +16,9 @@ function ChartContextMenuContainer({ showContextMenu, setShowContextMenu })
         <div>
           {ChartingTools.map((tool, index) => { return <button title={tool.tool} onClick={() => { dispatch(setTool(ChartingTools[index].tool)); setShowContextMenu({ display: false, style: undefined }) }} >{ChartingTools[index].icon}</button> })}
         </div>
+        <div>
+          
+        </div>
         <button onClick={() => setShowContextMenu({ display: false, style: undefined })}><X /></button>
 
       </div>
