@@ -94,8 +94,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
         const incomingTradeListener = (data) =>
         {
-          console.log(data)
-
           updateCachedData((draft) =>
           {
             let entityToUpdate
@@ -103,7 +101,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             else if (draft.enterBufferHit.ids.includes(data.tickerSymbol)) { entityToUpdate = draft.enterBufferHit.entities[data.tickerSymbol] }
             else if (draft.stopLossHit.ids.includes(data.tickerSymbol)) { entityToUpdate = draft.stopLossHit.entities[data.tickerSymbol] }
             else { entityToUpdate = draft.plannedTickers.entities[data.tickerSymbol] }
-            console.log(entityToUpdate)
+
             if (entityToUpdate)
             {
               entityToUpdate.mostRecentPrice = data.tradePrice
@@ -202,12 +200,7 @@ export const selectAllPlansAndCombined = createSelector([(res) => res.data],
     const stopLossHit = stopLossHitAdapter.getSelectors().selectAll(data.stopLossHit)
     const enterBuffer = enterBufferHitAdapter.getSelectors().selectAll(data.enterBufferHit)
     const allOtherPlans = enterExitAdapter.getSelectors().selectAll(data.plannedTickers)
-    const counts = {
-      highImportance: highImportanceTickers.length,
-      stopLoss: stopLossHit.length,
-      enterBuffer: enterBuffer.length,
-      allOtherPlans: allOtherPlans.length,
-    }
+    const counts = { highImportance: highImportanceTickers.length, stopLoss: stopLossHit.length, enterBuffer: enterBuffer.length, allOtherPlans: allOtherPlans.length }
 
 
     return {

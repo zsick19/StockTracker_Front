@@ -142,3 +142,8 @@
 .veryLastCandle {
   fill: white;
 }
+
+.livePriceText {
+  fill: white;
+  font-size: var(--fs-100);
+}

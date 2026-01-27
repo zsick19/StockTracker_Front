@@ -18,8 +18,9 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
         {
           response.mostRecentTickerCandle = response.candleData.pop()
           response.candlesToKeepSinceLastQuery = []
+          response.mostRecentPrice = response.mostRecentPrice.Price
         }
-        response.mostRecentMinuteChartData = {}
+
         return response
       },
       keepUnusedDataFor: 15,
@@ -34,16 +35,19 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
           {
             updateCachedData((draft) =>
             {
-              if (data.tickerSymbol === args.ticker)
+
+
+              if (data.Symbol === args.ticker)
               {
-                draft.mostRecentPrice.Price = data.price
+                draft.mostRecentPrice = data.Price
 
                 //different timeFrames need different checks for same candle timeframe
                 //check if timeFrames overlap
-
                 //if same timeFrame, compare prices to update most recent Ticker directly
                 //else push finished recent ticker to previous tickers and extract a new ticker comparing incoming data with last candle for OCLH values
-                if (isSameMinute(data.Timestamp, draft.mostRecentTickerCandle.timeStamp))
+
+
+                if (isSameMinute(new Date(data.Timestamp), new Date(draft.mostRecentTickerCandle.Timestamp)))
                 {
                   if (draft.mostRecentTickerCandle.OpenPrice < data.Price)
                   {
@@ -62,23 +66,24 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
                   let copyOfClosingCandle = draft.mostRecentTickerCandle
                   draft.candlesToKeepSinceLastQuery.push(draft.mostRecentTickerCandle)
 
-
-                  if (data.Price > copyOfClosingCandle.ClosePrice) 
+                  if (data.Price >= copyOfClosingCandle.ClosePrice) 
                   {
                     draft.mostRecentTickerCandle = {
-                      timeStamp: data.Timestamp,
+                      ...copyOfClosingCandle,
+                      Timestamp: data.Timestamp,
                       HighPrice: data.Price,
-                      LowPrice: closeOfLast.ClosePrice,
-                      OpenPrice: closeOfLast.ClosePrice,
+                      LowPrice: copyOfClosingCandle.ClosePrice,
+                      OpenPrice: copyOfClosingCandle.ClosePrice,
                       ClosePrice: data.Price
                     }
                   } else if (data.Price < copyOfClosingCandle.ClosePrice)
                   {
                     draft.mostRecentTickerCandle = {
-                      timeStamp: new Date(),
-                      HighPrice: closeOfLast.ClosePrice,
+                      ...copyOfClosingCandle,
+                      Timestamp: data.Timestamp,
+                      HighPrice: copyOfClosingCandle.ClosePrice,
                       LowPrice: data.Price,
-                      OpenPrice: closeOfLast.ClosePrice,
+                      OpenPrice: copyOfClosingCandle.ClosePrice,
                       ClosePrice: data.Price
                     }
                   }

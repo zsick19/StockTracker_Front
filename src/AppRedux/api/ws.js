@@ -41,7 +41,7 @@ export const setupWebSocket = () =>
         listeners[channel] = listeners[channel].filter((t) => t.source !== source)
         listenersCount[channel] = listenersCount[channel] - 1
 
-        if (source === 'tempLiveChart') ws.emit('disconnectTempStream', { userId, ticker })
+        if (source === 'tempLiveChart') ws.emit('disconnectTempStream', { userId, tickerSymbol: ticker })
         console.log(`${source} unsubscribed from web socket`)
     }
 

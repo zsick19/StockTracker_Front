@@ -20,10 +20,7 @@ function CurrentTradePositionContainer()
     } else if (isSuccess)
     {
         tradeDisplayContent = <div className='LSH-ActiveTradesMessage'>
-            <h2>No Active Trades</h2>
-            <div className='flex'>
-                <button>Record A Trade</button>
-            </div>
+            <h2>Currently No Active Trades</h2>
         </div>
     }
     else if (isLoading) { tradeDisplayContent = <div className='LSH-ActiveTradeMessage'><h2>Loading Current Trades...</h2></div> }
