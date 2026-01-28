@@ -6,14 +6,21 @@ export const testApiSlice = apiSlice.injectEndpoints({
             query: () => ({
                 url: '/index',
             }),
-            transformResponse:(response)=>{
+            transformResponse: (response) =>
+            {
                 console.log(response)
             }
         }),
-  
+        resetUser: builder.mutation({
+            query: () => ({
+                url: '/user/reset'
+            })
+        })
+
     })
 })
 
 export const {
     useConnectionTestQuery,
-   } = testApiSlice
+    useResetUserMutation
+} = testApiSlice

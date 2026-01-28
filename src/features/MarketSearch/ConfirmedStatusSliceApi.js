@@ -28,7 +28,6 @@ export const ConfirmedStatusApiSlice = apiSlice.injectEndpoints({
 
                     if (data.userHistory)
                     {
-                        console.log('working on it')
                         dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization", undefined,
                             (draft) =>
                             {

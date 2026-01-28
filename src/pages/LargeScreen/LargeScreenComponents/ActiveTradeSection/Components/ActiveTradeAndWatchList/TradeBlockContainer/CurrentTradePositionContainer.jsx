@@ -4,20 +4,22 @@ import ActiveTradeBlockWrapper from './Components/ActiveTradeBlockWrapper'
 import './TradeBlockContainer.css'
 import './TradePriceVisualAlert.css'
 import AccountPLVisual from './Components/AccountPLVisual'
+import ActiveTradeListWrapper from './Components/ListView/ActiveTradeListWrapper'
 
 function CurrentTradePositionContainer()
 {
-    const dispatch = useDispatch()
-
     const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery()
 
-
-
     let tradeDisplayContent
-    if (isSuccess && activeTrades.ids.length > 0)
+    if (isSuccess && activeTrades.ids.length > 4)
+    {
+        tradeDisplayContent = <ActiveTradeListWrapper ids={activeTrades.ids} />
+    }
+    else if (isSuccess && activeTrades.ids.length > 0)
     {
         tradeDisplayContent = <ActiveTradeBlockWrapper ids={activeTrades.ids} />
-    } else if (isSuccess)
+    }
+    else if (isSuccess)
     {
         tradeDisplayContent = <div className='LSH-ActiveTradesMessage'>
             <h2>Currently No Active Trades</h2>

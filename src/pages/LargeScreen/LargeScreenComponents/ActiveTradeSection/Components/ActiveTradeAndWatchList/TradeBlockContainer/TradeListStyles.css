@@ -1,0 +1,79 @@
+#LSH-ActiveTradeListAndSingleBlockWrapper {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 450px 1fr;
+  gap: 1rem;
+}
+
+#LSH-ActiveTradeListAndSingleBlockWrapper > div {
+  border: 1px solid white;
+  border-radius: 10px;
+  background-color: rgba(87, 87, 87, 0.336);
+}
+
+#LSH-ActiveTradeList {
+  height: 450px;
+  overflow-y: scroll;
+  padding-top: 1rem;
+  padding-inline: 0.5rem;
+}
+
+.LSH-SingleActiveTradeList {
+  padding-inline: 1rem;
+  height: 50px;
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  display: grid;
+  grid-template-columns: 100px 100px 100px 100px 275px 1fr;
+  gap: 0.5rem;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  background-color: rgba(0, 0, 0, 0.521);
+}
+
+.ListPriceMovementPerTrade {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.spaceHolderSize18 {
+  width: 18px;
+}
+
+.SingleActiveListPL,
+.dailyPercentage {
+  font-size: var(--fs-100);
+}
+.DiagramPlanWrapper {
+  font-size: var(--fs-100);
+}
+.DiagramPlanWrapper > .HorizontalPlanSVGWrapper {
+  height: 30px;
+}
+
+#LSH-ActiveTradeListSelectedTrade {
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 40% 1fr;
+  gap: 1rem;
+}
+
+#LSH-SelectedTradeChartWrapper {
+  border-radius: 10px;
+}
+
+#LSH-SelectedTradeChartWrapper div {
+  height: 100%;
+  border-radius: 10px;
+}
+
+.closeOutForm {
+  display: grid;
+  grid-template-columns: 20% max-content min-content;
+  font-size: var(--fs-100);
+  gap: 1rem;
+  justify-content: center;
+}

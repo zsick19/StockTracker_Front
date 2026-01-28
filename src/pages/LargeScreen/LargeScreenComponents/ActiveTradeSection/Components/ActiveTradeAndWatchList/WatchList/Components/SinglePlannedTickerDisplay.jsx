@@ -42,7 +42,7 @@ function SinglePlannedTickerDisplay({ id, watchList })
         <>
             {showDiagram ?
                 <div className='SingleTickerDiagram' onClick={() => setShowDiagram(false)}>
-                    <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePoints={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
+                    <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
                     <button className='iconButton' onClick={(e) => e.stopPropagation()}> <X size={16} color='white' /></button>
                 </div> :
                 <div className={`SingleWatchListTicker ${plan.listChange ? 'blinkForListUpdate' : ''}`}>

@@ -37,7 +37,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
 
 
-    const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
+    const [updateEnterExitPlan, { isLoading: isEnterExitLoading }] = useUpdateEnterExitPlanMutation()
     const [serverResponse, setServerResponse] = useState(undefined)
 
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true, provideNews: true })
@@ -165,7 +165,7 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 {serverResponse === "negative" && <X color='red' size={20} />}
                 {(chartId && (chartId !== userSpyId)) && <button onClick={attemptRemoveOfConfirmedStock}>RC</button>}
 
-                {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) && <button title='Initiate Tracking' onClick={() => attemptInitiatingPlanTracking()} ><Binoculars size={20} color='red' /></button>}
+                {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) && <button title='Initiate Tracking' disabled={isEnterExitLoading} onClick={() => attemptInitiatingPlanTracking()} ><Binoculars size={20} color={isEnterExitLoading ? 'gray' : 'red'} /></button>}
             </div>
         </div>
     )

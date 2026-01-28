@@ -32,7 +32,7 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
                 <p>{plan.trackingDays > 1 ? `${plan.trackingDays} Days` : `${plan.trackingDays} Day`}</p>
                 <p>{provideGroup()}</p>
             </div>
-            <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePoints={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
+            <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
 
             <div className='flex'>
                 <button onClick={(e) => { e.stopPropagation(); setSelectedPlan(plan) }}>Remove</button>

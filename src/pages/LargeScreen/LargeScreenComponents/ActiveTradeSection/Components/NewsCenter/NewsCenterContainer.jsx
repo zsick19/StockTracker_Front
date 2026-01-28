@@ -17,6 +17,7 @@ function NewsCenterContainer()
             <p>  //6 PreWatch many        </p>
             <p>  //7 View All Plans        </p>
             <p>  //8 Trade Graph        </p>
+            <p>//9 Trade Journal</p>
             <p>  //10 sync visual </p>
             <p>  //11 pre-watch stoploss </p>
             <p>  //12 pre-watch enter buffer   </p>

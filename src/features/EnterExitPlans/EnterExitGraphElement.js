@@ -29,8 +29,23 @@ const enterExitGraphElementsSlice = createSlice({
         },
         setEnterExitChartingFromPlan: (state, action) =>
         {
-            state[action.payload.tickerSymbol] = {
-                ...action.payload.plan, id: action.payload.planId, enterExitPlanAltered: false
+            if (action.payload.plan?.length)
+            {
+                let planArray = action.payload.plan
+                state[action.payload.tickerSymbol] = {
+                    stopLossPrice: planArray[0],
+                    enterPrice: planArray[1],
+                    enterBufferPrice: planArray[2],
+                    exitBufferPrice: planArray[3],
+                    exitPrice: planArray[4],
+                    moonPrice: planArray[5],
+                    id: action.payload.planId, enterExitPlanAltered: false
+                }
+            } else
+            {
+                state[action.payload.tickerSymbol] = {
+                    ...action.payload.plan, id: action.payload.planId, enterExitPlanAltered: false
+                }
             }
         }
     },

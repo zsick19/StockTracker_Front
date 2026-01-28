@@ -1,22 +1,24 @@
 import React, { useState } from 'react'
 import { useAlterTradeRecordMutation } from '../../../../../../../features/Trades/TradeSliceApi'
+import { useDispatch } from 'react-redux'
+import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import TradeSuccessCompleted from './TradeSuccessCompleted'
 
 function TradePresent({ selectedStock })
 {
     const [alterTradeRecord] = useAlterTradeRecordMutation()
-    const [alterTradeDetails, setAlterTradeDetails] = useState({ tradePrice: undefined, positionSizeOfAlter: undefined })
-    const [tradeServerResponse, setTradeServerResponse] = useState(undefined)
+    const [alterTradeDetails, setAlterTradeDetails] = useState({ tradePrice: selectedStock.trade.mostRecentPrice, positionSizeOfAlter: undefined })
+    const [alterTradeErrorMessage, setAlterTradeErrorMessage] = useState(undefined)
+    const [tradeServerResponse, setTradeServerResponse] = useState({ status: undefined, trade: undefined })
 
     async function attemptToAlterTradeRecord(action)
     {
-        console.log(alterTradeDetails)
         if (!selectedStock?.trade._id) return
+        if (!alterTradeDetails.tradePrice) return setAlterTradeErrorMessage('Missing Trade Price')
+        if ((action === 'partialSell' || action === 'additionalBuy') && !alterTradeDetails?.positionSizeOfAlter) return setAlterTradeErrorMessage('Missing Position Size')
+
         try
         {
-            if (action === 'partialSell' && (!alterTradeDetails?.tradePrice || !alterTradeDetails?.positionSizeOfAlter)) return
-            if (action === 'additionalBuy' && (!alterTradeDetails?.tradePrice || !alterTradeDetails?.positionSizeOfAlter)) return
-            if (action === 'closeAll' && !alterTradeDetails?.tradePrice) return
-
             let results
             if (action === 'closeAll')
             {
@@ -25,18 +27,16 @@ function TradePresent({ selectedStock })
             {
                 results = await alterTradeRecord({ action, tickerSymbol: selectedStock.tickerSymbol, tradeId: selectedStock.trade._id, ...alterTradeDetails })
             }
+
             if (results.data.tradeComplete)
             {
-                setTradeServerResponse('tradeCompleted')
+                setTradeServerResponse({ status: 'tradeCompleted', tradeResult: results.data })
             } else
             {
-                setTradeServerResponse('Recorded Successfully')
-                setTimeout(() =>
-                {
-                    setTradeServerResponse(undefined)
-                }, [2000])
+                setTradeServerResponse({ status: 'Recorded Successfully', tradeResult: results.data })
+                setTimeout(() => { setTradeServerResponse(undefined) }, [2000])
             }
-            console.log(results)
+
         } catch (error)
         {
             console.log(error)
@@ -47,49 +47,62 @@ function TradePresent({ selectedStock })
     function handleAlterTradeDetailChanges(e)
     {
         setAlterTradeDetails(prev => ({ ...prev, [e.target.id]: parseFloat(e.target.value) }))
+        setAlterTradeErrorMessage(undefined)
     }
-    return (
-        <div>
-            current number of shares
-            average price per share
-            gain/loss
 
-            <p>
-                {selectedStock.trade.averagePurchasePrice}
-                <p>
-                    {selectedStock.trade.availableShares}
-                </p>
-            </p>
-            {tradeServerResponse === 'tradeCompleted' ? <div> trading journal button </div> :
-                <div className='flex'>
-                    <div>
-                        add to trade
-                        <div>
-                            <label htmlFor="additionalSharePurchase">Number of Shares</label>
-                            <input type="number" id="additionalSharePurchase" min={1} />
-                            <label htmlFor="additionalSharePrice">Price Per Share</label>
-                            <input type="double" id='additionalSharePrice' />
-                            <button onClick={() => attemptToAlterTradeRecord('additionalBuy')}>Add Shares</button>
-                        </div>
-                    </div>
-                    <br />
-                    <div>
-                        sell trade options
-                        <div>
+
+    let gainPerShare = alterTradeDetails.tradePrice - selectedStock.trade.averagePurchasePrice
+    let PL = gainPerShare * selectedStock.trade.availableShares
+    return (
+        <>
+            {
+                tradeServerResponse.status === 'tradeCompleted' ?
+                    <TradeSuccessCompleted completedTrade={tradeServerResponse.trade} /> :
+                    <div id='TradeDetailAndBuySellOptions'>
+
+
+                        <div className='TradeOptions'>
                             <form onSubmit={(e) => e.preventDefault()} onChange={(e) => handleAlterTradeDetailChanges(e)}>
-                                <label htmlFor="tradePrice">Price</label>
-                                <input type="double" id='tradePrice' min={0} />
-                                <label htmlFor="positionSizeOfAlter">Position Size</label>
-                                <input type="number" min={1} id='positionSizeOfAlter' />
-                                <button type='button' onClick={() => attemptToAlterTradeRecord('partialSell')}>Sell Partial</button>
+                                <div className='flex'>
+                                    <div>
+                                        <label htmlFor="tradePrice">Price</label>
+                                        <input type="double" id='tradePrice' min={0} value={alterTradeDetails.tradePrice} />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="positionSizeOfAlter">Position Size</label>
+                                        <input type="number" min={1} id='positionSizeOfAlter' value={alterTradeDetails.positionSizeOfAlter} />
+                                    </div>
+                                </div>
+                                <div className='flex'>
+                                    <button type='button' onClick={() => attemptToAlterTradeRecord('additionalBuy')}>Buy Shares</button>
+                                    <button type='button' onClick={() => attemptToAlterTradeRecord('partialSell')}>Sell Shares</button>
+                                </div>
+                            </form>
+                            <p>{alterTradeErrorMessage}</p>
+                            <p>{tradeServerResponse.status}</p>
+                        </div>
+
+                        <div className='flex'>
+                            <div>
+                                <p>Avg Purchase Price: {selectedStock.trade.averagePurchasePrice}</p>
+                                <p>Shares Available: {selectedStock.trade.availableShares}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p>Gain Per Share: ${gainPerShare.toFixed(2)}</p>
+                            <p>P/L: ${PL.toFixed(2)}</p>
+                            <br />
+                            <form onSubmit={(e) => e.preventDefault()} onChange={(e) => handleAlterTradeDetailChanges(e)} >
+                                <div>
+                                    <label htmlFor="tradePrice">Close Out Price </label>
+                                    <input type="double" id='tradePrice' min={0} value={alterTradeDetails.tradePrice} />
+                                </div>
                                 <button type='button' onClick={() => attemptToAlterTradeRecord('closeAll')}>Close Position</button>
                             </form>
-                            <p>{tradeServerResponse}</p>
                         </div>
                     </div>
-                </div>
             }
-        </div>
+        </>
     )
 }
 

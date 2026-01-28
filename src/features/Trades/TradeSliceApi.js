@@ -14,15 +14,16 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             }),
             transformResponse: (response) =>
             {
-                console.log(response)
                 let tradeResponse = response.activeTrades.map((trade) =>
                 {
-                    console.log(response.mostRecentPrices[trade.tickerSymbol])
                     trade.id = trade.tickerSymbol
                     trade.mostRecentPrice = response.mostRecentPrices[trade.tickerSymbol]
+                    console.log(trade.mostRecentPrice)
+
                     trade.percentOfGain = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * 100)
                     trade.gainPerShare = trade.mostRecentPrice - trade.averagePurchasePrice
                     trade.percentFromOpen = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / trade.tradingPlanPrices[1]) * 100
+                    trade.totalGain = trade.gainPerShare * trade.availableShares
 
                     trade.percentFromPlanPrices = [(trade.mostRecentPrice - trade.tradingPlanPrices[0]) * 100 / trade.tradingPlanPrices[0],
                     (trade.mostRecentPrice - trade.tradingPlanPrices[1]) * 100 / trade.tradingPlanPrices[1],
@@ -69,16 +70,19 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     {
 
                         let activeTradeToUpdate = draft.entities[data.tickerSymbol]
+                        if (activeTradeToUpdate === undefined) return
+
+
 
                         if (data.Price > activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'positiveDirection'
                         else if (data.Price < activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'negativeDirection'
 
                         activeTradeToUpdate.mostRecentPrice = data.Price
 
-
                         activeTradeToUpdate.percentOfGain = ((activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) / (activeTradeToUpdate.tradingPlanPrices[4] - activeTradeToUpdate.tradingPlanPrices[1]) * 100)
                         activeTradeToUpdate.gainPerShare = activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.averagePurchasePrice
                         activeTradeToUpdate.percentFromOpen = ((activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) / activeTradeToUpdate.tradingPlanPrices[1]) * 100
+                        activeTradeToUpdate.totalGain = activeTradeToUpdate.gainPerShare * activeTradeToUpdate.availableShares
 
                         activeTradeToUpdate.percentFromPlanPrices = [
                             (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[0]) * 100 / activeTradeToUpdate.tradingPlanPrices[0],

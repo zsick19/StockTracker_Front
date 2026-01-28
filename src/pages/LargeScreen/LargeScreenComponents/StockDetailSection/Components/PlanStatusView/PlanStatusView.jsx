@@ -11,7 +11,7 @@ function PlanStatusView()
   const searchTicker = useRef()
   const { data: combinedData } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: (results) => ({ ...results, data: selectAllPlansAndCombined(results) }) })
 
-  const [planFilters, setPlanFilters] = useState({ groupForDisplay: 3, sector: undefined, tickerSearch: undefined })
+  const [planFilters, setPlanFilters] = useState({ groupForDisplay: 4, sector: undefined, tickerSearch: undefined })
   const [planSort, setPlanSort] = useState({ sort: undefined, direction: undefined })
 
   const [selectedPlan, setSelectedPlan] = useState(undefined)

@@ -3,7 +3,7 @@ import './HorizontalPlanDiagram.css'
 import { useResizeObserver } from '../../../../../../../../../hooks/useResizeObserver'
 import { scaleLinear, select } from 'd3'
 
-function HorizontalPlanDiagram({ mostRecentPrice, planPricePoints, initialTrackingPrice })
+function HorizontalPlanDiagram({ mostRecentPrice, planPricePointObject, planPriceArray, initialTrackingPrice })
 {
     const planWrapper = useRef()
     const priceSVG = useRef()
@@ -13,13 +13,23 @@ function HorizontalPlanDiagram({ mostRecentPrice, planPricePoints, initialTracki
     const xScale = useCallback((priceToPixel) =>
     {
         if (dimPreCheck()) return
-        let bufferPercent = (planPricePoints.moonPrice - planPricePoints.stopLossPrice) * 0.05
-        const scale = scaleLinear().domain([(planPricePoints.stopLossPrice - bufferPercent), (planPricePoints.moonPrice + bufferPercent)]).range([0, horizontalDimensions.width])
+        let scale
+        let bufferPercent
+        if (planPriceArray)
+        {
+            bufferPercent = (planPriceArray[5] - planPriceArray[0]) * 0.05
+            scale = scaleLinear().domain([(planPriceArray[0] - bufferPercent), (planPriceArray[5] + bufferPercent)]).range([0, horizontalDimensions.width])
+        } else
+        {
+            bufferPercent = (planPricePointObject.moonPrice - planPricePointObject.stopLossPrice) * 0.05
+            scale = scaleLinear().domain([(planPricePointObject.stopLossPrice - bufferPercent), (planPricePointObject.moonPrice + bufferPercent)]).range([0, horizontalDimensions.width])
+        }
         return scale(priceToPixel)
     }, [horizontalDimensions])
 
     const planPriceSVG = select(priceSVG.current)
-    const idealPrices = [planPricePoints.stopLossPrice, planPricePoints.enterPrice, planPricePoints.enterBufferPrice, planPricePoints.exitBufferPrice, planPricePoints.exitPrice, planPricePoints.moonPrice]
+    const idealPrices = planPriceArray ? planPriceArray : [planPricePointObject.stopLossPrice, planPricePointObject.enterPrice, planPricePointObject.enterBufferPrice, planPricePointObject.exitBufferPrice, planPricePointObject.exitPrice, planPricePointObject.moonPrice]
+
 
     useEffect(() =>
     {

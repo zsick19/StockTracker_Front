@@ -91,12 +91,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         if (timeFrame.unitOfDuration === 'Y')
         {
             startDate = sub(new Date(), { days: 365 })
-            futureForwardEndDate = addDays(new Date(), pixelBuffer.xDirectionFutureDaysToGraph)
+            futureForwardEndDate = addDays(new Date(), 2)
         }
         else if (timeFrame.unitOfDuration === 'D')
         {
             startDate = sub(new Date(), { days: timeFrame.duration })
-            futureForwardEndDate = addDays(new Date(), 1)
+            futureForwardEndDate = addDays(new Date(), 2)
         }
 
 
@@ -127,7 +127,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
             xDateScale.domain(newZoomState.domain())
         }
 
-        if (pixelToDate !== undefined) return xDateScale.invert(pixelToDate).toISOString()
+        if (pixelToDate !== undefined)
+        {
+            if (timeFrame.intraDay) { return new Date(Math.floor(xDateScale.invert(pixelToDate))).toISOString() } else return xDateScale.invert(pixelToDate).toISOString()
+        }
         else if (dateToPixel !== undefined) return xDateScale(new Date(dateToPixel))
         else return xDateScale
 
@@ -467,7 +470,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
 
-                console.log(EnterExitPlan)
                 yPositions.map((position, index) =>
                 {
                     lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])

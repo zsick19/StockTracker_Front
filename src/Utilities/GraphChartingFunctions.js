@@ -194,32 +194,32 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
         pixelSet.current = { ...pixelSet.current, X1: e.offsetX, X1Offset: e.offsetX + XOffset, Y1: e.offsetY, Y1Price: yScale({ pixelToPrice: e.offsetY }), secondClick: false, thirdClick: true }
         temp.append('text').attr('class', 'enterPercentage traceLine').attr("x", pixelSet.current.X1Offset).attr("y", e.offsetY).attr('dx', '250px')
         setPricePositionRemoveInfoText('enter', pixelSet.current.X1Offset, e.offsetY, 'enterBuffer', 'Enter Buffer')
-        recordPriorAddNextWithTrace('.enterLine', e.offsetY, 'enterBufferLine', 'yellow', 'enterBuffer')
-    } else if (pixelSet.current.thirdClick) //capture enter buffer price
+        recordPriorAddNextWithTrace('.enterLine', e.offsetY, 'enterBufferLine', 'yellow', 'enterBuffer', pixelSet.current.Y1)
+    } else if (pixelSet.current.thirdClick && e.offsetY < pixelSet.current.Y1) //capture enter buffer price
     {
         const percentage = temp.select('.enterPercentage').text()
         pixelSet.current = { ...pixelSet.current, Y2: e.offsetY, P1: parseFloat(percentage.slice(0, -12)), thirdClick: false, fourthClick: true }
         setPricePositionRemoveInfoText('enterBuffer', pixelSet.current.X1Offset, e.offsetY, 'stopLoss', 'Stop Loss')
-        recordPriorAddNextWithTrace('.enterBufferLine', e.offsetY, 'stopLossLine', 'red', 'stopLoss')
-    } else if (pixelSet.current.fourthClick)//capture stopLoss
+        recordPriorAddNextWithTrace('.enterBufferLine', e.offsetY, 'stopLossLine', 'red', 'stopLoss', pixelSet.current.Y1)
+    } else if (pixelSet.current.fourthClick && e.offsetY > pixelSet.current.Y1)//capture stopLoss
     {
         const percentage = temp.select('.enterPercentage').text()
         pixelSet.current = { ...pixelSet.current, Y3: e.offsetY, P2: parseFloat(percentage.slice(0, -12)), fourthClick: false, fifthClick: true }
         setPricePositionRemoveInfoText('stopLoss', pixelSet.current.X1Offset, e.offsetY, 'exit', 'Exit Price')
-        recordPriorAddNextWithTrace('.stopLossLine', e.offsetY, 'exitLine', 'green', 'exit')
-    } else if (pixelSet.current.fifthClick)//capture exit
+        recordPriorAddNextWithTrace('.stopLossLine', e.offsetY, 'exitLine', 'green', 'exit', pixelSet.current.Y2)
+    } else if (pixelSet.current.fifthClick && e.offsetY < pixelSet.current.Y3)//capture exit
     {
         const percentage = temp.select('.enterPercentage').text()
         pixelSet.current = { ...pixelSet.current, Y4: e.offsetY, P3: parseFloat(percentage.slice(0, -12)), fifthClick: false, sixthClick: true }
         setPricePositionRemoveInfoText('exit', pixelSet.current.X1Offset, e.offsetY, 'exitBuffer', 'Exit Buffer')
-        recordPriorAddNextWithTrace('.exitLine', e.offsetY, 'exitBufferLine', 'yellow', 'exitBuffer')
-    } else if (pixelSet.current.sixthClick) //capture exit buffer
+        recordPriorAddNextWithTrace('.exitLine', e.offsetY, 'exitBufferLine', 'yellow', 'exitBuffer', pixelSet.current.Y4)
+    } else if (pixelSet.current.sixthClick && e.offsetY > pixelSet.current.Y4) //capture exit buffer
     {
         const percentage = temp.select('.enterPercentage').text()
-        pixelSet.current = { ...pixelSet.current, Y5: e.offsetY, P4: parseFloat(percentage.slice(0, -12)), sixthClick: false }
+        pixelSet.current = { ...pixelSet.current, Y5: e.offsetY, P4: parseFloat(percentage.slice(0, -12)), sixthClick: false, seventhClick: true }
         setPricePositionRemoveInfoText('exitBuffer', pixelSet.current.X1Offset, e.offsetY, 'moon', 'Moon Price')
-        recordPriorAddNextWithTrace('.exitBufferLine', e.offsetY, 'moonLine', 'black', 'moon')
-    } else //capture moon
+        recordPriorAddNextWithTrace('.exitBufferLine', e.offsetY, 'moonLine', 'black', 'moon', pixelSet.current.Y4)
+    } else if (pixelSet.current.seventhClick && e.offsetY < pixelSet.current.Y4) //capture moon
     {
         const percentage = temp.select('.enterPercentage').text()
         pixelSet.current = { ...pixelSet.current, Y6: e.offsetY, P5: parseFloat(percentage.slice(0, -12)) }
@@ -238,12 +238,19 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
         temp.append('text').attr('class', `${infoClassNameNext}Price traceLine`).text(`$${yScale({ pixelToPrice: yPosition })}`).attr("x", xPosition).attr("y", yPosition).attr('dx', '150px').attr('dy', '20px')
     }
 
-    function recordPriorAddNextWithTrace(priorClassName, yOffset, className, color, infoPriceClassName) 
+    function recordPriorAddNextWithTrace(priorClassName, yOffset, className, color, infoPriceClassName, pixelStop) 
     {
         temp.select(priorClassName).attr('y1', yOffset).attr('y2', yOffset)
         temp.append('line').attr('class', `${className} traceLine`).attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY).attr('stroke', color).attr('stroke-width', 1)
+
         stockSVG.on('mousemove', (e) =>
         {
+            if (priorClassName === '.enterLine' && e.offsetY > pixelStop) return
+            if (priorClassName === '.enterBufferLine' && e.offsetY < pixelStop) return
+            if (priorClassName === '.stopLossLine' && e.offsetY > pixelStop) return
+            if (priorClassName === '.exitLine' && e.offsetY < pixelStop) return
+            if (priorClassName === '.exitBufferLine' && e.offsetY > pixelStop) return
+
             temp.select(`.${className}`).attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
             temp.select(`.${infoPriceClassName}Info`).attr('y', e.offsetY - 2)
             temp.select(`.${infoPriceClassName}Price`).attr('y', e.offsetY - 2).text((`$${yScale({ pixelToPrice: e.offsetY })}`))

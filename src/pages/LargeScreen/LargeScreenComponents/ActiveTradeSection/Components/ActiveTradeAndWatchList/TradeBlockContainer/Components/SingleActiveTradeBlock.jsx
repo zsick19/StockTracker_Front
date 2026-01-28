@@ -74,7 +74,6 @@ function SingleActiveTradeBlock({ id })
                             <div>
                                 <p>Per Share: ${activeTrade.gainPerShare.toFixed(2)}</p>
                                 <p>Position Size: {activeTrade.availableShares}</p>
-
                             </div>
                         </div> : showStopEnterExit === 1 ?
                             <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(2)}>
