@@ -20,12 +20,13 @@ function PreTradePlanPresent({ selectedStock })
         {
             const results = await initiateTradeRecord({
                 ...tradeRecordDetails,
+                tickerSector: selectedStock.tickerSector,
                 tradingPlanPrices: [planPricing.stopLossPrice, tradeRecordDetails.purchasePrice, planPricing.enterBufferPrice,
                 planPricing.exitBufferPrice, planPricing.exitPrice, planPricing.moonPrice],
                 enterExitPlanId: selectedStock.planId,
                 tickerSymbol: selectedStock.tickerSymbol
             })
-            console.log(results)
+
             setServerTradeResponse(results)
         } catch (error)
         {
@@ -33,7 +34,6 @@ function PreTradePlanPresent({ selectedStock })
         }
 
     }
-
 
 
 

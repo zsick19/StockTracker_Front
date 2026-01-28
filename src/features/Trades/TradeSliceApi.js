@@ -137,6 +137,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             query: () => ({
                 url: `/trades/history`,
             }),
+            providesTags: ['tradeHistory']
         }),
         initiateTradeRecord: builder.mutation({
             query: (args) => ({
@@ -168,7 +169,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     patchResult.undo();
                 }
             },
-            invalidatesTags: ['activeTrades']
+            invalidatesTags: ['activeTrades', 'tradeHistory']
         }),
         alterTradeRecord: builder.mutation({
             query: (args) => ({
@@ -176,7 +177,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 method: 'PUT',
                 body: { ...args }
             }),
-            invalidatesTags: ['activeTrades']
+            invalidatesTags: ['activeTrades', 'tradeHistory']
         }),
 
 

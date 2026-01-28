@@ -11,7 +11,7 @@ import ConfirmedStatus from './Components/ConfirmedStatus/ConfirmedStatus';
 import EnterExitTradeGraph from './Components/TradeGraph/EnterExitTradeGraph';
 import TradingJournal from './Components/TradingJournal/TradingJournal';
 import PreWatchMany from './Components/PrewatchMany/PrewatchMany';
-import { Binoculars, ChartCandlestick, ListChecks, ListTodo, NotebookPen, PiggyBank, SpellCheck } from 'lucide-react';
+import { Binoculars, ChartCandlestick, Expand, ListChecks, ListTodo, NotebookPen, PencilRuler, PiggyBank, SpellCheck } from 'lucide-react';
 import PlanStatusView from './Components/PlanStatusView/PlanStatusView';
 
 function StockDetailSection()
@@ -47,8 +47,8 @@ function StockDetailSection()
   return (
     <section id="StockDetailSection">
       <nav>
-        <button onClick={() => dispatch(setStockDetailState(0))}><p>Four Graph</p></button>
-        <button onClick={() => dispatch(setStockDetailState(5))}><p>Charting Graph</p></button>
+        <button onClick={() => dispatch(setStockDetailState(0))}><Expand /><p>Four Graph</p></button>
+        <button onClick={() => dispatch(setStockDetailState(5))}><PencilRuler /><p>Charting Graph</p></button>
 
         <button onClick={() => dispatch(setStockDetailState(1))}><Binoculars /><p>Market Search</p></button>
         <button onClick={() => dispatch(setStockDetailState(2))}><ListTodo /><p>Confirmation</p></button>

@@ -30,7 +30,7 @@ const selectedStockSlice = createSlice({
         },
         setSingleChartTickerTimeFrameChartIdPlanIdForTrade: (state, action) =>
         {
-            return [{ tickerSymbol: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, chartId: action.payload.chartId, planId: action.payload.planId, plan: action.payload.plan.plan }]
+            return [{ tickerSymbol: action.payload.ticker, tickerSector: action.payload.tickerSector, timeFrame: defaultTimeFrames.threeDayOneMin, chartId: action.payload.chartId, planId: action.payload.planId, plan: action.payload.plan.plan }]
         },
         setSingleChartToTickerTimeFrameTradeId: (state, action) =>
         {

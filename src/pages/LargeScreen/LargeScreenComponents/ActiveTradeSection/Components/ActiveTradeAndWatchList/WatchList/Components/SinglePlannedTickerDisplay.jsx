@@ -34,7 +34,7 @@ function SinglePlannedTickerDisplay({ id, watchList })
     }
     function handleTradeView()
     {
-        dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({ ticker: plan.tickerSymbol, chartId: plan._id, planId: plan._id, plan }))
+        dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({ ticker: plan.tickerSymbol, tickerSector: plan.sector, chartId: plan._id, planId: plan._id, plan }))
         dispatch(setStockDetailState(8))
     }
 
