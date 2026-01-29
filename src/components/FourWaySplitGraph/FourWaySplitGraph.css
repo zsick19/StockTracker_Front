@@ -1,4 +1,14 @@
 .LSH-FourWaySplitContainer {
+  position: relative;
   display: flex;
   flex-direction: column;
+}
+
+.LSH-4WayGraphHeader {
+  padding-inline: 1rem;
+  display: flex;
+  height: 35px;
+  align-content: center;
+  align-items: center;
+  justify-content: space-around;
 }

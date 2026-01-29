@@ -88,7 +88,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         let startDate
         let futureForwardEndDate
 
-        if (timeFrame.unitOfDuration === 'Y')
+
+        if (timeFrame.intraDay)
+        {
+            startDate = new Date()
+            futureForwardEndDate = addDays(new Date(), 1)
+        } else if (timeFrame.unitOfDuration === 'Y')
         {
             startDate = sub(new Date(), { days: 365 })
             futureForwardEndDate = addDays(new Date(), 2)
@@ -98,7 +103,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
             startDate = sub(new Date(), { days: timeFrame.duration })
             futureForwardEndDate = addDays(new Date(), 2)
         }
-
 
         let xDateScale
 
@@ -186,10 +190,16 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         let visualBreaksPeriods
         const yAxis = axisLeft(createPriceScale())
 
-        if (timeFrame.intraDay && timeFrame.duration < 180)
+
+
+        if (timeFrame.intraDay && timeFrame.duration > 3)
         {
             xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date()))
             visualBreaksPeriods = getBreaksBetweenDates(subDays(new Date(), 10), new Date(), 'days')
+        } else if (timeFrame.intraDay && timeFrame.duration <= 3)
+        {
+            xAxis = axisBottom(createDateScale())
+            visualBreaksPeriods = getBreaksBetweenDates(subDays(new Date(), 10), new Date(), 'marketOpen')
         } else
         {
             xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date()))
@@ -704,6 +714,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //zoomXBehavior
     useEffect(() =>
     {
+        console.log(uuid)
         if (preDimensionsAndCandleCheck() || nonZoomAble) return
         //        const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         const zoomBehavior = zoom().on('zoom', () =>

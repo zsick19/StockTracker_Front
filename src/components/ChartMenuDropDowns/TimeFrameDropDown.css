@@ -1,0 +1,16 @@
+.LSH-TimeFrameDropDownUnderlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+
+  background-color: rgba(66, 66, 66, 0.11);
+  z-index: 98;
+}
+
+.LSH-TimeFrameDropDown {
+  background-color: gray;
+  left: 50px;
+  top: 35px;
+  position: absolute;
+  z-index: 99;
+}

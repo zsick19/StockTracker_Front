@@ -18,10 +18,10 @@ const selectedStockSlice = createSlice({
         setSelectedStockAndTimelineFourSplit: (state, action) =>
         {
             return [
-                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, trade: action.payload?.trade },
-                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayFiveMin },
-                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneHour },
-                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, trade: action.payload?.trade, chartId: action.payload?.chartId },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayFiveMin, chartId: action.payload?.chartId },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneHour, chartId: action.payload?.chartId },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear, chartId: action.payload?.chartId },
             ]
         },
         setSingleChartTickerTimeFrameAndChartingId: (state, action) =>

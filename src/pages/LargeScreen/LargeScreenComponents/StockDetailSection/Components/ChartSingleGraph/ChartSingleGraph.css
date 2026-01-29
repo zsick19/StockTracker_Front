@@ -113,10 +113,7 @@
   padding: 1rem;
 }
 
-.buttonIcon {
-  border: none;
-  background: none;
-}
+
 
 #LHS-UnChartedNavigation div {
   font-size: var(--fs-200);

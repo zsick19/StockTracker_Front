@@ -68,6 +68,16 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
       months.push(start)
       start = addDays(start, 1)
     }
+  } else if (breakPeriod === 'marketOpen')
+  {
+    let start = startDate
+    while (start < endDate)
+    {
+      let premarketTime = start.setUTCHours(8)
+      months.push(premarketTime)
+      start = addDays(start, 1)
+      console.log(start)
+    }
   }
 
   return months;

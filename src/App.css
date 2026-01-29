@@ -292,3 +292,9 @@ select {
 .iconButton svg {
   display: block;
 }
+
+.buttonIcon {
+  border: none;
+  background: none;
+  display: flex;
+}

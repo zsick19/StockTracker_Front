@@ -5,12 +5,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setPreviousCharting } from '../../features/Charting/chartingElements'
 import { setKeyLevelsCharting } from '../../features/KeyLevels/KeyLevelGraphElements'
 import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGraphElement'
-import ChartGraphTrial from '../ChartTimeFrameTrials/ChartGraphTrial'
-import * as crypto from 'crypto'
-import * as short from 'short-uuid'
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
 
-function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, uuid, lastCandleData,candlesToKeepSinceLastQuery })
+function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery })
 {
     const dispatch = useDispatch()
     const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ chartId })
