@@ -32,7 +32,7 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
     {
         let stockInfo = data.tickerInfo
         graphContent = <div className={`ChartGraphWrapper `}>
-            <ChartGraph ticker={{ ticker: ticker }} candleData={data.candleData} nonInteractive={true} timeFrame={defaultTimeFrames.dailyHalfYear} uuid={uuid} />
+            <ChartGraph ticker={{ ticker: ticker }} isInteractive={false} isLivePrice={false} isZoomAble={false} candleData={data.candleData} nonInteractive={true} timeFrame={defaultTimeFrames.dailyHalfYear} uuid={uuid} />
         </div>
         tickerInfoContent = <div className='StockInfoBlock'>
             <p>{stockInfo.Symbol}</p>

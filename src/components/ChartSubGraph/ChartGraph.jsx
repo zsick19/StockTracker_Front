@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addEnterExitToCharting, addLine, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
-import { scaleDiscontinuous, discontinuitySkipWeekends, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { sub, subBusinessDays, addDays, isToday, subMonths, addYears, subDays } from 'date-fns'
+import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
+import { sub, addDays, isToday, subMonths, addYears, subDays } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group, timeMonths, timeDays, zoomIdentity } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
@@ -20,7 +20,8 @@ import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, nonLivePrice, nonInteractive, nonZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, isLivePrice, isInteractive,
+    isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery })
 {
     const dispatch = useDispatch()
 
@@ -78,7 +79,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [candleData])
 
 
-    const excludedPeriods = useMemo(() => generateTradingHours(timeFrame), [timeFrame])
+    const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame) }, [timeFrame])
 
 
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
@@ -92,7 +93,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         if (timeFrame.intraDay)
         {
             startDate = new Date()
-            futureForwardEndDate = addDays(new Date(), 1)
+            startDate.setHours(5, 30, 0, 0)
+            futureForwardEndDate = new Date()
         } else if (timeFrame.unitOfDuration === 'Y')
         {
             startDate = sub(new Date(), { days: 365 })
@@ -105,16 +107,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         }
 
         let xDateScale
-
         if (timeFrame.intraDay)
         {
-
             xDateScale = scaleDiscontinuous(scaleTime())
                 .discontinuityProvider(discontinuityRange(...excludedPeriods))
                 .domain([startDate, futureForwardEndDate])
                 .range([0, candleDimensions.width])
-        }
-        else
+        } else
         {
             xDateScale = scaleDiscontinuous(scaleTime())
                 .discontinuityProvider(discontinuitySkipUtcWeekends())
@@ -131,10 +130,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
             xDateScale.domain(newZoomState.domain())
         }
 
-        if (pixelToDate !== undefined)
-        {
-            if (timeFrame.intraDay) { return new Date(Math.floor(xDateScale.invert(pixelToDate))).toISOString() } else return xDateScale.invert(pixelToDate).toISOString()
-        }
+        if (pixelToDate !== undefined) { if (timeFrame.intraDay) { return new Date(Math.floor(xDateScale.invert(pixelToDate))).toISOString() } else return xDateScale.invert(pixelToDate).toISOString() }
         else if (dateToPixel !== undefined) return xDateScale(new Date(dateToPixel))
         else return xDateScale
 
@@ -181,29 +177,37 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     const stockCandleSVG = select(candleSVG.current)
     const priceScaleSVG = select(priceSVG.current)
 
+    const visualBreaksPeriods = useMemo(() =>
+    {
+
+        if (timeFrame.intraDay && timeFrame.duration > 3)
+        {
+            return getBreaksBetweenDates(subDays(new Date(), 10), addDays(new Date(), 10), 'days')
+        } else if (timeFrame.intraDay && timeFrame.duration <= 3)
+        {
+            return getBreaksBetweenDates(subDays(new Date(), 10), addDays(new Date(), 4), 'marketOpen')
+        } else
+        {
+            return getBreaksBetweenDates(new Date(2024, 1, 1), addYears(new Date(), 1), 'months')
+        }
+    }, [timeFrame])
+
     //plot stock candles
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck()) return
 
         let xAxis
-        let visualBreaksPeriods
         const yAxis = axisLeft(createPriceScale())
-
-
-
         if (timeFrame.intraDay && timeFrame.duration > 3)
         {
             xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date()))
-            visualBreaksPeriods = getBreaksBetweenDates(subDays(new Date(), 10), new Date(), 'days')
         } else if (timeFrame.intraDay && timeFrame.duration <= 3)
         {
             xAxis = axisBottom(createDateScale())
-            visualBreaksPeriods = getBreaksBetweenDates(subDays(new Date(), 10), new Date(), 'marketOpen')
         } else
         {
             xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date()))
-            visualBreaksPeriods = getBreaksBetweenDates(new Date(2024, 1, 1), addYears(new Date(), 1), 'months')
         }
 
         priceScaleSVG.select('.y-axis').style('transform', `translateX(${priceDimensions.width - 1}px)`).call(yAxis)
@@ -234,29 +238,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
 
 
 
-        let pixelDates = visualBreaksPeriods.map((d) => createDateScale({ dateToPixel: d }))
-
-        stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').data(visualBreaksPeriods).join(enter => createVisualBreaks(enter), update => updateVisualBreaks(update))
-        function createVisualBreaks(enter)
-        {
-            enter.append('rect').attr('class', (d, i) => { return i % 2 !== 0 ? 'monthOdd visualBreak' : 'monthEven visualBreak' })
-                .attr('x', (d, i) => createDateScale({ dateToPixel: d })).attr('y', -pixelBuffer.yDirectionPixelBuffer)
-                .attr('width', (d, i) => { return pixelDates[i + 1] - createDateScale({ dateToPixel: d }) })
-                .attr('height', candleDimensions.height)
-        }
-        function updateVisualBreaks(update)
-        {
-            update.each(function (d, i)
-            {
-                let start = createDateScale({ dateToPixel: d })
-                select(this).attr('x', start).attr('y', -pixelBuffer.yDirectionPixelBuffer).attr('width', (pixelDates[i + 1] - start)).attr('height', candleDimensions.height)
-            })
-        }
-
-
-
-
-        stockCandleSVG.select('.currentPrice').selectAll('line').remove()
         stockCandleSVG.select('.keyLevels').selectAll('line').remove()
         stockCandleSVG.select('.initialTrack').selectAll('line').remove()
 
@@ -269,17 +250,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 .attr('stroke', 'yellow')
                 .attr('stroke-width', '1px')
                 .attr('stroke-dasharray', '5 5')
-        }
-
-        if (nonLivePrice)
-        {
-            let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
-            stockCandleSVG.select('.currentPrice').append('line').attr('x1', 0).attr('x2', candleDimensions.width)
-                .attr('y1', pixelPrice).attr('y2', pixelPrice)
-                .attr('stroke', 'blue')
-                .attr('stroke-width', '1px')
-                .attr('stroke-dasharray', '5 5')
-                .attr('y1', pixelPrice).attr('y2', pixelPrice)
         }
 
         if (initialTracking)
@@ -307,7 +277,72 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
 
     }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
-    //plot candle Data and Liv
+
+    //draw visual time breaks
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+
+        if (timeFrame.intraDay)
+        {
+            stockCandleSVG.select('.visualDateBreaks').selectAll('.preMarketVisualBreak').data([...visualBreaksPeriods.preMarket]).join(enter => createMarketOpenVisualBreaks(enter), update => updateMarketOpenVisualBreaks(update))
+            function createMarketOpenVisualBreaks(enter)
+            {
+                enter.each(function (d, i)
+                {
+                    let start = createDateScale({ dateToPixel: d })
+                    let marketClose = createDateScale({ dateToPixel: visualBreaksPeriods.marketClose[i] })
+                    var visualBreakGroups = select(this).append('g').attr('class', 'preMarketVisualBreak')
+
+                    visualBreakGroups.append('rect').attr('class', 'preMarket')
+                        .attr('x', (d, i) => start).attr('y', -pixelBuffer.yDirectionPixelBuffer)
+                        .attr('width', (d) => createDateScale({ dateToPixel: visualBreaksPeriods.preMarketEnd[i] }) - start)
+                        .attr('height', candleDimensions.height)
+
+
+                    visualBreakGroups.append('rect').attr('class', 'afterMarket')
+                        .attr('x', (d, i) => marketClose).attr('y', -pixelBuffer.yDirectionPixelBuffer)
+                        .attr('width', (d) => createDateScale({ dateToPixel: visualBreaksPeriods.afterMarket[i] }) - marketClose)
+                        .attr('height', candleDimensions.height)
+                })
+            }
+            function updateMarketOpenVisualBreaks(update)
+            {
+                update.each(function (d, i)
+                {
+                    let start = createDateScale({ dateToPixel: d })
+                    let marketClose = createDateScale({ dateToPixel: visualBreaksPeriods.marketClose[i] })
+
+                    const visualBreakGroups = select(this)
+                    visualBreakGroups.select('.preMarket').attr('x', createDateScale({ dateToPixel: d })).attr('y', -pixelBuffer.yDirectionPixelBuffer).attr('width', (d) => createDateScale({ dateToPixel: visualBreaksPeriods.preMarketEnd[i] }) - start)
+                    visualBreakGroups.select('.afterMarket').attr('x', marketClose).attr('y', -pixelBuffer.yDirectionPixelBuffer)
+                        .attr('width', (d) => createDateScale({ dateToPixel: visualBreaksPeriods.afterMarket[i] }) - marketClose)
+                })
+            }
+        } else
+        {
+            let pixelDates = visualBreaksPeriods.months.map((d) => createDateScale({ dateToPixel: d }))
+            stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').data(visualBreaksPeriods.months).join(enter => createVisualBreaks(enter), update => updateVisualBreaks(update))
+            function createVisualBreaks(enter)
+            {
+                enter.append('rect').attr('class', (d, i) => { return i % 2 !== 0 ? 'monthOdd visualBreak' : 'monthEven visualBreak' })
+                    .attr('x', (d, i) => createDateScale({ dateToPixel: d })).attr('y', -pixelBuffer.yDirectionPixelBuffer)
+                    .attr('width', (d, i) => { return pixelDates[i + 1] - createDateScale({ dateToPixel: d }) })
+                    .attr('height', candleDimensions.height)
+            }
+            function updateVisualBreaks(update)
+            {
+                update.each(function (d, i)
+                {
+                    let start = createDateScale({ dateToPixel: d })
+                    select(this).attr('x', start).attr('y', -pixelBuffer.yDirectionPixelBuffer).attr('width', (pixelDates[i + 1] - start)).attr('height', candleDimensions.height)
+                })
+            }
+        }
+
+    }, [candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+
+    //plot previous candle Data and live price
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !candlesToKeepSinceLastQuery || !lastCandleData) return
@@ -333,8 +368,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 candle.select('.openClose').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
             })
         }
-
-
 
         stockCandleSVG.select('.lastCandleUpdate').selectAll('.veryLastCandle').data([lastCandleData]).join(enter => createCandles(enter), update => updateCandles(update))
         function createCandles(enter)
@@ -375,22 +408,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
 
         }
 
-
-
-
-
-
     }, [lastCandleData, candlesToKeepSinceLastQuery, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
-
-
-
-
-
-    //plot live trade stream
+    //plot most recent price 
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !mostRecentPrice || nonLivePrice) return
+        if (preDimensionsAndCandleCheck() || !mostRecentPrice || isLivePrice) return
 
 
         let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
@@ -523,14 +546,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
         function createEnterExit(enter)
         {
+            const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
+            const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
             enter.each(function (d)
             {
-                let startXPosition = candleDimensions.width * 0.9
-                let widthPosition = startXPosition + 100
                 var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
-
-                const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
-                const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
 
                 const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => yScaleRef.current({ priceToPixel: price }))
                 lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
@@ -538,19 +558,19 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
 
+                let twoPercentAboveEnter = createPriceScale({ priceToPixel: (d.enterPrice + (d.enterPrice * 0.02)) })
+                lineGroup.append('line').attr('class', `twoPercentLine`).attr('x1', 0).attr('x2', 5000)
+                    .attr('y1', twoPercentAboveEnter).attr('y2', twoPercentAboveEnter).attr('stroke', 'purple').attr('stroke-dasharray', '3 10 3')
+
                 yPositions.map((position, index) =>
                 {
                     lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
                         .attr('stroke-width', 10).attr('visibility', 'hidden').on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); })
-
-                    //      lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', startXPosition).attr('y', position).text((d) => `$${100}`)
                 })
             })
         }
         function updateEnterExit(update)
         {
-            let startXPosition = candleDimensions.width * 0.9
-            let widthPosition = startXPosition + 100
             const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
             update.each(function (d)
             {
@@ -560,11 +580,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
                 update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
                 update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5])
 
+                let twoPercentAboveEnter = createPriceScale({ priceToPixel: (d.enterPrice + (d.enterPrice * 0.02)) })
+                update.select(`.twoPercentLine`).attr('y1', twoPercentAboveEnter).attr('y2', twoPercentAboveEnter)
 
                 yPositions.map((position, index) =>
                 {
                     update.select(`.${names[index]}`).attr('y1', position).attr('y2', position)
-                    update.select(`.${names[index]}Text`).attr('x', startXPosition).attr('y', yPositions[index])
                 })
             })
         }
@@ -583,7 +604,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //configure svg cross hair, context menu, and tool interactions
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || nonInteractive) return
+        if (preDimensionsAndCandleCheck() || !isInteractive) return
         initializeMouseCrossHairBehavior()
         if (!stockCandleSVG.on('contextmenu')) { stockCandleSVG.on('contextmenu', (e) => { e.preventDefault(); setShowContextMenu({ display: true, style: { left: `${e.offsetX}px`, top: `${e.offsetY}px` } }) }) }
 
@@ -595,7 +616,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //update charting state post trace
     useEffect(() =>
     {
-        if (!captureComplete || preDimensionsAndCandleCheck() || nonInteractive) return
+        if (!captureComplete || preDimensionsAndCandleCheck() || !isInteractive) return
 
         let completeCapture = {}
         let pixelCapture = pixelSet.current
@@ -643,7 +664,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //toggle edit visual aids
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || nonInteractive) return
+        if (preDimensionsAndCandleCheck() || !isInteractive) return
         stockCandleSVG.selectAll('.edit').attr('visibility', 'hidden');
 
         switch (editMode)
@@ -657,7 +678,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //charting visibility
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || nonInteractive) return
+        if (preDimensionsAndCandleCheck() || !isInteractive) return
 
         let lineGroupClassName = '.line_group'
         let allPossibleClassNames = ['.freeLines', '.linesH', '.trendLines', '.wedges', '.channels', '.triangles', '.enterExits']
@@ -714,8 +735,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //zoomXBehavior
     useEffect(() =>
     {
-        console.log(uuid)
-        if (preDimensionsAndCandleCheck() || nonZoomAble) return
+        if (preDimensionsAndCandleCheck() || isZoomAble) return
         //        const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         const zoomBehavior = zoom().on('zoom', () =>
         {
@@ -732,7 +752,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
     //zoomYBehavior
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || nonZoomAble) return
+        if (preDimensionsAndCandleCheck() || isZoomAble) return
         const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         {
             const zoomState = zoomTransform(priceScaleSVG.node())
@@ -871,7 +891,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, n
         }
 
     }
-
 
     return (
         <div className='SVGGraphWrapper'>

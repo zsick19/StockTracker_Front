@@ -29,15 +29,16 @@ export function generateTradingHours(timeFrame,)
   const timeRanges = [];
   let currentDate = subBusinessDays(new Date().setUTCHours(9, 30), timeFrame.duration + 9);
 
-  let today = new Date()
+  let today = addDays(new Date(), 1)
   while (currentDate <= today)
   {
     if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6)
     {
       const marketCloseTime = new Date(currentDate);
-      marketCloseTime.setUTCHours(21, 0, 0, 0);
+      marketCloseTime.setUTCHours(1, 0, 0, 0);
 
-      const nextDayMarketOpenTime = add(marketCloseTime, { hours: 17, minutes: 30 })
+      const nextDayMarketOpenTime = add(marketCloseTime, { hours: 8 })
+
       timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
     }
     currentDate.setDate(currentDate.getDate() + 1);
@@ -49,7 +50,13 @@ export function generateTradingHours(timeFrame,)
 
 export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
 {
-  const months = [];
+  const timeBreaks = {
+    months: [],
+    preMarket: [],
+    preMarketEnd: [],
+    marketClose: [],
+    afterMarket: []
+  };
 
   if (breakPeriod === 'months')
   {
@@ -57,7 +64,7 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
 
     while (isBefore(currentMonth, endDate) || currentMonth.getMonth() === endDate.getMonth() && currentMonth.getFullYear() === endDate.getFullYear())
     {
-      months.push(currentMonth);
+      timeBreaks.months.push(currentMonth);
       currentMonth = addMonths(currentMonth, 1);
     }
   } else if (breakPeriod === 'days')
@@ -65,7 +72,7 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
     let start = startDate
     while (start < endDate)
     {
-      months.push(start)
+      timeBreaks.months.push(start)
       start = addDays(start, 1)
     }
   } else if (breakPeriod === 'marketOpen')
@@ -73,12 +80,15 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
     let start = startDate
     while (start < endDate)
     {
-      let premarketTime = start.setUTCHours(8)
-      months.push(premarketTime)
+      let preMarketTime = start.setUTCHours(9, 0, 0, 0)
+      timeBreaks.preMarket.push(new Date(preMarketTime))
+      timeBreaks.preMarketEnd.push(new Date(start).setUTCHours(14, 30))
+      timeBreaks.marketClose.push(new Date(start).setUTCHours(21, 0, 0, 0))
+      timeBreaks.afterMarket.push(add(start, { days: 1 }).setUTCHours(1))
       start = addDays(start, 1)
-      console.log(start)
+
     }
   }
 
-  return months;
+  return timeBreaks;
 }

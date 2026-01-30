@@ -7,10 +7,14 @@ import { useCreateUserWatchListMutation } from "../../../../features/WatchList/W
 import { ChartLine, CirclePlus, ListOrdered } from "lucide-react";
 import MacroKeyValuesInputContainer from "./Components/MacroKeyInputs/MacroKeyValuesInputContainer";
 import { selectSPYIdFromUser } from "../../../../features/Initializations/InitializationSliceApi";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import * as short from 'short-uuid'
+import { clearGraphControl, setInitialGraphControl } from "../../../../features/Charting/GraphHoverZoomElement";
 
 function MacroControlSection()
 {
+  const dispatch = useDispatch()
+
   const memoizedSelectedSPYId = useMemo(() => selectSPYIdFromUser(), [])
   const usersSPYId = useSelector(memoizedSelectedSPYId)
   useEffect(() => { if (usersSPYId) setPrimaryChartTicker({ ticker: 'SPY', _id: usersSPYId }) }, [usersSPYId])
@@ -51,6 +55,20 @@ function MacroControlSection()
     }
   }
 
+  const uuidGraph1 = useMemo(() => short.generate(), [])
+  const uuidGraph2 = useMemo(() => short.generate(), [])
+  // useEffect(() =>
+  // {
+  //   dispatch(setInitialGraphControl(uuidGraph1))
+  //   dispatch(setInitialGraphControl(uuidGraph2))
+  //   return (() =>
+  //   {
+  //     if (uuidGraph1) dispatch(clearGraphControl(uuidGraph1))
+  //     if (uuidGraph2) dispatch(clearGraphControl(uuidGraph2))
+  //   })
+  // }, [])
+
+
   return (
     <section id="LSH-MacroSection">
 
@@ -80,8 +98,9 @@ function MacroControlSection()
       </div>
 
       <div id="LSH-MacroCharts">
-        <ChartSubGraphContainer ticker={primaryChartTicker} />
-        {showMacroKeyLevelDisplay ? <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> : <ChartSubGraphContainer ticker={secondaryChartTicker} />}
+        <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} />
+        {showMacroKeyLevelDisplay ? <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
+          <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} />}
       </div>
     </section>
   );

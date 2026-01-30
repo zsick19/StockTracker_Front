@@ -102,7 +102,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             else if (draft.stopLossHit.ids.includes(data.tickerSymbol)) { entityToUpdate = draft.stopLossHit.entities[data.tickerSymbol] }
             else { entityToUpdate = draft.plannedTickers.entities[data.tickerSymbol] }
 
-            console.log(data)
             if (entityToUpdate)
             {
               entityToUpdate.mostRecentPrice = data.tradePrice

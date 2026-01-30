@@ -25,6 +25,7 @@ function ChartSingleGraph()
     const dispatch = useDispatch()
 
     const selectedTicker = useSelector(selectSingleChartStock)
+
     const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
 
     const [showUnChartedList, setShowUnchartedList] = useState(false)

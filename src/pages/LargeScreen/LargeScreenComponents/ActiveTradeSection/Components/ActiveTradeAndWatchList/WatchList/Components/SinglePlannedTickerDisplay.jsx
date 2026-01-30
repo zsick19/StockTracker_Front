@@ -24,17 +24,17 @@ function SinglePlannedTickerDisplay({ id, watchList })
 
     function handleSingleViewTicker()
     {
-        dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: plan.tickerSymbol, chartId: plan._id }))
+        dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: plan.tickerSymbol, chartId: plan._id, tickerSector: plan.sector, planId: plan._id, plan: plan }))
         dispatch(setStockDetailState(5))
     }
     function handleFourWaySplit()
     {
-        dispatch(setSelectedStockAndTimelineFourSplit({ ticker: plan.tickerSymbol, chartId: plan._id }))
+        dispatch(setSelectedStockAndTimelineFourSplit({ ticker: plan.tickerSymbol, chartId: plan._id, tickerSector: plan.sector, planId: plan._id, plan: plan }))
         dispatch(setStockDetailState(0))
     }
     function handleTradeView()
     {
-        dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({ ticker: plan.tickerSymbol, tickerSector: plan.sector, chartId: plan._id, planId: plan._id, plan }))
+        dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({ ticker: plan.tickerSymbol, tickerSector: plan.sector, chartId: plan._id, planId: plan._id, plan: plan.plan }))
         dispatch(setStockDetailState(8))
     }
 

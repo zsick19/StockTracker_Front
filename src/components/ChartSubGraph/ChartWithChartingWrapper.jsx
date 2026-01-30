@@ -14,8 +14,8 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
 
     useEffect(() =>
     {
-        if (uuid) dispatch(setInitialGraphControl(uuid))
-        return (() => { if (uuid) dispatch(clearGraphControl(uuid)) })
+        if (uuid) dispatch(setInitialGraphControl({ uuid }))
+        return (() => { if (uuid) dispatch(clearGraphControl({ uuid })) })
     }, [])
 
     useEffect(() =>
@@ -36,7 +36,8 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
         <div className="ChartGraphWrapper">
             <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData} uuid={uuid}
                 mostRecentPrice={candleData.mostRecentPrice} lastCandleData={lastCandleData} candlesToKeepSinceLastQuery={candlesToKeepSinceLastQuery}
-                timeFrame={timeFrame} nonLivePrice={interactionController?.nonLivePrice} nonInteractive={interactionController?.nonInteractive} nonZoomAble={interactionController?.nonZoomAble} />
+                timeFrame={timeFrame} isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive}
+                isZoomAble={interactionController?.isZoomAble} />
         </div>
     )
 }

@@ -3,7 +3,7 @@ import { defaultSectors } from '../../../../../../../Utilities/SectorsAndIndustr
 import { useSelector } from 'react-redux'
 import { selectUserMarketSearchFilters } from '../../../../../../../features/Initializations/InitializationSliceApi'
 import { useCreateNewSavedFilterMutation, useRemoveSavedFilterMutation } from '../../../../../../../features/MarketSearch/MarketSearchFilterSliceApi'
-import { CircleX } from 'lucide-react'
+import { ChevronDown, CircleX, PanelTopOpen } from 'lucide-react'
 
 function MarketSearchFilterBar({ searchFilter, setSearchFilter })
 {
@@ -97,9 +97,11 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
 
     return (
         <div id='LHS-MarketSearchFilterBarClosed'>
-            <p>Filter Info</p>
-            <button onClick={() => setFilterBarOpen(true)}>Open Filter</button>
 
+            <div className='flex' onClick={() => setFilterBarOpen(true)}>
+                <p>Market Search Filter</p>
+                <ChevronDown color='white' size={18} />
+            </div>
 
             {filterBarOpen &&
                 <div id='LHS-MarketSearchFilterBarOpen'>
@@ -146,8 +148,8 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
                         <button onClick={() => { setDisplayFilterSave(false); setSavedFilterServerMessage(undefined); setFilterBarOpen(false) }}><CircleX /></button>
                     </div>
                 </div>}
-        </div>
 
+        </div>
     )
 }
 

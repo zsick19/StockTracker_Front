@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { setSelectedIndexTimeFrame } from '../../features/SelectedStocks/SelectedStockSlice'
+import { setSelectedIndexTimeFrame, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../features/SelectedStocks/SelectedStockSlice'
 import { defaultTimeFrames } from '../../Utilities/TimeFrames'
 import { useGetStockDataUsingTimeFrameQuery } from '../../features/StockData/StockDataSliceApi'
 import GraphLoadingError from '../ChartSubGraph/GraphFetchStates/GraphLoadingError'
@@ -10,14 +10,15 @@ import './FourWaySplitGraph.css'
 import * as short from 'short-uuid'
 import TimeFrameDropDown from '../ChartMenuDropDowns/TimeFrameDropDown'
 import StudySelectPopover from '../ChartMenuDropDowns/StudySelectPopover'
-import { ChartCandlestick, FlaskConical, Scale3D } from 'lucide-react'
+import { ChartCandlestick, FlaskConical, LineSquiggle, Scale3D } from 'lucide-react'
 import { setResetXYZoomState } from '../../features/Charting/GraphHoverZoomElement'
+import { setStockDetailState } from '../../features/SelectedStocks/StockDetailControlSlice'
 
 function FourWaySpitGraphContainer({ selectedStock, index })
 {
     const dispatch = useDispatch()
     const uuid = useMemo(() => short.generate(), [])
-    let interactions = { nonLivePrice: false, nonInteractive: true, nonZoomAble: false }
+    let interactions = { isLivePrice: false, isInteractive: false, isZoomAble: false }
 
     const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
     const [showStudiesSelect, setShowStudiesSelect] = useState(false)
@@ -62,19 +63,17 @@ function FourWaySpitGraphContainer({ selectedStock, index })
     {
 
     }
-
     return (
         <div className='LSH-FourWaySplitContainer'>
             {showTimeFrameSelect && <TimeFrameDropDown handleTimeFrameChange={handleTimeFrameChange} setShowTimeFrameSelect={setShowTimeFrameSelect} />}
             {showStudiesSelect && <StudySelectPopover handleStudySelectChange={handleStudySelectChange} setShowStudiesSelect={setShowStudiesSelect} />}
             <div className='LSH-4WayGraphHeader'>
-                <div className='flex'>
-                    <h3>{selectedStock.ticker}</h3>
-                </div>
+                <h3 onDoubleClick={() => { dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({ tickerSymbol: selectedStock.ticker, tickerSector: selectedStock.tickerSector, chartId: selectedStock.chartId, plan: selectedStock.plan, planId: selectedStock.chartId })); dispatch(setStockDetailState(8)) }}>{selectedStock.ticker}</h3>
                 <button className='timeFrameButton' onClick={() => { setShowTimeFrameSelect(true); setShowStudiesSelect(false) }}>{selectedStock.timeFrame.increment}{selectedStock.timeFrame.unitOfIncrement}</button>
                 <button className='buttonIcon' onClick={() => { setShowTimeFrameSelect(false); setShowStudiesSelect(true) }}><FlaskConical size={18} color='white' /></button>
+                <button className='buttonIcon'><LineSquiggle color='white' size={18} /></button>
+
                 <button className='buttonIcon' onClick={() => dispatch(setResetXYZoomState({ uuid }))} ><Scale3D size={18} color='white' /></button>
-                <button className='buttonIcon' onClick={() => dispatch(setResetXYZoomState({ uuid }))} ><ChartCandlestick size={18} color='white' /></button>
             </div>
             {graphVisual}
         </div>

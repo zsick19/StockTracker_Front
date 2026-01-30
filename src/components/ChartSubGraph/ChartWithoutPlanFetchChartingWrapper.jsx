@@ -20,7 +20,7 @@ function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionC
         <div className="ChartGraphWrapper">
             <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData}
                 mostRecentPrice={{ Price: mostRecentPrice }}
-                timeFrame={timeFrame} nonLivePrice={interactionController?.nonLivePrice} nonInteractive={interactionController?.nonInteractive} nonZoomAble={interactionController?.nonZoomAble}
+                timeFrame={timeFrame} isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive} isZoomAble={interactionController.isZoomAble}
                 initialTracking={initialTracking} uuid={uuid} />
         </div>)
 }

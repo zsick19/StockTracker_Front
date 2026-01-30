@@ -1,9 +1,18 @@
 import React, { useState } from "react";
 import { defaultTimeFrames } from "../../Utilities/TimeFrames";
+import { FlaskConical, LineSquiggle, Scale3D } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { setResetXYZoomState } from "../../features/Charting/GraphHoverZoomElement";
+import { setSelectedIndexTimeFrame } from "../../features/SelectedStocks/SelectedStockSlice";
 
-function ChartTimeFrameBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts })
+function ChartTimeFrameBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts, uuid })
 {
   const [showTimeFrameModal, setShowTimeFrameModal] = useState(false)
+
+
+  const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
+  const [showStudiesSelect, setShowStudiesSelect] = useState(false)
+
 
   function handlePreDefinedTimeSelection(e)
   {
@@ -27,74 +36,48 @@ function ChartTimeFrameBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubC
     if (timeFrame.unitOfDuration === 'D') return ''
     else return `:${timeFrame.duration}${timeFrame.unitOfDuration}`
   }
-  return <nav className="ChartTimeFrameBar">
-    <p>{ticker}</p>
-    <div className="TimeFrameDropDown">
-      <button onClick={() => setShowTimeFrameModal(prev => !prev)}>{`${timeFrame.increment}${timeFrame.unitOfIncrement}${provideTimeFrameDurationText()}      `}</button>
 
-      {showTimeFrameModal &&
-        <div className="ChartTimeFrameDropDownSelect">
-          <h4>Time Frame Select</h4>
-
-          <form onChange={(e) => handlePreDefinedTimeSelection(e)} className="PreDefinedTimeFrameRadioButtons">
-            <div>
-              <input type="radio" name="" id="3D1M" className="visually-hidden" value='3D1M' />
-              <label htmlFor="3D1M">1M</label>
-            </div>
-            <div>
-              <input type="radio" name="" id="3D2M" className="visually-hidden" value="3D2M" />
-              <label htmlFor="3D2M">2M</label>
-            </div>
-            <div>
-              <input type="radio" name="" id="3D5M" className="visually-hidden" value="3D5M" />
-              <label htmlFor="3D5M">5M</label>
-            </div>
-            <div>
-              <input type="radio" name="" id="3D15M" className="visually-hidden" value="3D15M" />
-              <label htmlFor="3D15M">15M</label>
-            </div>
-            <div>
-              <input type="radio" name="" id="3D30M" className="visually-hidden" value="3D30M" />
-              <label htmlFor="3D30M">30M</label>
-            </div>
-            <div>
-              <input type="radio" name="" id="3D1H" className="visually-hidden" value="3D1H" />
-              <label htmlFor="3D1H">1H</label>
-            </div>
-          </form>
-
-          <form onChange={(e) => handlePreDefinedTimeSelection(e)} className="PreDefinedTimeFrameRadioButtons">
-            <div>
-              <input type="radio" name="" id="4H:1Y" className="visually-hidden" value="4H1Y" />
-              <label htmlFor="4H:1Y">4H:1Y</label>
-            </div>
-            <div>
-              <input type="radio" name="" id="1D:1Y" className="visually-hidden" value="1D1Y" />
-              <label htmlFor="1D:1Y">1D:1Y</label>
-            </div>
-            <div>
-              <input type="radio" name="" id="1W:1Y" className="visually-hidden" value="1W1Y" />
-              <label htmlFor="1W:1Y">1W:1Y</label>
-            </div>
-          </form>
-
-          <form>
-            <div>
-              <label htmlFor="duration">Duration</label>
-              <input type="number" id="duration" />
-              <select name="" id="">
-                <option value="">Hour</option>
-                <option value="">Day</option>
-              </select>
-            </div>
-
-
-          </form>
-
-          <button onClick={() => setShowTimeFrameModal(false)}>Cancel</button>
-        </div>
+  const dispatch = useDispatch()
+  function handleTimeFrameChange(e)
+  {
+    let timeFrameSelection
+    if (e.target.name === 'timeFrameIntra')
+    {
+      switch (e.target.id)
+      {
+        case '1m': timeFrameSelection = defaultTimeFrames.threeDayOneMin; break;
+        case '2m': timeFrameSelection = defaultTimeFrames.threeDayTwoMin; break;
+        case '5m': timeFrameSelection = defaultTimeFrames.threeDayFiveMin; break;
+        case '15m': timeFrameSelection = defaultTimeFrames.threeDayFifteenMin; break;
+        case '30m': timeFrameSelection = defaultTimeFrames.threeDayThirtyMin; break;
       }
-    </div >
+    }
+    else if (e.target.name === 'timeFrameHour') { timeFrameSelection = defaultTimeFrames.threeDayOneHour }
+    else if (e.target.name === 'timeFrameDay') { timeFrameSelection = defaultTimeFrames.dailyOneYear }
+    else if (e.target.name === 'timeFrameWeek') { timeFrameSelection = defaultTimeFrames.weeklyOneYear }
+
+    setShowTimeFrameSelect(false)
+    setTimeFrame(timeFrameSelection)
+  }
+
+  function handleStudySelectChange(e)
+  {
+
+  }
+
+  return <nav className="ChartTimeFrameBar">
+
+    {showTimeFrameSelect && <TimeFrameDropDown handleTimeFrameChange={handleTimeFrameChange} setShowTimeFrameSelect={setShowTimeFrameSelect} />}
+    {showStudiesSelect && <StudySelectPopover handleStudySelectChange={handleStudySelectChange} setShowStudiesSelect={setShowStudiesSelect} />}
+    <div className='LSH-4WayGraphHeader'>
+      <h3>{ticker}</h3>
+      <button className='timeFrameButton' onClick={() => { setShowTimeFrameSelect(true); setShowStudiesSelect(false) }}>{timeFrame.increment}{timeFrame.unitOfIncrement}</button>
+      <button className='buttonIcon' onClick={() => { setShowTimeFrameSelect(false); setShowStudiesSelect(true) }}><FlaskConical size={18} color='white' /></button>
+      <button className='buttonIcon'><LineSquiggle color='white' size={18} /></button>
+
+      <button className='buttonIcon' onClick={() => dispatch(setResetXYZoomState({ uuid }))} ><Scale3D size={18} color='white' /></button>
+    </div>
+
   </nav >;
 }
 

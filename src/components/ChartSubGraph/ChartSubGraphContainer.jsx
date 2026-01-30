@@ -9,7 +9,7 @@ import { useGetStockDataUsingTimeFrameQuery } from "../../features/StockData/Sto
 import GraphLoadingSpinner from "./GraphFetchStates/GraphLoadingSpinner";
 import GraphLoadingError from "./GraphFetchStates/GraphLoadingError";
 
-function ChartSubGraphContainer({ ticker })
+function ChartSubGraphContainer({ ticker, uuid })
 {
   const [timeFrame, setTimeFrame] = useState(defaultTimeFrames.dailyOneYear);
   const [subCharts, setSubCharts] = useState([])
@@ -23,7 +23,7 @@ function ChartSubGraphContainer({ ticker })
   let actualChart
   if (isSuccess && stockData.candleData.length > 0)
   {
-    actualChart = <ChartWithChartingWrapper ticker={ticker} candleData={stockData} chartId={ticker._id} timeFrame={timeFrame} />
+    actualChart = <ChartWithChartingWrapper ticker={ticker} candleData={stockData} chartId={ticker._id} timeFrame={timeFrame} uuid={uuid} />
   }
   else if (isSuccess) { actualChart = <div>No Data to display</div> }
   else if (isLoading) { actualChart = <GraphLoadingSpinner /> }
@@ -35,8 +35,8 @@ function ChartSubGraphContainer({ ticker })
 
   return (
     <div className="ChartSubContainer">
-      <ChartTimeFrameBar ticker={ticker.ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} />
-      <ChartMenuBar />
+      <ChartTimeFrameBar ticker={ticker.ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} uuid={uuid} />
+      {/* <ChartMenuBar /> */}
 
       {actualChart}
 

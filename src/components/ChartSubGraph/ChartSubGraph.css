@@ -147,3 +147,11 @@
   fill: white;
   font-size: var(--fs-100);
 }
+
+.preMarket {
+  fill: rgba(212, 212, 212, 0.192);
+}
+
+.afterMarket {
+  fill: rgba(189, 189, 189, 0.418);
+}

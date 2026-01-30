@@ -1,4 +1,4 @@
-import { isSameMinute } from "date-fns";
+import { add, addMinutes, isSameHour, isSameMinute, startOfHour } from "date-fns";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
@@ -12,14 +12,17 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
         body: { timeFrame: args.timeFrame },
       }), transformResponse: (response, meta, args) =>
       {
-
         if (!args.liveFeed) response.nonLivePrice = response.mostRecentPrice.Price
         else
         {
           response.mostRecentTickerCandle = response.candleData.pop()
+          if (args.timeFrame.unitOfIncrement === 'H') { response.mostRecentTickerCandle.Timestamp = startOfHour(new Date(response.mostRecentTickerCandle.Timestamp)) }
+          else { response.mostRecentTickerCandle.Timestamp = new Date(response.mostRecentTickerCandle.Timestamp).setSeconds(0, 0) }
+          response.mostRecentTickerCandle.ClosePrice = response.mostRecentPrice.Price
           response.candlesToKeepSinceLastQuery = []
           response.mostRecentPrice = response.mostRecentPrice.Price
         }
+
 
         return response
       },
@@ -47,7 +50,9 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
                 //else push finished recent ticker to previous tickers and extract a new ticker comparing incoming data with last candle for OCLH values
 
 
-                if (isSameMinute(new Date(data.Timestamp), new Date(draft.mostRecentTickerCandle.Timestamp)))
+
+
+                if (checkForSameTimeFrameCandle((new Date(data.Timestamp), new Date(draft.mostRecentTickerCandle.Timestamp))))
                 {
                   if (draft.mostRecentTickerCandle.OpenPrice < data.Price)
                   {
@@ -61,16 +66,20 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
                     if (data.Price < draft.mostRecentTickerCandle.LowPrice) { draft.mostRecentTickerCandle.LowPrice = data.Price }
                   }
                   draft.mostRecentTickerCandle.ClosePrice = data.Price
+
+
                 } else
                 {
                   let copyOfClosingCandle = draft.mostRecentTickerCandle
+
+
                   draft.candlesToKeepSinceLastQuery.push(draft.mostRecentTickerCandle)
 
                   if (data.Price >= copyOfClosingCandle.ClosePrice) 
                   {
                     draft.mostRecentTickerCandle = {
                       ...copyOfClosingCandle,
-                      Timestamp: data.Timestamp,
+                      Timestamp: provideNewTimeStamp(new Date(copyOfClosingCandle.Timestamp)),
                       HighPrice: data.Price,
                       LowPrice: copyOfClosingCandle.ClosePrice,
                       OpenPrice: copyOfClosingCandle.ClosePrice,
@@ -80,7 +89,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
                   {
                     draft.mostRecentTickerCandle = {
                       ...copyOfClosingCandle,
-                      Timestamp: data.Timestamp,
+                      Timestamp: provideNewTimeStamp(new Date(copyOfClosingCandle.Timestamp)),
                       HighPrice: copyOfClosingCandle.ClosePrice,
                       LowPrice: data.Price,
                       OpenPrice: copyOfClosingCandle.ClosePrice,
@@ -89,6 +98,24 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
                   }
                 }
               }
+
+
+              function checkForSameTimeFrameCandle(incomingData, mostRecent)
+              {
+                if (args.timeFrame.unitOfIncrement === 'H' && args.timeFrame.increment === "1") isSameHour(incomingData, mostRecent)
+                else if (args.timeFrame.unitOfIncrement === 'H') { return incomingData < new Date().setHours(12, 30) }
+                else if (args.timeFrame.unitOfIncrement === 'M')
+                {
+                  return incomingData > addMinutes(mostRecent, args.timeFrame.increment);
+                }
+              }
+              function provideNewTimeStamp(mostRecent)
+              {
+                if (args.timeFrame.unitOfIncrement === 'H' && args.timeFrame.increment === "1") return add(mostRecent, { hours: args.timeFrame.increment })
+                else if (args.timeFrame.unitOfIncrement === 'M') return add(mostRecent, { minutes: args.timeFrame.increment })
+              }
+
+
               return draft
             })
           }
