@@ -1,3 +1,27 @@
+.newsMessageFlexDisplay {
+  display: grid;
+  grid-template-rows: min-content 1fr;
+  font-size: var(--fs-200);
+}
+
+.newsMessageFlexDisplay > div:first-of-type {
+  background-color: rgb(83, 83, 92);
+
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
 #NewsCenterDisplayNav {
+  padding-inline: 1rem;
   display: flex;
+  gap: 0.5rem;
+  background-color: rgb(130, 130, 136);
+  height: 2rem;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.newsMessageFlexDisplay > div:last-of-type {
+  padding: 1rem;
+  border-top: 1px solid white;
 }

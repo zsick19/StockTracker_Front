@@ -20,8 +20,7 @@ import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, isLivePrice, isInteractive,
-    isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery })
 {
     const dispatch = useDispatch()
 
@@ -44,8 +43,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
     const editMode = useSelector(selectChartEditMode)
-
-
 
     //redux graph functioning selectors
     const currentTool = useSelector(selectCurrentTool)
@@ -89,12 +86,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
         let startDate
         let futureForwardEndDate
 
-
         if (timeFrame.intraDay)
         {
             startDate = new Date()
             startDate.setHours(5, 30, 0, 0)
             futureForwardEndDate = new Date()
+
         } else if (timeFrame.unitOfDuration === 'Y')
         {
             startDate = sub(new Date(), { days: 365 })
@@ -109,16 +106,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
         let xDateScale
         if (timeFrame.intraDay)
         {
-            xDateScale = scaleDiscontinuous(scaleTime())
-                .discontinuityProvider(discontinuityRange(...excludedPeriods))
-                .domain([startDate, futureForwardEndDate])
-                .range([0, candleDimensions.width])
+            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuityRange(...excludedPeriods)).domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
         } else
         {
-            xDateScale = scaleDiscontinuous(scaleTime())
-                .discontinuityProvider(discontinuitySkipUtcWeekends())
-                .domain([startDate, futureForwardEndDate])
-                .range([0, candleDimensions.width])
+            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuitySkipUtcWeekends()).domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
         }
 
 
@@ -388,7 +379,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
                     .attr('stroke', 'green')
                     .attr('stroke-width', '1px')
                     .attr('stroke-dasharray', '5 5')
-                select(this).append('text').attr('class', 'livePriceText').attr('id', 'livePriceText').attr('color', 'white')
+                select(this).append('text').attr('class', 'livePriceText').attr('color', 'white')
                     .text(`$${d.ClosePrice}`).attr("x", candleDimensions.width - 75).attr("y", pixelPrice);
             })
         }
@@ -401,9 +392,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
                 candle.select('.lowHigh').attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
                 candle.select('.openClose').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice })).attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' })
 
-                let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice })
+                let pixelPrice = createPriceScale({ priceToPixel: d.ClosePrice })
                 candle.select('.livePrice').attr('y1', pixelPrice).attr('y2', pixelPrice)
-                select('.livePriceText').text(`$${d.ClosePrice}`).attr('y', pixelPrice)
+                stockCandleSVG.select('.lastCandleUpdate').select('.livePriceText').text(`$${d.ClosePrice}`).attr('y', pixelPrice)
             })
 
         }
@@ -620,14 +611,14 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
 
         let completeCapture = {}
         let pixelCapture = pixelSet.current
-        completeCapture.dateP1 = createDateScale({ pixelToDate: pixelCapture.X1 })
+
         if (currentTool === 'Enter Exit')
         {
+            completeCapture.dateP1 = createDateScale({ pixelToDate: pixelCapture.X1 })
 
             completeCapture.enterPrice = createPriceScale({ pixelToPrice: pixelCapture.Y1 })
             completeCapture.enterBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y2 })
             completeCapture.stopLossPrice = createPriceScale({ pixelToPrice: pixelCapture.Y3 })
-
             completeCapture.exitPrice = createPriceScale({ pixelToPrice: pixelCapture.Y4 })
             completeCapture.exitBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y5 })
             completeCapture.moonPrice = createPriceScale({ pixelToPrice: pixelCapture.Y6 })
@@ -638,14 +629,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
             {
                 dispatch(defineEnterExitPlan({ ticker, enterExitPlan: completeCapture }))
                 attemptToUpdateEnterExit()
-
-            } else
-            {
-                dispatch(addEnterExitToCharting({ ticker, enterExit: completeCapture }))
-            }
+            } else { dispatch(addEnterExitToCharting({ ticker, enterExit: completeCapture })) }
 
         } else
         {
+            completeCapture.dateP1 = createDateScale({ pixelToDate: pixelCapture.X1 })
             completeCapture.dateP2 = createDateScale({ pixelToDate: pixelCapture.X2 })
             Object.keys(pixelSet.current).filter(t => t.includes('Y')).map((pixelForPrice, i) => { completeCapture[`priceP${i + 1}`] = createPriceScale({ pixelToPrice: pixelCapture[pixelForPrice] }) })
 
@@ -657,6 +645,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
                 // case ChartingTools[2].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
             }
         }
+
         resetTemp()
 
     }, [currentTool, captureComplete])
@@ -736,7 +725,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || isZoomAble) return
-        //        const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         const zoomBehavior = zoom().on('zoom', () =>
         {
             if (enableZoom)

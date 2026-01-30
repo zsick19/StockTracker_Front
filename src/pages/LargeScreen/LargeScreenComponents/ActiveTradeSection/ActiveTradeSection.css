@@ -10,19 +10,6 @@
   gap: 1rem;
 }
 
-#NewsAndMessageSection div {
-  padding: 1rem;
-  border-radius: 1rem;
-  display: grid;
-  justify-content: center;
-  align-content: center;
-}
-
-#NewsAndMessageSection div {
-  background-color: rgb(37, 38, 39);
-  font-size: var(--fs-200);
-}
-
 #ActiveTradeSection {
   background-color: rgb(37, 38, 39);
 }

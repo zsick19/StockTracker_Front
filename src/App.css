@@ -298,3 +298,43 @@ select {
   background: none;
   display: flex;
 }
+
+.fieldSetWithTabs {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  width: 100%;
+  border: none;
+  align-items: end;
+}
+
+.hidden-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.fieldSetWithTabs label {
+  background-color: #202235;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  text-align: center;
+  width: max-content;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-inline: 1px solid rgba(255, 255, 255, 0);
+}
+
+.hidden-radio:checked + label {
+  border-top: 1px solid white;
+  border-left: 1px solid white;
+  border-right: 1px solid white;
+  background-color: #627283;
+}
+
+/* Optional: Add a focus state for keyboard users */
+.hidden-radio:hover + label {
+  background-color: #627283;
+}

@@ -13,7 +13,7 @@ function TimeFrameDropDown({ handleTimeFrameChange, setShowTimeFrameSelect })
                 </div>
                 <div>
                     <label htmlFor="2m">2M</label>
-                    <input type="radio" name="timeFrameIntra" id="1m" value={2} />
+                    <input type="radio" name="timeFrameIntra" id="2m" value={2} />
                 </div>
                 <div>
                     <label htmlFor="5m">5M</label>

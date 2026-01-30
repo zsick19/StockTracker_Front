@@ -3,7 +3,6 @@ import './NewsCenterContainer.css'
 
 function NewsCenterContainer()
 {
-
     const [newsDisplay, setNewsDisplay] = useState('details')
 
     function provideCurrentNewsDisplay()
@@ -30,27 +29,26 @@ function NewsCenterContainer()
 
 
     return (
-        <div id='NewsDisplaySection'>
-            <fieldset onChange={(e) => setNewsDisplay(e.target.id)} id='NewsCenterDisplayNav'>
-                <div>
-                    <label htmlFor="details">Detail Numbers</label>
-                    <input type="radio" name="newsDisplay" id="details" defaultChecked />
-                </div>
-                <div>
-                    <label htmlFor="macro">Macro</label>
-                    <input type="radio" name="newsDisplay" id="macro" />
-                </div>
-                <div>
-                    <label htmlFor="trade">Trades</label>
-                    <input type="radio" name="newsDisplay" id="trade" />
-                </div>
-                <div>
-                    <label htmlFor="pretrade">Pre Trades</label>
-                    <input type="radio" name="newsDisplay" id="pretrade" />
-                </div>
-            </fieldset>
-            {provideCurrentNewsDisplay()}
-        </div>
+        <div id='NewsDisplaySection' className='newsMessageFlexDisplay'>
+            <fieldset onChange={(e) => setNewsDisplay(e.target.id)} id='NewsCenterDisplayNav' className='fieldSetWithTabs'>
+
+                <input type="radio" name="newsDisplay" id="details" defaultChecked className='hidden-radio' />
+                <label htmlFor="details">Detail Numbers</label>
+
+                <input type="radio" name="newsDisplay" id="macro" className='hidden-radio' />
+                <label htmlFor="macro">Macro</label>
+
+                <input type="radio" name="newsDisplay" id="trade" className='hidden-radio' />
+                <label htmlFor="trade">Trades</label>
+
+                <input type="radio" name="newsDisplay" id="pretrade" className='hidden-radio' />
+                <label htmlFor="pretrade">Pre Trades</label>
+
+            </fieldset >
+            <div>
+                {provideCurrentNewsDisplay()}
+            </div>
+        </div >
     )
 }
 

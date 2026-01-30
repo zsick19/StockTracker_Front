@@ -1,22 +1,23 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { setSelectedIndexTimeFrame, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../features/SelectedStocks/SelectedStockSlice'
-import { defaultTimeFrames } from '../../Utilities/TimeFrames'
-import { useGetStockDataUsingTimeFrameQuery } from '../../features/StockData/StockDataSliceApi'
-import GraphLoadingError from '../ChartSubGraph/GraphFetchStates/GraphLoadingError'
-import GraphLoadingSpinner from '../ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
-import ChartWithChartingWrapper from '../ChartSubGraph/ChartWithChartingWrapper'
 import './FourWaySplitGraph.css'
 import * as short from 'short-uuid'
-import TimeFrameDropDown from '../ChartMenuDropDowns/TimeFrameDropDown'
-import StudySelectPopover from '../ChartMenuDropDowns/StudySelectPopover'
-import { ChartCandlestick, FlaskConical, LineSquiggle, Scale3D } from 'lucide-react'
-import { setResetXYZoomState } from '../../features/Charting/GraphHoverZoomElement'
-import { setStockDetailState } from '../../features/SelectedStocks/StockDetailControlSlice'
+import { FlaskConical, LineSquiggle, Scale3D } from 'lucide-react'
+import { setSelectedIndexTimeFrame, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
+import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
+import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
+import { setResetXYZoomState } from '../../../../../../../features/Charting/GraphHoverZoomElement'
+import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
+import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
+import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
+import TimeFrameDropDown from '../../../../../../../components/ChartMenuDropDowns/TimeFrameDropDown'
+import StudySelectPopover from '../../../../../../../components/ChartMenuDropDowns/StudySelectPopover'
 
 function FourWaySpitGraphContainer({ selectedStock, index })
 {
     const dispatch = useDispatch()
+    
     const uuid = useMemo(() => short.generate(), [])
     let interactions = { isLivePrice: false, isInteractive: false, isZoomAble: false }
 

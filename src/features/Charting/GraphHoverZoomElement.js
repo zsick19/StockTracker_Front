@@ -6,8 +6,7 @@ const graphHoverZoomElementSlice = createSlice({
   reducers: {
     setInitialGraphControl: (state, action) =>
     {
-
-      state[action.payload] = { x: undefined, y: undefined }
+      state[action.payload.uuid] = { x: undefined, y: undefined }
     },
     setXZoomState: (state, action) =>
     {
