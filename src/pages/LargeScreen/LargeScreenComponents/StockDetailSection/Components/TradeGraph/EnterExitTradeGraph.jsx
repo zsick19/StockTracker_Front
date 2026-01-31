@@ -7,15 +7,20 @@ import './EnterExitTradeGraph.css'
 import TradeGraphChartWrapper from './Components/TradeGraphChartWrapper'
 import { useEffect, useMemo, useState } from 'react'
 import { defaultTimeFrames, interDayTimeFrames } from '../../../../../../Utilities/TimeFrames'
-import { CalendarCog, Scale3D } from 'lucide-react'
+import { CalendarCog, FlaskConical, LineSquiggle, Scale3D } from 'lucide-react'
 import * as short from 'short-uuid'
 import { clearGraphControl, setInitialGraphControl, setResetXYZoomState } from '../../../../../../features/Charting/GraphHoverZoomElement'
+import TimeFrameDropDown from '../../../../../../components/ChartMenuDropDowns/TimeFrameDropDown'
+import StudySelectPopover from '../../../../../../components/ChartMenuDropDowns/StudySelectPopover'
 
 function EnterExitTradeGraph()
 {
     const dispatch = useDispatch()
     const selectedStock = useSelector(selectTradeChartStock)
     const [timeFrame, setTimeFrame] = useState(selectedStock?.timeFrame || defaultTimeFrames.threeDayOneMin)
+    const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
+    const [showStudiesSelect, setShowStudiesSelect] = useState(false)
+
 
     const uuid = useMemo(() => short.generate(), [])
 
@@ -29,25 +34,29 @@ function EnterExitTradeGraph()
     return (
         <div id='LHS-TradeRecord'>
             <div id='LHS-SingleGraphMenuBar'>
-                {selectedStock?.tickerSymbol || 'No ticker selected'}
-                {/* <button onClick={() => { setShowStudiesModal(true) }}>Studies</button> */}
-                {/* <button onClick={() => { setShowVisibilityModal(true) }} title='Visibility Control'><EyeOff size={20} /></button> */}
+                {showTimeFrameSelect && <TimeFrameDropDown handleTimeFrameChange={handleTimeFrameChange} setShowTimeFrameSelect={setShowTimeFrameSelect} />}
+                {showStudiesSelect && <StudySelectPopover handleStudySelectChange={handleStudySelectChange} setShowStudiesSelect={setShowStudiesSelect} />}
 
-                <div className='IntraDayTimeFrameBtns'>
-                    {interDayTimeFrames.map((timeFrame) => { return <button onClick={() => setTimeFrame(timeFrame.timeFrame)}>{timeFrame.label}</button> })}
-                    <button onClick={() => { setShowCustomTimeFrameModal(true) }}><CalendarCog size={20} /></button>
-                </div>
+                <h3>{selectedStock?.tickerSymbol || 'No ticker selected'}</h3>
+                <button className='timeFrameButton' onClick={() => { setShowTimeFrameSelect(true); setShowStudiesSelect(false) }}>{timeFrame.increment}{timeFrame.unitOfIncrement}</button>
+                <button className='buttonIcon' onClick={() => { setShowTimeFrameSelect(false); setShowStudiesSelect(true) }}><FlaskConical size={18} color='white' /></button>
+                <button className='buttonIcon'><LineSquiggle color='white' size={18} /></button>
+
+
+
+                {showTimeFrameSelect && <TimeFrameDropDown />}
                 <button onClick={() => dispatch(setResetXYZoomState({ uuid }))} className='buttonIcon'><Scale3D color='white' size={20} /></button>
             </div>
 
-            <TradeGraphChartWrapper selectedStock={selectedStock} uuid={uuid} timeFrame={timeFrame} />
+            {selectedStock ? <TradeGraphChartWrapper selectedStock={selectedStock} uuid={uuid} timeFrame={timeFrame} /> : <div></div>}
+
             <div id='LHS-PlanPresentBeforeTrade'>
                 {selectedStock?.planId ?
                     selectedStock?.trade ?
                         <TradePresent selectedStock={selectedStock} /> :
                         <PreTradePlanPresent selectedStock={selectedStock} />
                     : <div>
-                        No Enter Exit plan for this ticker
+                        <p>No plan set for this ticker</p>
                         <div>
                             <button onClick={() => dispatch(setStockDetailState(5))}>Ticker To Plan</button>
                         </div>

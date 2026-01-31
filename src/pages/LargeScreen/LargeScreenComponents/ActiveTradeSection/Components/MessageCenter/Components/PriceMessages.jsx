@@ -3,7 +3,7 @@ import React from 'react'
 function PriceMessages()
 {
     return (
-        <div>PriceMessages</div>
+        <div>Price Alert Messages</div>
     )
 }
 

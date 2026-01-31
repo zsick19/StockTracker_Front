@@ -1,6 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { selectStockInfo } from '../../../../../../../../features/StockData/StockInfoElement'
+import { abbreviateNumber } from '../../../../../../../../Utilities/UtilityHelperFunctions'
 
 function InfoPanel()
 {
@@ -8,14 +9,17 @@ function InfoPanel()
 
   return (
     <div id='StockInfoPanel'>
-      <p>{stockInfo.Symbol}</p>
-      <p>{stockInfo.CompanyName}</p>
-      <p>{stockInfo.Sector}</p>
-      <p>{stockInfo.Industry}</p>
-      <p>{stockInfo.Country}</p>
-      <p>{stockInfo.AvgVolume}</p>
-      <p>{stockInfo.MarketCap}</p>
-      <p>{stockInfo.ATR}</p>
+      <div>
+        <h2>{stockInfo.Symbol}-{stockInfo.CompanyName}</h2>
+        <p>{stockInfo.Sector} - {stockInfo.Industry}</p>
+        <p>{stockInfo.Country}</p>
+
+      </div>
+      <div>
+        <p>Average Volume: {abbreviateNumber(stockInfo.AvgVolume)}</p>
+        <p>Market Cap: {abbreviateNumber(stockInfo.MarketCap)}</p>
+        <p>Average True Range: ${stockInfo.ATR}</p>
+      </div>
     </div>
   )
 }

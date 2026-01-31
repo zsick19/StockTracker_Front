@@ -116,3 +116,14 @@
   border-top-right-radius: 10px;
   border-top-left-radius: 10px;
 }
+
+.CenterConfirmationMessage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: rgba(48, 48, 51, 0.39);
+  border-radius: 10px;
+  border: 1px solid white;
+}

@@ -59,7 +59,7 @@ function SingleSearchResultBlock({ search, found })
 
             {search.candleData ?
                 <div className='ChartGraphWrapper'>
-                    <ChartGraph ticker={{ ticker: search.Symbol }} isInteractive={false} isLivePrice={false} isZoomAble={false} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} nonZoomAble={true} /> :
+                    <ChartGraph ticker={{ ticker: search.Symbol }} isInteractive={false} isLivePrice={false} isZoomAble={false} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} nonZoomAble={true} />
                 </div > : <div className='MarketSearchNoCandleData'>
                     <p >No Data For This Ticker</p>
                 </div>

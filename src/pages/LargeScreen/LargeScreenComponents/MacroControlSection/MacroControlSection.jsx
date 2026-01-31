@@ -57,17 +57,6 @@ function MacroControlSection()
 
   const uuidGraph1 = useMemo(() => short.generate(), [])
   const uuidGraph2 = useMemo(() => short.generate(), [])
-  // useEffect(() =>
-  // {
-  //   dispatch(setInitialGraphControl(uuidGraph1))
-  //   dispatch(setInitialGraphControl(uuidGraph2))
-  //   return (() =>
-  //   {
-  //     if (uuidGraph1) dispatch(clearGraphControl(uuidGraph1))
-  //     if (uuidGraph2) dispatch(clearGraphControl(uuidGraph2))
-  //   })
-  // }, [])
-
 
   return (
     <section id="LSH-MacroSection">
@@ -89,11 +78,10 @@ function MacroControlSection()
 
         <div>
           {errorMessage}
-          <form>
+          <form className="macroSecondarySearchForm">
             <input type="text" ref={secondarySearchTicker} />
             <button type="button" onClick={(e) => handleSecondaryChartSearch(e)}>Second Chart</button>
           </form>
-
         </div>
       </div>
 

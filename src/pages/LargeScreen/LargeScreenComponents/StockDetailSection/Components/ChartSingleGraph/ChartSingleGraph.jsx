@@ -4,21 +4,18 @@ import './PanelDisplayStyles.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectSingleChartStock, setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 import SingleGraphChartWrapper from './Components/SingleGraphChartWrapper'
-import { CalendarCog, EyeOff, Scale3D } from 'lucide-react'
 import { selectConfirmedUnChartedTrio, setConfirmedUnChartedNavIndex } from '../../../../../../features/SelectedStocks/PreviousNextStockSlice'
 import VisibilityModal from './Components/VisibilityModal'
-import { interDayTimeFrames } from '../../../../../../Utilities/TimeFrames'
 import KeyLevelsPanel from './Components/ChartControlPanels/KeyLevelsPanel'
 import EnterExitPanel from './Components/ChartControlPanels/EnterExitPanel'
 import InfoPanel from './Components/ChartControlPanels/InfoPanel'
 import AlertPanel from './Components/ChartControlPanels/AlertPanel'
-import CustomTimeFrameModal from './Components/CustomTimeFrameModal'
-import StudiesModal from './Components/StudiesModal'
+import ChartMenuBar from '../../../../../../components/ChartSubGraph/ChartMenuBar'
 import ContinueChartingNav from './Components/ContinueChartingNav'
 import UnChartedProgressDisplay from './Components/UnChartedProgressDisplay'
 import NewsPanel from './Components/ChartControlPanels/NewsPanel'
 import * as short from 'short-uuid'
-import { setResetXYZoomState } from '../../../../../../features/Charting/GraphHoverZoomElement'
+
 
 function ChartSingleGraph()
 {
@@ -32,9 +29,7 @@ function ChartSingleGraph()
 
     const [timeFrame, setTimeFrame] = useState(selectedTicker.timeFrame)
     const [chartInfoDisplay, setChartInfoDisplay] = useState(0)
-    const [showCustomTimeFrameModal, setShowCustomTimeFrameModal] = useState(false)
     const [showVisibilityModal, setShowVisibilityModal] = useState(false)
-    const [showStudiesModal, setShowStudiesModal] = useState(false)
 
 
     function handleNavigatingToNextUnChartedStock(nextDirection)
@@ -79,33 +74,19 @@ function ChartSingleGraph()
     return (
         <div id='LHS-SingleGraphForCharting'>
             {showVisibilityModal && <VisibilityModal setShowVisibilityModal={setShowVisibilityModal} />}
-            {showCustomTimeFrameModal && <CustomTimeFrameModal timeFrame={timeFrame} setTimeFrame={setTimeFrame} setShowCustomTimeFrameModal={setShowCustomTimeFrameModal} />}
-            {showStudiesModal && <StudiesModal setShowStudiesModal={setShowStudiesModal} />}
 
 
-            <div id='LHS-SingleGraphMenuBar'>
-                <h3>{selectedTicker?.ticker || 'No ticker selected'}</h3>
-                <button onClick={() => { setShowStudiesModal(true) }}>Studies</button>
-                <button onClick={() => { setShowVisibilityModal(true) }} title='Visibility Control'><EyeOff size={20} /></button>
+            <ChartMenuBar ticker={selectedTicker.ticker} setTimeFrame={setTimeFrame} timeFrame={timeFrame} uuid={uuid} />
 
-                <div className='IntraDayTimeFrameBtns'>
-                    {interDayTimeFrames.map((timeFrame) => { return <button onClick={() => setTimeFrame(timeFrame.timeFrame)}>{timeFrame.label}</button> })}
-                    <button onClick={() => { setShowCustomTimeFrameModal(true) }}><CalendarCog size={20} /></button>
-                </div>
-                <button onClick={() => dispatch(setResetXYZoomState({ uuid }))} className='buttonIcon'><Scale3D color='white' size={20} /></button>
-            </div>
 
 
             {selectedTicker ?
                 <SingleGraphChartWrapper ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setChartInfoDisplay={setChartInfoDisplay} uuid={uuid} /> :
-                <div>No Chart Selected</div>
-            }
+                <div>No Chart Selected</div>}
 
 
             <div id='LHS-SingleChartControls'>
-                {showUnChartedList ?
-                    <UnChartedProgressDisplay setShowUnchartedList={setShowUnchartedList} /> :
-                    provideChartInfoDisplay()}
+                {showUnChartedList ? <UnChartedProgressDisplay setShowUnchartedList={setShowUnchartedList} /> : provideChartInfoDisplay()}
                 <ContinueChartingNav currentUnChartedTicker={currentUnChartedTicker} setShowUnchartedList={setShowUnchartedList} handleNavigatingToNextUnChartedStock={handleNavigatingToNextUnChartedStock} />
             </div>
         </div>

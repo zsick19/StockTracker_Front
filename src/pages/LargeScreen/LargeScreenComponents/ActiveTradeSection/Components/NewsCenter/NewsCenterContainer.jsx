@@ -21,7 +21,7 @@ function NewsCenterContainer()
                 <p>  //12 pre-watch enter buffer   </p>
                 <p>  //13 pre-watch planned        </p>
             </div>);
-            case 'macro': return <div> Macro News</div>
+            case 'macro': return <div> Macro News Feed</div>
             case 'trade': return <div>Trade News</div>
             case 'pretrade': return <div>Pre Trade News</div>
         }

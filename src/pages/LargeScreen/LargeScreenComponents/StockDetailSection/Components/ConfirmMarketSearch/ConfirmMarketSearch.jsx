@@ -25,9 +25,22 @@ function ConfirmMarketSearch()
         confirmVisual = <UnconfirmedPatternWrapper unconfirmedPatterns={data}
             currentPage={currentPage} keepTheseTickers={keepTheseTickers} setKeepTheseTickers={setKeepTheseTickers} />
     }
-    else if (isSuccess) { confirmVisual = <div>No more patterns to confirm.</div> }
-    else if (isLoading) { confirmVisual = <div>Loading...</div> }
-    else if (isError) { confirmVisual = <div>Error</div> }
+    else if (isSuccess)
+    {
+        confirmVisual = <div className='CenterConfirmationMessage'>
+            <p>You did it!!!</p>
+            <br />
+            <p>No more patterns to confirm.</p>
+        </div>
+    }
+    else if (isLoading) { confirmVisual = <div className='CenterConfirmationMessage'>Loading...</div> }
+    else if (isError)
+    {
+        confirmVisual = <div className='CenterConfirmationMessage'>
+            Error
+            <button onClick={() => refetch()}>Refetch</button>
+        </div>
+    }
 
     useEffect(() =>
     {
@@ -41,7 +54,7 @@ function ConfirmMarketSearch()
         {
             await submitConfirmedPatterns({ confirmed: keepTheseTickers.keepInfo, remove: keepTheseTickers.remove }).unwrap()
             setSubmitServerResponse('Patterns Confirmed!')
-            setTimeout(() => { dispatch(setStockDetailState(3)) }, [2000])
+            setTimeout(() => { dispatch(setStockDetailState(3)) }, [1500])
         } catch (error)
         {
             console.log(error)

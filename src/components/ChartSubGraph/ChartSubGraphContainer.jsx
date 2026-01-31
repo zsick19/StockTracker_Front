@@ -3,7 +3,7 @@ import '../ChartSubGraph/ChartSubGraph.css'
 import ChartTimeFrameBar from "./ChartTimeFrameBar";
 import { defaultTimeFrames } from "../../Utilities/TimeFrames";
 import SubChartGraph from "./SubChartGraph";
-import ChartMenuBar from "./ChartMenuBar";
+
 import ChartWithChartingWrapper from "./ChartWithChartingWrapper";
 import { useGetStockDataUsingTimeFrameQuery } from "../../features/StockData/StockDataSliceApi";
 import GraphLoadingSpinner from "./GraphFetchStates/GraphLoadingSpinner";
@@ -35,8 +35,9 @@ function ChartSubGraphContainer({ ticker, uuid })
 
   return (
     <div className="ChartSubContainer">
+      
       <ChartTimeFrameBar ticker={ticker.ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} uuid={uuid} />
-      {/* <ChartMenuBar /> */}
+
 
       {actualChart}
 

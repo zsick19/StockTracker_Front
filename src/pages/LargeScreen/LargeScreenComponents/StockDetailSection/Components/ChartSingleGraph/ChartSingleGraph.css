@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  margin-top: 1rem;
 }
 
 #LHS-SingleGraphMenuBar {
@@ -112,8 +113,6 @@
   border-left: 1px solid white;
   padding: 1rem;
 }
-
-
 
 #LHS-UnChartedNavigation div {
   font-size: var(--fs-200);

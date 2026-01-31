@@ -95,16 +95,25 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
         setSavedFilterServerMessage(undefined)
     }
 
-    return (
-        <div id='LHS-MarketSearchFilterBarClosed'>
 
-            <div className='flex' onClick={() => setFilterBarOpen(true)}>
-                <p>Market Search Filter</p>
-                <ChevronDown color='white' size={18} />
-            </div>
+    const hasFilter = searchFilter.Sector || searchFilter.Industry || searchFilter.MarketCap || searchFilter.AvgVolume || searchFilter.ATR || searchFilter.Country
+
+    return (
+        <div id='LHS-MarketSearchFilterBarClosed' onClick={() => setFilterBarOpen(true)}>
+            {hasFilter ?
+                <div className='currentFilters' >
+                    {searchFilter.Sector && <p>Sector: {searchFilter.Sector}</p>}
+                    {searchFilter.Industry && <p>Industry: {searchFilter.Industry}</p>}
+                    {searchFilter.MarketCap && <p>Market Cap: {searchFilter.MarketCap}</p>}
+                    {searchFilter.AvgVolume && <p>Avg Volume: {searchFilter.AvgVolume}</p>}
+                    {searchFilter.Country && <p>Country: {searchFilter.Country}</p>}
+                    {searchFilter.ATR && <p>ATR: {searchFilter.ATR}</p>}
+                </div> :
+                <p>{'Search Filter'}</p>
+            }
 
             {filterBarOpen &&
-                <div id='LHS-MarketSearchFilterBarOpen'>
+                <div id='LHS-MarketSearchFilterBarOpen' onClick={(e) => e.stopPropagation()}>
                     <div id='LHS-FilterOptions'>
                         <h3>Filter</h3>
                         <form onSubmit={(e) => e.preventDefault()}>
@@ -117,6 +126,7 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
                             <button type='button' onClick={(e) => handleSubmittingFilterChange(e)}>Search</button>
 
                             {!displayFilterSave && <div>
+
                             </div>}
                         </form>
                     </div>
@@ -145,7 +155,11 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
                         </form>
                     </div>
                     <div>
-                        <button onClick={() => { setDisplayFilterSave(false); setSavedFilterServerMessage(undefined); setFilterBarOpen(false) }}><CircleX /></button>
+                        <button className='buttonIcon' onClick={() =>
+                        {
+                            setDisplayFilterSave(false); setSavedFilterServerMessage(undefined); setFilterBarOpen(false)
+
+                        }}><CircleX color='white' /></button>
                     </div>
                 </div>}
 

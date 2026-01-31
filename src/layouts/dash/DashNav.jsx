@@ -35,9 +35,9 @@ function DashNav()
           Smaller Screen View
         </button>
       )}
-      <p>UserName</p>
+      <p>Stock Tracker 3.0</p>
 
-      <button onClick={() => attemptResettingUser()}>Reset User</button>
+      <button onClick={() => attemptResettingUser()}>Dev Reset User</button>
     </nav>
   );
 }

@@ -1,0 +1,16 @@
+.ChartMenuBarContainer {
+  position: relative;
+  width: 100%;
+  background-color: gray;
+  padding-inline: 1rem;
+  height: 2rem;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.MenuBar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-around;
+}

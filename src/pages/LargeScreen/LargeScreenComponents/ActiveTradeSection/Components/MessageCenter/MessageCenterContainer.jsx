@@ -28,7 +28,7 @@ function MessageCenterContainer()
                 <label htmlFor="price">Price Alerts</label>
             </fieldset>
             <div>
-                <button onClick={() => setFlashAlert([{ alert: 'blah blah blah' }])}>trial flash</button>
+                {/* <button onClick={() => setFlashAlert([{ alert: 'blah blah blah' }])}>trial flash</button> */}
                 {flashAlert.length ? <FlashAlert setFlashAlert={setFlashAlert} /> : provideCurrentMessageDisplay()}
             </div>
         </div>

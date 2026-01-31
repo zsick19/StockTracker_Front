@@ -25,3 +25,10 @@
   padding: 1rem;
   border-top: 1px solid white;
 }
+
+#NewsDisplaySection > div:last-child {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}

@@ -15,10 +15,16 @@
   align-items: center;
   padding-inline: 1rem;
   display: flex;
+  justify-content: center;
+}
+.currentFilters {
+  font-size: var(--fs-100);
 }
 
 #LHS-MarketSearchFilterBarOpen {
   position: absolute;
+  left: 0;
+  top: 0;
   height: 300px;
   width: 100%;
   background-color: rgb(122, 122, 122);
@@ -27,6 +33,7 @@
   grid-template-columns: 1fr 25% min-content;
   gap: 1rem;
   z-index: 100;
+  border-radius: 10px;
 }
 
 #LHS-FilterOptions {

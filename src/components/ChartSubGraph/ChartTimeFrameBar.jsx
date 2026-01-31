@@ -4,38 +4,17 @@ import { FlaskConical, LineSquiggle, Scale3D } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { setResetXYZoomState } from "../../features/Charting/GraphHoverZoomElement";
 import { setSelectedIndexTimeFrame } from "../../features/SelectedStocks/SelectedStockSlice";
+import StudySelectPopover from '../ChartMenuDropDowns/StudySelectPopover'
+import TimeFrameDropDown from '../ChartMenuDropDowns/TimeFrameDropDown'
 
 function ChartTimeFrameBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts, uuid })
 {
-  const [showTimeFrameModal, setShowTimeFrameModal] = useState(false)
 
 
   const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
   const [showStudiesSelect, setShowStudiesSelect] = useState(false)
 
 
-  function handlePreDefinedTimeSelection(e)
-  {
-    switch (e.target.value)
-    {
-      case "3D1M": setTimeFrame(defaultTimeFrames.threeDayOneMin); break;
-      case "3D2M": setTimeFrame(defaultTimeFrames.threeDayTwoMin); break;
-      case "3D5M": setTimeFrame(defaultTimeFrames.threeDayFiveMin); break;
-      case "3D15M": setTimeFrame(defaultTimeFrames.threeDayFifteenMin); break;
-      case "3D30M": setTimeFrame(defaultTimeFrames.threeDayThirtyMin); break;
-      case "3D1H": setTimeFrame(defaultTimeFrames.threeDayOneHour); break;
-      case "4H1Y": setTimeFrame(defaultTimeFrames.fourHourOneYear); break;
-      case "1W1Y": setTimeFrame(defaultTimeFrames.weeklyOneYear); break;
-      case "1D1Y": setTimeFrame(defaultTimeFrames.dailyOneYear); break;
-    }
-    setShowTimeFrameModal(false)
-  }
-
-  function provideTimeFrameDurationText()
-  {
-    if (timeFrame.unitOfDuration === 'D') return ''
-    else return `:${timeFrame.duration}${timeFrame.unitOfDuration}`
-  }
 
   const dispatch = useDispatch()
   function handleTimeFrameChange(e)

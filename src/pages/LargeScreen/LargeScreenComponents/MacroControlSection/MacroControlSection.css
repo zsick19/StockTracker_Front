@@ -15,7 +15,7 @@
 #LSH-MacroWatchListContainer {
   flex: 1;
   border-radius: 10px;
-  max-height: 80vh;
+  max-height: 85vh;
 
   padding: 0.25rem;
   background-color: rgba(134, 134, 134, 0.219);
@@ -54,4 +54,25 @@
 #LSH-MacroCharts .SVGGraphWrapper {
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
+}
+
+.macroSecondarySearchForm {
+  margin-top: 0.5rem;
+  padding-inline: 1rem;
+  display: flex;
+  height: 2rem;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.macroSecondarySearchForm input {
+  width: 100px;
+  border: none;
+  border-radius: 5px;
+  background-color: gray;
+}
+.macroSecondarySearchForm button {
+  border-radius: 5px;
+  border: none;
+  font-size: var(--fs-200);
 }
