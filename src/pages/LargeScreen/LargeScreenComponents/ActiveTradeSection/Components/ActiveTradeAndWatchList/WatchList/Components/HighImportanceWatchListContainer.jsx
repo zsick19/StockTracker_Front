@@ -12,10 +12,10 @@ function HighImportanceWatchListContainer({ highImportanceWatchListIds })
             <div className='flex'>
                 <p>High Importance</p>
                 <div className='flex'>
-                    {/* <button className='iconButton' onClick={() => refetch()}><RefreshCcwDot size={20} color='gray' /></button> */}
                     <button className='iconButton' onClick={() => dispatch(setStockDetailState(11))}><Grip size={20} color='white' /></button>
                 </div>
             </div>
+
             <div id='LSH-PreWatchHighImportance' className='hide-scrollbar PreWatchListContainersEveryOther'>
                 {highImportanceWatchListIds.map((id) => <SingleHighImportanceTickerDisplay id={id} />)}
             </div>

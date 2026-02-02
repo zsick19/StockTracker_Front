@@ -42,11 +42,11 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
 
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true, provideNews: true })
 
-
+    const interactionController = { isLivePrice: false, isInteractive: true, isZoomAble: true }
     let actualGraph
     if (isSuccess && data.candleData.length > 0)
     {
-        actualGraph = <ChartWithChartingWrapper ticker={ticker} candleData={data} chartId={chartId} timeFrame={timeFrame} uuid={uuid} />
+        actualGraph = <ChartWithChartingWrapper ticker={ticker} interactionController={interactionController} candleData={data} chartId={chartId} timeFrame={timeFrame} uuid={uuid} />
     } else if (isSuccess) { actualGraph = <div>No Data To Display</div> }
     else if (isLoading) { actualGraph = <GraphLoadingSpinner /> }
     else if (isError)

@@ -724,7 +724,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     //zoomXBehavior
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || isZoomAble) return
+        if (preDimensionsAndCandleCheck() || !isZoomAble) return
         const zoomBehavior = zoom().on('zoom', () =>
         {
             if (enableZoom)
@@ -740,7 +740,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     //zoomYBehavior
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || isZoomAble) return
+        if (preDimensionsAndCandleCheck() || !isZoomAble) return
         const zoomBehavior = zoom().scaleExtent([0.1, 5]).on('zoom', () =>
         {
             const zoomState = zoomTransform(priceScaleSVG.node())

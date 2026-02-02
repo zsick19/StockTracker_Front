@@ -6,8 +6,8 @@ import { setStockDetailState } from '../../../../../../features/SelectedStocks/S
 import './EnterExitTradeGraph.css'
 import TradeGraphChartWrapper from './Components/TradeGraphChartWrapper'
 import { useEffect, useMemo, useState } from 'react'
-import { defaultTimeFrames, interDayTimeFrames } from '../../../../../../Utilities/TimeFrames'
-import { CalendarCog, FlaskConical, LineSquiggle, Scale3D } from 'lucide-react'
+import { defaultTimeFrames } from '../../../../../../Utilities/TimeFrames'
+import { FlaskConical, LineSquiggle, Scale3D } from 'lucide-react'
 import * as short from 'short-uuid'
 import { clearGraphControl, setInitialGraphControl, setResetXYZoomState } from '../../../../../../features/Charting/GraphHoverZoomElement'
 import TimeFrameDropDown from '../../../../../../components/ChartMenuDropDowns/TimeFrameDropDown'
@@ -16,12 +16,12 @@ import StudySelectPopover from '../../../../../../components/ChartMenuDropDowns/
 function EnterExitTradeGraph()
 {
     const dispatch = useDispatch()
-    const selectedStock = useSelector(selectTradeChartStock)
-    const [timeFrame, setTimeFrame] = useState(selectedStock?.timeFrame || defaultTimeFrames.threeDayOneMin)
+
     const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
     const [showStudiesSelect, setShowStudiesSelect] = useState(false)
 
-
+    const selectedStock = useSelector(selectTradeChartStock)
+    const [timeFrame, setTimeFrame] = useState(selectedStock?.timeFrame || defaultTimeFrames.threeDayOneMin)
     const uuid = useMemo(() => short.generate(), [])
 
     useEffect(() =>
@@ -34,8 +34,8 @@ function EnterExitTradeGraph()
     return (
         <div id='LHS-TradeRecord'>
             <div id='LHS-SingleGraphMenuBar'>
-                {showTimeFrameSelect && <TimeFrameDropDown handleTimeFrameChange={handleTimeFrameChange} setShowTimeFrameSelect={setShowTimeFrameSelect} />}
-                {showStudiesSelect && <StudySelectPopover handleStudySelectChange={handleStudySelectChange} setShowStudiesSelect={setShowStudiesSelect} />}
+                {/* {showTimeFrameSelect && <TimeFrameDropDown handleTimeFrameChange={handleTimeFrameChange} setShowTimeFrameSelect={setShowTimeFrameSelect} />} */}
+                {/* {showStudiesSelect && <StudySelectPopover handleStudySelectChange={handleStudySelectChange} setShowStudiesSelect={setShowStudiesSelect} />} */}
 
                 <h3>{selectedStock?.tickerSymbol || 'No ticker selected'}</h3>
                 <button className='timeFrameButton' onClick={() => { setShowTimeFrameSelect(true); setShowStudiesSelect(false) }}>{timeFrame.increment}{timeFrame.unitOfIncrement}</button>
@@ -44,7 +44,7 @@ function EnterExitTradeGraph()
 
 
 
-                {showTimeFrameSelect && <TimeFrameDropDown />}
+                {/* {showTimeFrameSelect && <TimeFrameDropDown />} */}
                 <button onClick={() => dispatch(setResetXYZoomState({ uuid }))} className='buttonIcon'><Scale3D color='white' size={20} /></button>
             </div>
 

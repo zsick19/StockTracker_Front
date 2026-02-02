@@ -17,9 +17,9 @@ import StudySelectPopover from '../../../../../../../components/ChartMenuDropDow
 function FourWaySpitGraphContainer({ selectedStock, index })
 {
     const dispatch = useDispatch()
-    
+
     const uuid = useMemo(() => short.generate(), [])
-    let interactions = { isLivePrice: false, isInteractive: false, isZoomAble: false }
+    let interactions = { isLivePrice: true, isInteractive: false, isZoomAble: true }
 
     const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
     const [showStudiesSelect, setShowStudiesSelect] = useState(false)

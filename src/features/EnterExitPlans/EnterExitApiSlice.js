@@ -131,6 +131,69 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'PlannedWatchListTickers')
       }
     }),
+    toggleEnterExitPlanImportant: builder.mutation({
+      query: (args) => ({
+        url: `/enterExitPlan/importance/${args.planId}?markImportant=${args.markImportant}`
+      }),
+      async onQueryStarted(args, { dispatch, queryFulfilled, getState })
+      {
+        try
+        {
+          const { data: updatedEnterExitWithImportance } = await queryFulfilled;
+
+          dispatch(
+            EnterExitPlanApiSlice.util.updateQueryData('getUsersEnterExitPlan', undefined, (draft) =>
+            {
+              if (updatedEnterExitWithImportance?.highImportance && updatedEnterExitWithImportance.highImportance !== undefined)
+              {
+                let entityToMove
+                if (draft.enterBufferHit.ids.includes(args.tickerSymbol))
+                {
+                  entityToMove = draft.enterBufferHit.entities[data.tickerSymbol]
+                  entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
+
+                  enterBufferHitAdapter.removeOne(draft.enterBufferHit, entityToMove.id)
+                }
+                else if (draft.stopLossHit.ids.includes(args.tickerSymbol))
+                {
+                  entityToMove = draft.stopLossHit.entities[args.tickerSymbol]
+                  entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
+
+                  stopLossHitAdapter.removeOne(draft.stopLossHit, entityToMove.id)
+                }
+                else
+                {
+                  entityToMove = draft.plannedTickers.entities[args.tickerSymbol]
+                  entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
+
+                  enterExitAdapter.removeOne(draft.plannedTickers, entityToMove.id)
+                }
+
+                highImportanceAdapter.addOne(draft.highImportance, entityToMove)
+              }
+              else
+              {
+                let entityToMove = draft.highImportance.entities[args.tickerSymbol]
+                switch (entityToMove.priceVsPlanUponFetch)
+                {
+                  case 0: stopLossHitAdapter.addOne(draft.stopLossHit, entityToMove); break;
+                  case 1: enterBufferHitAdapter.addOne(draft.enterBufferHit, entityToMove); break;
+                  case 2: enterBufferHitAdapter.addOne(draft.enterBufferHit, entityToMove); break;
+                  case 3: enterExitAdapter.addOne(draft.plannedTickers, entityToMove); break;
+                }
+
+                enterExitAdapter.removeOne(draft.highImportance, entityToMove.id)
+              }
+
+            })
+          )
+
+        } catch (error)
+        {
+
+        }
+      }
+    }),
     updateEnterExitPlan: builder.mutation({
       async queryFn(args, api, extraOptions, baseQuery)
       {
@@ -159,6 +222,25 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }, 'enterExitPlans']
     }),
+    removeSingleEnterExitPlan: builder.mutation({
+      async queryFn(args, api, extraOptions, baseQuery)
+      {
+        const state = api.getState()
+        const initializationEndpointDataSelector = InitializationApiSlice.endpoints.getUserInitialization.select(undefined)
+        const userInitializationData = initializationEndpointDataSelector(state);
+        const userStockHistory = userInitializationData?.data.userStockHistory
+
+        let historyIdForRemoval
+        userStockHistory.forEach((t) => { if (args.tickerSymbol === t.symbol) historyIdForRemoval = t._id })
+
+        let result = await baseQuery({
+          url: `/enterExitPlan/remove/${args.planId}/history/${historyIdForRemoval}`,
+          method: 'DELETE',
+        })
+        return result.data ? { data: result.data } : { error: result.error }
+      },
+      invalidatesTags: (result, error, args) => ['userData', 'chartingData', 'enterExitPlans']
+    }),
     removeGroupedEnterExitPlan: builder.mutation({
       async queryFn(args, api, extraOptions, baseQuery)
       {
@@ -183,7 +265,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useGetUsersEnterExitPlanQuery, useUpdateEnterExitPlanMutation, useRemoveGroupedEnterExitPlanMutation } = EnterExitPlanApiSlice;
+export const { useGetUsersEnterExitPlanQuery, useToggleEnterExitPlanImportantMutation, useUpdateEnterExitPlanMutation, useRemoveSingleEnterExitPlanMutation, useRemoveGroupedEnterExitPlanMutation } = EnterExitPlanApiSlice;
 
 
 export const highImportanceSelectors = highImportanceAdapter.getSelectors()
