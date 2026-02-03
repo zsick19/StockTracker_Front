@@ -6,6 +6,7 @@ import { setPreviousCharting } from '../../features/Charting/chartingElements'
 import { setKeyLevelsCharting } from '../../features/KeyLevels/KeyLevelGraphElements'
 import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
+import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
 
 function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
@@ -14,8 +15,19 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
 
     useEffect(() =>
     {
-        if (uuid) dispatch(setInitialGraphControl({ uuid }))
-        return (() => { if (uuid) dispatch(clearGraphControl({ uuid })) })
+        if (uuid)
+        {
+            dispatch(setInitialGraphControl({ uuid }))
+            dispatch(setInitialGraphStudyControl({ uuid }))
+        }
+        return (() =>
+        {
+            if (uuid)
+            {
+                dispatch(clearGraphControl({ uuid }))
+                dispatch(clearGraphStudyControl({ uuid }))
+            }
+        })
     }, [])
 
     useEffect(() =>

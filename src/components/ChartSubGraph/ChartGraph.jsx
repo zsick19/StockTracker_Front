@@ -26,6 +26,7 @@ import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
 import { calculateEMADataPoints } from '../../Utilities/technicalIndicatorFunctions'
+import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudiesVisualElement'
 
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
@@ -49,7 +50,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     const EnterExitPlan = useSelector(state => selectedEnterExitMemo(state, ticker))
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
+
+    const selectedStudyVisualStateMemo = useMemo(makeSelectGraphStudyByUUID, [])
+    const studyVisualController = useSelector((state) => selectedStudyVisualStateMemo(state, uuid))
+    console.log(studyVisualController)
+
     const editMode = useSelector(selectChartEditMode)
+
+
+
+
+
 
     //redux graph functioning selectors
     const currentTool = useSelector(selectCurrentTool)
@@ -287,7 +298,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck()) return
-        if (showEMAs)
+        if (studyVisualController?.ema)
         {
 
             //          stockCandleSVG.select('.vwap').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')
@@ -310,7 +321,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
         {
             stockCandleSVG.select('.emaLines').selectAll('.periodLines').remove()
         }
-    }, [showEMAs, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
+    }, [studyVisualController, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
 
 
 
@@ -358,9 +369,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
             }
         } else
         {
+
             let pixelDates = visualBreaksPeriods.months.map((d) => createDateScale({ dateToPixel: d }))
-            stockCandleSVG.select('.visualDateBreaks').selectAll('.preMarketVisualBreak')
-            stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').data(visualBreaksPeriods.months).join(enter => createVisualBreaks(enter), update => updateVisualBreaks(update))
+            stockCandleSVG.select('.visualDateBreaks').selectAll('.preMarketVisualBreak').remove()
+            stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').remove()
+            stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').data(visualBreaksPeriods.months).join(enter => createVisualBreaks(enter))
             function createVisualBreaks(enter)
             {
                 enter.append('rect').attr('class', (d, i) => { return i % 2 !== 0 ? 'monthOdd visualBreak' : 'monthEven visualBreak' })
@@ -368,14 +381,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
                     .attr('width', (d, i) => { return pixelDates[i + 1] - createDateScale({ dateToPixel: d }) })
                     .attr('height', candleDimensions.height)
             }
-            function updateVisualBreaks(update)
-            {
-                update.each(function (d, i)
-                {
-                    let start = createDateScale({ dateToPixel: d })
-                    select(this).attr('x', start).attr('y', -pixelBuffer.yDirectionPixelBuffer).attr('width', (pixelDates[i + 1] - start)).attr('height', candleDimensions.height)
-                })
-            }
+
         }
 
     }, [candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
@@ -744,7 +750,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     //keyboard event listeners
     useEffect(() =>
     {
-        if (!captureComplete) { document.addEventListener('keydown', (e) => { resetTempBeforeCompletion(e); deleteSelectedEditChartElement(e) }) } else { document.removeEventListener('keydown', resetTempBeforeCompletion) }
+        if (!captureComplete) { document.addEventListener('keydown', (e) => { resetTempBeforeCompletion(e); deleteSelectedEditChartElement(e) }) }
+        else { document.removeEventListener('keydown', resetTempBeforeCompletion) }
 
         function resetTempBeforeCompletion(e)
         {

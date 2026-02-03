@@ -1,17 +1,16 @@
 import { useState } from "react";
 import '../ChartSubGraph/ChartSubGraph.css'
-import ChartTimeFrameBar from "./ChartTimeFrameBar";
-import { defaultTimeFrames } from "../../Utilities/TimeFrames";
 import SubChartGraph from "./SubChartGraph";
 
 import ChartWithChartingWrapper from "./ChartWithChartingWrapper";
 import { useGetStockDataUsingTimeFrameQuery } from "../../features/StockData/StockDataSliceApi";
 import GraphLoadingSpinner from "./GraphFetchStates/GraphLoadingSpinner";
 import GraphLoadingError from "./GraphFetchStates/GraphLoadingError";
+import ChartMenuBar from "./ChartMenuBar";
 
-function ChartSubGraphContainer({ ticker, uuid })
+function ChartSubGraphContainer({ ticker, uuid, incomingTF })
 {
-  const [timeFrame, setTimeFrame] = useState(defaultTimeFrames.dailyOneYear);
+  const [timeFrame, setTimeFrame] = useState(incomingTF);
   const [subCharts, setSubCharts] = useState([])
 
 
@@ -23,7 +22,9 @@ function ChartSubGraphContainer({ ticker, uuid })
   let actualChart
   if (isSuccess && stockData.candleData.length > 0)
   {
-    actualChart = <ChartWithChartingWrapper ticker={ticker} candleData={stockData} chartId={ticker._id} timeFrame={timeFrame} uuid={uuid} />
+    actualChart =
+      <ChartWithChartingWrapper ticker={ticker} candleData={stockData} chartId={ticker._id}
+        timeFrame={timeFrame} uuid={uuid} interactionController={{ isLivePrice: true, isInteractive: false, isZoomAble: true }} />
   }
   else if (isSuccess) { actualChart = <div>No Data to display</div> }
   else if (isLoading) { actualChart = <GraphLoadingSpinner /> }
@@ -35,12 +36,8 @@ function ChartSubGraphContainer({ ticker, uuid })
 
   return (
     <div className="ChartSubContainer">
-      
-      <ChartTimeFrameBar ticker={ticker.ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} uuid={uuid} />
-
-
+      <ChartMenuBar ticker={ticker.ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} uuid={uuid} />
       {actualChart}
-
       {subCharts.length > 0 &&
         <div className="SubChartWrapper">
           {subCharts.map((subChart) => <SubChartGraph />)}

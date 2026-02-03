@@ -3,6 +3,7 @@ import ChartGraph from './ChartGraph'
 import { useDispatch } from 'react-redux'
 import { setEnterExitChartingFromPlan } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
+import { setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
 
 function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame,
     planData, mostRecentPrice, initialTracking, uuid })
@@ -12,8 +13,19 @@ function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionC
 
     useEffect(() =>
     {
-        if (uuid) dispatch(setInitialGraphControl(uuid))
-        return (() => { if (uuid) dispatch(clearGraphControl(uuid)) })
+        if (uuid)
+        {
+            dispatch(setInitialGraphControl(uuid))
+            dispatch(setInitialGraphStudyControl({ uuid }))
+        }
+        return (() =>
+        {
+            if (uuid)
+            {
+                dispatch(clearGraphControl(uuid))
+                dispatch(setInitialGraphStudyControl({ uuid }))
+            }
+        })
     }, [])
 
     return (

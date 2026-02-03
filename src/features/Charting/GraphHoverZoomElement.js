@@ -25,7 +25,8 @@ const graphHoverZoomElementSlice = createSlice({
     },
     clearGraphControl: (state, action) =>
     {
-      delete state[action.payload]
+      if (action.payload.uuid) delete state[action.payload.uuid]
+      else delete state[action.payload]
     }
   },
 });
@@ -47,8 +48,5 @@ export const makeSelectZoomStateByUUID = () => createSelector(
   {
     if (uuid) return entities[uuid]
   })
-// export const makeSelectMouseStateByUUID = () => createSelector(
-//   [(state) => state.graphHoverZoom, (state, uuid) => uuid],
-//   (entities, uuid) => entities[uuid].mousePosition
-// )
+
 

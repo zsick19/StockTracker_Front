@@ -15,6 +15,7 @@ import enterExitChartingReducers from '../features/EnterExitPlans/EnterExitGraph
 import editChartSelectionReducers from '../features/Charting/EditChartSelection'
 import stockInfoReducers from '../features/StockData/StockInfoElement'
 import graphHoverZoomReducers from '../features/Charting/GraphHoverZoomElement'
+import graphStudiesVisualControlReducers from '../features/Charting/GraphStudiesVisualElement'
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
     editChartSelection: editChartSelectionReducers,
     stockInfo: stockInfoReducers,
     graphHoverZoom: graphHoverZoomReducers,
+    graphStudyVisual: graphStudiesVisualControlReducers,
     auth: authReducer,
     test: testReducer,
   },

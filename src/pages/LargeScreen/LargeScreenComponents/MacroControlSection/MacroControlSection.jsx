@@ -10,6 +10,7 @@ import { selectSPYIdFromUser } from "../../../../features/Initializations/Initia
 import { useDispatch, useSelector } from "react-redux";
 import * as short from 'short-uuid'
 import { clearGraphControl, setInitialGraphControl } from "../../../../features/Charting/GraphHoverZoomElement";
+import { defaultTimeFrames } from "../../../../Utilities/TimeFrames";
 
 function MacroControlSection()
 {
@@ -86,9 +87,9 @@ function MacroControlSection()
       </div>
 
       <div id="LSH-MacroCharts">
-        <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} />
+        <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} incomingTF={defaultTimeFrames.threeDayOneMin} />
         {showMacroKeyLevelDisplay ? <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
-          <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} />}
+          <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyHalfYear} />}
       </div>
     </section>
   );

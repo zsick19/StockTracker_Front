@@ -7,7 +7,7 @@ import { Circle } from 'lucide-react'
 
 function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, showEMAs })
 {
-    console.log(selectedStock)
+    
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: selectedStock.tickerSymbol, timeFrame: timeFrame, liveFeed: true, info: true })
 
     let chartContent
