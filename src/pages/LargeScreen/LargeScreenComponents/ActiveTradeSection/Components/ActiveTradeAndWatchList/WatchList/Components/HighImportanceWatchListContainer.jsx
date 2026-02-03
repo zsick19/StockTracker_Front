@@ -2,6 +2,7 @@ import { Grip } from 'lucide-react'
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import SingleHighImportanceTickerDisplay from './SingleHighImportanceTickerDisplay'
+import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 
 function HighImportanceWatchListContainer({ highImportanceWatchListIds })
 {
@@ -12,7 +13,7 @@ function HighImportanceWatchListContainer({ highImportanceWatchListIds })
             <div className='flex'>
                 <p>High Importance</p>
                 <div className='flex'>
-                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(11))}><Grip size={20} color='white' /></button>
+                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(13))}><Grip size={20} color='white' /></button>
                 </div>
             </div>
 

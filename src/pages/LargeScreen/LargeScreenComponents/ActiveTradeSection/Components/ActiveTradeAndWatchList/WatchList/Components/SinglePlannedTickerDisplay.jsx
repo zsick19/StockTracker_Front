@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery, useToggleEnterExitPlanImportantMutation } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery, useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { CircleChevronRight, CircleChevronLeft, X } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setSelectedStockAndTimelineFourSplit, setSingleChartTickerTimeFrameAndChartingId, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
@@ -10,6 +10,10 @@ function SinglePlannedTickerDisplay({ id, watchList })
 {
     const dispatch = useDispatch()
     const [showDiagram, setShowDiagram] = useState(false)
+    const [showImportantRemove, setShowImportantRemove] = useState(false)
+
+    const [toggleEnterExitPlanImportant] = useToggleEnterExitPlanImportantMutation()
+    const [removeSingleEnterExitPlan] = useRemoveSingleEnterExitPlanMutation()
 
     function provideSelector(data)
     {
@@ -34,10 +38,6 @@ function SinglePlannedTickerDisplay({ id, watchList })
         dispatch(setStockDetailState(8))
     }
 
-
-    const [showImportantRemove, setShowImportantRemove] = useState(false)
-
-    const [toggleEnterExitPlanImportant, { }] = useToggleEnterExitPlanImportantMutation()
     async function attemptToToggleImportance(params)
     {
         try
@@ -48,29 +48,39 @@ function SinglePlannedTickerDisplay({ id, watchList })
         {
             console.log(error)
         }
-
     }
+    async function attemptToRemovePlan(params)
+    {
+        try
+        {
+            const results = await removeSingleEnterExitPlan({ tickerSymbol: plan.tickerSymbol, planId: plan._id }).unwrap()
+
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
     return (
         <>
             {showDiagram ?
                 <div className='SingleTickerDiagram' onClick={() => setShowDiagram(false)}>
                     <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
                 </div> :
+
                 <div className={`SingleWatchListTicker ${plan.listChange ? 'blinkForListUpdate' : ''}`}>
                     <p onClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
 
                     {showImportantRemove ? <>
                         <button className='buttonIcon' onClick={() => attemptToToggleImportance()}>Important</button>
-                        <button className='buttonIcon'>Remove</button>
+                        <button className='buttonIcon' onClick={() => attemptToRemovePlan()}>Remove</button>
                         <button className='buttonIcon' onClick={() => setShowImportantRemove(false)}><X color='white' size={14} /></button>
                     </> :
                         <>
                             <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
                             <p onClick={() => setShowDiagram(true)}>{plan.currentDayPercentGain.toFixed()}%</p>
                             <p onClick={() => setShowImportantRemove(true)}>{plan.percentFromEnter.toFixed(2)}%</p>
-                        </>
-                    }
-
+                        </>}
                 </div>
             }
         </>

@@ -7,7 +7,7 @@ import { setKeyLevelsCharting } from '../../features/KeyLevels/KeyLevelGraphElem
 import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
 
-function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery })
+function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
     const dispatch = useDispatch()
     const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ chartId })
@@ -37,7 +37,7 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
             <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData} uuid={uuid}
                 mostRecentPrice={candleData.mostRecentPrice} lastCandleData={lastCandleData} candlesToKeepSinceLastQuery={candlesToKeepSinceLastQuery}
                 timeFrame={timeFrame} isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive}
-                isZoomAble={interactionController?.isZoomAble} />
+                isZoomAble={interactionController?.isZoomAble} showEMAs={showEMAs} />
         </div>
     )
 }

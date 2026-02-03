@@ -1,4 +1,4 @@
-import { sub, subBusinessDays, startOfMonth, addMonths, isBefore, format, add, addDays } from 'date-fns';
+import { sub, subBusinessDays, startOfMonth, addMonths, isBefore, format, add, addDays, isSaturday, isSunday, subDays, subHours } from 'date-fns';
 
 
 export const defaultTimeFrames = {
@@ -27,19 +27,27 @@ export const interDayTimeFrames = [{ label: '1M', timeFrame: defaultTimeFrames.t
 export function generateTradingHours(timeFrame,)
 {
   const timeRanges = [];
-  let currentDate = subBusinessDays(new Date().setUTCHours(9, 30), timeFrame.duration + 9);
+  let currentDate = subBusinessDays(new Date().setUTCHours(9, 0, 0, 0), timeFrame.duration + 9);
 
   let today = addDays(new Date(), 1)
   while (currentDate <= today)
   {
-    if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6)
+    if (!isSaturday(currentDate) && !isSunday(currentDate))
     {
       const marketCloseTime = new Date(currentDate);
       marketCloseTime.setUTCHours(1, 0, 0, 0);
-
       const nextDayMarketOpenTime = add(marketCloseTime, { hours: 8 })
-
       timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
+    } else if (isSaturday(currentDate))
+    {
+      let fridayClose = sub(new Date(currentDate), { hours: 8 })
+      let saturdayClose = add(new Date(fridayClose), { days: 1 })
+      timeRanges.push([fridayClose.getTime(), saturdayClose.getTime()])
+    } else if (isSunday(currentDate))
+    {
+      let saturdayClose = sub(new Date(currentDate), { hours: 8 })
+      let mondayOpen = add(new Date(saturdayClose), { days: 1 })
+      timeRanges.push([saturdayClose.getTime(), mondayOpen.getTime()])
     }
     currentDate.setDate(currentDate.getDate() + 1);
   }
@@ -80,11 +88,14 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
     let start = startDate
     while (start < endDate)
     {
-      let preMarketTime = start.setUTCHours(9, 0, 0, 0)
-      timeBreaks.preMarket.push(new Date(preMarketTime))
-      timeBreaks.preMarketEnd.push(new Date(start).setUTCHours(14, 30))
-      timeBreaks.marketClose.push(new Date(start).setUTCHours(21, 0, 0, 0))
-      timeBreaks.afterMarket.push(add(start, { days: 1 }).setUTCHours(1))
+      if (!isSaturday(start) && !isSunday(start))
+      {
+        let preMarketTime = start.setUTCHours(9, 0, 0, 0)
+        timeBreaks.preMarket.push(new Date(preMarketTime))
+        timeBreaks.preMarketEnd.push(new Date(start).setUTCHours(14, 30))
+        timeBreaks.marketClose.push(new Date(start).setUTCHours(21, 0, 0, 0))
+        timeBreaks.afterMarket.push(add(start, { days: 1 }).setUTCHours(1))
+      }
       start = addDays(start, 1)
 
     }

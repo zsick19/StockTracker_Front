@@ -42,7 +42,7 @@ function SingleHighImportanceTickerDisplay({ id })
         try
         {
             const results = await removeSingleEnterExitPlan({ tickerSymbol: plan.tickerSymbol, planId: plan._id }).unwrap()
-            console.log(results)
+            
         } catch (error)
         {
             console.log(error)

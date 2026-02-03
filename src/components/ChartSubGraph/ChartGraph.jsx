@@ -4,7 +4,13 @@ import { addEnterExitToCharting, addLine, makeSelectChartingByTicker, removeChar
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
 import { sub, addDays, isToday, subMonths, addYears, subDays } from 'date-fns'
-import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay, curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group, timeMonths, timeDays, zoomIdentity } from 'd3'
+import
+{
+    select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay,
+    curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group, timeMonths, timeDays, zoomIdentity,
+    curveBasisOpen,
+    curveLinear
+} from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
 import { defineEnterExitPlan, makeSelectEnterExitByTicker } from '../../features/EnterExitPlans/EnterExitGraphElement'
@@ -19,8 +25,9 @@ import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/En
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
+import { calculateEMADataPoints } from '../../Utilities/technicalIndicatorFunctions'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
     const dispatch = useDispatch()
 
@@ -76,9 +83,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [candleData])
 
 
+
+    const ema9Values = useMemo(() => calculateEMADataPoints(candleData, 9), [candleData])
+    const ema50Values = useMemo(() => calculateEMADataPoints(candleData, 50), [candleData])
+    const ema200Values = useMemo(() => calculateEMADataPoints(candleData, 200), [candleData])
+
+    const VWAPLine = line().x(d => createDateScale({ dateToPixel: d.Timestamp })).y(d => createPriceScale({ priceToPixel: d.VWAP })).curve(curveLinear)
+    const emaLine = line().x(d => createDateScale({ dateToPixel: d.date })).y(d => createPriceScale({ priceToPixel: d.value })).curve(curveLinear)
+
+
+
     const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame) }, [timeFrame])
-
-
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
@@ -268,6 +283,36 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
 
     }, [candleData, KeyLevels, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
+    //plot EMA and VWAP lines
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+        if (showEMAs)
+        {
+
+            //          stockCandleSVG.select('.vwap').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')
+
+            const ema = stockCandleSVG.select('.emaLines')
+            ema.selectAll('.ema9').data([ema9Values], d => d.Timestamp).join(enter =>
+                enter.append('path').attr('class', 'periodLines ema9').attr('stroke', 'green').attr('fill', 'none').attr('stroke-width', '1px').attr('d', d => emaLine(d)),
+                update => update.attr('d', d => emaLine(d)))
+
+            ema.selectAll('.ema50').data([ema50Values], d => d.Timestamp).join(enter =>
+                enter.append('path').attr('class', 'periodLines ema50').attr('stroke', 'blue').attr('fill', 'none').attr('stroke-width', '1px').attr('d', d => emaLine(d)),
+                update => update.attr('d', d => emaLine(d))
+            )
+
+            ema.selectAll('.ema200').data([ema200Values], d => d.Timestamp).join(enter =>
+                enter.append('path').attr('class', 'periodLines ema50').attr('stroke', 'red').attr('fill', 'none').attr('stroke-width', '1px').attr('d', d => emaLine(d)),
+                update => update.attr('d', d => emaLine(d))
+            )
+        } else
+        {
+            stockCandleSVG.select('.emaLines').selectAll('.periodLines').remove()
+        }
+    }, [showEMAs, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
+
+
 
     //draw visual time breaks
     useEffect(() =>
@@ -276,6 +321,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
 
         if (timeFrame.intraDay)
         {
+            stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').remove()
             stockCandleSVG.select('.visualDateBreaks').selectAll('.preMarketVisualBreak').data([...visualBreaksPeriods.preMarket]).join(enter => createMarketOpenVisualBreaks(enter), update => updateMarketOpenVisualBreaks(update))
             function createMarketOpenVisualBreaks(enter)
             {
@@ -313,6 +359,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
         } else
         {
             let pixelDates = visualBreaksPeriods.months.map((d) => createDateScale({ dateToPixel: d }))
+            stockCandleSVG.select('.visualDateBreaks').selectAll('.preMarketVisualBreak')
             stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').data(visualBreaksPeriods.months).join(enter => createVisualBreaks(enter), update => updateVisualBreaks(update))
             function createVisualBreaks(enter)
             {
@@ -905,6 +952,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
                     </g>
                     <g className='temp' />
                     <g className='emaLines' />
+                    <path className='vwap' />
                     <g className='volumeProfile' />
                     <g className='freeLines' />
                     <g className='linesH' />

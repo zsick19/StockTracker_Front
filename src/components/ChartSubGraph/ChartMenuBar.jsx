@@ -5,8 +5,9 @@ import StudySelectPopover from '../ChartMenuDropDowns/StudySelectPopover'
 import { setResetXYZoomState } from '../../features/Charting/GraphHoverZoomElement'
 import { FlaskConical, LineSquiggle, Scale3D } from 'lucide-react'
 import './ChartMenuBar.css'
+import { defaultTimeFrames } from '../../Utilities/TimeFrames'
 
-function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts, uuid })
+function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts, uuid, setShowEMAs })
 {
 
 
@@ -51,7 +52,7 @@ function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts
             <h3>{ticker}</h3>
             <button className='timeFrameButton' onClick={() => { setShowTimeFrameSelect(true); setShowStudiesSelect(false) }}>{timeFrame.increment}{timeFrame.unitOfIncrement}</button>
             <button className='buttonIcon' onClick={() => { setShowTimeFrameSelect(false); setShowStudiesSelect(true) }}><FlaskConical size={18} color='white' /></button>
-            <button className='buttonIcon'><LineSquiggle color='white' size={18} /></button>
+            <button className='buttonIcon' onClick={() => setShowEMAs(prev => !prev)}><LineSquiggle color='white' size={18} /></button>
 
             <button className='buttonIcon' onClick={() => dispatch(setResetXYZoomState({ uuid }))} ><Scale3D size={18} color='white' /></button>
         </div>

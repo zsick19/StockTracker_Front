@@ -35,6 +35,7 @@ function StockDetailSection()
       case 6: return <PreWatchMany watchList={0} />
       case 11: return <PreWatchMany watchList={1} />
       case 12: return <PreWatchMany watchList={2} />
+      case 13: return <PreWatchMany watchList={3} />
       case 7: return <PlanStatusView />
       case 8: return <EnterExitTradeGraph />
       case 9: return <TradingJournal />

@@ -1,5 +1,5 @@
 import React from 'react'
-import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { enterBufferSelectors, enterExitPlannedSelectors, highImportanceAdapter, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import ChartWithoutPlanFetchChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithoutPlanFetchChartingWrapper'
 import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import { useDispatch } from 'react-redux'
@@ -8,6 +8,7 @@ import { setStockDetailState } from '../../../../../../../features/SelectedStock
 
 function SinglePreWatchChartWrapper({ id, watchList, candleData })
 {
+
     function provideSelector(data)
     {
         switch (watchList)
@@ -15,6 +16,7 @@ function SinglePreWatchChartWrapper({ id, watchList, candleData })
             case 0: return stopLossHitSelectors.selectById(data.stopLossHit, id)
             case 1: return enterBufferSelectors.selectById(data.enterBufferHit, id)
             case 2: return enterExitPlannedSelectors.selectById(data.plannedTickers, id)
+            case 3: return highImportanceSelectors.selectById(data.highImportance, id)
         }
     }
 
@@ -33,7 +35,7 @@ function SinglePreWatchChartWrapper({ id, watchList, candleData })
             <div>
                 <ChartWithoutPlanFetchChartingWrapper
                     ticker={id} candleData={{ candleData: candleData }}
-                    interactionController={{ nonLivePrice: true, nonInteractive: true, nonZoomAble: false }}
+                    interactionController={{ isLivePrice: true, isInteractive: false, isZoomAble: true }}
                     chartId={plan._id} timeFrame={defaultTimeFrames.threeDayOneMin}
                     planData={plan.plan} mostRecentPrice={plan.mostRecentPrice}
                     initialTrackingPrice={{ price: plan.initialTrackingPrice, date: plan.dateAdded }}

@@ -1,7 +1,6 @@
-import React from 'react'
 import { useGetGroupedBy12StockDataInfiniteQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
-import SinglePlanViabilityChartWrapper from '../../PlanViabilityStatus/Components/SinglePlanViabilityChartWrapper';
 import SinglePreWatchChartWrapper from './SinglePreWatchChartWrapper';
+
 function PreWatchManyPlanWrapper({ ids, watchList })
 {
     let totalIdsPreWatch = ids.length
