@@ -15,7 +15,7 @@ export const KeyLevelsApiSlice = apiSlice.injectEndpoints({
         }),
         updateStockKeyLevels: builder.mutation({
             query: (args) => ({
-                url: `/chartingData/keyLevels/single/${args.chartId}`,
+                url: `/chartingData/keyLevels/singleMacro/${args.chartId}`,
                 method: 'PUT',
                 body: { updatedKeyLevels: args.updatedKeyLevels }
             }),

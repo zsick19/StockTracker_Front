@@ -63,7 +63,9 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
                             });
                         });
                     };
-                } catch { }
+                } catch { 
+                    
+                }
                 await cacheEntryRemoved;
                 ws.close();
             }

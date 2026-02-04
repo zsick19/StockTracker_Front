@@ -84,8 +84,8 @@ function MacroControlSection()
         </div> :
           <div className="LSH-MacroOptionControlButtons">
             <button onClick={() => { }}><ListOrdered size={16} /></button>
-            <button onClick={() => setShowMacroKeyLevelDisplay(true)}><ChartLine size={16} /></button>
-            <button onClick={() => setShowAddWatchlist(true)}><CirclePlus size={16} /></button>
+            <button onClick={() => setShowMacroKeyLevelDisplay(true)}><ChartLine color="white" size={16} /></button>
+            <button onClick={() => setShowAddWatchlist(true)}><CirclePlus color="white" size={16} /></button>
           </div>}
 
         <div>
@@ -99,7 +99,8 @@ function MacroControlSection()
 
       <div id="LSH-MacroCharts">
         <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} incomingTF={defaultTimeFrames.threeDayOneMin} />
-        {showMacroKeyLevelDisplay ? <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
+        {showMacroKeyLevelDisplay ?
+          <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
           <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyHalfYear} />}
       </div>
     </section>

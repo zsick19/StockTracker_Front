@@ -1,8 +1,8 @@
 import io from 'socket.io-client'
 
 // Create a singleton to manage the single WebSocket connection
-let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [], 'singleLiveChart': [] }
-let listenersCount = { 'enterExitWatchListPrice': 0, 'activeTradePrice': 0, 'singleLiveChart': 0 }
+let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [], 'macroWatchList': [], 'singleLiveChart': [] }
+let listenersCount = { 'enterExitWatchListPrice': 0, 'activeTradePrice': 0, 'macroWatchList': 0, 'singleLiveChart': 0 }
 let ws;
 
 export const setupWebSocket = () =>
@@ -30,19 +30,25 @@ export const setupWebSocket = () =>
         return ws;
     };
 
-    const subscribe = (channel, callback, source) =>
+    const subscribe = (channel, callback, source, ticker, connectionId) =>
     {
-        listeners[channel].push({ fn: callback, source })
+        listeners[channel].push({ fn: callback, source, ticker, connectionId })
         listenersCount[channel] = listenersCount[channel] + 1
     };
 
-    const unsubscribe = (channel, callback, userId, source, ticker) =>
+    const unsubscribe = (channel, callback, userId, source, ticker, connectionId) =>
     {
-        listeners[channel] = listeners[channel].filter((t) => t.source !== source)
-        listenersCount[channel] = listenersCount[channel] - 1
-
-        if (source === 'tempLiveChart') ws.emit('disconnectTempStream', { userId, tickerSymbol: ticker })
-        console.log(`${source} unsubscribed from web socket`)
+        if (source === 'tempLiveChart')
+        {
+            let moreThanOneTicker = listeners[channel].filter(t => t.ticker === ticker).length > 1
+            listeners[channel] = listeners[channel].filter((t) => t.connectionId !== connectionId)
+            listenersCount[channel] = listenersCount[channel] - 1
+            if (!moreThanOneTicker) ws.emit('disconnectTempStream', { userId, tickerSymbol: ticker })
+        } else
+        {
+            listeners[channel] = listeners[channel].filter((t) => t.source !== source)
+            listenersCount[channel] = listenersCount[channel] - 1
+        }
     }
 
     return { getWebSocket, subscribe, unsubscribe };

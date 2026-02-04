@@ -4,23 +4,14 @@ import { updateKeyPrice } from '../../../../../../features/Charting/chartingElem
 
 function SelectedKeyInputForm({ selectedStock, setShowMacroKeyLevelDisplay })
 {
-
-    console.log(selectedStock)
-
-    const [selectedData, setSelectedData] = useState({
-        gammaFlip: undefined, callWall: undefined, putWall: undefined,
-        iVolEMDailyLower: undefined, iVolEMDailyUpper: undefined,
-        iVolEMWeeklyLower: undefined, iVolEMWeeklyUpper: undefined,
-        dailyClose: undefined, dailySigma: undefined,
-        weeklyClose: undefined, weeklySigma: undefined
-    })
+    const [selectedData, setSelectedData] = useState()
     const [errorMessage, setErrorMessage] = useState()
 
     const [updateStockKeyLevels] = useUpdateStockKeyLevelsMutation()
     const { data, isSuccess, isLoading, isError, error } = useGetStockKeyLevelsQuery({ chartId: selectedStock._id })
-    useEffect(() => { if (isSuccess) { setSelectedData(prev => ({ ...prev, ...data })) } }, [data])
-        
-    console.log(selectedData)
+
+    useEffect(() => { if (isSuccess) { setSelectedData(data) } }, [data])
+
 
     async function attemptSelectedStockKeyValueUpdate(e)
     {
@@ -28,7 +19,7 @@ function SelectedKeyInputForm({ selectedStock, setShowMacroKeyLevelDisplay })
         try
         {
             const results = await updateStockKeyLevels({ chartId: selectedStock._id, updatedKeyLevels: selectedData }).unwrap()
-            console.log(results)
+            setShowMacroKeyLevelDisplay(false)
         } catch (error)
         {
             setErrorMessage(error.message)
@@ -36,126 +27,121 @@ function SelectedKeyInputForm({ selectedStock, setShowMacroKeyLevelDisplay })
         }
     }
 
-    function handleKeyValueInputChange(e)
-    {
-        setSelectedData(prev => ({ ...prev, [e.target.id]: parseFloat(e.target.value) }))
-    }
+
 
     return (
 
-        <form onSubmit={attemptSelectedStockKeyValueUpdate} className='LSH-SelectedStockKeyLevelInput' onChange={handleKeyValueInputChange}>
-            <div>
+        <form onSubmit={attemptSelectedStockKeyValueUpdate} className='LSH-SelectedStockKeyLevelInput'>
+            <div id='KeyDailyFormInputs'>
                 <h2>Daily Key Inputs</h2>
-                <div className='flex'>
+                <fieldset className='flex' onChange={(e) => setSelectedData(prev => ({ ...prev, [e.target.id]: parseFloat(e.target.value) }))}>
                     <div>
                         <label htmlFor="gammaFlip">Gamma Flip Line </label>
-                        <input type="number" id='gammaFlip' value={selectedData.gammaFlip} />
+                        <input type="number" id='gammaFlip' value={selectedData?.gammaFlip} />
                     </div>
                     <div>
                         <label htmlFor="callWall">Call Wall </label>
-                        <input type="number" id='callWall' value={selectedData.callWall} />
+                        <input type="number" id='callWall' value={selectedData?.callWall} />
                     </div>
                     <div>
                         <label htmlFor="putWall">Put Wall </label>
-                        <input type="number" id='putWall' value={selectedData.putWall} />
+                        <input type="number" id='putWall' value={selectedData?.putWall} />
                     </div>
-                </div>
+                </fieldset>
 
-                <div className='flex'>
-                    <div>
-                        <label htmlFor="iVolDailyLower">iVol Daily EM </label>
-                        <input type="number" id='iVolDailyLower' />
-                    </div>
-                    <div>
-                        <label htmlFor="dailyLowerEM">Lower Daily EM </label>
-                        <input type="number" id='dailyLowerEM' />
-                    </div>
-                    <div>
-                        <label htmlFor="dailyUpperEM">Upper Daily EM </label>
-                        <input type="number" id='dailyUpperEM' />
-                    </div>
-                    <div>
-                        <label htmlFor="iVolDailyUpper">iVol Upper Daily EM </label>
-                        <input type="number" id='iVolDailyUpper' />
-                    </div>
-                </div>
+                <fieldset onChange={(e) => setSelectedData(prev => ({ ...prev, dailyEM: { ...prev.dailyEM, [e.target.id]: parseFloat(e.target.value) } }))}>
+                    <div className='flex'>
 
-                <div className='flex'>
-                    <div>
-                        <label htmlFor="dailyClose">Daily Close </label>
-                        <input type="number" id='dailyClose' value={selectedData.dailyClose} />
-                    </div>
-                    <div>
-                        <label htmlFor="dailySigma">Daily EM (Sigma) </label>
-                        <input type="number" id='dailySigma' value={selectedData.dailySigma} />
+                        <div>
+                            <label htmlFor="iVolDailyEMLower">iVol Lower Daily EM </label>
+                            <input type="number" id='iVolDailyEMLower' value={selectedData?.dailyEM.iVolDailyEMLower} />
+                        </div>
+                        <div>
+                            <label htmlFor="dailyEMLower">Lower Daily EM </label>
+                            <input type="number" id='dailyEMLower' value={selectedData?.dailyEM.dailyEMLower} />
+                        </div>
+                        <div>
+                            <label htmlFor="dailyEMUpper">Upper Daily EM </label>
+                            <input type="number" id='dailyEMUpper' value={selectedData?.dailyEM.dailyEMUpper} />
+                        </div>
+                        <div>
+                            <label htmlFor="iVolDailyEMUpper">iVol Upper Daily EM </label>
+                            <input type="number" id='iVolDailyEMUpper' value={selectedData?.dailyEM.iVolDailyEMUpper} />
+                        </div>
                     </div>
                     <div className='flex'>
                         <div>
-                            <p>1 Sigma EM: {selectedData.dailySigma}</p>
-                            <p>Daily Upper EM: {selectedData.dailyClose + selectedData.dailySigma}</p>
-                            <p>Daily Lower EM: {selectedData.dailyClose - selectedData.dailySigma}</p>
+                            <label htmlFor="dailyClose">Daily Close </label>
+                            <input type="number" id='dailyClose' value={selectedData?.dailyEM.dailyClose} />
                         </div>
-
                         <div>
-                            <p>2 Sigma EM: {2 * selectedData.dailySigma}</p>
-                            <p>Daily Upper EM: {selectedData.dailyClose + (2 * selectedData.dailySigma)}</p>
-                            <p>Daily Lower EM: {selectedData.dailyClose - (2 * selectedData.dailySigma)}</p>
+                            <label htmlFor="sigma">Daily EM (Sigma) </label>
+                            <input type="number" id='sigma' value={selectedData?.dailyEM.sigma} />
+                        </div>
+                        <div className='flex'>
+                            <div>
+                                <p>1 Sigma EM: {selectedData?.dailyEM.sigma}</p>
+                                <p>Daily Upper EM: {selectedData?.dailyEM.dailyClose + selectedData?.dailyEM.sigma}</p>
+                                <p>Daily Lower EM: {selectedData?.dailyEM.dailyClose - selectedData?.dailyEM.sigma}</p>
+                            </div>
+                            <div>
+                                <p>2 Sigma EM: {2 * selectedData?.dailyEM.sigma}</p>
+                                <p>Daily Upper EM: {selectedData?.dailyEM.dailyClose + (2 * selectedData?.dailyEM.sigma)}</p>
+                                <p>Daily Lower EM: {selectedData?.dailyEM.dailyClose - (2 * selectedData?.dailyEM.sigma)}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </fieldset>
             </div>
 
-            <br />
-            <div>
+            <div id='KeyWeeklyFormInputs'>
                 <h2>Weekly Key Inputs</h2>
-                <div className='flex'>
+                <fieldset className='flex' onChange={(e) => setSelectedData(prev => ({ ...prev, weeklyEM: { ...prev.weeklyEM, [e.target.id]: parseFloat(e.target.value) } }))}>
                     <div>
                         <div>
-                            <label htmlFor="iVolEMWeeklyLower">Weekly EM Lower </label>
-                            <input type="number" id='iVolEMWeeklyLower' value={selectedData.weeklyIVolEMLower} />
+                            <label htmlFor="iVolWeeklyEMLower">Weekly EM Lower </label>
+                            <input type="number" id='iVolWeeklyEMLower' value={selectedData?.weeklyEM.iVolWeeklyEMLower} />
                         </div>
                         <div>
-                            <label htmlFor="iVolEMWeeklyUpper">Weekly EM Upper </label>
-                            <input type="number" id='iVolEMWeeklyUpper' value={selectedData.weeklyIVolEMUpper} />
+                            <label htmlFor="iVolWeeklyEMUpper">Weekly EM Upper </label>
+                            <input type="number" id='iVolWeeklyEMUpper' value={selectedData?.weeklyEM.iVolWeeklyEMUpper} />
                         </div>
                     </div>
                     <div>
                         <div>
                             <label htmlFor="weeklyClose">Weekly Close </label>
-                            <input type="number" id='weeklyClose' value={selectedData.weeklyClose} />
+                            <input type="number" id='weeklyClose' value={selectedData?.weeklyEM.weeklyClose} />
                         </div>
                         <div>
-                            <label htmlFor="weeklySigma">Weekly EM (Sigma) </label>
-                            <input type="number" id='weeklySigma' value={selectedData.weeklySigma} />
+                            <label htmlFor="sigma">Weekly EM (Sigma) </label>
+                            <input type="number" id='sigma' value={selectedData?.weeklyEM.sigma} />
                         </div>
                     </div>
                     <div className='flex'>
                         <div>
-                            <p>1 Sigma EM: {selectedData.weeklySigma}</p>
-                            <p>Weekly Upper EM: {selectedData.weeklyClose + selectedData.weeklySigma}</p>
-                            <p>Weekly Lower EM: {selectedData.weeklyClose - selectedData.weeklySigma}</p>
+                            <p>1 Sigma EM: {selectedData?.weeklyEM.sigma}</p>
+                            <p>Weekly Upper EM: {selectedData?.weeklyEM.weeklyClose + selectedData?.weeklyEM.sigma}</p>
+                            <p>Weekly Lower EM: {selectedData?.weeklyEM.weeklyClose - selectedData?.weeklyEM.sigma}</p>
                         </div>
                         <div>
-                            <p>2 Sigma EM: {2 * selectedData.weeklySigma}</p>
-                            <p>Weekly Upper EM: {selectedData.weeklyClose + (2 * selectedData.weeklySigma)}</p>
-                            <p>Weekly Lower EM: {selectedData.weeklyClose - (2 * selectedData.weeklySigma)}</p>
+                            <p>2 Sigma EM: {2 * selectedData?.weeklyEM.sigma}</p>
+                            <p>Weekly Upper EM: {selectedData?.weeklyEM.weeklyClose + (2 * selectedData?.weeklyEM.sigma)}</p>
+                            <p>Weekly Lower EM: {selectedData?.weeklyEM.weeklyClose - (2 * selectedData?.weeklyEM.sigma)}</p>
                         </div>
                     </div>
-
-                </div>
+                </fieldset>
             </div>
-            <br />
-            {/* monthly/quarterly/yearly inputs */}
-            <div>
+
+            <div id='KeyMonthQuarterYearFormInputs'>
                 <h2>Monthly/Quarterly/Yearly</h2>
                 <div className='flex'>
                     <div>
                         <label htmlFor="monthUpperEM">Month's Upper EM </label>
-                        <input type="number" id='monthUpperEM' />
+                        <input type="number" id='monthUpperEM' value={selectedData?.monthlyEM.monthUpperEM} onChange={(e) => setSelectedData(prev => ({ ...prev, monthlyEM: { ...prev.monthlyEM, monthUpperEM: parseFloat(e.target.value) } }))} />
                     </div>
                     <div>
                         <label htmlFor="monthLowerEM">Month's Lower EM </label>
-                        <input type="number" id='monthLowerEM' />
+                        <input type="number" id='monthLowerEM' value={selectedData?.monthlyEM.monthLowerEM} onChange={(e) => setSelectedData(prev => ({ ...prev, monthlyEM: { ...prev.monthlyEM, monthLowerEM: parseFloat(e.target.value) } }))} />
                     </div>
                     <div>
                         <label htmlFor="quarterUpperEM">Quarter's Upper EM </label>
@@ -175,7 +161,6 @@ function SelectedKeyInputForm({ selectedStock, setShowMacroKeyLevelDisplay })
                     </div>
                 </div>
             </div>
-            <br />
 
             <button>Submit</button>
             <button type='button' onClick={() => setShowMacroKeyLevelDisplay(false)}>Cancel</button>

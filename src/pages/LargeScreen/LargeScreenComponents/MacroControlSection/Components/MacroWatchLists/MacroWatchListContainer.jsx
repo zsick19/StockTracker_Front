@@ -5,23 +5,19 @@ function MacroWatchListContainer({ setPrimaryChartTicker, setSecondaryChartTicke
 {
     const { data, isSuccess, isError, isLoading, error, refetch } = useFetchUsersMacroWatchListQuery()
 
-
-
     let watchListVisual
     if (isSuccess)
     {
-        watchListVisual = data.watchLists.map((watch) => <MacroWatchList watchList={watch} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />)
+        watchListVisual = data.watchLists.map((watchList) => <MacroWatchList watchList={watchList} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />)
     }
     else if (isLoading) { watchListVisual = <div>Loading...</div> }
     else if (isError)
     {
-        watchListVisual = <div> Error
+        watchListVisual = <div>
+            <p>Error</p>
             <button onClick={refetch}>Refetch</button>
         </div>
     }
-
-
-
 
     return (
         <div id='LSH-MacroWatchListContainer'>

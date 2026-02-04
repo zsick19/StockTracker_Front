@@ -65,37 +65,32 @@ function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTic
 
     return (
         <div className='LSH-WatchListWrapper'>
-            {displayWatchlistEdit ? <div className='LSH-WatchListEditTitle'>
-                <button onClick={() => setShowDeleteDoubleCheck(prev => !prev)}>
-                    {showDeleteDoubleCheck ? <Undo2 size={20} color='blue' /> : <CircleMinus size={20} color='red' />}
-                </button>
-                <form onSubmit={attemptToUpdateWatchListTitle}>
-                    {showDeleteDoubleCheck ?
-                        <button onClick={() => { attemptToDeleteWatchList(); setDisplayWatchListEdit(false) }} className='flex'>Confirm Delete<CircleX size={20} color='red' /></button> :
-                        <input type="text" placeholder={watchList.title} ref={titleToUpdate} />}
-                </form>
-                {!showDeleteDoubleCheck &&
-                    <button onClick={() => { setDisplayWatchListEdit(false); setShowDeleteDoubleCheck(false) }}><CircleX size={20} color='white' /></button>}
-            </div> :
+            {displayWatchlistEdit ?
+                <div className='LSH-WatchListEditTitle'>
+                    <button onClick={() => setShowDeleteDoubleCheck(prev => !prev)}>
+                        {showDeleteDoubleCheck ? <Undo2 size={20} color='blue' /> : <CircleMinus size={20} color='red' />}
+                    </button>
+                    <form onSubmit={attemptToUpdateWatchListTitle}>
+                        {showDeleteDoubleCheck ? <button onClick={() => { attemptToDeleteWatchList(); setDisplayWatchListEdit(false) }} className='flex'>Confirm Delete<CircleX size={20} color='red' /></button> :
+                            <input type="text" placeholder={watchList.title} ref={titleToUpdate} />}
+                    </form>
+                    {!showDeleteDoubleCheck && <button onClick={() => { setDisplayWatchListEdit(false); setShowDeleteDoubleCheck(false) }}><CircleX size={20} color='white' /></button>}
+                </div> :
+
                 <div className={`${!displayTickers && 'LSH-WatchListTitleClose'} LSH-WatchListTitle`} onClick={() => setDisplayTickers(prev => !prev)}>
                     <p>{watchList.title}</p>
                     <div className='flex'>
                         <button onClick={(e) => { e.stopPropagation(); setDisplayWatchListEdit(true) }}><Ellipsis size={20} /></button>
                         <button >{displayTickers ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</button>
                     </div>
-                </div>
-            }
-            {
-                displayTickers && <div className='LSH-WatchListTickerOpen'>
+                </div>}
 
-                    {watchList.tickersContained.map((ticker, index) =>
-                    {
-                        return <SingleWatchListTicker tickerId={ticker.ticker} index={index} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />
-                    })}
+            {displayTickers &&
+                <div className='LSH-WatchListTickerOpen'>
+                    {watchList.tickersContained.map((ticker, index) => <SingleWatchListTicker isDeleteAble={watchList.useCase !== 'defaultMacro'} tickerId={ticker.ticker}
+                        index={index} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />)}
 
-                    <form onSubmit={attemptToAddTickerToWatchList} className='LSH-WatchListAddTickerForm'>
-                        <input type="text" ref={tickerToAddRef} placeholder='Add Ticker' />
-                    </form>
+                    <form onSubmit={attemptToAddTickerToWatchList} className='LSH-WatchListAddTickerForm'><input type="text" ref={tickerToAddRef} placeholder='Add Ticker' /></form>
                 </div>
             }
         </div >

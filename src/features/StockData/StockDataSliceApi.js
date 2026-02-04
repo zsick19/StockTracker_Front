@@ -2,6 +2,8 @@ import { add, addMinutes, isSameHour, isSameMinute, startOfHour } from "date-fns
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
+import * as short from 'short-uuid'
+
 
 export const StockDataApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -100,18 +102,19 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
               return draft
             })
           }
+          const connectionId = short.generate()
           try
           {
             await cacheDataLoaded
-            subscribe('singleLiveChart', incomingTradeListener, 'TickerGraph')
+            subscribe('singleLiveChart', incomingTradeListener, 'tempLiveChart', args.ticker, connectionId)
           } catch (error)
           {
             await cacheEntryRemoved
-            unsubscribe('singleLiveChart', incomingTradeListener, userId, 'tempLiveChart', args.ticker)
+            unsubscribe('singleLiveChart', incomingTradeListener, userId, 'tempLiveChart', args.ticker, connectionId)
           }
 
           await cacheEntryRemoved
-          unsubscribe('singleLiveChart', incomingTradeListener, userId, 'tempLiveChart', args.ticker)
+          unsubscribe('singleLiveChart', incomingTradeListener, userId, 'tempLiveChart', args.ticker, connectionId)
         }
       }
     }),
