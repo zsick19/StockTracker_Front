@@ -11,6 +11,7 @@ export const defaultTimeFrames = {
   fourHourOneYear: { increment: "4", unitOfIncrement: "H", duration: 1, unitOfDuration: "Y", intraDay: true },
 
   dailyOneYear: { increment: "1", unitOfIncrement: "D", duration: 1, unitOfDuration: "Y", intraDay: false },
+  dailyQuarter: { increment: "1", unitOfIncrement: "D", duration: 90, unitOfDuration: "D", intraDay: false },
   dailyHalfYear: { increment: "1", unitOfIncrement: "D", duration: 180, unitOfDuration: "D", intraDay: false },
   weeklyOneYear: { increment: "1", unitOfIncrement: "W", duration: 1, unitOfDuration: "Y", intraDay: false },
 };

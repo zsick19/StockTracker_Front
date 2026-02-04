@@ -12,11 +12,7 @@ function SingleSearchResultBlock({ search, found })
 
     const [addRemoveErrorMessage, setAddRemoveErrorMessage] = useState(undefined)
 
-    const { item } = useGetUserInitializationQuery(undefined, {
-        selectFromResult: ({ data }) => ({
-            item: data?.userStockHistory.find((i) => i.symbol === search.Symbol),
-        }), skip: !found,
-    });
+    const { item } = useGetUserInitializationQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.userStockHistory.find((i) => i.symbol === search.Symbol), }), skip: !found, });
 
     let mostRecentAction = item ? item.history.at(-1).action : undefined
 
@@ -59,7 +55,7 @@ function SingleSearchResultBlock({ search, found })
 
             {search.candleData ?
                 <div className='ChartGraphWrapper'>
-                    <ChartGraph ticker={{ ticker: search.Symbol }} isInteractive={false} isLivePrice={false} isZoomAble={false} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} nonInteractive={true} nonZoomAble={true} />
+                    <ChartGraph ticker={{ ticker: search.Symbol }} isInteractive={false} isLivePrice={false} isZoomAble={false} candleData={search.candleData} timeFrame={defaultTimeFrames.dailyQuarter} nonInteractive={true} nonZoomAble={true} />
                 </div > : <div className='MarketSearchNoCandleData'>
                     <p >No Data For This Ticker</p>
                 </div>

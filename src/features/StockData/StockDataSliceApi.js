@@ -12,6 +12,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
         body: { timeFrame: args.timeFrame },
       }), transformResponse: (response, meta, args) =>
       {
+
         if (!args.liveFeed) response.nonLivePrice = response.mostRecentPrice.Price
         else
         {
@@ -85,7 +86,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
               function checkForSameTimeFrameCandle(compareTimestamp)
               {
                 if (args.timeFrame.unitOfIncrement === 'H') { return new Date(compareTimestamp.incoming) < add(new Date(compareTimestamp.previous), { hours: parseInt(args.timeFrame.increment) }) }
-                else if (args.timeFrame.unitOfIncrement === 'M')                {                  return new Date(compareTimestamp.incoming) < addMinutes(compareTimestamp.previous, (parseInt(args.timeFrame.increment)));                }
+                else if (args.timeFrame.unitOfIncrement === 'M') { return new Date(compareTimestamp.incoming) < addMinutes(compareTimestamp.previous, (parseInt(args.timeFrame.increment))); }
                 else return true
               }
 

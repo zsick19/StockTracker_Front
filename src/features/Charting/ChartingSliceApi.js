@@ -2,12 +2,15 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { enterBufferHitAdapter, enterExitAdapter, EnterExitPlanApiSlice, stopLossHitAdapter } from "../EnterExitPlans/EnterExitApiSlice";
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
 
+const possibleDefaultMacros = ['SPY']
+
 export const ChartingApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getChartingData: builder.query({
       query: (args) =>
       {
-        if (args.chartId) return { url: `/chartingData/${args.chartId}` };
+        if (possibleDefaultMacros.includes(args?.tickerSymbol)) return { url: `/chartingData/macro/${args.chartId}` }
+        else if (args?.chartId) return { url: `/chartingData/${args.chartId}` };
       },
       providesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
     }),

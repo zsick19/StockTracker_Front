@@ -4,7 +4,7 @@ export const KeyLevelsApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getStockKeyLevels: builder.query({
             query: (args) => ({
-                url: `/chartingData/keyLevels/single/${args.chartId}`
+                url: `/chartingData/keyLevels/singleMacro/${args.chartId}`
             }),
             providesTags: ['stockKeyLevels']
         }),

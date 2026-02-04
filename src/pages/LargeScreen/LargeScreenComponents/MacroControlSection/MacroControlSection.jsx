@@ -15,15 +15,28 @@ import { defaultTimeFrames } from "../../../../Utilities/TimeFrames";
 function MacroControlSection()
 {
   const dispatch = useDispatch()
+  const addWatchListTitle = useRef()
+  const secondarySearchTicker = useRef();
+  const uuidGraph1 = useMemo(() => short.generate(), [])
+  const uuidGraph2 = useMemo(() => short.generate(), [])
+
+
 
   const memoizedSelectedSPYId = useMemo(() => selectSPYIdFromUser(), [])
   const usersSPYId = useSelector(memoizedSelectedSPYId)
-  useEffect(() => { if (usersSPYId) setPrimaryChartTicker({ ticker: 'SPY', _id: usersSPYId }) }, [usersSPYId])
 
-  const addWatchListTitle = useRef()
-  const secondarySearchTicker = useRef();
+  useEffect(() =>
+  {
+    if (usersSPYId)
+    {
+      setPrimaryChartTicker({ ticker: 'SPY', _id: usersSPYId })
+      setSecondaryChartTicker({ ticker: 'SPY', _id: usersSPYId })
+    }
+  }, [usersSPYId])
+
   const [primaryChartTicker, setPrimaryChartTicker] = useState({ ticker: "SPY", _id: usersSPYId });
   const [secondaryChartTicker, setSecondaryChartTicker] = useState({ ticker: "SPY", _id: usersSPYId });
+
   const [showAddWatchlist, setShowAddWatchlist] = useState(false)
   const [showMacroKeyLevelDisplay, setShowMacroKeyLevelDisplay] = useState(false)
   const [errorMessage, setErrorMessage] = useState(undefined)
@@ -56,8 +69,6 @@ function MacroControlSection()
     }
   }
 
-  const uuidGraph1 = useMemo(() => short.generate(), [])
-  const uuidGraph2 = useMemo(() => short.generate(), [])
 
   return (
     <section id="LSH-MacroSection">

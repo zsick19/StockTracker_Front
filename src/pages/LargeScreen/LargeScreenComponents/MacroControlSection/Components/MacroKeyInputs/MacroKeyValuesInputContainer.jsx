@@ -9,8 +9,10 @@ function MacroKeyValuesInputContainer({ selectedStock, setShowMacroKeyLevelDispl
 
     return (
         <div id='LSH-MacroKeyValueInput'>
-            <p>Macro Key Values</p>
-            <button onClick={() => setShowOnlySelectedForm(prev => !prev)}>{showOnlySelectedForm ? 'All Macros' : 'Selected Macro'}</button>
+            <div className='flex'>
+                {showOnlySelectedForm ? <h1>Macro Key Values for {selectedStock.ticker}</h1> : <p>Macro Key Values</p>}
+                <button onClick={() => setShowOnlySelectedForm(prev => !prev)}>{showOnlySelectedForm ? 'All Macros' : 'Selected Macro'}</button>
+            </div>
             {showOnlySelectedForm ?
                 <SelectedKeyInputForm selectedStock={selectedStock} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
                 <GeneralMacroKeyInputForm setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} />

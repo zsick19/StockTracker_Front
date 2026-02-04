@@ -10,10 +10,7 @@ export const InitializationApiSlice = apiSlice.injectEndpoints({
       transformResponse: (response) =>
       {
         response.patternedTickers = []
-        response.userStockHistory.map((history) =>
-        {
-          response.patternedTickers.push(history.symbol)
-        })
+        response.userStockHistory.map((history) => { response.patternedTickers.push(history.symbol) })
         return response
       },
       keepUnusedDataFor: 60000,
@@ -27,7 +24,7 @@ export const { useGetUserInitializationQuery } = InitializationApiSlice;
 export const selectSPYIdFromUser = () =>
   createSelector(
     InitializationApiSlice.endpoints.getUserInitialization.select(),
-    (result) => { return result?.data?.spyChartId || undefined }
+    (result) => { return result?.data?._id || undefined }
   )
 
 export const selectUserMarketSearchFilters = () =>

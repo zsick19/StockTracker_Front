@@ -155,3 +155,8 @@
 .afterMarket {
   fill: rgba(189, 189, 189, 0.418);
 }
+
+.keyLevelSubText {
+  font-size: x-small;
+  fill: white;
+}

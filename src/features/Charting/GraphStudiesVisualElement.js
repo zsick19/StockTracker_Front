@@ -16,6 +16,11 @@ const graphStudiesVisualElement = createSlice({
             if (!action.payload.uuid) return
             state[action.payload.uuid].ema = !state[action.payload.uuid].ema
         },
+        setGraphVWAPControl: (state, action) =>
+        {
+            if (!action.payload.uuid) return
+            state[action.payload.uuid].vwap = !state[action.payload.uuid].vwap
+        },
         clearGraphStudyControl: (state, action) =>
         {
             delete state[action.payload.uuid]

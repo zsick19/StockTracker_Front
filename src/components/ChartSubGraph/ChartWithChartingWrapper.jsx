@@ -10,9 +10,10 @@ import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../featu
 
 function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
-    const dispatch = useDispatch()
-    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ chartId })
 
+    const dispatch = useDispatch()
+    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ tickerSymbol: ticker.ticker, chartId: ticker._id })
+    
     useEffect(() =>
     {
         if (uuid)
@@ -46,9 +47,12 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
 
     return (
         <div className="ChartGraphWrapper">
-            <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData} uuid={uuid}
-                mostRecentPrice={candleData.mostRecentPrice} lastCandleData={lastCandleData} candlesToKeepSinceLastQuery={candlesToKeepSinceLastQuery}
-                timeFrame={timeFrame} isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive}
+            <ChartGraph ticker={ticker.ticker} chartId={chartId} candleData={candleData.candleData} uuid={uuid}
+                mostRecentPrice={candleData.mostRecentPrice} 
+                lastCandleData={lastCandleData} 
+                candlesToKeepSinceLastQuery={candlesToKeepSinceLastQuery}
+                timeFrame={timeFrame} 
+                isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive}
                 isZoomAble={interactionController?.isZoomAble} showEMAs={showEMAs} />
         </div>
     )
