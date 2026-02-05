@@ -15,6 +15,11 @@ export const testApiSlice = apiSlice.injectEndpoints({
             query: () => ({
                 url: '/user/reset'
             })
+        }),
+        populateMacroTickers: builder.mutation({
+            query: () => ({
+                url: '/auth/testAddSectors'
+            })
         })
 
     })
@@ -22,5 +27,6 @@ export const testApiSlice = apiSlice.injectEndpoints({
 
 export const {
     useConnectionTestQuery,
-    useResetUserMutation
+    useResetUserMutation,
+    usePopulateMacroTickersMutation
 } = testApiSlice

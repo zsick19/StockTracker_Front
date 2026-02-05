@@ -1,8 +1,8 @@
 import io from 'socket.io-client'
 
 // Create a singleton to manage the single WebSocket connection
-let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [], 'macroWatchList': [], 'singleLiveChart': [] }
-let listenersCount = { 'enterExitWatchListPrice': 0, 'activeTradePrice': 0, 'macroWatchList': 0, 'singleLiveChart': 0 }
+let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [], 'macroWatchListUpdate': [], 'singleLiveChart': [] }
+let listenersCount = { 'enterExitWatchListPrice': 0, 'activeTradePrice': 0, 'macroWatchListUpdate': 0, 'singleLiveChart': 0 }
 let ws;
 
 export const setupWebSocket = () =>

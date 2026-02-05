@@ -16,22 +16,23 @@ function PreTradePlanPresent({ selectedStock })
         if (selectedStock?.tradeId || !tradeRecordDetails.positionSize > 0 || !tradeRecordDetails.purchasePrice > 0) return
         let planPricing = selectedStock.plan
 
-        try
-        {
-            const results = await initiateTradeRecord({
-                ...tradeRecordDetails,
-                tickerSector: selectedStock.tickerSector,
-                tradingPlanPrices: [planPricing.stopLossPrice, tradeRecordDetails.purchasePrice, planPricing.enterBufferPrice,
-                planPricing.exitBufferPrice, planPricing.exitPrice, planPricing.moonPrice],
-                enterExitPlanId: selectedStock.planId,
-                tickerSymbol: selectedStock.tickerSymbol
-            })
+        console.log(selectedStock.plan)
+        // try
+        // {
+        //     const results = await initiateTradeRecord({
+        //         ...tradeRecordDetails,
+        //         tickerSector: selectedStock.tickerSector,
+        //         tradingPlanPrices: [planPricing.stopLossPrice, tradeRecordDetails.purchasePrice, planPricing.enterBufferPrice,
+        //         planPricing.exitBufferPrice, planPricing.exitPrice, planPricing.moonPrice],
+        //         enterExitPlanId: selectedStock.planId,
+        //         tickerSymbol: selectedStock.tickerSymbol
+        //     })
 
-            setServerTradeResponse(results)
-        } catch (error)
-        {
-            console.log(error)
-        }
+        //     setServerTradeResponse(results)
+        // } catch (error)
+        // {
+        //     console.log(error)
+        // }
 
     }
 

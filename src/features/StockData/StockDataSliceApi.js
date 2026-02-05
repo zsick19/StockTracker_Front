@@ -20,7 +20,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
         {
           response.mostRecentTickerCandle = response.candleData.pop()
           response.mostRecentTickerCandle.ClosePrice = response.mostRecentPrice.Price
-          response.mostRecentTickerCandle.Timestamp = add(new Date(response.mostRecentTickerCandle.Timestamp), { hours: 1 }).toISOString()
+          response.mostRecentTickerCandle.Timestamp = response.mostRecentTickerCandle.Timestamp
 
           response.candlesToKeepSinceLastQuery = []
           response.mostRecentPrice = response.mostRecentPrice.Price
@@ -60,7 +60,8 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
                 } else
                 {
                   let copyOfClosingCandle = draft.mostRecentTickerCandle
-                  draft.candlesToKeepSinceLastQuery.push(draft.mostRecentTickerCandle)
+                  draft.candleData.push(draft.mostRecentTickerCandle)
+                  // draft.candlesToKeepSinceLastQuery.push(draft.mostRecentTickerCandle)
                   if (data.Price >= copyOfClosingCandle.ClosePrice) 
                   {
                     draft.mostRecentTickerCandle = {

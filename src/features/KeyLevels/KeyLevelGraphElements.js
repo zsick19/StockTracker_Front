@@ -9,15 +9,12 @@ const keyLevelGraphElementsSlice = createSlice({
         {
             let chartingData = action.payload
 
-            if (action.payload.gammaFlip)
-            {
-                state[chartingData.tickerSymbol] = {
-                    gammaFlip: chartingData.gammaFlip,
-                    dailyEM: chartingData.dailyEM,
-                    weeklyEM: chartingData.weeklyEM,
-                    previousWeekEM: [{ weekStart: new Date().toISOString(), EMUpper: 944, EMLower: 231 }],
-                    monthlyEM: [{ monthStart: new Date().toISOString(), EMLower: 222, EMUpper: 333 }]
-                }
+            state[chartingData.tickerSymbol] = {
+                gammaFlip: chartingData?.gammaFlip || undefined,
+                dailyEM: chartingData.dailyEM,
+                weeklyEM: chartingData.weeklyEM,
+                standardDeviation: chartingData.standardDeviation,
+                oneDayToExpire: chartingData?.oneDayToExpire || []
             }
         },
     },

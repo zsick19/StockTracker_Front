@@ -2,17 +2,26 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { enterBufferHitAdapter, enterExitAdapter, EnterExitPlanApiSlice, stopLossHitAdapter } from "../EnterExitPlans/EnterExitApiSlice";
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
 
-const possibleDefaultMacros = ['SPY']
+const possibleDefaultMacros = ['SPY', 'ES', 'DIA', 'QQQ', 'IWM', 'TLT', 'XLRE', 'XLY', 'XLK', 'XLF', 'XLU', 'XLP', 'XLE', 'XLC', 'XLI', 'XLV', 'XLB', 'GLD', 'SLV', 'GDX', 'SMH', 'XBI', 'KRE', 'XOP', 'XRT']
 
 export const ChartingApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getChartingData: builder.query({
       query: (args) =>
       {
-        if (possibleDefaultMacros.includes(args?.tickerSymbol)) return { url: `/chartingData/macro/${args.chartId}` }
+        if (possibleDefaultMacros.includes(args.tickerSymbol)) return { url: `/chartingData/macro/${args.chartId}` }
         else if (args?.chartId) return { url: `/chartingData/${args.chartId}` };
       },
       providesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
+    }),
+
+
+    getMacroChartingData: builder.query({
+      query: (args) =>
+      {
+        console.log(args)
+        return { url: `/chartingData/macro/${args.chartId}` }
+      }
     }),
 
     updateChartingData: builder.mutation({
@@ -88,4 +97,4 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useGetChartingDataQuery, useUpdateChartingDataMutation, useRemoveChartableStockMutation } = ChartingApiSlice;
+export const { useGetChartingDataQuery, useGetMacroChartingDataQuery, useUpdateChartingDataMutation, useRemoveChartableStockMutation } = ChartingApiSlice;

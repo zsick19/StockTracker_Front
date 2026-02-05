@@ -15,10 +15,11 @@ function ChartSubGraphContainer({ ticker, uuid, incomingTF })
 
   const { data: stockData, isSuccess, isLoading, isError, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: ticker.ticker, liveFeed: true, provideNews: false, timeFrame })
 
+
   let actualChart
   if (isSuccess && stockData.candleData.length > 0)
   {
-    actualChart = <ChartWithChartingWrapper ticker={ticker} candleData={stockData} chartId={ticker._id}
+    actualChart = <ChartWithChartingWrapper ticker={ticker.ticker} candleData={stockData} chartId={ticker._id}
       timeFrame={timeFrame} uuid={uuid} lastCandleData={stockData.mostRecentTickerCandle} candlesToKeepSinceLastQuery={stockData.candlesToKeepSinceLastQuery}
       interactionController={{ isLivePrice: true, isInteractive: false, isZoomAble: true }} />
   }

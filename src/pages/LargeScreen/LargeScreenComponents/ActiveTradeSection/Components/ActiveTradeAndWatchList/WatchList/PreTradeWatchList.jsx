@@ -29,13 +29,14 @@ function PreTradeWatchList({ setActiveTradeLarger })
     }
     else if (isLoading)
     {
+        highImportanceContent = <div>Loading...</div>
         enterBufferHitContent = <div>Loading</div>
         stopLossHitContent = <div>Loading</div>
         plannedTrackedContent = <div>Loading</div>
     }
     else if (isError)
     {
-
+        highImportanceContent = <div>Error <button onClick={() => refetch()}>Refetch</button></div>
         enterBufferHitContent = <div>Error</div>
         stopLossHitContent = <div>Error</div>
         plannedTrackedContent = <div>Error</div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ChartGraph from './ChartGraph'
 import { useGetChartingDataQuery } from '../../features/Charting/ChartingSliceApi'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { setPreviousCharting } from '../../features/Charting/chartingElements'
 import { setKeyLevelsCharting } from '../../features/KeyLevels/KeyLevelGraphElements'
 import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGraphElement'
@@ -10,10 +10,11 @@ import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../featu
 
 function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
-
     const dispatch = useDispatch()
-    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ tickerSymbol: ticker.ticker, chartId: ticker._id })
-    
+    const tickerForSearch = ticker?.ticker || ticker
+
+    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ tickerSymbol: ticker?.ticker || ticker, chartId: ticker?._id || chartId })
+
     useEffect(() =>
     {
         if (uuid)
@@ -33,6 +34,7 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
 
     useEffect(() =>
     {
+
         if (isSuccess)
         {
             dispatch(setEnterExitCharting(chartingData))
@@ -47,11 +49,11 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
 
     return (
         <div className="ChartGraphWrapper">
-            <ChartGraph ticker={ticker.ticker} chartId={chartId} candleData={candleData.candleData} uuid={uuid}
-                mostRecentPrice={candleData.mostRecentPrice} 
-                lastCandleData={lastCandleData} 
+            <ChartGraph ticker={tickerForSearch} chartId={chartId} candleData={candleData.candleData} uuid={uuid}
+                mostRecentPrice={candleData.mostRecentPrice}
+                lastCandleData={lastCandleData}
                 candlesToKeepSinceLastQuery={candlesToKeepSinceLastQuery}
-                timeFrame={timeFrame} 
+                timeFrame={timeFrame}
                 isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive}
                 isZoomAble={interactionController?.isZoomAble} showEMAs={showEMAs} />
         </div>

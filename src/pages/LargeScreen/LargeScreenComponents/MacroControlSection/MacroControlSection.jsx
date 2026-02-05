@@ -25,6 +25,7 @@ function MacroControlSection()
   const memoizedSelectedSPYId = useMemo(() => selectSPYIdFromUser(), [])
   const usersSPYId = useSelector(memoizedSelectedSPYId)
 
+
   useEffect(() =>
   {
     if (usersSPYId)
@@ -99,9 +100,9 @@ function MacroControlSection()
 
       <div id="LSH-MacroCharts">
         <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} incomingTF={defaultTimeFrames.threeDayOneMin} />
-        {showMacroKeyLevelDisplay ?
-          <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
-          <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyHalfYear} />}
+
+        {showMacroKeyLevelDisplay ? <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
+          <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyQuarter} />}
       </div>
     </section>
   );

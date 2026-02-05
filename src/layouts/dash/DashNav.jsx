@@ -1,7 +1,7 @@
 import React from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useResetUserMutation } from "../../features/test/testApiSlice";
+import { usePopulateMacroTickersMutation, useResetUserMutation } from "../../features/test/testApiSlice";
 
 function DashNav()
 {
@@ -10,6 +10,7 @@ function DashNav()
   const location = useLocation();
 
   const [resetUser] = useResetUserMutation()
+  const [populateMacroTickers] = usePopulateMacroTickersMutation()
 
   async function attemptResettingUser(params)
   {
@@ -22,6 +23,20 @@ function DashNav()
       console.log(error)
     }
   }
+
+  async function attemptPopulatingMacros()
+  {
+    try
+    {
+      const results = await populateMacroTickers().unwrap()
+
+    } catch (error)
+    {
+      console.log(error)
+    }
+  }
+
+
 
   return (
     <nav id="DashNav">
@@ -36,6 +51,8 @@ function DashNav()
         </button>
       )}
       <p>Stock Tracker 3.0</p>
+
+      <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button>
 
       <button onClick={() => attemptResettingUser()}>Dev Reset User</button>
     </nav>

@@ -24,7 +24,11 @@ export const { useGetUserInitializationQuery } = InitializationApiSlice;
 export const selectSPYIdFromUser = () =>
   createSelector(
     InitializationApiSlice.endpoints.getUserInitialization.select(),
-    (result) => { return result?.data?._id || undefined }
+    (result) =>
+    {
+
+      return result?.data?._id || undefined
+    }
   )
 
 export const selectUserMarketSearchFilters = () =>

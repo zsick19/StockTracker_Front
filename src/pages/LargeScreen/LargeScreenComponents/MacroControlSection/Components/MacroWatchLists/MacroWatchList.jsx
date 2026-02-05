@@ -62,7 +62,6 @@ function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTic
         catch (error) { console.log(error) }
     }
 
-
     return (
         <div className='LSH-WatchListWrapper'>
             {displayWatchlistEdit ?
@@ -90,7 +89,8 @@ function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTic
                     {watchList.tickersContained.map((ticker, index) => <SingleWatchListTicker isDeleteAble={watchList.useCase !== 'defaultMacro'} tickerId={ticker.ticker}
                         index={index} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />)}
 
-                    <form onSubmit={attemptToAddTickerToWatchList} className='LSH-WatchListAddTickerForm'><input type="text" ref={tickerToAddRef} placeholder='Add Ticker' /></form>
+                    {watchList.useCase === 'defaultMacro' ? <div className='LSH-WatchListAddTickerForm'></div> : <form onSubmit={attemptToAddTickerToWatchList} className='LSH-WatchListAddTickerForm'><input type="text" ref={tickerToAddRef} placeholder='Add Ticker' /></form>
+                    }
                 </div>
             }
         </div >

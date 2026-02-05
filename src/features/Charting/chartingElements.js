@@ -22,7 +22,9 @@ const chartingElementSlice = createSlice({
 
     addEnterExitToCharting: (state, action) =>
     {
+      console.log(action.payload)
       let { enterExit, ticker } = action.payload
+      // if (ticker === undefined) ticker = action.payload.ticker.ticker
       enterExit.dateCreated = new Date().toLocaleDateString();
       state[ticker].enterExitLines = enterExit
       state[ticker].chartingAltered = true
@@ -33,15 +35,6 @@ const chartingElementSlice = createSlice({
       state[ticker].enterExitLines = updatedEnterExit
       state[ticker].chartingAltered = true
     },
-    // addKeyPrice: (state, action) =>
-    // {
-    //   let keyPrice = action.payload;
-    //   keyPrice.id = state.keyPriceLinesId + 1;
-    //   keyPrice.dateCreated = new Date().toLocaleDateString();
-    //   state.keyPriceLinesId = state.keyPriceLinesId + 1;
-    //   state.keyPriceLines.push(keyPrice);
-    //   state.chartingAltered = true;
-    // },
     updateKeyPrice: (state, action) =>
     {
       state.keyPriceLines = state.keyPriceLines.map((keyPrice) =>
@@ -69,7 +62,11 @@ const chartingElementSlice = createSlice({
     },
     setPreviousCharting: (state, action) =>
     {
-      if (action.payload.charting) { state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false } }
+      console.log(action.payload)
+      if (action.payload.charting)
+      {
+        state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false }
+      }
       else
       {
         state[action.payload.tickerSymbol] = {
@@ -85,24 +82,6 @@ const chartingElementSlice = createSlice({
         }
       }
     },
-    // clearPreviousCharting: (state, action) =>
-    // {
-    //   state.chartingAltered = false;
-    //   state.freeLines = [];
-    //   state.freeLinesId = 1;
-
-    //   state.trendLines = [];
-    //   state.trendLinesId = 1;
-
-    //   state.linesH = [];
-    //   state.linesHId = 1;
-
-    //   state.enterExitLines = [];
-    //   state.enterExitsId = 1;
-
-    //   state.keyPriceLines = [];
-    //   state.keyPriceLinesId = 1;
-    // },
   },
 });
 
@@ -112,10 +91,8 @@ export const {
   addEnterExitToCharting,
   updateEnterExitToCharting,
   removeChartingElement,
-  // addKeyPrice,
   updateKeyPrice,
   setPreviousCharting,
-  // clearPreviousCharting,
 } = chartingElementSlice.actions;
 
 export default chartingElementSlice.reducer;

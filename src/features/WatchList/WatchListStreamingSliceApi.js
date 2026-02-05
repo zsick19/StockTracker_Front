@@ -1,5 +1,7 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
+import { setupWebSocket } from "../../AppRedux/api/ws";
+const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 const singleTickerAdapter = createEntityAdapter({
     selectId: (item) => item.ticker
@@ -25,12 +27,10 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
                 {
                     watchList.tickersContained.map((ticker) =>
                     {
-                        //ticker.snapshot = normalizedTickerData[ticker.ticker]
                         ticker.mostRecentPrice = normalizedTickerData[ticker.ticker]?.LatestTrade.Price
                         ticker.dailyOpenPrice = normalizedTickerData[ticker.ticker]?.DailyBar.OpenPrice
 
                         let difference = ((ticker.mostRecentPrice - ticker.dailyOpenPrice) / ticker.dailyOpenPrice) * 100
-
 
                         ticker.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : difference)
                         tickerMap[ticker.ticker] = ticker
@@ -43,31 +43,36 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
                     watchLists: response.macroWatchList,
                     tickerState
                 }
-            }, async onCacheEntryAdded(arg, { updateCachedData, cacheDataLoaded, cacheEntryRemoved })
+            }, async onCacheEntryAdded(args, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
             {
-                const ws = new WebSocket('ws://localhost:8080');
+                const userId = getState().auth.userId
+                const ws = getWebSocket(userId, 'MacroWatchListStream')
+
+                const incomingTradeListener = (data) =>
+                {
+                    dispatch(
+                        WatchListStreamingApiSlice.util.updateQueryData('fetchUsersMacroWatchList', undefined, (draft) =>
+                        {
+                            const entity = draft.tickerState.entities[data.Symbol]
+
+                            if (entity)
+                            {
+                                entity.mostRecentPrice = data.Price
+                                entity.currentDayPercentGain = ((entity.mostRecentPrice - entity.dailyOpenPrice) / entity.dailyOpenPrice) * 100
+                            }
+                        }))
+                }
                 try
                 {
-                    await cacheDataLoaded;
-                    ws.onmessage = (event) =>
-                    {
-                        const update = JSON.parse(event.data); // e.g., { _id: 'item123', price: 99 }
-
-                        updateCachedData((draft) =>
-                        {
-                            singleTickerAdapter.updateOne(draft.tickerState, {
-                                id: update.ticker,
-
-
-                                changes: update
-                            });
-                        });
-                    };
-                } catch { 
-                    
+                    await cacheDataLoaded
+                    subscribe('macroWatchListUpdate', incomingTradeListener, 'macroWatchList')
+                } catch (error)
+                {
+                    await cacheEntryRemoved
+                    unsubscribe('macroWatchListUpdate', incomingTradeListener, userId, 'macroWatchList')
                 }
-                await cacheEntryRemoved;
-                ws.close();
+                await cacheEntryRemoved
+                unsubscribe('macroWatchListUpdate', incomingTradeListener, userId, 'macroWatchList')
             }
         }),
     }),

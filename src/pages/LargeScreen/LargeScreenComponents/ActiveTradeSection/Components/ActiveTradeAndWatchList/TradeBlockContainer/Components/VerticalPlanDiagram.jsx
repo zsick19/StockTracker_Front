@@ -27,6 +27,7 @@ function VerticalPlanDiagram({ idealPrices, currentPrice, percentOfGain, actualE
 
     const priceSVG = select(verticalSVG.current)
 
+
     useEffect(() =>
     {
         if (preCheckDim()) return
