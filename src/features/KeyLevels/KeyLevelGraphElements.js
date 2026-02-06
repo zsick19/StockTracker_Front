@@ -13,6 +13,8 @@ const keyLevelGraphElementsSlice = createSlice({
                 gammaFlip: chartingData?.gammaFlip || undefined,
                 dailyEM: chartingData.dailyEM,
                 weeklyEM: chartingData.weeklyEM,
+                monthlyEM: chartingData.monthlyEM,
+                quarterlyEM: chartingData.quarterlyEM,
                 standardDeviation: chartingData.standardDeviation,
                 oneDayToExpire: chartingData?.oneDayToExpire || []
             }

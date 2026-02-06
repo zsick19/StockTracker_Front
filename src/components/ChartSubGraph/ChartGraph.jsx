@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addEnterExitToCharting, addLine, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek } from 'date-fns'
+import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from 'date-fns'
 import
 {
     select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay,
@@ -679,10 +679,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
             stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text(`Upper Weekly - ${dollarWeeklyUpper.toFixed(2)}`).attr("x", candleDimensions.width - textOffSetFromRight).attr("y", weeklyUpper)
 
             let weeklyLower = createPriceScale({ priceToPixel: dollarWeeklyLower })
-            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'orange').attr('stroke-width', '4px')
-                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', weeklyLower).attr('y2', weeklyLower)
-
+            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'orange').attr('stroke-width', '4px').attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', weeklyLower).attr('y2', weeklyLower)
             stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text(`Lower Weekly - ${dollarWeeklyLower.toFixed(2)}`).attr("x", candleDimensions.width - textOffSetFromRight).attr("y", weeklyLower + 10)
+
         } else if (KeyLevels.weeklyEM)
         {
             stockCandleSVG.select('.keyLevels').selectAll('.weeklyEMMoves').data(KeyLevels.weeklyEM.previousWeeklyEM).join(enter =>
@@ -697,6 +696,53 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
                     stockCandleSVG.select('.keyLevels').append('line').attr('x1', startPixel).attr('x2', endPixel).attr('y1', weeklyUpper).attr('y2', weeklyUpper).attr('stroke', 'orange').attr('stroke-width', '2px')
                     let weeklyLower = createPriceScale({ priceToPixel: d.lower })
                     stockCandleSVG.select('.keyLevels').append('line').attr('x1', startPixel).attr('x2', endPixel).attr('y1', weeklyLower).attr('y2', weeklyLower).attr('stroke', 'orange').attr('stroke-width', '2px')
+                })
+            })
+        }
+
+        if (KeyLevels.monthlyEM && !timeFrame.intraDay)
+        {
+            let startPixel = createDateScale({ dateToPixel: startOfMonth(new Date()) })
+            let endPixel = createDateScale({ dateToPixel: endOfMonth(new Date()) })
+            let monthlyUpper = createPriceScale({ priceToPixel: KeyLevels.monthlyEM.monthUpperEM })
+            let monthlyLower = createPriceScale({ priceToPixel: KeyLevels.monthlyEM.monthLowerEM })
+            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyUpper).attr('y2', monthlyUpper)
+            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyLower).attr('y2', monthlyLower)
+
+            stockCandleSVG.select('.keyLevels').selectAll('.previousWeeklyEMMoves').data(KeyLevels.monthlyEM.previousMonthlyEM).join(enter =>
+            {
+                enter.each(function (d, i)
+                {
+                    let startPixel = createDateScale({ dateToPixel: startOfMonth(d.startDate) })
+                    let endPixel = createDateScale({ dateToPixel: endOfMonth(d.startDate) })
+                    let monthlyUpper = createPriceScale({ priceToPixel: d.upper })
+                    let monthlyLower = createPriceScale({ priceToPixel: d.lower })
+                    stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyUpper).attr('y2', monthlyUpper)
+                    stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyLower).attr('y2', monthlyLower)
+                })
+            })
+        }
+
+        if (KeyLevels.quarterlyEM && !timeFrame.intraDay)
+        {
+            let startPixel = createDateScale({ dateToPixel: startOfQuarter(new Date()) })
+            let endPixel = createDateScale({ dateToPixel: endOfQuarter(new Date()) })
+            let quarterlyUpper = createPriceScale({ priceToPixel: KeyLevels.quarterlyEM.quarterlyUpper })
+            let quarterlyLower = createPriceScale({ priceToPixel: KeyLevels.quarterlyEM.quarterlyLower })
+
+            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyLower).attr('y2', quarterlyLower)
+            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyUpper).attr('y2', quarterlyUpper)
+
+            stockCandleSVG.select('.keyLevels').selectAll('.previousQuarterlyEMMoves').data(KeyLevels.quarterlyEM.previousQuarterlyEM).join(enter =>
+            {
+                enter.each(function (d, i)
+                {
+                    let startPixel = createDateScale({ dateToPixel: startOfQuarter(d.startDate) })
+                    let endPixel = createDateScale({ dateToPixel: endOfQuarter(d.startDate) })
+                    let quarterlyUpper = createPriceScale({ priceToPixel: d.upper })
+                    let quarterlyLower = createPriceScale({ priceToPixel: d.lower })
+                    stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyUpper).attr('y2', quarterlyUpper)
+                    stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyLower).attr('y2', quarterlyLower)
                 })
             })
         }

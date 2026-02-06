@@ -69,6 +69,7 @@ function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTic
                     <button onClick={() => setShowDeleteDoubleCheck(prev => !prev)}>
                         {showDeleteDoubleCheck ? <Undo2 size={20} color='blue' /> : <CircleMinus size={20} color='red' />}
                     </button>
+
                     <form onSubmit={attemptToUpdateWatchListTitle}>
                         {showDeleteDoubleCheck ? <button onClick={() => { attemptToDeleteWatchList(); setDisplayWatchListEdit(false) }} className='flex'>Confirm Delete<CircleX size={20} color='red' /></button> :
                             <input type="text" placeholder={watchList.title} ref={titleToUpdate} />}
@@ -79,7 +80,7 @@ function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTic
                 <div className={`${!displayTickers && 'LSH-WatchListTitleClose'} LSH-WatchListTitle`} onClick={() => setDisplayTickers(prev => !prev)}>
                     <p>{watchList.title}</p>
                     <div className='flex'>
-                        <button onClick={(e) => { e.stopPropagation(); setDisplayWatchListEdit(true) }}><Ellipsis size={20} /></button>
+                        {watchList.useCase !== 'defaultMacro' && <button onClick={(e) => { e.stopPropagation(); setDisplayWatchListEdit(true) }}><Ellipsis size={20} /></button>}
                         <button >{displayTickers ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</button>
                     </div>
                 </div>}
@@ -89,8 +90,7 @@ function MacroWatchList({ watchList, setPrimaryChartTicker, setSecondaryChartTic
                     {watchList.tickersContained.map((ticker, index) => <SingleWatchListTicker isDeleteAble={watchList.useCase !== 'defaultMacro'} tickerId={ticker.ticker}
                         index={index} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />)}
 
-                    {watchList.useCase === 'defaultMacro' ? <div className='LSH-WatchListAddTickerForm'></div> : <form onSubmit={attemptToAddTickerToWatchList} className='LSH-WatchListAddTickerForm'><input type="text" ref={tickerToAddRef} placeholder='Add Ticker' /></form>
-                    }
+                    {watchList.useCase === 'defaultMacro' ? <div className='LSH-WatchListAddTickerForm'></div> : <form onSubmit={attemptToAddTickerToWatchList} className='LSH-WatchListAddTickerForm'><input type="text" ref={tickerToAddRef} placeholder='Add Ticker' /></form>}
                 </div>
             }
         </div >

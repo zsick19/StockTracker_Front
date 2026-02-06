@@ -14,16 +14,8 @@ export const WatchListApiSlice = apiSlice.injectEndpoints({
         try
         {
           const { data: createdPost } = await queryFulfilled;
-          dispatch(
-            InitializationApiSlice.util.updateQueryData(
-              "getUserInitialization",
-              { userId: args.userId },
-              (draft) =>
-              {
-                draft.macroWatchLists.push(createdPost);
-              }
-            )
-          );
+          dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization", { userId: args.userId },
+            (draft) => { draft.macroWatchLists.push(createdPost); }));
         } catch
         {
           // If mutation fails, the cache remains untouched
@@ -59,12 +51,8 @@ export const WatchListApiSlice = apiSlice.injectEndpoints({
         try
         {
           const { data: deletedWatchList } = await queryFulfilled;
-          dispatch(
-            InitializationApiSlice.util.updateQueryData(
-              "getUserInitialization",
-              { userId: "6952bd331482f8927092ddcc" },
-              (draft) => { draft.macroWatchLists = draft.macroWatchLists.filter((watchlist) => { return watchlist._id !== deletedWatchList.deletedWatchlist }); }
-            )
+          dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization", { userId: "6952bd331482f8927092ddcc" },
+            (draft) => { draft.macroWatchLists = draft.macroWatchLists.filter((watchlist) => { return watchlist._id !== deletedWatchList.deletedWatchlist }); })
           );
         } catch
         {
@@ -82,21 +70,8 @@ export const WatchListApiSlice = apiSlice.injectEndpoints({
         try
         {
           const { data: addedWatchListTicker } = await queryFulfilled;
-          dispatch(
-            InitializationApiSlice.util.updateQueryData(
-              "getUserInitialization",
-              { userId: "6952bd331482f8927092ddcc" },
-              (draft) =>
-              {
-                draft.macroWatchLists.map((watchlist) =>
-                {
-                  if (watchlist._id === args.watchlistId)
-                  {
-                    watchlist.tickersContained.push(addedWatchListTicker);
-                  }
-                });
-              }
-            )
+          dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization", { userId: "6952bd331482f8927092ddcc" },
+            (draft) => { draft.macroWatchLists.map((watchlist) => { if (watchlist._id === args.watchlistId) { watchlist.tickersContained.push(addedWatchListTicker); } }); })
           );
         } catch
         {
@@ -114,24 +89,15 @@ export const WatchListApiSlice = apiSlice.injectEndpoints({
         try
         {
           const { data: removedWatchListTicker } = await queryFulfilled;
-          dispatch(
-            InitializationApiSlice.util.updateQueryData(
-              "getUserInitialization",
-              { userId: "6952bd331482f8927092ddcc" },
-              (draft) =>
+          dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization", { userId: "6952bd331482f8927092ddcc" },
+            (draft) =>
+            {
+              draft.macroWatchLists.map((watchlist) =>
               {
-                draft.macroWatchLists.map((watchlist) =>
-                {
-                  if (watchlist._id === args.watchlistId)
-                  {
-                    watchlist.tickersContained = watchlist.tickersContained.filter((t) =>
-                    {
-                      return t.ticker !== removedWatchListTicker.tickerRemoved;
-                    });
-                  }
-                });
-              }
-            )
+                if (watchlist._id === args.watchlistId) { watchlist.tickersContained = watchlist.tickersContained.filter((t) => { return t.ticker !== removedWatchListTicker.tickerRemoved; }); }
+              });
+            }
+          )
           );
         } catch
         {

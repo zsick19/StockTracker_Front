@@ -1,5 +1,6 @@
 .ChartSubContainer {
   height: 100%;
+  gap: 0.5rem;
   display: flex;
   flex-direction: column;
 }
@@ -109,10 +110,17 @@
 }
 
 .SubChartContainer {
-  background-color: rgb(161, 135, 103);
+  border-radius: 10px;
+  background-color: rgb(51, 51, 58);
   height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
+}
+.SubChartContainer > p {
+  padding-left: 1rem;
+
+  font-size: var(--fs-100);
 }
 
 .subChartGraph {
@@ -122,13 +130,19 @@
   min-height: 75px;
   max-height: 125px;
 }
+
 .subChartYAxis {
-  background-color: aquamarine;
   width: 50px;
+  height: 100%;
 }
 .subChartXAxis {
   flex: 1;
-  background-color: blue;
+  width: 100%;
+  padding-right: 0.5rem;
+}
+.subChartXAxis > svg {
+  padding-bottom: 0.5rem;
+  width: 100%;
 }
 
 .monthOdd {
