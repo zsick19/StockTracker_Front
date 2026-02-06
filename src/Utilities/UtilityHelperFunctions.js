@@ -14,6 +14,15 @@ export function abbreviateNumber(value)
     else { return scaledValue + suffix; }
 }
 
+export function marketCapToText(value)
+{
+    if (value < 250000000) return 'Micro-Cap'
+    else if (value < 2000000000) return 'Small-Cap'
+    else if (value < 10000000000) return 'Mid-Cap'
+    else if (value < 200000000000) return 'Large-Cap'
+    else return 'Mega-Cap'
+}
+
 
 export function getInsertionIndexLinear(arr, num)
 {

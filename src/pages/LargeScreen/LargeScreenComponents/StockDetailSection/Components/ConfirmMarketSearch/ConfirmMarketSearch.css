@@ -90,6 +90,7 @@
   border-bottom-right-radius: 10px;
   padding-inline: 1rem;
   align-items: center;
+  justify-content: space-evenly;
 }
 
 .UnconfirmedKeepRemoveDialog {

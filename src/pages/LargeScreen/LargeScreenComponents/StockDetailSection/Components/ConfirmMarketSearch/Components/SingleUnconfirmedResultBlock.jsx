@@ -4,7 +4,7 @@ import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
 import ChartGraph from '../../../../../../../components/ChartSubGraph/ChartGraph'
-import { abbreviateNumber } from '../../../../../../../Utilities/UtilityHelperFunctions'
+import { abbreviateNumber, marketCapToText } from '../../../../../../../Utilities/UtilityHelperFunctions'
 import * as short from 'short-uuid'
 import { useDispatch } from 'react-redux'
 import { clearGraphControl, setInitialGraphControl } from '../../../../../../../features/Charting/GraphHoverZoomElement'
@@ -31,15 +31,20 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
     if (isSuccess)
     {
         let stockInfo = data.tickerInfo
+
         graphContent = <div className={`ChartGraphWrapper `}>
-            <ChartGraph ticker={{ ticker: ticker }} isInteractive={false} isLivePrice={false} isZoomAble={false} candleData={data.candleData} nonInteractive={true} timeFrame={defaultTimeFrames.dailyHalfYear} uuid={uuid} />
+            <ChartGraph ticker={{ ticker: ticker }} showEMAs={true} isInteractive={false} isLivePrice={false} isZoomAble={true}
+                candleData={data.candleData} nonInteractive={true} timeFrame={defaultTimeFrames.dailyHalfYear} uuid={uuid} />
         </div>
+
         tickerInfoContent = <div className='StockInfoBlock'>
             <p>{stockInfo.Symbol}</p>
             <p>{stockInfo.CompanyName}</p>
-            <p>{stockInfo.MarketCap}</p>
+            <p>{stockInfo.Sector}</p>
+            <p>{marketCapToText(stockInfo.MarketCap)}</p>
             <p className={stockInfo.AvgVolume > 300000 ? 'MarketSearchHighVol' : 'MarketSearchLowVol'}>{abbreviateNumber(stockInfo.AvgVolume)}</p>
         </div>
+
     } else if (isLoading) { graphContent = <GraphLoadingSpinner /> }
     else if (isError) { graphContent = <GraphLoadingError refetch={refetch} /> }
 
@@ -102,18 +107,16 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
                     <button onClick={(e) => handleRemovingTicker(e)}>Remove</button>
                     <button onClick={(e) => handleConfirmingTicker(e)}>Confirm</button>
                 </div> :
-                (showKeepOrRemove && confirmed === 1) ? <div className='UnconfirmedKeepRemoveDialog'>
-                    <button onClick={(e) => handleRemovingTicker(e)}>Remove</button>
-                </div> :
+                (showKeepOrRemove && confirmed === 1) ?
+                    <div className='UnconfirmedKeepRemoveDialog'>
+                        <button onClick={(e) => handleRemovingTicker(e)}>Remove</button>
+                    </div> :
                     (showKeepOrRemove && confirmed === 2) &&
                     <div className='UnconfirmedKeepRemoveDialog'>
                         <button onClick={(e) => handleConfirmingTicker(e)}>Confirm</button>
                     </div>}
-
             {graphContent}
-            <div>
-                {tickerInfoContent}
-            </div>
+            {tickerInfoContent}
         </div>
     )
 }

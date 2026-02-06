@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useAddTickerDirectlyToConfirmedListMutation, useGetUsersConfirmedSummaryQuery } from '../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
+import { useAddListOfTickersDirectlyToConfirmedListMutation, useAddTickerDirectlyToConfirmedListMutation, useGetUsersConfirmedSummaryQuery } from '../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
 import { useDispatch, useSelector } from 'react-redux'
 import { ArrowBigRight, ChevronDown, ChevronUp, Dot } from 'lucide-react'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
@@ -12,12 +12,14 @@ import { selectCurrentUnConfirmed, setConfirmedUnChartedData } from '../../../..
 function ConfirmedStatus()
 {
     const dispatch = useDispatch()
+    const directAddTicker = useRef()
     const pickUpUncharted = useSelector(selectCurrentUnConfirmed)
     const directSearch = useRef()
     const [directAddServerResponse, setDirectAddServerResponse] = useState(undefined)
 
     const { data, isSuccess, isError, isLoading, error, refetch } = useGetUsersConfirmedSummaryQuery()
     const [addTickerDirectlyToConfirmedList] = useAddTickerDirectlyToConfirmedListMutation()
+    const [addListOfTickersDirectlyToConfirmedList] = useAddListOfTickersDirectlyToConfirmedListMutation()
 
     const [tableFilters, setTableFilters] = useState({ tickerSearch: undefined, status: 0, addedWithin: 0, olderThan: 0 })
     const [tableSort, setTableSort] = useState({ sort: undefined, direction: undefined })
@@ -63,11 +65,7 @@ function ConfirmedStatus()
 
     }, [data, tableFilters, tableSort])
 
-    useEffect(() =>
-    {
-        if (isSuccess)
-            dispatch(setConfirmedUnChartedData(data))
-    }, [data])
+    useEffect(() => { if (isSuccess) dispatch(setConfirmedUnChartedData(data)) }, [data])
 
     let dataTableBody
     if (isSuccess)
@@ -94,7 +92,6 @@ function ConfirmedStatus()
     {
         if (directSearch.current.value === '') setTableFilters(prev => ({ ...prev, tickerSearch: undefined }))
     }
-
     function handlePickUpFromLastUncharted()
     {
         console.log(pickUpUncharted)
@@ -102,28 +99,38 @@ function ConfirmedStatus()
         dispatch(setStockDetailState(5))
     }
 
-    const directAddTicker = useRef()
-    async function attemptAddingDirectTicker()
+
+
+
+    async function attemptConvertDirectAddInputAndSubmit()
     {
-        try
+        const result = directAddTicker.current.value.split(',').map(s => s.toUpperCase().trim()).filter(s => s !== "");
+
+        if (result.length === 0) return
+        if (result.length === 1)
         {
-            if (directAddTicker.current !== '')
+            try
             {
-                await addTickerDirectlyToConfirmedList({ tickerToAdd: directAddTicker.current.value.toUpperCase() }).unwrap()
+                await addTickerDirectlyToConfirmedList({ tickerToAdd: result[0] }).unwrap()
                 directAddTicker.current.value = ''
-            }
-        } catch (error)
-        {
-            setDirectAddServerResponse(error.data.message)
-            setTimeout(() =>
+            } catch (error)
             {
-                setDirectAddServerResponse(undefined)
-            }, [2000])
-            console.log(error)
+                setDirectAddServerResponse(error.data.message)
+                setTimeout(() => { setDirectAddServerResponse(undefined) }, [1500])
+            }
+        } else if (result.length > 1)
+        {
+            try
+            {
+                await addListOfTickersDirectlyToConfirmedList({ listOfStocksToAdd: result }).unwrap()
+                directAddTicker.current.value = ''
+            } catch (error)
+            {
+                setDirectAddServerResponse(error.data.message)
+                setTimeout(() => { setDirectAddServerResponse(undefined) }, [1500])
+            }
         }
     }
-
-
 
     return (
         <div id='LHS-ConfirmedStockStatusContainer'>
@@ -222,20 +229,18 @@ function ConfirmedStatus()
                     </fieldset>
                 </div>
             </div>
+
             <div id='DirectAddContinueCharting'>
-                <button onClick={() => handlePickUpFromLastUncharted()}>Continue Charting</button>
-
-                {directAddServerResponse ? <div>{directAddServerResponse}</div> :
-                    <div className='flex'>
-                        <form onSubmit={(e) => { e.preventDefault(); attemptAddingDirectTicker() }}>
-                            <input type="text" ref={directAddTicker} placeholder='Direct Add' />
-                            <button>Add Ticker</button>
-                        </form>
-                        <button>Add List (Future Add)</button>
-                    </div>
-                }
-
                 <p>Total Confirmed: {data?.length || 0}</p>
+
+                {directAddServerResponse ?
+                    <p>{directAddServerResponse}</p> :
+                    <form onSubmit={(e) => { e.preventDefault(); attemptConvertDirectAddInputAndSubmit() }} className='flex'>
+                        <input type="text" ref={directAddTicker} placeholder='Direct Add' />
+                        <button>Add Tickers</button>
+                    </form>
+                }
+                <button onClick={() => handlePickUpFromLastUncharted()}>Continue Charting</button>
             </div>
 
 

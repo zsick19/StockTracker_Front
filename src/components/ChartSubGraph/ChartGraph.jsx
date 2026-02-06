@@ -45,8 +45,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     }
     //redux charting data selectors
 
-    const key = useMemo(makeSelectKeyLevelsByTicker, [ticker])
-    const KeyLevels = useSelector((state) => key(state, ticker))
+    const selectKeyLevelMemo = useMemo(makeSelectKeyLevelsByTicker, [ticker])
+    const KeyLevels = useSelector((state) => selectKeyLevelMemo(state, ticker))
 
 
 
@@ -291,7 +291,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck()) return
-        if (studyVisualController?.ema)
+        if (studyVisualController?.ema || showEMAs)
         {
 
             //          stockCandleSVG.select('.vwap').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')

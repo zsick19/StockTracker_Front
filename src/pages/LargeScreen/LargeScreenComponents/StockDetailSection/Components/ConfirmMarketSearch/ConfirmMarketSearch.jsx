@@ -8,6 +8,7 @@ import SubmitConfirmedWindow from './Components/SubmitConfirmedWindow'
 
 function ConfirmMarketSearch()
 {
+    const dispatch = useDispatch()
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetUsersUnconfirmedPatternsQuery(undefined, { refetchOnMountOrArgChange: true })
     const [submitConfirmedPatterns] = useSubmitConfirmedPatternsMutation()
 
@@ -25,29 +26,21 @@ function ConfirmMarketSearch()
         confirmVisual = <UnconfirmedPatternWrapper unconfirmedPatterns={data}
             currentPage={currentPage} keepTheseTickers={keepTheseTickers} setKeepTheseTickers={setKeepTheseTickers} />
     }
-    else if (isSuccess)
-    {
-        confirmVisual = <div className='CenterConfirmationMessage'>
-            <p>You did it!!!</p>
-            <br />
-            <p>No more patterns to confirm.</p>
-        </div>
-    }
-    else if (isLoading) { confirmVisual = <div className='CenterConfirmationMessage'>Loading...</div> }
+    else if (isSuccess) { confirmVisual = <div className='CenterConfirmationMessage'><p>No more patterns to confirm.</p></div> }
+    else if (isLoading) { confirmVisual = <div className='CenterConfirmationMessage'><p>Loading...</p></div> }
     else if (isError)
     {
         confirmVisual = <div className='CenterConfirmationMessage'>
-            Error
+            <p>Error Loading Patterns</p>
             <button onClick={() => refetch()}>Refetch</button>
         </div>
     }
 
-    useEffect(() =>
-    {
-        if (isSuccess) { setTotalPages(Math.ceil(data.length / patternsPerPage)) }
-    }, [data])
 
-    const dispatch = useDispatch()
+
+
+    useEffect(() => { if (isSuccess) { setTotalPages(Math.ceil(data.length / patternsPerPage)) } }, [data])
+
     async function attemptSubmittingConfirmations()
     {
         try

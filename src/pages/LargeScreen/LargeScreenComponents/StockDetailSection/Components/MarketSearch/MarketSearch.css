@@ -18,7 +18,9 @@
   justify-content: center;
 }
 .currentFilters {
-  font-size: var(--fs-100);
+  font-size: x-small;
+  display: flex;
+  gap: 1rem;
 }
 
 #LHS-MarketSearchFilterBarOpen {

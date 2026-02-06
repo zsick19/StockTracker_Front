@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { defaultSectors } from '../../../../../../../Utilities/SectorsAndIndustries'
+import { averageVolumeOptions, defaultSectors } from '../../../../../../../Utilities/SectorsAndIndustries'
 import { useSelector } from 'react-redux'
 import { selectUserMarketSearchFilters } from '../../../../../../../features/Initializations/InitializationSliceApi'
 import { useCreateNewSavedFilterMutation, useRemoveSavedFilterMutation } from '../../../../../../../features/MarketSearch/MarketSearchFilterSliceApi'
@@ -123,6 +123,16 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
                                 {defaultSectors.map((sector) => <option value={sector}>{sector}</option>)}
                             </select>
 
+                            <div>
+                                <label htmlFor="AvgVolume">Avg Volume:</label>
+                                <select name='AvgVolume' id='AvgVolume' onChange={(e) => handleFilterValueChange(e)}>
+                                    <option value='Select'>Select a Volume</option>
+                                    {averageVolumeOptions.map((volume, i) => { return <option value={volume.value}>{volume.text}</option> })}
+                                </select>
+                            </div>
+
+
+
                             <button type='button' onClick={(e) => handleSubmittingFilterChange(e)}>Search</button>
 
                             {!displayFilterSave && <div>
@@ -155,11 +165,7 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
                         </form>
                     </div>
                     <div>
-                        <button className='buttonIcon' onClick={() =>
-                        {
-                            setDisplayFilterSave(false); setSavedFilterServerMessage(undefined); setFilterBarOpen(false)
-
-                        }}><CircleX color='white' /></button>
+                        <button className='buttonIcon' onClick={() => { setDisplayFilterSave(false); setSavedFilterServerMessage(undefined); setFilterBarOpen(false) }}><CircleX color='white' /></button>
                     </div>
                 </div>}
 
