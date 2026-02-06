@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useResizeObserver } from '../../../hooks/useResizeObserver'
 import { rsiCalc } from '../../../Utilities/technicalIndicatorFunctions'
-import { addDays, sub, subDays } from 'date-fns'
-import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select, selectAll, zoomIdentity } from 'd3'
-import { discontinuityRange, discontinuitySkipWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
+import { addDays, sub, subDays, subMonths } from 'date-fns'
+import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select, selectAll, timeDay, timeMonths, zoomIdentity } from 'd3'
+import { discontinuityRange, discontinuitySkipUtcWeekends, discontinuitySkipWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
 import { defaultChartingStyles } from '../../../Utilities/GraphStyles'
 import { pixelBuffer } from '../GraphChartConstants'
 import { makeSelectZoomStateByUUID } from '../../../features/Charting/GraphHoverZoomElement'
@@ -101,8 +101,19 @@ function RSISubChart({ candleData, uuid, timeFrame })
         const svg = select(XSVG.current)
         const yScaleSVG = select(YSVG.current)
 
-        const xAxis = axisBottom(createDateScale())//.ticks(timeMonth.every(1))
+        let xAxis
         const yAxis = axisLeft(createYScale())
+
+        if (timeFrame.intraDay && timeFrame.duration > 3)
+        {
+            xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date()))
+        } else if (timeFrame.intraDay && timeFrame.duration <= 3)
+        {
+            xAxis = axisBottom(createDateScale())
+        } else
+        {
+            xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date()))
+        }
 
         yScaleSVG.select('.y-axis').style('transform', `translateX(${yScaleDimensions.width - 1}px)`).call(yAxis)
         svg.select('.x-axis').style('transform', `translateY(${chartDimensions.height - yPixelBufferBottom}px)`).call(xAxis)

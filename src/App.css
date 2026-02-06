@@ -27,6 +27,7 @@
   --ff-serif: "Bellefair", serif;
   --ff-sans-cond: "Barlow Condensed", sans-serif;
   --ff-sans-normal: "Barlow", sans-serif;
+  overflow-y: hidden;
 }
 
 /* ------------------- */
