@@ -76,6 +76,8 @@ const freeLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete) =>
         stockSVG.select('.traceLine').attr('x2', e.offsetX - 2).attr('y2', e.offsetY - 2)
     }
 }
+
+
 const trendLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete) =>
 {
     const stockSVG = select(svg)
@@ -160,6 +162,11 @@ const horizontalLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete
         stockSVG.select('.temp').select('.priceInfo').attr('x', e.offsetX).attr('y', e.offsetY).text(updatePrice.toString())
     }
 }
+
+
+
+
+
 
 const traceClassName = 'traceLine'
 
@@ -750,7 +757,7 @@ export const triangleLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureCom
 
 
 
-export const toolFunctionExports = [infoTrace, freeLineTrace, trendLineTrace, horizontalLineTrace, keyPriceTrace, enterExitTrace]
+export const toolFunctionExports = [infoTrace, freeLineTrace, trendLineTrace, horizontalLineTrace, horizontalLineTrace, horizontalLineTrace, enterExitTrace]
 
 
 

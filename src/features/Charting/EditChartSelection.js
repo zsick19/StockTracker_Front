@@ -6,15 +6,8 @@ const editChartSelectionSlice = createSlice({
     reducers: {
         setChartEditMode: (state, action) =>
         {
-            if (state.editMode)
-            {
-
-                state.editMode = undefined
-            } else
-            {
-
-                state.editMode = action.payload
-            }
+            if (state.editMode) { state.editMode = undefined }
+            else { state.editMode = action.payload }
         },
 
 

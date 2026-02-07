@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addEnterExitToCharting, addLine, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
+import { addEnterExitToCharting, addLine, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from 'date-fns'
+import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, isSaturday, isSunday } from 'date-fns'
 import
 {
     select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay,
@@ -120,9 +120,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
         if (timeFrame.intraDay)
         {
             startDate = new Date()
+            if (isSaturday(startDate)) startDate = subDays(startDate, 1)
+            if (isSunday(startDate)) startDate = subDays(startDate, 2)
             startDate.setHours(5, 30, 0, 0)
             futureForwardEndDate = new Date()
-
         } else if (timeFrame.unitOfDuration === 'Y')
         {
             startDate = sub(new Date(), { days: 365 })
@@ -131,14 +132,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
         else if (timeFrame.unitOfDuration === 'D')
         {
             startDate = sub(new Date(), { days: timeFrame.duration })
-            futureForwardEndDate = addDays(new Date(), 2)
+            futureForwardEndDate = addDays(new Date(), 4)
         }
 
-        let xDateScale
+        let xDateScale = null
         if (timeFrame.intraDay)
         {
+
             xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuityRange(...excludedPeriods)).domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
-        } else
+
+        }
+        else
         {
             xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuitySkipUtcWeekends()).domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
         }
@@ -152,7 +156,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
             xDateScale.domain(newZoomState.domain())
         }
 
-        if (pixelToDate !== undefined) { if (timeFrame.intraDay) { return new Date(Math.floor(xDateScale.invert(pixelToDate))).toISOString() } else return xDateScale.invert(pixelToDate).toISOString() }
+        if (pixelToDate !== undefined)
+        {
+            if (timeFrame.intraDay) { return new Date(Math.floor(xDateScale.invert(pixelToDate))).toISOString() }
+            else return xDateScale.invert(pixelToDate).toISOString()
+        }
         else if (dateToPixel !== undefined) return xDateScale(new Date(dateToPixel))
         else return xDateScale
 
@@ -233,7 +241,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
         }
 
         priceScaleSVG.select('.y-axis').style('transform', `translateX(${priceDimensions.width - 1}px)`).call(yAxis)
-        stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
+        try
+        {
+            stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
+        } catch (error)
+        {
+            console.log(error)
+        }
 
 
         stockCandleSVG.select('.tickerVal').selectAll('.candle').data(candleData, d => d.Timestamp).join(enter => createCandles(enter), update => updateCandles(update))
@@ -519,16 +533,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
         }
 
         //enter exit plan creation and update
-        if (charting?.enterExitLines && !EnterExitPlan)
-        {
-            stockCandleSVG.select('.enterExits').selectAll('.line_group').data([charting.enterExitLines]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
-        }
+        if (charting?.enterExitLines && !EnterExitPlan) { stockCandleSVG.select('.enterExits').selectAll('.line_group').data([charting.enterExitLines]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update)) }
         function createEnterExit(enter)
         {
             enter.each(function (d)
             {
-                let startXPosition = candleDimensions.width * 0.9
-                let widthPosition = startXPosition + 100
                 var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today chartingEnterExit' : 'line_group previous chartingEnterExit')
 
                 const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
@@ -542,7 +551,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
                 yPositions.map((position, index) =>
                 {
-                    lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
+                    lineGroup.append('line').attr('class', `${names[index]} edit`)
+                        .attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
                         .attr('stroke-width', 10).attr('visibility', 'hidden').on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); })
 
                     //      lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', startXPosition).attr('y', position).text((d) => `$${100}`)
@@ -551,8 +561,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
         }
         function updateEnterExit(update)
         {
-            let startXPosition = candleDimensions.width * 0.9
-            let widthPosition = startXPosition + 100
+
             const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
             update.each(function (d)
             {
@@ -566,13 +575,59 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
                 yPositions.map((position, index) =>
                 {
                     update.select(`.${names[index]}`).attr('y1', position).attr('y2', position)
-                    update.select(`.${names[index]}Text`).attr('x', startXPosition).attr('y', yPositions[index])
+                    update.select(`.${names[index]}Text`).attr('x', candleDimensions.width * 0.9).attr('y', yPositions[index])
                 })
             })
         }
 
+        if (charting?.lowVolumeNodes)
+        {
+            stockCandleSVG.select('.lowVolumeNodes').selectAll('.line_group').data(charting.lowVolumeNodes).join((enter) => createLowVolumeNode(enter), update => updateLowVolumeNode(update))
+            function createLowVolumeNode(enter)
+            {
+                enter.each(function (d)
+                {
+                    const pricePixel = createPriceScale({ priceToPixel: d.price })
+                    select(this).append('line').attr('class', (d, i) => isToday(d.dateCreated) ? `line_group today chartingLowVolNode` : `line_group previous chartingLowVolNode`)
+                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1).attr('stroke', 'url(#fadeLowVolume)')
+                        .attr('stroke-width', 20).on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'lowVolumeNodes' }); })
+                })
+            }
+            function updateLowVolumeNode(update)
+            {
+                update.each(function (d, i)
+                {
+                    const pricePixel = createPriceScale({ priceToPixel: d.price })
+                    select(this).attr('y1', pricePixel).attr('y2', pricePixel + 0.1)
+                })
+            }
+        }
+        if (charting?.highVolumeNodes)
+        {
+            stockCandleSVG.select('.highVolumeNodes').selectAll('.line_group').data(charting.highVolumeNodes).join((enter) => createHighVolumeNode(enter), update => updateHighVolumeNode(update))
+            function createHighVolumeNode(enter)
+            {
+                enter.each(function (d)
+                {
+                    const pricePixel = createPriceScale({ priceToPixel: d.price })
+                    select(this).append('line').attr('class', (d, i) => isToday(d.dateCreated) ? `line_group today chartingHighVolNode` : `line_group previous chartingHighVolNode`)
+                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1).attr('stroke', 'url(#fadeHighVolume)')
+                        .attr('stroke-width', 20).on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'highVolumeNodes' }); })
+                })
+            }
+            function updateHighVolumeNode(update)
+            {
+                update.each(function (d, i)
+                {
+                    const pricePixel = createPriceScale({ priceToPixel: d.price })
+                    select(this).attr('y1', pricePixel).attr('y2', pricePixel + 0.1)
+                })
+            }
+        }
 
     }, [charting, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+
+
     //plot user EnterExit Plan removing any possible charting enter exit  
     useEffect(() =>
     {
@@ -580,6 +635,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
         //enter exit plan creation and update
         stockCandleSVG.select('.enterExit').selectAll('chartingEnterExit').remove()
+        // stockCandleSVG.select('.enterExit').select('.twoPercentLine').remove()
+
         stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
         function createEnterExit(enter)
         {
@@ -801,6 +858,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
 
 
+
+
+
     //configure svg cross hair, context menu, and tool interactions
     useEffect(() =>
     {
@@ -810,7 +870,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
         let toolingFunction = toolFunctionExports[ChartingTools.findIndex(t => t.tool === currentTool)]
         stockCandleSVG.on('click', (e) => toolingFunction(e, setEnableZoom, candleSVG.current, pixelSet, setCaptureComplete, createDateScale, createPriceScale))
-
     }, [currentTool, candleDimensions, candleData, chartZoomState?.x, chartZoomState?.y,])
 
     //update charting state post trace
@@ -842,16 +901,19 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
         } else
         {
-            completeCapture.dateP1 = createDateScale({ pixelToDate: pixelCapture.X1 })
-            completeCapture.dateP2 = createDateScale({ pixelToDate: pixelCapture.X2 })
+            if (pixelCapture?.X1) completeCapture.dateP1 = new Date(createDateScale({ pixelToDate: pixelCapture.X1 })).toISOString()
+            if (pixelCapture?.X2) completeCapture.dateP2 = new Date(createDateScale({ pixelToDate: pixelCapture.X2 })).toISOString()
             Object.keys(pixelSet.current).filter(t => t.includes('Y')).map((pixelForPrice, i) => { completeCapture[`priceP${i + 1}`] = createPriceScale({ pixelToPrice: pixelCapture[pixelForPrice] }) })
 
             switch (currentTool)
             {
-                case ChartingTools[1].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
+                case ChartingTools[1].tool: dispatch(addLine({ line: completeCapture, ticker })); break; //line tool
+
+                case ChartingTools[4].tool: dispatch(addVolumeNode({ completeCapture, ticker, isHighVolNode: false })); break; //low volume node
+                case ChartingTools[5].tool: dispatch(addVolumeNode({ completeCapture, ticker, isHighVolNode: true })); break; //high volume node
 
                 //Add other charting tool dispatches to update different charting
-                // case ChartingTools[2].tool: dispatch(addLine({ line: completeCapture, ticker })); break;
+
             }
         }
 
@@ -1100,6 +1162,18 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
             <div ref={candleSVGWrapper} className='dateSVGWrapper'>
                 <svg ref={candleSVG}>
+                    <defs>
+                        <linearGradient id="fadeLowVolume" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="blue" stop-opacity="0" />
+                            <stop offset="75%" stop-color="blue" stop-opacity="1" />
+                            <stop offset="100%" stop-color="blue" stop-opacity="1" />
+                        </linearGradient>
+                        <linearGradient id="fadeHighVolume" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="green" stop-opacity="0" />
+                            <stop offset="75%" stop-color="green" stop-opacity="1" />
+                            <stop offset="100%" stop-color="green" stop-opacity="1" />
+                        </linearGradient>
+                    </defs>
                     <g className='x-axis' />
                     <g className='visualDateBreaks' />
                     <g className='initialTrack' />
@@ -1119,6 +1193,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
                     <g className='linesH' />
                     <g className='trendLines' />
                     <g className='wedges' />
+                    <g className='lowVolumeNodes' />
+                    <g className='highVolumeNodes' />
                     <g className='channels' />
                     <g className='triangles' />
                     <g className='currentPrice' />

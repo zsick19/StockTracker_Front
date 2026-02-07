@@ -8,7 +8,7 @@ import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../..
 import { useUpdateChartingDataMutation } from '../../../../../../../features/Charting/ChartingSliceApi'
 import { makeSelectChartAlteredByTicker } from '../../../../../../../features/Charting/chartingElements'
 
-function ContinueChartingNav({ currentUnChartedTicker, setShowUnchartedList, handleNavigatingToNextUnChartedStock })
+function ContinueChartingNav({ ticker, currentUnChartedTicker, setShowUnchartedList, handleNavigatingToNextUnChartedStock })
 {
     const dispatch = useDispatch()
     const [updateChartingData] = useUpdateChartingDataMutation()
@@ -17,15 +17,16 @@ function ContinueChartingNav({ currentUnChartedTicker, setShowUnchartedList, han
     const selectedChartingMemo = useMemo(makeSelectChartAlteredByTicker, [])
     const chartingAltered = useSelector(state => selectedChartingMemo(state, currentUnChartedTicker.current?.ticker))
 
-
-
     useEffect(() =>
     {
         if (isSuccess)
         {
             dispatch(setConfirmedUnChartedData(data))
-            const firstToBeCharted = data.find((t) => t.status < 2)
-            if (firstToBeCharted) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: firstToBeCharted.tickerSymbol, chartId: firstToBeCharted._id })) }
+            if (ticker === 'SPY')
+            {
+                const firstToBeCharted = data.find((t) => t.status < 2)
+                if (firstToBeCharted) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: firstToBeCharted.tickerSymbol, chartId: firstToBeCharted._id })) }
+            }
         }
     }, [data])
 

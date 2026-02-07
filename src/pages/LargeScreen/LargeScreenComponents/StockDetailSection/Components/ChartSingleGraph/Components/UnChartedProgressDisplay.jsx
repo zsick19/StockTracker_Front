@@ -7,7 +7,7 @@ function UnChartedProgressDisplay()
     const unchartedList = useSelector(unchartedVisitedList)
 
     return (
-        <div>
+        <div id='LHS-UnchartedProgressDisplay'>
             <p>List of uncharted progress</p>
             {unchartedList.map((uncharted) => <div className='flex'>
                 <p>{uncharted.ticker}</p>

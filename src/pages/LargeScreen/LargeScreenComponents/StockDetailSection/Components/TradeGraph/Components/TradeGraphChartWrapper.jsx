@@ -4,25 +4,54 @@ import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGr
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
 import { Circle } from 'lucide-react'
+import RSISubChart from '../../../../../../../components/ChartSubGraph/SubCharts/RSISubChart'
+import VortexSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/VortexSubChart'
+import StochasticSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/StochasticSubChart'
+import MACDSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/MACDSubChart'
 
-function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, showEMAs })
+function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, showEMAs, subCharts })
 {
-    
+
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: selectedStock.tickerSymbol, timeFrame: timeFrame, liveFeed: true, info: true })
 
     let chartContent
     if (isSuccess && data.candleData.length > 0)
     {
-        chartContent = <ChartWithChartingWrapper ticker={selectedStock.tickerSymbol} candleData={data} interactionController={{ isLivePrice: true, isInteractive: true, isZoomAble: true }}
-            candlesToKeepSinceLastQuery={data.candlesToKeepSinceLastQuery} chartId={selectedStock.chartId} timeFrame={timeFrame} uuid={uuid} lastCandleData={data.mostRecentTickerCandle} showEMAs={showEMAs} />
+        chartContent =
+
+            <ChartWithChartingWrapper ticker={selectedStock.tickerSymbol} candleData={data}
+                interactionController={{ isLivePrice: true, isInteractive: true, isZoomAble: true }}
+                candlesToKeepSinceLastQuery={data.candlesToKeepSinceLastQuery} chartId={selectedStock.chartId}
+                timeFrame={timeFrame} setTimeFrame={setTimeFrame} uuid={uuid} lastCandleData={data.mostRecentTickerCandle} showEMAs={showEMAs} />
+
+
     } else if (isSuccess) { chartContent = <div>No Data To Display for this ticker</div> }
     else if (isLoading) { chartContent = <GraphLoadingSpinner /> }
     else if (isError) { chartContent = <GraphLoadingError refetch={refetch} /> }
 
+    function provideSubCharts()
+    {
+        {
+            return subCharts.map((subChart) =>
+            {
+                switch (subChart)
+                {
+                    case 'rsi': return <RSISubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
+                    case 'vortex': return <VortexSubChart candleData={data.candleData} uuid={uuid} />
+                    case 'stochastic': return <StochasticSubChart candleData={data.candleData} uuid={uuid} />
+                    case 'MACD': return <MACDSubChart candleData={data.candleData} uuid={uuid} />
+                }
+            })
+        }
+    }
+
 
     return (
         <div id='LHS-TradeChartWrapper'>
-            {chartContent}
+            <div id='LHS-SingleChartAndSubCharts'>
+                {chartContent}
+                {subCharts.length > 0 && <div className="SubChartWrapper">{provideSubCharts()}</div>}
+            </div>
             <div>
                 <Circle />
             </div>

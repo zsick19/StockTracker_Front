@@ -74,7 +74,7 @@ function ChartSingleGraph()
 
     useEffect(() => { setTimeFrame(selectedTicker.timeFrame) }, [selectedTicker])
 
-
+    console.log(selectedTicker)
 
     return (
         <div id='LHS-SingleGraphForCharting'>
@@ -92,7 +92,7 @@ function ChartSingleGraph()
                     provideChartInfoDisplay()
                 }
 
-                <ContinueChartingNav currentUnChartedTicker={currentUnChartedTicker} setShowUnchartedList={setShowUnchartedList} handleNavigatingToNextUnChartedStock={handleNavigatingToNextUnChartedStock} />
+                <ContinueChartingNav ticker={selectedTicker.ticker} currentUnChartedTicker={currentUnChartedTicker} setShowUnchartedList={setShowUnchartedList} handleNavigatingToNextUnChartedStock={handleNavigatingToNextUnChartedStock} />
             </div>
         </div>
     )

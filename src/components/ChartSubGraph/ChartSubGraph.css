@@ -1,6 +1,6 @@
 .ChartSubContainer {
   height: 100%;
-  gap: 0.5rem;
+
   display: flex;
   flex-direction: column;
 }
@@ -115,6 +115,7 @@
   height: 150px;
   width: 100%;
   display: flex;
+  margin-top: 0.5rem;
   flex-direction: column;
 }
 .SubChartContainer > p {

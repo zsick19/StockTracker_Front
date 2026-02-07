@@ -11,3 +11,8 @@
   font-size: var(--fs-100);
   overflow-y: scroll;
 }
+
+#LHS-UnchartedProgressDisplay {
+  height: 200px;
+  overflow-y: scroll;
+}

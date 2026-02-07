@@ -19,12 +19,33 @@ const chartingElementSlice = createSlice({
       state[ticker].freeLines = state[ticker].freeLines.map((line) => { if (line.id === update.id) { return update; } else return line; });
       state[ticker].chartingAltered = true;
     },
-
-    addEnterExitToCharting: (state, action) =>
+    addVolumeNode: (state, action) =>
+    {
+      let { completeCapture, ticker, isHighVolNode } = action.payload
+      if (completeCapture.priceP1 > 0)
+      {
+        if (isHighVolNode)
+        {
+          let volNode = { id: state[ticker].highVolumeNodesId, price: completeCapture.priceP1, dateCreated: new Date().toDateString() };
+          state[ticker].highVolumeNodesId = state[ticker].highVolumeNodesId + 1;
+          state[ticker].highVolumeNodes.push(volNode)
+        } else
+        {
+          let volNode = { id: state[ticker].lowVolumeNodesId, price: completeCapture.priceP1, dateCreated: new Date().toDateString() };
+          state[ticker].lowVolumeNodesId = state[ticker].lowVolumeNodesId + 1;
+          state[ticker].lowVolumeNodes.push(volNode)
+        }
+        state[ticker].chartingAltered = true;
+      }
+    },
+    updateVolumeNode: (state, action) =>
     {
       console.log(action.payload)
+    },
+    addEnterExitToCharting: (state, action) =>
+    {
+
       let { enterExit, ticker } = action.payload
-      // if (ticker === undefined) ticker = action.payload.ticker.ticker
       enterExit.dateCreated = new Date().toLocaleDateString();
       state[ticker].enterExitLines = enterExit
       state[ticker].chartingAltered = true
@@ -65,6 +86,7 @@ const chartingElementSlice = createSlice({
 
       if (action.payload.charting)
       {
+        console.log(action.payload.charting)
         state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false }
       }
       else
@@ -77,6 +99,10 @@ const chartingElementSlice = createSlice({
           trendLinesId: 1,
           linesH: [],
           linesHId: 1,
+          lowVolumeNodes: [],
+          lowVolumeNodesId: 1,
+          highVolumeNodes: [],
+          highVolumeNodesId: 1,
           enterExitLines: {},
           chartingAltered: false
         }
@@ -93,6 +119,8 @@ export const {
   removeChartingElement,
   updateKeyPrice,
   setPreviousCharting,
+  addVolumeNode,
+  updateVolumeNode
 } = chartingElementSlice.actions;
 
 export default chartingElementSlice.reducer;

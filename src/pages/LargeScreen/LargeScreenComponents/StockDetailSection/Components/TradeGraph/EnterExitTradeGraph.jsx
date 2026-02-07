@@ -32,11 +32,12 @@ function EnterExitTradeGraph()
     }, [])
     const [showEMAs, setShowEMAs] = useState(false)
 
+    const [subCharts, setSubCharts] = useState([])
     return (
         <div id='LHS-TradeRecord'>
-            <ChartMenuBar ticker={selectedStock?.tickerSymbol} setTimeFrame={setTimeFrame} timeFrame={timeFrame} uuid={uuid} setShowEMAs={setShowEMAs} />
+            <ChartMenuBar ticker={selectedStock?.tickerSymbol} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} timeFrame={timeFrame} uuid={uuid} setShowEMAs={setShowEMAs} />
 
-            {selectedStock ? <TradeGraphChartWrapper selectedStock={selectedStock} uuid={uuid} timeFrame={timeFrame} showEMAs={showEMAs} /> : <div></div>}
+            {selectedStock ? <TradeGraphChartWrapper selectedStock={selectedStock} subCharts={subCharts} uuid={uuid} timeFrame={timeFrame} setTimeFrame={setTimeFrame} showEMAs={showEMAs} /> : <div></div>}
 
             <div id='LHS-PlanPresentBeforeTrade'>
                 {selectedStock?.planId ?

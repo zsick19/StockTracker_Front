@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useResizeObserver } from '../../../hooks/useResizeObserver'
 import { rsiCalc } from '../../../Utilities/technicalIndicatorFunctions'
-import { addDays, sub, subDays, subMonths } from 'date-fns'
+import { addDays, isSaturday, isSunday, sub, subDays, subMonths } from 'date-fns'
 import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select, selectAll, timeDay, timeMonths, zoomIdentity } from 'd3'
 import { discontinuityRange, discontinuitySkipUtcWeekends, discontinuitySkipWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
 import { defaultChartingStyles } from '../../../Utilities/GraphStyles'
@@ -39,9 +39,10 @@ function RSISubChart({ candleData, uuid, timeFrame })
         if (timeFrame.intraDay)
         {
             startDate = new Date()
+            if (isSaturday(startDate)) startDate = subDays(startDate, 1)
+            else if (isSunday(startDate)) startDate = subDays(startDate, 2)
             startDate.setHours(5, 30, 0, 0)
             futureForwardEndDate = new Date()
-
         } else if (timeFrame.unitOfDuration === 'Y')
         {
             startDate = sub(new Date(), { days: 365 })

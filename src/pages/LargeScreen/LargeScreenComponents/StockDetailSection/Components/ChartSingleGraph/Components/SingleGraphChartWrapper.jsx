@@ -158,7 +158,11 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
             <div id='LHS-SingleGraphToolBar'>
 
                 <p className='veryTinyText'>Draw</p>
-                {ChartingTools.map((tool, index) => { return <button key={tool.tool} title={tool.tool} onClick={() => dispatch(setTool(ChartingTools[index].tool))} className={currentTool === ChartingTools[index].tool ? 'currentTool' : 'notCurrentTool'} >{ChartingTools[index].icon}</button> })}
+                {ChartingTools.map((tool, index) =>
+                {
+                    return <button key={tool.tool} title={tool.tool} onClick={() => dispatch(setTool(ChartingTools[index].tool))}
+                        className={currentTool === ChartingTools[index].tool ? 'currentTool' : 'notCurrentTool'} >{ChartingTools[index].icon}</button>
+                })}
                 <br />
                 <br />
 
@@ -190,7 +194,7 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
                 {showDoubleCheckRemoval ?
                     <div>
                         <button onClick={() => setShowDoubleCheckRemoval(false)}><X /> </button>
-                        {(chartId && (chartId !== userSpyId)) && <button onClick={attemptRemoveOfConfirmedStock}><Trash2 color='red' /></button>}
+                        {(chartId && (chartId !== userSpyId)) && <button onClick={() => { attemptRemoveOfConfirmedStock(); setShowDoubleCheckRemoval(false) }}><Trash2 color='red' /></button>}
                     </div>
                     : (chartId && (chartId !== userSpyId)) && <button onClick={() => setShowDoubleCheckRemoval(true)}><Trash2 /></button>
                 }
