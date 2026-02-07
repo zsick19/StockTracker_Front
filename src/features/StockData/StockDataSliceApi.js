@@ -1,4 +1,4 @@
-import { add, addMinutes, isSameHour, isSameMinute, startOfHour } from "date-fns";
+import { add, addMinutes } from "date-fns";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
@@ -30,6 +30,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 15,
       async onCacheEntryAdded(args, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
       {
+
         if (args.liveFeed)
         {
           const userId = getState().auth.userId

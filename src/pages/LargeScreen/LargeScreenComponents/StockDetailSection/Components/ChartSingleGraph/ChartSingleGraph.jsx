@@ -17,19 +17,21 @@ import NewsPanel from './Components/ChartControlPanels/NewsPanel'
 import * as short from 'short-uuid'
 
 
+
 function ChartSingleGraph()
 {
     const dispatch = useDispatch()
 
-    const selectedTicker = useSelector(selectSingleChartStock)
-
-    const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
-
+    const uuid = useMemo(() => short.generate(), [])
+    const [subCharts, setSubCharts] = useState([])
+    const [chartInfoDisplay, setChartInfoDisplay] = useState(0)
     const [showUnChartedList, setShowUnchartedList] = useState(false)
 
+
+    const selectedTicker = useSelector(selectSingleChartStock)
+    const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
     const [timeFrame, setTimeFrame] = useState(selectedTicker.timeFrame)
-    const [chartInfoDisplay, setChartInfoDisplay] = useState(0)
-    const [showVisibilityModal, setShowVisibilityModal] = useState(false)
+
 
 
     function handleNavigatingToNextUnChartedStock(nextDirection)
@@ -62,7 +64,7 @@ function ChartSingleGraph()
         switch (chartInfoDisplay)
         {
             case 0: return <InfoPanel />
-            case 1: return <EnterExitPanel />
+            case 1: return <EnterExitPanel ticker={selectedTicker.ticker} />
             case 2: return <KeyLevelsPanel />
             case 3: return <AlertPanel />
             case 4: return <NewsPanel />
@@ -70,23 +72,26 @@ function ChartSingleGraph()
         }
     }
 
-    const uuid = useMemo(() => short.generate(), [])
+    useEffect(() => { setTimeFrame(selectedTicker.timeFrame) }, [selectedTicker])
+
+
+
     return (
         <div id='LHS-SingleGraphForCharting'>
-            {showVisibilityModal && <VisibilityModal setShowVisibilityModal={setShowVisibilityModal} />}
-
-
-            <ChartMenuBar ticker={selectedTicker.ticker} setTimeFrame={setTimeFrame} timeFrame={timeFrame} uuid={uuid} />
+            <ChartMenuBar ticker={selectedTicker.ticker} setTimeFrame={setTimeFrame} timeFrame={timeFrame} uuid={uuid} subCharts={subCharts} setSubCharts={setSubCharts} />
 
 
 
             {selectedTicker ?
-                <SingleGraphChartWrapper ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setChartInfoDisplay={setChartInfoDisplay} uuid={uuid} /> :
+                <SingleGraphChartWrapper subCharts={subCharts} ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setTimeFrame={setTimeFrame} setChartInfoDisplay={setChartInfoDisplay} uuid={uuid} /> :
                 <div>No Chart Selected</div>}
 
-
             <div id='LHS-SingleChartControls'>
-                {showUnChartedList ? <UnChartedProgressDisplay setShowUnchartedList={setShowUnchartedList} /> : provideChartInfoDisplay()}
+                {showUnChartedList ?
+                    <UnChartedProgressDisplay setShowUnchartedList={setShowUnchartedList} /> :
+                    provideChartInfoDisplay()
+                }
+
                 <ContinueChartingNav currentUnChartedTicker={currentUnChartedTicker} setShowUnchartedList={setShowUnchartedList} handleNavigatingToNextUnChartedStock={handleNavigatingToNextUnChartedStock} />
             </div>
         </div>

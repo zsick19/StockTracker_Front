@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import ChartGraph from './ChartGraph'
 import { useGetChartingDataQuery } from '../../features/Charting/ChartingSliceApi'
 import { useDispatch } from 'react-redux'
@@ -8,7 +8,7 @@ import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGra
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
 import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
 
-function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
+function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
     const dispatch = useDispatch()
     const tickerForSearch = ticker?.ticker || ticker
@@ -53,7 +53,7 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
                 mostRecentPrice={candleData.mostRecentPrice}
                 lastCandleData={lastCandleData}
                 candlesToKeepSinceLastQuery={candlesToKeepSinceLastQuery}
-                timeFrame={timeFrame}
+                timeFrame={timeFrame} setTimeFrame={setTimeFrame}
                 isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive}
                 isZoomAble={interactionController?.isZoomAble} showEMAs={showEMAs} />
         </div>

@@ -1,15 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
-
 import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
-import { Binoculars, Check, Info, KeyRound, Newspaper, PiggyBank, Plane, Save, Siren, X } from 'lucide-react'
+import { Binoculars, Check, Info, KeyRound, Newspaper, Plane, Save, Siren, Trash2, X } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool, setTool } from '../../../../../../../features/Charting/ChartingTool'
-import { AlertTools, ChartingToolEdits, ChartingTools, PlanningTools } from '../../../../../../../Utilities/ChartingTools'
+import { ChartingToolEdits, ChartingTools } from '../../../../../../../Utilities/ChartingTools'
 import { useRemoveChartableStockMutation, useUpdateChartingDataMutation } from '../../../../../../../features/Charting/ChartingSliceApi'
-import { makeSelectChartAlteredByTicker, makeSelectChartingByTicker } from '../../../../../../../features/Charting/chartingElements'
+import { makeSelectChartAlteredByTicker } from '../../../../../../../features/Charting/chartingElements'
 import { makeSelectEnterExitPlanAltered } from '../../../../../../../features/EnterExitPlans/EnterExitGraphElement'
 import { selectChartEditMode, setChartEditMode } from '../../../../../../../features/Charting/EditChartSelection'
 import { useUpdateEnterExitPlanMutation } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
@@ -17,10 +16,13 @@ import { selectConfirmedUnChartedTrio } from '../../../../../../../features/Sele
 import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { selectSPYIdFromUser } from '../../../../../../../features/Initializations/InitializationSliceApi'
 import { clearStockInfo, setStockInfoAndNews } from '../../../../../../../features/StockData/StockInfoElement'
-import * as short from 'short-uuid'
+import RSISubChart from '../../../../../../../components/ChartSubGraph/SubCharts/RSISubChart'
+import VortexSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/VortexSubChart'
+import StochasticSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/StochasticSubChart'
+import MACDSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/MACDSubChart'
 
 
-function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDisplay, uuid })
+function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, chartId, setChartInfoDisplay, uuid })
 {
     const dispatch = useDispatch()
     const currentTool = useSelector(selectCurrentTool)
@@ -40,14 +42,13 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
     const [updateEnterExitPlan, { isLoading: isEnterExitLoading }] = useUpdateEnterExitPlanMutation()
     const [serverResponse, setServerResponse] = useState(undefined)
 
-    console.log(ticker, chartId)
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true, provideNews: true })
 
     const interactionController = { isLivePrice: false, isInteractive: true, isZoomAble: true }
     let actualGraph
     if (isSuccess && data.candleData.length > 0)
     {
-        actualGraph = <ChartWithChartingWrapper ticker={ticker} interactionController={interactionController} candleData={data} chartId={chartId} timeFrame={timeFrame} uuid={uuid} />
+        actualGraph = <ChartWithChartingWrapper ticker={ticker} interactionController={interactionController} candleData={data} chartId={chartId} timeFrame={timeFrame} setTimeFrame={setTimeFrame} uuid={uuid} />
     } else if (isSuccess) { actualGraph = <div>No Data To Display</div> }
     else if (isLoading) { actualGraph = <GraphLoadingSpinner /> }
     else if (isError)
@@ -58,7 +59,6 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
 
     const [updateChartingData] = useUpdateChartingDataMutation()
     const [removeChartableStock] = useRemoveChartableStockMutation()
-
 
 
     async function attemptSavingCharting()
@@ -129,10 +129,32 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
 
     }, [data])
 
+    function provideSubCharts()
+    {
+        {
+            return subCharts.map((subChart) =>
+            {
+                switch (subChart)
+                {
+                    case 'rsi': return <RSISubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
+                    case 'vortex': return <VortexSubChart candleData={data.candleData} uuid={uuid} />
+                    case 'stochastic': return <StochasticSubChart candleData={data.candleData} uuid={uuid} />
+                    case 'MACD': return <MACDSubChart candleData={data.candleData} uuid={uuid} />
+                }
+            })
+        }
+    }
 
+    const [showDoubleCheckRemoval, setShowDoubleCheckRemoval] = useState()
     return (
         <div id='LHS-SingleGraphForChartingWrapper'>
-            {actualGraph}
+
+            <div id='LHS-SingleChartAndSubCharts'>
+                {actualGraph}
+                {subCharts.length > 0 && <div className="SubChartWrapper">{provideSubCharts()}</div>}
+            </div>
+
+
             <div id='LHS-SingleGraphToolBar'>
 
                 <p className='veryTinyText'>Draw</p>
@@ -164,10 +186,18 @@ function SingleGraphChartWrapper({ ticker, timeFrame, chartId, setChartInfoDispl
                 <button disabled={!chartId || !chartingAltered.altered} title='Direct Save' onClick={attemptSavingCharting}><Save size={20} color={chartingAltered.altered ? 'white' : 'gray'} /></button>
                 {serverResponse === "positive" && <Check color='green' size={20} />}
                 {serverResponse === "negative" && <X color='red' size={20} />}
-                {(chartId && (chartId !== userSpyId)) && <button onClick={attemptRemoveOfConfirmedStock}>RC</button>}
 
-                <button title='Initiate Tracking' disabled={isEnterExitLoading} onClick={() => attemptInitiatingPlanTracking()} ><Binoculars size={20} color={isEnterExitLoading ? 'gray' : 'red'} /></button>
-                {/* {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) && <button title='Initiate Tracking' disabled={isEnterExitLoading} onClick={() => attemptInitiatingPlanTracking()} ><Binoculars size={20} color={isEnterExitLoading ? 'gray' : 'red'} /></button>} */}
+                {showDoubleCheckRemoval ?
+                    <div>
+                        <button onClick={() => setShowDoubleCheckRemoval(false)}><X /> </button>
+                        {(chartId && (chartId !== userSpyId)) && <button onClick={attemptRemoveOfConfirmedStock}><Trash2 color='red' /></button>}
+                    </div>
+                    : (chartId && (chartId !== userSpyId)) && <button onClick={() => setShowDoubleCheckRemoval(true)}><Trash2 /></button>
+                }
+
+
+                {/* <button title='Initiate Tracking' disabled={isEnterExitLoading} onClick={() => attemptInitiatingPlanTracking()}  ><Binoculars className='blinkingRed' size={20} /></button> */}
+                {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) && <button title='Initiate Tracking' disabled={isEnterExitLoading} onClick={() => attemptInitiatingPlanTracking()} ><Binoculars className='blinkingRed' size={20} color={isEnterExitLoading ? 'gray' : 'red'} /></button>}
             </div>
         </div>
     )

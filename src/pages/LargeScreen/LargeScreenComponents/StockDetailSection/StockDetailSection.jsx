@@ -13,6 +13,7 @@ import TradingJournal from './Components/TradingJournal/TradingJournal';
 import PreWatchMany from './Components/PrewatchMany/PrewatchMany';
 import { Binoculars, ChartCandlestick, Expand, ListChecks, ListTodo, NotebookPen, PencilRuler, PiggyBank, SpellCheck } from 'lucide-react';
 import PlanStatusView from './Components/PlanStatusView/PlanStatusView';
+import SyncWithBackendVisual from './Components/SyncVisual/SyncWithBackendVisual';
 
 function StockDetailSection()
 {
@@ -39,7 +40,7 @@ function StockDetailSection()
       case 7: return <PlanStatusView />
       case 8: return <EnterExitTradeGraph />
       case 9: return <TradingJournal />
-      case 10: return <div>Sync Visual Here</div>
+      case 10: return <SyncWithBackendVisual />
     }
   }
 
@@ -49,11 +50,11 @@ function StockDetailSection()
     <section id="StockDetailSection">
       <nav>
         <button onClick={() => dispatch(setStockDetailState(0))}><Expand /><p>Four Graph</p></button>
-        <button onClick={() => dispatch(setStockDetailState(5))}><PencilRuler /><p>Charting Graph</p></button>
 
         <button onClick={() => dispatch(setStockDetailState(1))}><Binoculars /><p>Market Search</p></button>
         <button onClick={() => dispatch(setStockDetailState(2))}><ListTodo /><p>Confirmation</p></button>
         <button onClick={() => dispatch(setStockDetailState(3))}><ListChecks /><p>Confirmed</p></button>
+        <button onClick={() => dispatch(setStockDetailState(5))}><PencilRuler /><p>Charting Graph</p></button>
         <button onClick={() => dispatch(setStockDetailState(4))}><SpellCheck /><p>Viability Check</p></button>
 
         <button onClick={() => dispatch(setStockDetailState(7))}><PiggyBank /><p>Plans</p></button>

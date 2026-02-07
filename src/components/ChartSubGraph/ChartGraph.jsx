@@ -28,7 +28,7 @@ import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../f
 import { calculateEMADataPoints } from '../../Utilities/technicalIndicatorFunctions'
 import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudiesVisualElement'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
     const dispatch = useDispatch()
 
@@ -294,7 +294,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
         if (studyVisualController?.ema || showEMAs)
         {
 
-            //          stockCandleSVG.select('.vwap').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')
+            stockCandleSVG.select('.vwap').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')
 
             const ema = stockCandleSVG.select('.emaLines')
             ema.selectAll('.ema9').data([ema9Values], d => d.Timestamp).join(enter =>
@@ -1090,7 +1090,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, i
 
     return (
         <div className='SVGGraphWrapper'>
-            {showContextMenu.display && <ChartContextMenuContainer showContextMenu={showContextMenu} setShowContextMenu={setShowContextMenu} />}
+            {showContextMenu.display && <ChartContextMenuContainer showContextMenu={showContextMenu} setShowContextMenu={setShowContextMenu} timeFrame={timeFrame} setTimeFrame={setTimeFrame} />}
 
             <div ref={priceSVGWrapper} className='priceSVGWrapper'>
                 <svg ref={priceSVG}>
