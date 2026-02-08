@@ -1,9 +1,41 @@
-import React from 'react'
+import React, { useState } from 'react'
 import HorizontalPlanDiagram from '../../../../ActiveTradeSection/Components/ActiveTradeAndWatchList/WatchList/Components/PlanPricingDiagram/HorizontalPlanDiagram'
+import { useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { CircleAlert, Trash, X } from 'lucide-react'
 
 
 function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
 {
+    const [toggleEnterExitPlanImportant] = useToggleEnterExitPlanImportantMutation()
+    const [removeSingleEnterExitPlan] = useRemoveSingleEnterExitPlanMutation()
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+    
+    async function attemptTogglingImportance()
+    {
+
+        try
+        {
+            await toggleEnterExitPlanImportant({ tickerSymbol: plan.tickerSymbol, planId: plan._id, markImportant: !plan?.highImportance }).unwrap()
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+    async function attemptRemovingPlan()
+    {
+        try
+        {
+            await removeSingleEnterExitPlan({ tickerSymbol: plan.tickerSymbol, planId: plan._id }).unwrap()
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
+
+
+
+
 
 
     function provideGroup()
@@ -13,9 +45,12 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
             case 1: return 'StopLoss Hit'
             case 2: return 'Enter Buffer Hit'
             case 3: return 'Above Enter Buffer'
-
         }
     }
+
+
+   
+
     return (
         <div className={`LHS-SinglePlanResult ${selectedPlan?.tickerSymbol === plan.tickerSymbol ? 'highLightForSelectedPlan' : ''}`} onClick={() => setSelectedPlan(plan)}>
             <div>
@@ -34,12 +69,15 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
             </div>
             <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
 
-            <div className='flex'>
-                <button onClick={(e) => { e.stopPropagation(); setSelectedPlan(plan) }}>Remove</button>
-                <button onClick={(e) => { e.stopPropagation(); console.log('putting in for high importance') }}>
-                    {plan?.highImportance ? 'Remove Importance' : 'Set Importance'}
-                </button>
-            </div>
+            {showDeleteConfirmation ? <div className='flex'>
+                <button className='buttonIcon' onClick={(e) => { e.stopPropagation(); setShowDeleteConfirmation(false) }}><X color='blue' /></button>
+                <button className='buttonIcon' onClick={(e) => { e.stopPropagation(); attemptRemovingPlan() }}><Trash color='red' /></button>
+            </div> :
+                <div className='flex'>
+                    <button className='buttonIcon' onClick={(e) => { e.stopPropagation(); setShowDeleteConfirmation(true) }}><Trash color='white' /></button>
+                    <button className='buttonIcon' onClick={(e) => { e.stopPropagation(); attemptTogglingImportance(); console.log('CLCIKED') }}><CircleAlert color={plan?.highImportance ? 'green' : 'gray'} /></button>
+                </div>
+            }
 
         </div>
     )

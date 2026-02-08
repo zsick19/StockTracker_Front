@@ -149,31 +149,28 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
                 let entityToMove
                 if (draft.enterBufferHit.ids.includes(args.tickerSymbol))
                 {
-                  entityToMove = draft.enterBufferHit.entities[data.tickerSymbol]
-                  entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
-
+                  entityToMove = draft.enterBufferHit.entities[args.tickerSymbol]
                   enterBufferHitAdapter.removeOne(draft.enterBufferHit, entityToMove.id)
                 }
                 else if (draft.stopLossHit.ids.includes(args.tickerSymbol))
                 {
                   entityToMove = draft.stopLossHit.entities[args.tickerSymbol]
-                  entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
-
                   stopLossHitAdapter.removeOne(draft.stopLossHit, entityToMove.id)
                 }
                 else
                 {
                   entityToMove = draft.plannedTickers.entities[args.tickerSymbol]
-                  entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
-
                   enterExitAdapter.removeOne(draft.plannedTickers, entityToMove.id)
                 }
 
+                entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
                 highImportanceAdapter.addOne(draft.highImportance, entityToMove)
               }
               else
               {
                 let entityToMove = draft.highImportance.entities[args.tickerSymbol]
+                entityToMove.highImportance = undefined
+
                 switch (entityToMove.priceVsPlanUponFetch)
                 {
                   case 0: stopLossHitAdapter.addOne(draft.stopLossHit, entityToMove); break;
@@ -184,13 +181,12 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
                 enterExitAdapter.removeOne(draft.highImportance, entityToMove.id)
               }
-
             })
           )
 
         } catch (error)
         {
-
+          console.log(error)
         }
       }
     }),
@@ -232,6 +228,9 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
         let historyIdForRemoval
         userStockHistory.forEach((t) => { if (args.tickerSymbol === t.symbol) historyIdForRemoval = t._id })
+
+        console.log(userStockHistory)
+        console.log(args, historyIdForRemoval)
 
         let result = await baseQuery({
           url: `/enterExitPlan/remove/${args.planId}/history/${historyIdForRemoval}`,

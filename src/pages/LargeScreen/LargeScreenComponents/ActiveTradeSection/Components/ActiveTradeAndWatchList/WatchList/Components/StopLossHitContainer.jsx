@@ -21,7 +21,7 @@ function StopLossHitContainer({ stopLossHitIds })
             </div>
 
             <div className='hide-scrollbar PreWatchListContainersEveryOther'>
-                {stopLossHitIds.map((id) => <SinglePlannedTickerDisplay id={id} watchList={1} />)}
+                {stopLossHitIds.map((id) => <SinglePlannedTickerDisplay id={id} watchList={1} key={`stopLossHit${id}`} />)}
             </div>
         </div>
     )

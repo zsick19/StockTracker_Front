@@ -308,7 +308,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
         if (studyVisualController?.ema || showEMAs)
         {
 
-            stockCandleSVG.select('.vwap').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')
+            //stockCandleSVG.select('.vwap').selectAll('.vwapLine').remove()
+            //stockCandleSVG.select('.vwap').attr('class', 'vwapLine').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')
 
             const ema = stockCandleSVG.select('.emaLines')
             ema.selectAll('.ema9').data([ema9Values], d => d.Timestamp).join(enter =>
@@ -327,6 +328,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
         } else
         {
             stockCandleSVG.select('.emaLines').selectAll('.periodLines').remove()
+            stockCandleSVG.select('.vwap').selectAll('.vwapLine').remove()
         }
     }, [studyVisualController, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
 
@@ -485,7 +487,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !charting) return
-        console.log(!EnterExitPlan, EnterExitPlan)
+
         if (!EnterExitPlan) stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
 
         //free line creation and update

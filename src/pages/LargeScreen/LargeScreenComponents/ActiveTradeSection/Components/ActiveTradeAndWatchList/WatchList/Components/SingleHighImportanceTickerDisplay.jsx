@@ -10,7 +10,7 @@ function SingleHighImportanceTickerDisplay({ id })
 {
     const dispatch = useDispatch()
     const [showImportantRemove, setShowImportantRemove] = useState(false)
-    const [toggleEnterExitPlanImportant] = useToggleEnterExitPlanImportantMutation()
+    const [toggleEnterExitPlanImportant, { isLoading }] = useToggleEnterExitPlanImportantMutation()
     const [removeSingleEnterExitPlan] = useRemoveSingleEnterExitPlanMutation()
 
 
@@ -42,7 +42,7 @@ function SingleHighImportanceTickerDisplay({ id })
         try
         {
             const results = await removeSingleEnterExitPlan({ tickerSymbol: plan.tickerSymbol, planId: plan._id }).unwrap()
-            
+
         } catch (error)
         {
             console.log(error)
@@ -55,7 +55,7 @@ function SingleHighImportanceTickerDisplay({ id })
                 <p onClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
 
                 {showImportantRemove ? <>
-                    <button className='buttonIcon' onClick={() => attemptRemovingImportance()}> Unimportant</button>
+                    <button className='buttonIcon' onClick={() => attemptRemovingImportance()} disabled={isLoading}> Unimportant</button>
                     <button className='buttonIcon' onClick={() => attemptRemovingPlan()}>Remove</button>
                     <button className='buttonIcon' onClick={() => setShowImportantRemove(false)}><X color='white' size={14} /></button>
                 </> :

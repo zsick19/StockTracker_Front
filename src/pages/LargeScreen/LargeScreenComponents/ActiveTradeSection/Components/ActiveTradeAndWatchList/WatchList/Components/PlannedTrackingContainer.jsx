@@ -18,7 +18,7 @@ function PlannedTrackingContainer({ enterExitPlansIds })
                 </div>
             </div>
             <div className='hide-scrollbar PreWatchListContainersEveryOther'>
-                {enterExitPlansIds.map((id) => { return <SinglePlannedTickerDisplay id={id} watchList={2} /> })}
+                {enterExitPlansIds.map((id) => { return <SinglePlannedTickerDisplay id={id} watchList={2} key={`enterExitList${id}`} /> })}
             </div>
         </div>
     )

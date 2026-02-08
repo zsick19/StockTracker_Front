@@ -19,7 +19,7 @@ function EnterBufferHitContainer({ enterBufferHitIds, refetch })
                 </div>
             </div>
             <div id='LSH-PreWatchBufferHitList' className='hide-scrollbar PreWatchListContainersEveryOther'>
-                {enterBufferHitIds.map((id) => <SinglePlannedTickerDisplay id={id} watchList={0} />)}
+                {enterBufferHitIds.map((id) => <SinglePlannedTickerDisplay id={id} watchList={0} key={`enterBufferList${id}`} />)}
             </div>
         </div>
     )

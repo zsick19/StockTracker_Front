@@ -25,7 +25,7 @@ function HorizontalPlanDiagram({ mostRecentPrice, planPricePointObject, planPric
             scale = scaleLinear().domain([(planPricePointObject.stopLossPrice - bufferPercent), (planPricePointObject.moonPrice + bufferPercent)]).range([0, horizontalDimensions.width])
         }
         return scale(priceToPixel)
-    }, [horizontalDimensions])
+    }, [planPricePointObject, planPriceArray, horizontalDimensions])
 
     const planPriceSVG = select(priceSVG.current)
     const idealPrices = planPriceArray ? planPriceArray : [planPricePointObject.stopLossPrice, planPricePointObject.enterPrice, planPricePointObject.enterBufferPrice, planPricePointObject.exitBufferPrice, planPricePointObject.exitPrice, planPricePointObject.moonPrice]
@@ -71,7 +71,7 @@ function HorizontalPlanDiagram({ mostRecentPrice, planPricePointObject, planPric
                 .attr("stroke-dasharray", "2,2")
         }
 
-    }, [horizontalDimensions])
+    }, [planPricePointObject, planPriceArray, horizontalDimensions])
 
     useEffect(() =>
     {
@@ -91,7 +91,7 @@ function HorizontalPlanDiagram({ mostRecentPrice, planPricePointObject, planPric
         planPriceSVG.append('polygon').attr('points', '0 0,-10 -10,10 -10,0 0 ').attr("transform", (d, i) => `translate(${xScale(mostRecentPrice)},${horizontalDimensions.height})`); // Dynamic scale based on index
 
 
-    }, [horizontalDimensions, mostRecentPrice])
+    }, [planPricePointObject, planPriceArray, horizontalDimensions, mostRecentPrice])
 
 
 

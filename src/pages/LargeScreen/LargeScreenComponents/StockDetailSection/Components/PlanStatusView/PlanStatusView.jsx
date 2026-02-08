@@ -16,21 +16,18 @@ function PlanStatusView()
 
   const [selectedPlan, setSelectedPlan] = useState(undefined)
 
-
   const filteredSortedResults = useMemo(() =>
   {
     if (combinedData.length === 0) return []
 
     if (planFilters.tickerSearch)
     {
-
-      let tempResults = combinedData.stopLossHit.find(t => t.tickerSymbol === planFilters.tickerSearch)
-      if (!tempResults) tempResults = combinedData.enterBuffer.find(t => t.tickerSymbol === planFilters.tickerSearch)
-      if (!tempResults) tempResults = combinedData.allOtherPlans.find(t => t.tickerSymbol === planFilters.tickerSearch)
-
+      let tempResults = combinedData.combined.find(t => t.tickerSymbol === planFilters.tickerSearch)
       if (!tempResults) return []
-      else return [tempResults]
+      return [tempResults]
     }
+
+
     let results
     switch (planFilters.groupForDisplay)
     {
@@ -41,6 +38,7 @@ function PlanStatusView()
       case 4: results = combinedData.combined; break;
     }
 
+    if (planFilters.sector) { results = results.filter(t => t.sector === planFilters.sector) }
 
     switch (planSort.sort)
     {
@@ -49,7 +47,7 @@ function PlanStatusView()
 
 
     return results
-  }, [planFilters, planSort])
+  }, [planFilters, planSort, combinedData])
 
 
 
@@ -76,8 +74,12 @@ function PlanStatusView()
 
         <fieldset onChange={(e) => setPlanFilters(prev => ({ ...prev, [e.target.name]: parseInt(e.target.value) }))}>
           <div>
-            <label htmlFor="stopLossHitGroup">Below StopLoss</label>
-            <input type="radio" name="groupForDisplay" id="stopLossHitGroup" value={0} />
+            <label htmlFor="allPlansGroup">All Plans</label>
+            <input type="radio" name="groupForDisplay" id="allPlansGroup" value={4} defaultChecked />
+          </div>
+          <div>
+            <label htmlFor="highImportance">High Importance</label>
+            <input type="radio" name="groupForDisplay" id="highImportance" value={3} />
           </div>
           <div>
             <label htmlFor="enterBufferHitGroup">Enter Buffer Hit</label>
@@ -88,12 +90,8 @@ function PlanStatusView()
             <input type="radio" name="groupForDisplay" id="otherPlansGroup" value={2} />
           </div>
           <div>
-            <label htmlFor="highImportance">High Importance</label>
-            <input type="radio" name="groupForDisplay" id="highImportance" value={3} />
-          </div>
-          <div>
-            <label htmlFor="allPlansGroup">All Plans</label>
-            <input type="radio" name="groupForDisplay" id="allPlansGroup" value={4} defaultChecked />
+            <label htmlFor="stopLossHitGroup">Below StopLoss</label>
+            <input type="radio" name="groupForDisplay" id="stopLossHitGroup" value={0} />
           </div>
         </fieldset>
 
@@ -115,6 +113,7 @@ function PlanStatusView()
           <p>Sector</p>
           <p>Tracking</p>
           <p>Plan Diagram</p>
+          <p>Actions</p>
         </div>
         <div id='LHS-PlanResults' className='hide-scrollbar'>
           {filteredSortedResults.map((plan) => <SinglePlanView key={plan.tickerSymbol} plan={plan} selectedPlan={selectedPlan} setSelectedPlan={setSelectedPlan} />)}
@@ -126,19 +125,14 @@ function PlanStatusView()
       {selectedPlan ?
         <div id='LHS-PlanDetailsAndChart'>
           <SelectedStockChartBlock ticker={selectedPlan.tickerSymbol} plan={selectedPlan} />
-
           <SelectedStockPlanDetails selectedPlan={selectedPlan} setSelectedPlan={setSelectedPlan} />
         </div> :
-
-
         <div id='LHS-NoPlanSelected'>
           <p>Select a Plan For Details</p>
-          <p>Below StopLoss: {combinedData.counts.stopLoss} Plans</p>
-          <p>Enter Buffer Hit: {combinedData.counts.enterBuffer} Plans</p>
-          <p>Above Enter Buffer: {combinedData.counts.allOtherPlans} Plans</p>
           <p>Total Plans: {combinedData.totalCount}</p>
-        </div>
-      }
+        </div>}
+
+
     </div>
   )
 }
