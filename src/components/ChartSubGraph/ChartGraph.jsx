@@ -485,6 +485,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !charting) return
+        console.log(!EnterExitPlan, EnterExitPlan)
+        if (!EnterExitPlan) stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
 
         //free line creation and update
         stockCandleSVG.select('.freeLines').selectAll('.line_group').data(charting.freeLines).join((enter) => createLineAndCircle(enter), (update) => updateLines(update))
@@ -625,16 +627,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
             }
         }
 
-    }, [charting, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+    }, [ticker, chartId, charting, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
     //plot user EnterExit Plan removing any possible charting enter exit  
     useEffect(() =>
     {
+        if (!EnterExitPlan) stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
+
         if (preDimensionsAndCandleCheck() || !EnterExitPlan) return
 
         //enter exit plan creation and update
-        stockCandleSVG.select('.enterExit').selectAll('chartingEnterExit').remove()
         // stockCandleSVG.select('.enterExit').select('.twoPercentLine').remove()
 
         stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
@@ -686,7 +689,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
         //remove the charting svg for enter exit plans 
 
-    }, [EnterExitPlan, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+    }, [ticker, chartId, EnterExitPlan, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
     //plot macro key levels
     useEffect(() =>

@@ -8,11 +8,18 @@ import RSISubChart from '../../../../../../../components/ChartSubGraph/SubCharts
 import VortexSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/VortexSubChart'
 import StochasticSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/StochasticSubChart'
 import MACDSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/MACDSubChart'
+import { ChartingToolEdits } from '../../../../../../../Utilities/ChartingTools'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectCurrentTool } from '../../../../../../../features/Charting/ChartingTool'
+import { selectChartEditMode, setChartEditMode } from '../../../../../../../features/Charting/EditChartSelection'
 
 function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, showEMAs, subCharts })
 {
 
+    const dispatch = useDispatch()
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: selectedStock.tickerSymbol, timeFrame: timeFrame, liveFeed: true, info: true })
+    const currentTool = useSelector(selectCurrentTool)
+    const editMode = useSelector(selectChartEditMode)
 
     let chartContent
     if (isSuccess && data.candleData.length > 0)
@@ -52,8 +59,13 @@ function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, 
                 {chartContent}
                 {subCharts.length > 0 && <div className="SubChartWrapper">{provideSubCharts()}</div>}
             </div>
-            <div>
-                <Circle />
+
+            <div id='LHS-TradeWrapperChartingTools'>
+
+                <p className='veryTinyText'>Edit</p>
+                {ChartingToolEdits.map((editTool, index) => { return <button key={editTool.editTool} className={editMode === editTool.tool ? 'notCurrentTool buttonIcon' : 'currentEditMode buttonIcon'} title={editTool.editTool} onClick={() => dispatch(setChartEditMode(editTool.editTool))}>{editTool.icon}</button> })}
+                <br />
+
             </div>
         </div>
     )

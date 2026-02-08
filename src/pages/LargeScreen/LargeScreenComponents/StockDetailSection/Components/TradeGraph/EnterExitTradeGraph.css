@@ -12,17 +12,6 @@
   margin-bottom: 1rem;
 }
 
-#LHS-TradeChartWrapper > div:last-child {
-  width: 35px;
-  display: flex;
-  flex-direction: column;
-  margin-inline: auto;
-  padding-block: 1rem;
-  justify-items: center;
-  align-items: center;
-  background: gray;
-}
-
 #LHS-PlanPresentBeforeTrade {
   height: 20%;
   background: rgb(42, 41, 48);
@@ -55,4 +44,16 @@
 }
 #SellOptions {
   background-color: rgb(54, 35, 35);
+}
+
+#LHS-TradeWrapperChartingTools {
+  width: 35px;
+  display: flex;
+  flex-direction: column;
+  margin-inline: auto;
+  padding-block: 1rem;
+  justify-items: center;
+  align-items: center;
+  background: rgb(28, 29, 41);
+  border-bottom-right-radius: 10px;
 }

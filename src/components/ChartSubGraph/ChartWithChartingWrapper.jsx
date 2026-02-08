@@ -12,6 +12,8 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
 {
     const dispatch = useDispatch()
     const tickerForSearch = ticker?.ticker || ticker
+    const chartIdForSearch = ticker?._id || chartId
+    
 
     const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ tickerSymbol: ticker?.ticker || ticker, chartId: ticker?._id || chartId })
 
@@ -34,7 +36,7 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
 
     useEffect(() =>
     {
-
+        console.log(chartingData)
         if (isSuccess)
         {
             dispatch(setEnterExitCharting(chartingData))

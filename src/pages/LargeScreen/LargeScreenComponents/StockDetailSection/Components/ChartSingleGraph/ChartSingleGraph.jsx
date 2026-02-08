@@ -74,7 +74,6 @@ function ChartSingleGraph()
 
     useEffect(() => { setTimeFrame(selectedTicker.timeFrame) }, [selectedTicker])
 
-    console.log(selectedTicker)
 
     return (
         <div id='LHS-SingleGraphForCharting'>

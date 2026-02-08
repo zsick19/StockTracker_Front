@@ -30,7 +30,7 @@ function FourWaySpitGraphContainer({ selectedStock, index })
     let graphVisual
     if (isSuccess && stockData.candleData.length > 0)
     {
-        graphVisual = <ChartWithChartingWrapper ticker={selectedStock.ticker} candleData={stockData} chartId={selectedStock?._id}
+        graphVisual = <ChartWithChartingWrapper ticker={selectedStock.ticker} candleData={stockData} chartId={selectedStock?.chartId}
             timeFrame={selectedStock.timeFrame} uuid={uuid} interactionController={interactions}
             candlesToKeepSinceLastQuery={stockData.candlesToKeepSinceLastQuery} lastCandleData={stockData.mostRecentTickerCandle} />
 
