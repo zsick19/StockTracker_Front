@@ -61,8 +61,8 @@ function SingleHighImportanceTickerDisplay({ id })
                 </> :
                     <>
                         <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
+                        <p onClick={() => setShowImportantRemove(true)}>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
                         <p>{plan.currentDayPercentGain.toFixed()}%</p>
-                        <p onClick={() => setShowImportantRemove(true)}>{plan.percentFromEnter.toFixed(2)}%</p>
                     </>}
             </div>
             <div className='SingleTickerDiagram' >

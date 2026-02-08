@@ -896,7 +896,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
             completeCapture.exitBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y5 })
             completeCapture.moonPrice = createPriceScale({ pixelToPrice: pixelCapture.Y6 })
 
-            completeCapture.percents = [pixelCapture.P1, pixelCapture.P2, pixelCapture.P3, pixelCapture.P4, pixelCapture.P5]
+            completeCapture.percents = [pixelCapture.P1, pixelCapture.P2, pixelCapture.P4, pixelCapture.P3, pixelCapture.P5]
 
             if (EnterExitPlan)
             {
@@ -1110,8 +1110,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
     function dragEnterExitLineVertStart(e, d)
     {
         dragPixelCopy.lineColor = select(this).attr('stroke')
-
         let yPrice
+        console.log(d.percents)
         switch (select(this).attr('class'))
         {
             case 'enterLine edit': dragPixelCopy.textClass = '.enterLineText'; yPrice = d.enterPrice; break;
@@ -1133,6 +1133,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
     {
         let update = { ...d }
         let updatedPriceForY1 = yScaleRef.current({ pixelToPrice: dragPixelCopy.Y1 })
+
+
+
+
+
+
+
         switch (dragPixelCopy.textClass)
         {
             case '.stopLossLineText': update.stopLossPrice = updatedPriceForY1; break;
@@ -1143,7 +1150,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
             case '.moonLineText': update.moonPrice = updatedPriceForY1; break;
         }
 
-        //update the percentages
+        let percentEnterStop = ((update.enterPrice - update.stopLossPrice) / update.enterPrice) * 100
+        let percentEnterBuffer = ((update.enterBufferPrice - update.enterPrice) / update.enterPrice) * 100
+        let percentExitBuffer = ((update.exitBufferPrice - update.enterPrice) / update.enterPrice) * 100
+        let percentExit = ((update.exitPrice - update.enterPrice) / update.enterPrice) * 100
+        let percentMoon = ((update.moonPrice - update.enterPrice) / update.enterPrice) * 100
+        update.percents = [percentEnterStop, percentEnterBuffer, percentExitBuffer, percentExit, percentMoon]
+
         if (EnterExitPlan)
         {
             dispatch(defineEnterExitPlan({ enterExitPlan: update, ticker }))

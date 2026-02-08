@@ -6,7 +6,7 @@ function ActiveTradeBlockWrapper({ ids })
 {
     return (
         <div id='LSH-ActiveTradeBlockWrapper' className='hide-scrollbar'>
-            {ids.map((activeTradeId) => <SingleActiveTradeBlock key={activeTradeId} id={activeTradeId} />)}
+            {ids.map((activeTradeId) => <SingleActiveTradeBlock id={activeTradeId} key={`activeTrade${activeTradeId}`} />)}
         </div>
     )
 }

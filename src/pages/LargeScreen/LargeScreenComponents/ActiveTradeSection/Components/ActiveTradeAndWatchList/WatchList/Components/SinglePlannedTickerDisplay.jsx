@@ -43,7 +43,6 @@ function SinglePlannedTickerDisplay({ id, watchList })
         try
         {
             const results = await toggleEnterExitPlanImportant({ tickerSymbol: plan.tickerSymbol, planId: plan._id, markImportant: true }).unwrap()
-
         } catch (error)
         {
             console.log(error)
@@ -54,7 +53,6 @@ function SinglePlannedTickerDisplay({ id, watchList })
         try
         {
             const results = await removeSingleEnterExitPlan({ tickerSymbol: plan.tickerSymbol, planId: plan._id }).unwrap()
-
         } catch (error)
         {
             console.log(error)
@@ -78,8 +76,8 @@ function SinglePlannedTickerDisplay({ id, watchList })
                     </> :
                         <>
                             <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
+                            <p onClick={() => setShowImportantRemove(true)}>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
                             <p onClick={() => setShowDiagram(true)}>{plan.currentDayPercentGain.toFixed()}%</p>
-                            <p onClick={() => setShowImportantRemove(true)}>{plan.percentFromEnter.toFixed(2)}%</p>
                         </>}
                 </div>
             }

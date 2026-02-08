@@ -24,6 +24,8 @@ function VerticalMoveDiagram({ percentOfGain })
         if (preCheckDim()) return
 
         let percentageSelection = percentSVG.select('.percentMarkers')
+        percentageSelection.selectAll('line').remove()
+        percentageSelection.selectAll('rect').remove()
 
         percentageSelection.append('line').attr('x1', 0).attr('x2', verticalDimensions.width)
             .attr('y1', () => yScaleOutOf100(50))

@@ -35,6 +35,8 @@ function VerticalPlanDiagram({ idealPrices, currentPrice, percentOfGain, actualE
 
         let shadingLevel = 0.4
         let pricePointSelection = priceSVG.select('.pricePoints')
+        pricePointSelection.selectAll('.priceShading').remove()
+
         pricePointSelection.append('rect').attr('class', 'priceShading').attr('width', verticalDimensions.width)
             .attr('x', 0).attr('y', yScale(idealPrices[2])).attr('height', yScale(idealPrices[1]) - yScale(idealPrices[2]))
             .attr('fill', 'yellow').attr('opacity', shadingLevel)
@@ -53,21 +55,15 @@ function VerticalPlanDiagram({ idealPrices, currentPrice, percentOfGain, actualE
             .attr('height', (yScale(idealPrices[4]) - yScale(idealPrices[5]))).attr('fill', 'blue').attr('opacity', shadingLevel)
 
 
-        // if (beginTrackPrice)
-        // {
-        //     priceSVG.select('.pricePoints').append('line').attr('x1', 0).attr('x2', verticalDimensions.width).attr('y1', yScale(beginTrackPrice)).attr('y2', yScale(beginTrackPrice))
-        //         .attr('stroke-width', '1px')
-        //         .attr('stroke', 'purple')
-        //         .attr("stroke-dasharray", "2,2")
-        // }
+        if (beginTrackPrice)
+        {
+            priceSVG.select('.pricePoints').append('line').attr('x1', 0).attr('x2', verticalDimensions.width).attr('y1', yScale(beginTrackPrice)).attr('y2', yScale(beginTrackPrice))
+                .attr('stroke-width', '1px')
+                .attr('stroke', 'purple')
+                .attr("stroke-dasharray", "2,2")
+        }
 
-        // if (openPrice)
-        // {
-        //     priceSVG.select('.pricePoints').append('line').attr('x1', 0).attr('x2', verticalDimensions.width).attr('y1', yScale(openPrice)).attr('y2', yScale(openPrice))
-        //         .attr('stroke-width', '1px')
-        //         .attr('stroke', 'green')
-        //         .attr("stroke-dasharray", "2,2")
-        // }
+
 
 
 
@@ -78,6 +74,7 @@ function VerticalPlanDiagram({ idealPrices, currentPrice, percentOfGain, actualE
     useEffect(() =>
     {
         if (preCheckDim()) return
+
 
         priceSVG.select('.price').selectAll('line').remove()
         priceSVG.select('.price').append('line')

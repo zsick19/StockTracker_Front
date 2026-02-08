@@ -32,6 +32,7 @@ function EnterExitPanel({ ticker })
                         <div>
                             <p>${displayEnterExit.stopLossPrice}</p>
                             <p>Stoploss Price</p>
+                            {displayEnterExit.percents[0].toFixed(2)}
                         </div>
                         <div>
                             <p>${displayEnterExit.enterPrice}</p>
@@ -40,24 +41,28 @@ function EnterExitPanel({ ticker })
                         <div>
                             <p>${displayEnterExit.enterBufferPrice}</p>
                             <p>Enter Buffer Price</p>
+                            {displayEnterExit.percents[1].toFixed(2)}
                         </div>
                         <div>
                             <p>${displayEnterExit.exitBufferPrice}</p>
                             <p>Exit Buffer Price</p>
+                            {displayEnterExit.percents[2].toFixed(2)}
                         </div>
                         <div>
                             <p>${displayEnterExit.exitPrice}</p>
                             <p>Exit Price</p>
+                            {displayEnterExit.percents[3].toFixed(2)}
                         </div>
                         <div>
                             <p>${displayEnterExit.moonPrice}</p>
                             <p>Moon Price</p>
+                            {displayEnterExit.percents[4].toFixed(2)}
                         </div>
                     </div>
 
                     <div>
                         <p>Risk vs Reward </p>
-                        <p>{displayEnterExit.percents[1]} :{displayEnterExit.percents[4]}</p>
+                        <p>{displayEnterExit.percents[0].toFixed(2)} :{displayEnterExit.percents[3].toFixed(2)}</p>
                     </div>
 
                     {(charting?.enterExitLines && !EnterExitPlan) && <div>Live Tracking Not Initiated for this plan

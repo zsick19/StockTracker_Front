@@ -9,7 +9,7 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
     const [toggleEnterExitPlanImportant] = useToggleEnterExitPlanImportantMutation()
     const [removeSingleEnterExitPlan] = useRemoveSingleEnterExitPlanMutation()
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
-    
+
     async function attemptTogglingImportance()
     {
 
@@ -49,7 +49,7 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
     }
 
 
-   
+
 
     return (
         <div className={`LHS-SinglePlanResult ${selectedPlan?.tickerSymbol === plan.tickerSymbol ? 'highLightForSelectedPlan' : ''}`} onClick={() => setSelectedPlan(plan)}>
@@ -59,10 +59,10 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
             </div>
             <div>
                 <p>${plan.plan.enterPrice}</p>
-                <p>{plan.percentFromEnter.toFixed(2)}%</p>
+                <p>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
             </div>
-            <div> {plan.plan.percents[0]} vs {plan.plan.percents[4]}</div>
-            <div>{plan?.sector}</div>
+            <div> {plan.plan.percents[0].toFixed(2)} vs {plan.plan.percents[4].toFixed(2)}</div>
+            <p>{plan?.sector}</p>
             <div>
                 <p>{plan.trackingDays > 1 ? `${plan.trackingDays} Days` : `${plan.trackingDays} Day`}</p>
                 <p>{provideGroup()}</p>

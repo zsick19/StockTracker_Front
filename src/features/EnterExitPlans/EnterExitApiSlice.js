@@ -229,8 +229,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         let historyIdForRemoval
         userStockHistory.forEach((t) => { if (args.tickerSymbol === t.symbol) historyIdForRemoval = t._id })
 
-        console.log(userStockHistory)
-        console.log(args, historyIdForRemoval)
+    
 
         let result = await baseQuery({
           url: `/enterExitPlan/remove/${args.planId}/history/${historyIdForRemoval}`,
