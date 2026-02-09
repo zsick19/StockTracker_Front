@@ -50,11 +50,11 @@ function DashNav()
           Smaller Screen View
         </button>
       )}
-      <p>Stock Tracker 3.0</p>
+      <p>Stock Tracker</p>
 
-      <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button>
+      {/* <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button> */}
 
-      <button onClick={() => attemptResettingUser()}>Dev Reset User</button>
+      {/* <button onClick={() => attemptResettingUser()}>Dev Reset User</button> */}
     </nav>
   );
 }

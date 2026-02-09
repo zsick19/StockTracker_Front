@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { highImportanceSelectors, useGetUsersEnterExitPlanQuery, useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
-import { X } from 'lucide-react'
+import { AlertCircle, Trash2, X } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setSelectedStockAndTimelineFourSplit, setSingleChartTickerTimeFrameAndChartingId, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
@@ -51,18 +51,18 @@ function SingleHighImportanceTickerDisplay({ id })
 
     return (
         <div className='highImportancePlanAndDiagram'>
-            <div className={`SingleWatchListTicker ${plan.listChange ? 'blinkForListUpdate' : ''}`}>
+            <div className={`SingleWatchListTicker ${plan.listChange ? 'blinkForListUpdate' : ''} ${plan.changeFromYesterdayClose === 0 ? 'trackingNeutral' : plan.changeFromYesterdayClose > 0 ? 'trackingPositive' : 'trackingNegative'}`}>
                 <p onClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
 
                 {showImportantRemove ? <>
-                    <button className='buttonIcon' onClick={() => attemptRemovingImportance()} disabled={isLoading}> Unimportant</button>
-                    <button className='buttonIcon' onClick={() => attemptRemovingPlan()}>Remove</button>
+                    <button className='buttonIcon' onClick={() => attemptRemovingImportance()} disabled={isLoading}><AlertCircle size={14} color='red' /></button>
+                    <button className='buttonIcon' onClick={() => attemptRemovingPlan()}><Trash2 color='red' size={14} /></button>
                     <button className='buttonIcon' onClick={() => setShowImportantRemove(false)}><X color='white' size={14} /></button>
                 </> :
                     <>
                         <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
-                        <p onClick={() => setShowImportantRemove(true)}>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
-                        <p>{plan.currentDayPercentGain.toFixed()}%</p>
+                        <p>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
+                        <p onClick={() => setShowImportantRemove(true)}>{plan.currentDayPercentGain.toFixed(2)}%</p>
                     </>}
             </div>
             <div className='SingleTickerDiagram' >

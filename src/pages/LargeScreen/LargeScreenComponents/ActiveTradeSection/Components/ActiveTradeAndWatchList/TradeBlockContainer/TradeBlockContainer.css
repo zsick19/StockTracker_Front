@@ -84,17 +84,23 @@
   font-size: var(--fs-100);
 }
 
-.CurrentPL {
+.currentPL {
   display: flex;
   justify-content: space-evenly;
   gap: 2rem;
   font-size: var(--fs-200);
-  background-color: green;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   padding: 0.5rem;
   align-items: center;
   height: 4rem;
+}
+
+.activeTradeNegative {
+  background-color: red;
+}
+.activeTradePositive {
+  background-color: green;
 }
 
 .negativeDirection {
@@ -123,10 +129,17 @@
 .MoveCaptured {
   display: grid;
   justify-content: center;
-  border: 2px solid green;
+
   padding: 0.5rem;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
+}
+
+.moveCapturePositive {
+  border: 2px solid green;
+}
+.moveCaptureNegative {
+  border: 2px solid red;
 }
 
 .TradeOptionControl {

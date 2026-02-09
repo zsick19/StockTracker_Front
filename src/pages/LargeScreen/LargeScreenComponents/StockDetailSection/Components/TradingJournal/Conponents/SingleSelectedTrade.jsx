@@ -25,12 +25,12 @@ function SingleSelectedTrade({ trade, selectedTrade, setSelectedTrade, setShowSe
                 <p>${trade?.averageSellPrice}</p>
             </div>
             <div>
+                <p>Reward: {riskRewardIdeal.actualReward}</p>
                 <p>{riskRewardIdeal.risk} vs {riskRewardIdeal.reward}</p>
-                <p>Actual Reward: {riskRewardIdeal.actualReward}</p>
             </div>
 
             <p>+{trade?.exitGainPercent}%</p>
-            <p>{trade?.exitPercentCapture}%</p>
+            <p>{trade?.exitMovePercent}%</p>
             <div>
                 <p>${trade?.exitGain}</p>
                 <p>{trade.availableShares} Shares</p>

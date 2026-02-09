@@ -1,17 +1,12 @@
 import React from 'react'
-import { useDispatch } from 'react-redux'
-import { setSelectedStockAndTimelineFourSplit } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
-import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
-import { CircleArrowRight } from 'lucide-react'
 import { useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
-
 import EnterBufferHitContainer from './Components/EnterBufferHitContainer'
 import StopLossHitContainer from './Components/StopLossHitContainer'
 import PlannedTrackingContainer from './Components/PlannedTrackingContainer'
 import './WatchListStyles.css'
 import HighImportanceWatchListContainer from './Components/HighImportanceWatchListContainer'
 
-function PreTradeWatchList({ setActiveTradeLarger })
+function PreTradeWatchList()
 {
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetUsersEnterExitPlanQuery()
 

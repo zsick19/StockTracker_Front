@@ -6,6 +6,7 @@ import { setStockDetailState } from '../../../../../../../../features/SelectedSt
 import { ArrowUp, ChartCandlestick, ChevronDown, ChevronUp, CopySlash, Expand, X } from 'lucide-react'
 import VerticalPlanDiagram from './VerticalPlanDiagram'
 import VerticalMoveDiagram from './VerticalMoveDiagram'
+import { differenceInBusinessDays } from 'date-fns'
 
 function SingleActiveTradeBlock({ id })
 {
@@ -27,7 +28,7 @@ function SingleActiveTradeBlock({ id })
         dispatch(setSingleChartToTickerTimeFrameTradeId({ tickerSymbol: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
     }
 
-    console.log(activeTrade)
+
     return (
         <div className={`LSH-ActiveTradeBlock ${activeTrade.classVisual}`}>
             <div className='VerticalPlanDiagrams'>
@@ -69,10 +70,10 @@ function SingleActiveTradeBlock({ id })
                 </div>
                 <div>
                     {showStopEnterExit === 0 ?
-                        <div className='CurrentPL' onClick={() => setShowStopEnterExit(1)}>
+                        <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive currentPL' : 'activeTradeNegative currentPL'} onClick={() => setShowStopEnterExit(1)}>
                             <h2>{activeTrade.percentFromOpen > 0 && '+'}{activeTrade.percentFromOpen.toFixed(2)}%</h2>
                             <div>
-                                <p>Per Share: ${activeTrade.gainPerShare.toFixed(2)}</p>
+                                <p>GPS: ${activeTrade.gainPerShare.toFixed(2)}</p>
                                 <p>Position Size: {activeTrade.availableShares}</p>
                             </div>
                         </div> : showStopEnterExit === 1 ?
@@ -110,14 +111,14 @@ function SingleActiveTradeBlock({ id })
                                 </div>
                             </div>
                     }
-                    <div className='MoveCaptured'>
+                    <div className={activeTrade.percentFromOpen >= 0 ? 'moveCapturePositive MoveCaptured' : 'moveCaptureNegative MoveCaptured'}>
                         <p>{activeTrade.percentOfGain.toFixed(2)}% E/X Captured</p>
                     </div>
                 </div>
                 {showPositionInfo ?
                     <div className='flex' onClick={() => setShowPositionInfo(false)}>
-                        <p>Technology</p>
-                        <p>Hold: 2 Days</p>
+                        <p>{activeTrade.sector}</p>
+                        <p>Hold: {differenceInBusinessDays(new Date(), activeTrade.enterDate)} Days</p>
                     </div>
                     : <div className='flex' onClick={() => setShowPositionInfo(true)}>
                         <p>Total P/L: ${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</p>

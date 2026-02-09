@@ -13,7 +13,7 @@ function PreviousTradeJournal({ tradeFilter })
     const [selectedTrade, setSelectedTrade] = useState(undefined)
     const [showSelectedTradeOrStats, setShowSelectedTradeOrStats] = useState(false)
 
-
+    console.log(data)
     const filterSortedTradeHistory = useMemo(() =>
     {
         if (!data || !data?.length) return []

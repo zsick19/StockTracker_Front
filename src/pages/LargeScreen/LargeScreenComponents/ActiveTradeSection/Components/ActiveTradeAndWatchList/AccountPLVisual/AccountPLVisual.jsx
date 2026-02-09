@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import '../AccountPLStyles.css'
-import { Landmark, NotebookPen } from 'lucide-react'
+import './AccountPLVisual.css'
+import { Landmark, NotebookPen, RotateCcw } from 'lucide-react'
 import { useDispatch } from 'react-redux'
-import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 
-function AccountPLVisual()
+function AccountPLVisual({ refetch })
 {
+
     const dispatch = useDispatch()
     const [showAccountActions, setShowAccountActions] = useState(false)
     return (
@@ -29,6 +30,7 @@ function AccountPLVisual()
                     <div className='flex'>
                         <button className='buttonIcon' onClick={() => setShowAccountActions(true)}><Landmark color='white' /></button>
                         <button className='buttonIcon' onClick={() => dispatch(setStockDetailState(9))}><NotebookPen color='white' /></button>
+                        <button onClick={refetch} className='buttonIcon'><RotateCcw color='white' /></button>
                     </div>
                 </>
             }

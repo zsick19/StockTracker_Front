@@ -3,8 +3,9 @@ import { useGetUsersActiveTradesQuery } from '../../../../../../../features/Trad
 import ActiveTradeBlockWrapper from './Components/ActiveTradeBlockWrapper'
 import './TradeBlockContainer.css'
 import './TradePriceVisualAlert.css'
-import AccountPLVisual from './Components/AccountPLVisual'
+
 import ActiveTradeListWrapper from './Components/ListView/ActiveTradeListWrapper'
+import AccountPLVisual from '../AccountPLVisual/AccountPLVisual'
 
 function CurrentTradePositionContainer()
 {
@@ -39,7 +40,8 @@ function CurrentTradePositionContainer()
 
     return (
         <div id='LSH-ActiveTradeContainer'>
-            <AccountPLVisual />
+            <AccountPLVisual refetch={refetch} />
+
             {tradeDisplayContent}
         </div>
     )

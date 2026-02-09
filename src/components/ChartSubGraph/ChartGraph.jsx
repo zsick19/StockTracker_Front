@@ -4,13 +4,7 @@ import { addEnterExitToCharting, addLine, addVolumeNode, makeSelectChartingByTic
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
 import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, isSaturday, isSunday } from 'date-fns'
-import
-{
-    select, drag, zoom, zoomTransform, axisBottom, axisLeft, path, scaleTime, min, max, line, timeDay,
-    curveBasis, timeWeek, scaleLog, scaleLinear, scaleBand, extent, timeMonth, group, timeMonths, timeDays, zoomIdentity,
-    curveBasisOpen,
-    curveLinear
-} from 'd3'
+import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { makeSelectKeyLevelsByTicker, selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
 import { defineEnterExitPlan, makeSelectEnterExitByTicker } from '../../features/EnterExitPlans/EnterExitGraphElement'
@@ -33,16 +27,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
     const dispatch = useDispatch()
 
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
-    async function attemptToUpdateEnterExit()
-    {
-        try
-        {
-            await updateEnterExitPlan({ ticker, chartId })
-        } catch (error)
-        {
-            console.log(error)
-        }
-    }
+    async function attemptToUpdateEnterExit() { try { await updateEnterExitPlan({ ticker, chartId }) } catch (error) { console.log(error) } }
     //redux charting data selectors
 
     const selectKeyLevelMemo = useMemo(makeSelectKeyLevelsByTicker, [ticker])
@@ -104,7 +89,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
     const ema50Values = useMemo(() => calculateEMADataPoints(candleData, 50), [candleData])
     const ema200Values = useMemo(() => calculateEMADataPoints(candleData, 200), [candleData])
 
-    const VWAPLine = line().x(d => createDateScale({ dateToPixel: d.Timestamp })).y(d => createPriceScale({ priceToPixel: d.VWAP })).curve(curveLinear)
+    const VWAPLine = line().x(d => createDateScale({ dateToPixel: d.Timestamp })).y(d => createPriceScale({ priceToPixel: d.VWAP })).curve(curveBasis)
     const emaLine = line().x(d => createDateScale({ dateToPixel: d.date })).y(d => createPriceScale({ priceToPixel: d.value })).curve(curveLinear)
 
 
@@ -308,8 +293,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
         if (studyVisualController?.ema || showEMAs)
         {
 
-            //stockCandleSVG.select('.vwap').selectAll('.vwapLine').remove()
-            //stockCandleSVG.select('.vwap').attr('class', 'vwapLine').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')
+            stockCandleSVG.select('.vwap').selectAll('.vwapLine').remove()
+            stockCandleSVG.select('.vwap').append('path').attr('class', 'vwapLine').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')
 
             const ema = stockCandleSVG.select('.emaLines')
             ema.selectAll('.ema9').data([ema9Values], d => d.Timestamp).join(enter =>
@@ -442,7 +427,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
                     .attr('stroke-width', '1px')
                     .attr('stroke-dasharray', '5 5')
                 select(this).append('text').attr('class', 'livePriceText').attr('color', 'white')
-                    .text(`$${d.ClosePrice}`).attr("x", candleDimensions.width - 75).attr("y", pixelPrice);
+                    .text(`$${d.ClosePrice}`).attr("x", 25).attr("y", pixelPrice);
             })
         }
         function updateCandles(update)
@@ -1196,7 +1181,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
                     </g>
                     <g className='temp' />
                     <g className='emaLines' />
-                    <path className='vwap' />
+                    <g className='vwap' />
                     <g className='volumeProfile' />
                     <g className='freeLines' />
                     <g className='linesH' />
@@ -1206,8 +1191,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
                     <g className='highVolumeNodes' />
                     <g className='channels' />
                     <g className='triangles' />
-                    <g className='currentPrice' />
                     <g className='keyLevels' />
+                    <g className='currentPrice' />
                 </svg>
             </div>
         </div>
