@@ -59,6 +59,7 @@ function SinglePlannedTickerDisplay({ id, watchList })
         }
     }
 
+    const [showChangeFromYesterday, setShowChangeFromYesterday] = useState(false)
     return (
         <>
             {showDiagram ?
@@ -66,7 +67,7 @@ function SinglePlannedTickerDisplay({ id, watchList })
                     <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
                 </div> :
 
-                <div className={`SingleWatchListTicker ${plan.listChange ? 'blinkForListUpdate' : ''}`}>
+                <div className={`SingleWatchListTicker ${plan.listChange ? 'blinkForListUpdate' : ''} ${plan.changeFromYesterdayClose===0?'trackingNeutral':plan.changeFromYesterdayClose > 0 ? 'trackingPositive' : 'trackingNegative'}`}>
                     <p onClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
 
                     {showImportantRemove ? <>
@@ -76,8 +77,12 @@ function SinglePlannedTickerDisplay({ id, watchList })
                     </> :
                         <>
                             <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
-                            <p onClick={() => setShowImportantRemove(true)}>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
-                            <p onClick={() => setShowDiagram(true)}>{plan.currentDayPercentGain.toFixed()}%</p>
+                            <p onClick={() => setShowDiagram(true)}>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
+                            <div onClick={() => setShowImportantRemove(true)} onMouseEnter={() => setShowChangeFromYesterday(true)} onMouseLeave={() => setShowChangeFromYesterday(false)}>
+                                {showChangeFromYesterday ? <p>{plan.changeFromYesterdayClose.toFixed(2)}</p>
+                                    : <p>{plan.currentDayPercentGain.toFixed(2)}%</p>
+                                }
+                            </div>
                         </>}
                 </div>
             }

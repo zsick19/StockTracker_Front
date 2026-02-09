@@ -13,3 +13,36 @@
   padding: 1rem;
   border-radius: 10px;
 }
+
+.contextMenuTools {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.LSH-ContextMenuTimeFrame {
+  border: none;
+  display: flex;
+  gap: 0.5rem;
+  font-size: var(--fs-100);
+}
+
+.LSH-ContextMenuTimeFrame input {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.LSH-ContextMenuTimeFrame label {
+  display: inline-block;
+  padding: 0.33rem;
+  border: 1px solid white;
+  border-radius: 5px;
+}
+
+.LSH-ContextMenuTimeFrame label:hover {
+  background-color: #444444;
+}

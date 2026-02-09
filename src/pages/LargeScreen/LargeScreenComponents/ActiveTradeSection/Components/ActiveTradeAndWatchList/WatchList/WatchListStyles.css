@@ -71,3 +71,15 @@
     background-color: rgba(255, 0, 0, 0.05);
   }
 }
+
+.trackingPositive {
+  color: rgb(25, 212, 25);
+}
+
+.trackingNegative {
+  color: red;
+}
+
+.trackingNeutral {
+  color: rgb(221, 221, 221);
+}

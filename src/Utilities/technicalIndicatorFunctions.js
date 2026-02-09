@@ -7,9 +7,10 @@ export const calculateEMADataPoints = (candleData, period) =>
     var k = 2 / (period + 1);
     emaArray = [candleData[0].ClosePrice];
     for (var i = 1; i < candleData.length; i++) { emaArray.push(candleData[i].ClosePrice * k + emaArray[i - 1] * (1 - k)); }
-    for (var i = 0; i < emaArray.length - 1; i++)
+    let emaLength = emaArray.length
+    for (var i = 0; i < emaLength - 1; i++)
     {
-        if (i < 50) results.push({ date: candleData[i].Timestamp, value: emaArray[i] })
+        if (i > emaLength - 50) results.push({ date: candleData[i].Timestamp, value: emaArray[i] })
         else if (i % 5 === 0) results.push({ date: candleData[i].Timestamp, value: emaArray[i] });
     }
 

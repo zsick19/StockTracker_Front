@@ -3,7 +3,7 @@ import './NewsCenterContainer.css'
 
 function NewsCenterContainer()
 {
-    const [newsDisplay, setNewsDisplay] = useState('details')
+    const [newsDisplay, setNewsDisplay] = useState('macro')
 
     function provideCurrentNewsDisplay()
     {
@@ -32,10 +32,10 @@ function NewsCenterContainer()
         <div id='NewsDisplaySection' className='newsMessageFlexDisplay'>
             <fieldset onChange={(e) => setNewsDisplay(e.target.id)} id='NewsCenterDisplayNav' className='fieldSetWithTabs'>
 
-                <input type="radio" name="newsDisplay" id="details" defaultChecked className='hidden-radio' />
+                <input type="radio" name="newsDisplay" id="details" className='hidden-radio' />
                 <label htmlFor="details">Detail Numbers</label>
 
-                <input type="radio" name="newsDisplay" id="macro" className='hidden-radio' />
+                <input type="radio" name="newsDisplay" id="macro" defaultChecked className='hidden-radio' />
                 <label htmlFor="macro">Macro</label>
 
                 <input type="radio" name="newsDisplay" id="trade" className='hidden-radio' />

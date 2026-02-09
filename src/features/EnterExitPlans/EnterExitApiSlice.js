@@ -39,7 +39,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         const target = new Date()
         target.setHours(9, 30, 0, 0)
 
-
+        //console.log(responseData.mostRecentPrice)
 
         responseData.plans.forEach((enterExit) =>
         {
@@ -47,8 +47,11 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
           enterExit.id = enterExit.tickerSymbol
           enterExit.mostRecentPrice = stockTradeData.LatestTrade.Price
-          enterExit.dailyOpenPrice = stockTradeData.DailyBar.OpenPrice
-          enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.dailyOpenPrice) / enterExit.dailyOpenPrice) * 100)
+          enterExit.changeFromYesterdayClose = enterExit.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
+          enterExit.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
+          enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 :
+            ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
+
           enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
           enterExit.trackingDays = differenceInDays(today, enterExit.dateAdded)
 
@@ -106,7 +109,8 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             {
               entityToUpdate.mostRecentPrice = data.tradePrice
               entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.tradePrice) / entityToUpdate.plan.enterPrice) * 100
-
+              entityToUpdate.changeFromYesterdayClose = entityToUpdate.mostRecentPrice - entityToUpdate.yesterdayClose
+              entityToUpdate.currentDayPercentGain = (entityToUpdate.changeFromYesterdayClose / entityToUpdate.yesterdayClose) * 100
               function getInsertionIndexLinear(arr, num)
               {
                 for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
@@ -229,7 +233,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         let historyIdForRemoval
         userStockHistory.forEach((t) => { if (args.tickerSymbol === t.symbol) historyIdForRemoval = t._id })
 
-    
+
 
         let result = await baseQuery({
           url: `/enterExitPlan/remove/${args.planId}/history/${historyIdForRemoval}`,

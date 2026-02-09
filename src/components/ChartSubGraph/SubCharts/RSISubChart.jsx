@@ -4,8 +4,6 @@ import { rsiCalc } from '../../../Utilities/technicalIndicatorFunctions'
 import { addDays, isSaturday, isSunday, sub, subDays, subMonths } from 'date-fns'
 import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select, selectAll, timeDay, timeMonths, zoomIdentity } from 'd3'
 import { discontinuityRange, discontinuitySkipUtcWeekends, discontinuitySkipWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
-import { defaultChartingStyles } from '../../../Utilities/GraphStyles'
-import { pixelBuffer } from '../GraphChartConstants'
 import { makeSelectZoomStateByUUID } from '../../../features/Charting/GraphHoverZoomElement'
 import { useSelector } from 'react-redux'
 import { generateTradingHours } from '../../../Utilities/TimeFrames'
@@ -75,12 +73,12 @@ function RSISubChart({ candleData, uuid, timeFrame })
 
     }, [candleData, chartZoomState?.x, chartDimensions])
 
-    const yPixelBufferBottom = 50
+    const yPixelBufferBottom = 20
     const createYScale = useCallback(({ rsiToPixel = undefined, pixelToRSI = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
 
-        const yPixelBufferTop = 0
+        const yPixelBufferTop = 10
 
         const yScale = scaleLinear()
             .domain([15, 90])
@@ -135,9 +133,9 @@ function RSISubChart({ candleData, uuid, timeFrame })
 
     return (
         <div className='SubChartContainer'>
-            <p>RSI</p>
             <div className='subChartGraph'>
-                <div ref={YSVGWrapper}>
+                <div ref={YSVGWrapper} className='subChartWithVerticalTitle'>
+                    <p>RSI</p>
                     <svg ref={YSVG} className='subChartYAxis'>
                         <g className='y-axis' />
                     </svg>

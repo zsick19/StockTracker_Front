@@ -840,7 +840,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
             stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text('2SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", twoSigmaLower)
 
             stockCandleSVG.select('.keyLevels').append('line').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'gray').attr('stroke-width', '1px').attr('y1', twoSigmaUpper).attr('y2', twoSigmaUpper)
-            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text('1SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", twoSigmaUpper)
+            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text('2SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", twoSigmaUpper)
         }
 
         if (KeyLevels.oneDayToExpire && timeFrame.intraDay)
@@ -886,7 +886,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
         if (currentTool === 'Enter Exit')
         {
-            completeCapture.dateP1 = createDateScale({ pixelToDate: pixelCapture.X1 })
+            completeCapture.dateP1 = new Date(createDateScale({ pixelToDate: pixelCapture.X1 })).toISOString()
 
             completeCapture.enterPrice = createPriceScale({ pixelToPrice: pixelCapture.Y1 })
             completeCapture.enterBufferPrice = createPriceScale({ pixelToPrice: pixelCapture.Y2 })
