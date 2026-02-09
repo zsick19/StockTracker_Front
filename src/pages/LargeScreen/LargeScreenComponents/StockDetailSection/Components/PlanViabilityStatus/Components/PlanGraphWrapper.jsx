@@ -6,6 +6,7 @@ import { Virtuoso } from 'react-virtuoso';
 function PlanGraphWrapper({ ids, watchList, selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate,
     handleUpdateToggle })
 {
+
     let totalIdsPreWatch = ids.length
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isSuccess, isFetching, isError } = useGetGroupedBy12StockDataInfiniteQuery({ ids, total: totalIdsPreWatch }, { refetchOnMountOrArgChange: true });
     const candleStockData = data?.pages.flat() || [];
@@ -24,12 +25,18 @@ function PlanGraphWrapper({ ids, watchList, selectedPlansForRemoval, handleRemov
 
     return (
         <div onScroll={handleScroll} id='PlanViabilityChartsWrapper' className='hide-scrollbar'>
-            {totalIdsPreWatch > 0 ? <>
-                {candleStockData.map(item =>
-                (<SinglePlanViabilityChartWrapper id={item.ticker} watchList={watchList} candleData={item.candleData} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
-                    handleUpdateToggle={handleUpdateToggle} />))}
-                {isFetchingNextPage && <div>Loading more...</div>}
-            </>
+            {totalIdsPreWatch > 0 ?
+                candleStockData.length > 0 ?
+                    <>
+                        {candleStockData.map(item =>
+                        (<SinglePlanViabilityChartWrapper id={item.ticker} watchList={watchList} candleData={item.candleData} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
+                            handleUpdateToggle={handleUpdateToggle} />))}
+                        {isFetchingNextPage && <div>Loading more...</div>}
+                    </> : <>
+                        {ids.map((tickerId) => (<SinglePlanViabilityChartWrapper id={tickerId} watchList={watchList} candleData={undefined}
+                            selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
+                            handleUpdateToggle={handleUpdateToggle} />))}
+                    </>
                 : <div>Currently No Plans</div>}
         </div>
     );

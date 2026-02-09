@@ -641,7 +641,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
         //enter exit plan creation and update
         // stockCandleSVG.select('.enterExit').select('.twoPercentLine').remove()
-
         stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
         function createEnterExit(enter)
         {
@@ -1111,7 +1110,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
     {
         dragPixelCopy.lineColor = select(this).attr('stroke')
         let yPrice
-        console.log(d.percents)
         switch (select(this).attr('class'))
         {
             case 'enterLine edit': dragPixelCopy.textClass = '.enterLineText'; yPrice = d.enterPrice; break;
@@ -1133,12 +1131,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
     {
         let update = { ...d }
         let updatedPriceForY1 = yScaleRef.current({ pixelToPrice: dragPixelCopy.Y1 })
-
-
-
-
-
-
 
         switch (dragPixelCopy.textClass)
         {
@@ -1165,7 +1157,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
         {
             dispatch(updateEnterExitToCharting({ updatedEnterExit: update, ticker }))
         }
-
     }
 
     return (

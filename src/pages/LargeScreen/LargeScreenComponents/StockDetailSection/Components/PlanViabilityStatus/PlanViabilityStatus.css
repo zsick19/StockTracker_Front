@@ -54,6 +54,7 @@
   border-radius: 10px;
 }
 
+#PlanViabilityChartsWrapper .setForRemoval,
 #PlanViabilityChartsWrapper .setForRemoval div {
   background-color: rgb(66, 8, 8);
 }

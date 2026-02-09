@@ -48,7 +48,12 @@ function WeeklyInputForm({ selectedData, setSelectedData })
 
             <fieldset>
                 <div>
-                    {selectedData?.weeklyEM.previousWeeklyEM.map((week) => <p>{week.upper}</p>)}
+                    {selectedData?.weeklyEM.previousWeeklyEM.map((week) => <div className='flex'>
+                        <p>Upper: {week.upper}</p>
+                        <p>Lower: {week.lower}</p>
+                        <p>{week.startDate.slice(0, 10)}</p>
+                    </div>
+                    )}
                 </div>
 
                 <label htmlFor="startOfWeek">Upper</label>

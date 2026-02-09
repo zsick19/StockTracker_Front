@@ -9,7 +9,7 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
     getChartingData: builder.query({
       query: (args) =>
       {
-        console.log(args.chartId, args.tickerSymbol)
+
         if (possibleDefaultMacros.includes(args.tickerSymbol)) return { url: `/chartingData/macro/${args.chartId}` }
         else if (args?.chartId) return { url: `/chartingData/${args.chartId}` };
       },

@@ -78,6 +78,7 @@
   align-items: center;
   border-radius: 5px;
   justify-items: center;
+  text-align: center;
 }
 .highLightForSelectedPlan {
   border: 2px solid red;
