@@ -9,15 +9,23 @@
 #ChartContextMenuContainer {
   position: absolute;
   z-index: 100;
-  background-color: rgb(56, 31, 31);
+  background-color: rgb(5, 13, 56);
   padding: 1rem;
   border-radius: 10px;
 }
 
 .contextMenuTools {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
+}
+.contextMenuTools svg:hover {
+  color: green;
+}
+
+.contextMenuTools svg {
+  color: white;
 }
 
 .LSH-ContextMenuTimeFrame {
@@ -38,11 +46,32 @@
 
 .LSH-ContextMenuTimeFrame label {
   display: inline-block;
-  padding: 0.33rem;
+  padding-inline: 0.5rem;
+  padding-block: 3px;
   border: 1px solid white;
-  border-radius: 5px;
+  border-radius: 10px;
 }
 
 .LSH-ContextMenuTimeFrame label:hover {
   background-color: #444444;
+}
+
+.contextNavigation {
+  padding: 0.5rem;
+  border-radius: 10px;
+  background-color: rgb(17, 17, 116);
+  display: grid;
+  grid-template-columns: 25% 1fr 1fr 1fr 25%;
+  grid-template-rows: 2rem;
+}
+
+.centerNav {
+  height: 1.5rem;
+  align-self: center;
+}
+
+.outsideNav {
+  background-color: rgb(192, 192, 228);
+  border-radius: 10px;
+  border: none;
 }

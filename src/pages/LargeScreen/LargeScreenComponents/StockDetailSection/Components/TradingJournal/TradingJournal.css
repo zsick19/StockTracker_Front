@@ -83,3 +83,11 @@
 #LHS-TradeStats {
   display: grid;
 }
+
+.tradeWin {
+  background-color: rgb(45, 66, 45);
+}
+
+.tradeLose {
+  background-color: rgb(63, 43, 43);
+}

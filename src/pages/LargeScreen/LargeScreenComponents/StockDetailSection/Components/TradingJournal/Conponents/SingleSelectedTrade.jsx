@@ -13,7 +13,8 @@ function SingleSelectedTrade({ trade, selectedTrade, setSelectedTrade, setShowSe
         actualReward: (trade.averageSellPrice - trade.tradingPlanPrices[1]).toFixed(2)
     }
     return (
-        <div className={`${selectedTrade?.tickerSymbol === trade.tickerSymbol ? 'selectedTradeHighLite' : ''} singleTradeResult`} onClick={() => { setSelectedTrade(trade); setShowSelectedTradeOrStats(true) }}>
+        <div className={`${selectedTrade?.tickerSymbol === trade.tickerSymbol ? 'selectedTradeHighLite' : ''} ${trade.exitGain > 0 ? 'tradeWin' : 'tradeLose'} singleTradeResult`}
+            onClick={() => { setSelectedTrade(trade); setShowSelectedTradeOrStats(true) }}>
             <p>{trade.tickerSymbol}</p>
             <p>{trade.sector}</p>
             <div>
@@ -33,7 +34,7 @@ function SingleSelectedTrade({ trade, selectedTrade, setSelectedTrade, setShowSe
             <p>{trade?.exitMovePercent}%</p>
             <div>
                 <p>${trade?.exitGain}</p>
-                <p>{trade.availableShares} Shares</p>
+                <p>{trade.availableShares === 0 ? 'Closed' : `${trade.availableShares === 0} Shares`}</p>
             </div>
         </div>
     )
