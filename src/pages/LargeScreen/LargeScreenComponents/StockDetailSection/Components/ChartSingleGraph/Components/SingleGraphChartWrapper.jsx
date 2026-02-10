@@ -38,9 +38,9 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
 
     const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
 
-
     const [updateEnterExitPlan, { isLoading: isEnterExitLoading }] = useUpdateEnterExitPlanMutation()
     const [serverResponse, setServerResponse] = useState(undefined)
+    const [showDoubleCheckRemoval, setShowDoubleCheckRemoval] = useState(false)
 
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true, provideNews: true })
 
@@ -48,7 +48,11 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
     let actualGraph
     if (isSuccess && data.candleData.length > 0)
     {
-        actualGraph = <ChartWithChartingWrapper ticker={ticker} interactionController={interactionController} candleData={data} chartId={chartId} timeFrame={timeFrame} setTimeFrame={setTimeFrame} uuid={uuid} />
+        actualGraph = <ChartWithChartingWrapper ticker={ticker}
+            interactionController={interactionController} candleData={data}
+            chartId={chartId} timeFrame={timeFrame} setTimeFrame={setTimeFrame}
+            uuid={uuid} setChartInfoDisplay={setChartInfoDisplay} />
+
     } else if (isSuccess) { actualGraph = <div>No Data To Display</div> }
     else if (isLoading) { actualGraph = <GraphLoadingSpinner /> }
     else if (isError)
@@ -113,7 +117,7 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
             const results = await removeChartableStock({ chartId }).unwrap()
             if (currentUnChartedTicker.next) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.next.ticker, chartId: currentUnChartedTicker.next.chartId })) }
             else if (currentUnChartedTicker.previous) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.previous.ticker, chartId: currentUnChartedTicker.previous.chartId })) }
-            else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: 'SPY', chartId: undefined })) }
+            else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: 'SPY', chartId: userSpyId })) }
         } catch (error)
         {
             console.log(error)
@@ -145,7 +149,7 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
         }
     }
 
-    const [showDoubleCheckRemoval, setShowDoubleCheckRemoval] = useState()
+
     return (
         <div id='LHS-SingleGraphForChartingWrapper'>
 
@@ -167,7 +171,11 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
                 <br />
 
                 <p className='veryTinyText'>Edit</p>
-                {ChartingToolEdits.map((editTool, index) => { return <button key={editTool.editTool} className={editMode === editTool.tool ? 'notCurrentTool' : 'currentEditMode'} title={editTool.editTool} onClick={() => dispatch(setChartEditMode(editTool.editTool))}>{editTool.icon}</button> })}
+                {ChartingToolEdits.map((editTool, index) =>
+                {
+                    return <button key={editTool.editTool}
+                        className={editMode === editTool.tool ? 'notCurrentTool' : 'currentEditMode'} title={editTool.editTool} onClick={() => dispatch(setChartEditMode(editTool.editTool))}>{editTool.icon}</button>
+                })}
                 <br />
 
 

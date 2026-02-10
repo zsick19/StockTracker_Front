@@ -115,7 +115,7 @@ function MACDSubChart({ candleData, uuid, timeFrame })
         svg.select('.x-axis').style('transform', `translateY(${chartDimensions.height - yPixelBufferBottom}px)`).call(xAxis)
 
 
-        svg.select('.macdLine').selectAll('path').data([rsiData]).join((enter) => createMACDLine(enter), (update) => updateMACDLine(update))
+        svg.select('.macdLine').selectAll('path').data([MACDData]).join((enter) => createMACDLine(enter), (update) => updateMACDLine(update))
 
         function createMACDLine(enter)
         {

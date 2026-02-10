@@ -1,15 +1,31 @@
-import { Binoculars, ChevronLeft, ChevronRight, Key, Plane, Save, Trash, Trash2, Undo2, X } from 'lucide-react'
+import { Binoculars, Check, ChevronLeft, ChevronRight, Info, Key, KeyRound, Newspaper, Plane, Save, Siren, Trash, Trash2, Undo2, X } from 'lucide-react'
 
 import './ContextMenuStyles.css'
 import { ChartingToolEdits, ChartingTools } from '../../../Utilities/ChartingTools'
 import { setTool } from '../../../features/Charting/ChartingTool'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { defaultTimeFrames } from '../../../Utilities/TimeFrames'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { setChartEditMode } from '../../../features/Charting/EditChartSelection'
+import { useUpdateEnterExitPlanMutation } from '../../../features/EnterExitPlans/EnterExitApiSlice'
+import { useRemoveChartableStockMutation, useUpdateChartingDataMutation } from '../../../features/Charting/ChartingSliceApi'
+import { selectSPYIdFromUser } from '../../../features/Initializations/InitializationSliceApi'
+import { setSingleChartTickerTimeFrameAndChartingId } from '../../../features/SelectedStocks/SelectedStockSlice'
+import { selectConfirmedUnChartedTrio, setConfirmedUnChartedNavIndex } from '../../../features/SelectedStocks/PreviousNextStockSlice'
+import { makeSelectChartAlteredByTicker } from '../../../features/Charting/chartingElements'
+import { makeSelectEnterExitPlanAltered } from '../../../features/EnterExitPlans/EnterExitGraphElement'
 
-function ChartContextMenuContainer({ showContextMenu, setShowContextMenu, timeFrame, setTimeFrame })
+function ChartContextMenuContainer({ ticker, chartId, showContextMenu, setShowContextMenu, timeFrame, setTimeFrame, setChartInfoDisplay })
 {
   const dispatch = useDispatch()
+  const [showConfirmRemove, setShowConfirmRemove] = useState(false)
+  const [serverResponse, setServerResponse] = useState(undefined)
+  const userSpyId = useSelector(selectSPYIdFromUser)
+
+  const [updateEnterExitPlan, { isLoading: isEnterExitLoading }] = useUpdateEnterExitPlanMutation()
+  const [updateChartingData] = useUpdateChartingDataMutation()
+  const [removeChartableStock] = useRemoveChartableStockMutation()
+  const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
 
 
   function handleTimeFrameChange(e)
@@ -33,32 +49,155 @@ function ChartContextMenuContainer({ showContextMenu, setShowContextMenu, timeFr
     setTimeFrame(timeFrameSelection)
   }
 
+  function closeContextMenu() { setShowContextMenu({ display: false, style: undefined }) }
 
-  const [showConfirmRemove, setShowConfirmRemove] = useState(false)
+  async function attemptSavingCharting()
+  {
+    try
+    {
+      await updateChartingData({ ticker, chartId })
+      setServerResponse("positive")
+      setTimeout(() =>
+      {
+        setServerResponse(undefined)
+      }, 2000);
+    } catch (error)
+    {
+      console.log(error)
+      setServerResponse("error")
+      setTimeout(() =>
+      {
+        setServerResponse(undefined)
+      }, 2000);
+
+    }
+  }
+
+  async function attemptInitiatingPlanTracking()
+  {
+    try
+    {
+      await updateEnterExitPlan({ ticker, chartId }).unwrap()
+      setServerResponse("positive")
+      setTimeout(() =>
+      {
+        setServerResponse(undefined)
+      }, 2000);
+    } catch (error)
+    {
+      console.log(error)
+      setServerResponse("error")
+      setTimeout(() =>
+      {
+        setServerResponse(undefined)
+      }, 2000);
+    }
+
+  }
+
+  async function attemptRemoveOfConfirmedStock()
+  {
+    if (!chartId || chartId === userSpyId) return
+    try
+    {
+      const results = await removeChartableStock({ chartId }).unwrap()
+
+
+      if (currentUnChartedTicker.next) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.next.ticker, chartId: currentUnChartedTicker.next.chartId })) }
+      else if (currentUnChartedTicker.previous) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.previous.ticker, chartId: currentUnChartedTicker.previous.chartId })) }
+      else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: 'SPY', chartId: userSpyId })) }
+    } catch (error)
+    {
+      console.log(error)
+    }
+  }
+
+  const selectedChartingMemo = useMemo(makeSelectChartAlteredByTicker, [])
+  const chartingAltered = useSelector(state => selectedChartingMemo(state, ticker))
+
+  const selectedEnterExitPlanAlteredMemo = useMemo(makeSelectEnterExitPlanAltered, [])
+  const enterExitAltered = useSelector(state => selectedEnterExitPlanAlteredMemo(state, ticker))
+
+
+
+
+
+  function handleNavigatingToNextUnChartedStock(nextDirection)
+  {
+    if (nextDirection)
+    {
+      if (currentUnChartedTicker.current.ticker === ticker)
+      {
+        if (currentUnChartedTicker.next)
+        {
+          dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.next.ticker, chartId: currentUnChartedTicker.next.chartId }))
+          dispatch(setConfirmedUnChartedNavIndex({ next: nextDirection }))
+        }
+      } else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.current.ticker, chartId: currentUnChartedTicker.current.chartId })) }
+    } else
+    {
+      if (currentUnChartedTicker.current.ticker === ticker)
+      {
+        if (currentUnChartedTicker.previous)
+        {
+          dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.previous.ticker, chartId: currentUnChartedTicker.previous.chartId }))
+          dispatch(setConfirmedUnChartedNavIndex({ next: nextDirection }))
+        }
+      } else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.current.ticker, chartId: currentUnChartedTicker.current.chartId })) }
+    }
+  }
+
+
+
+
+
 
   return (
     <>
-      <div id='ChartContextMenuOverlay' onClick={(e) => setShowContextMenu({ display: false, style: undefined })}></div>
-      <div id='ChartContextMenuContainer' style={showContextMenu.style} onClick={(e) => e.stopPropagation()}>
+      <div id='ChartContextMenuOverlay' onContextMenu={(e) => e.preventDefault()} onClick={(e) => closeContextMenu()}></div>
+      <div id='ChartContextMenuContainer' onContextMenu={(e) => e.preventDefault()} style={showContextMenu.style} onClick={(e) => e.stopPropagation()}>
 
         <div className='contextNavigation'>
-          <button className='outsideNav'><ChevronLeft /></button>
+          <button className='outsideNav' onClick={() => { handleNavigatingToNextUnChartedStock(false); closeContextMenu() }}><ChevronLeft /></button>
+
           {showConfirmRemove ?
             <>
               <div></div>
               <div className='flex'>
-                <button className='iconButton centerNav' onClick={() => setShowConfirmRemove(false)}><Trash2 color='red' /></button>
+                <button className='iconButton centerNav' onClick={() => { attemptRemoveOfConfirmedStock(); setShowConfirmRemove(false) }}><Trash2 color='red' /></button>
                 <button className='iconButton centerNav' onClick={() => setShowConfirmRemove(false)}><Undo2 color='white' /></button>
               </div>
               <div></div>
             </>
             : <>
-              <button className='iconButton centerNav'><Save color='white' /></button>
-              <button className='iconButton centerNav' onClick={() => setShowConfirmRemove(true)}><Trash2 color='white' /></button>
-              <button className='iconButton centerNav'><Binoculars color='white' /></button>
+              {serverResponse === 'error' ? <>
+                <div></div>
+                <button className='iconButton centerNav' disabled><X color='red' /></button>
+                <div></div>
+              </> :
+                serverResponse === 'positive' ?
+                  <>
+                    <div></div>
+                    <button className='iconButton centerNav' disabled><Check color='green' /></button>
+                    <div></div>
+                  </>
+                  :
+                  <>
+                    <button className='iconButton centerNav' onClick={() => { attemptSavingCharting() }}><Save color='white' /></button>
+
+                    {(chartId && (chartId !== userSpyId)) ? <button className='iconButton centerNav' onClick={() => setShowConfirmRemove(true)}><Trash2 color='white' /></button> : <div></div>}
+
+                    {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) ?
+                      <button title='Initiate Tracking' disabled={isEnterExitLoading} className='iconButton centerNav' onClick={() => { attemptInitiatingPlanTracking(); }}>
+                        <Binoculars className='blinkingRed' size={20} color={isEnterExitLoading ? 'gray' : 'red'} />
+                      </button> :
+                      <button className='iconButton centerNav' disabled><Binoculars color='gray' /></button>}
+                  </>
+              }
             </>
           }
-          <button className='outsideNav'><ChevronRight /></button>
+
+          <button className='outsideNav' onClick={() => { handleNavigatingToNextUnChartedStock(true); closeContextMenu() }}><ChevronRight /></button>
         </div>
 
         <br />
@@ -66,17 +205,26 @@ function ChartContextMenuContainer({ showContextMenu, setShowContextMenu, timeFr
 
           <div className='flex'>
             <div className='contextMenuTools'>
-              {ChartingTools.map((tool, index) => { return <button className='buttonIcon' title={tool.tool} onClick={() => { dispatch(setTool(ChartingTools[index].tool)); setShowContextMenu({ display: false, style: undefined }) }} >{ChartingTools[index].icon}</button> })}
+              {ChartingTools.map((tool, index) =>
+              {
+                return <button className='buttonIcon' title={tool.tool}
+                  onClick={() => { dispatch(setTool(ChartingTools[index].tool)); closeContextMenu() }} >
+                  {ChartingTools[index].icon}
+                </button>
+              })}
             </div>
           </div>
           <br />
           <div className='flex'>
             <p>Edit</p>
-            <div>{ChartingToolEdits.map((edit, index) => <button className='buttonIcon'>{edit.icon}</button>)}</div>
+            <div>{ChartingToolEdits.map((edit, index) => <button className='buttonIcon' onClick={() => { dispatch(setChartEditMode(edit.editTool)); closeContextMenu() }}>{edit.icon}</button>)}</div>
             <div className='flex'>
               <p>Display</p>
-              <button className='iconButton'><Plane /></button>
-              <button className='iconButton'><Key /></button>
+              <button className='iconButton' onClick={() => { setChartInfoDisplay(1); closeContextMenu() }}><Plane /></button>
+              <button className='iconButton' onClick={() => { setChartInfoDisplay(2); closeContextMenu() }}><KeyRound /></button>
+              <button className='iconButton' onClick={() => { setChartInfoDisplay(3); closeContextMenu() }}><Siren /></button>
+              <button className='iconButton' onClick={() => { setChartInfoDisplay(4); closeContextMenu() }}><Newspaper /></button>
+              <button className='iconButton' onClick={() => { setChartInfoDisplay(0); closeContextMenu() }}><Info /></button>
             </div>
           </div>
         </div>

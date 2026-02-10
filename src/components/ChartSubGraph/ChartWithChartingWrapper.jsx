@@ -8,12 +8,12 @@ import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGra
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
 import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
 
-function ChartWithChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
+function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, interactionController, chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
     const dispatch = useDispatch()
     const tickerForSearch = ticker?.ticker || ticker
     const chartIdForSearch = ticker?._id || chartId
-    
+
 
     const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ tickerSymbol: ticker?.ticker || ticker, chartId: ticker?._id || chartId })
 
@@ -57,7 +57,7 @@ function ChartWithChartingWrapper({ ticker, candleData, interactionController, c
                 candlesToKeepSinceLastQuery={candlesToKeepSinceLastQuery}
                 timeFrame={timeFrame} setTimeFrame={setTimeFrame}
                 isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive}
-                isZoomAble={interactionController?.isZoomAble} showEMAs={showEMAs} />
+                isZoomAble={interactionController?.isZoomAble} showEMAs={showEMAs} setChartInfoDisplay={setChartInfoDisplay} />
         </div>
     )
 }

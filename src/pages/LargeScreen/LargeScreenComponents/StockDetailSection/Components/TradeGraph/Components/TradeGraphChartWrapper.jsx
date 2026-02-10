@@ -44,9 +44,9 @@ function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, 
                 switch (subChart)
                 {
                     case 'rsi': return <RSISubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
-                    case 'vortex': return <VortexSubChart candleData={data.candleData} uuid={uuid} />
-                    case 'stochastic': return <StochasticSubChart candleData={data.candleData} uuid={uuid} />
-                    case 'MACD': return <MACDSubChart candleData={data.candleData} uuid={uuid} />
+                    case 'vortex': return <VortexSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
+                    case 'stochastic': return <StochasticSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
+                    case 'MACD': return <MACDSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
                 }
             })
         }

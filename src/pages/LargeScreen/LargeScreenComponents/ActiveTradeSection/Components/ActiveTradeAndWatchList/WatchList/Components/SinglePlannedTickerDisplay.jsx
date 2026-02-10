@@ -66,12 +66,12 @@ function SinglePlannedTickerDisplay({ id, watchList })
         <>
             {showDiagram ?
                 <div className='SingleTickerDiagram' onClick={() => setShowPlanNumbers(prev => !prev)} onMouseLeave={() => setShowDiagram(false)}>
-                    {showPlanNumbers ? <div className='flex'>
-                        <p>${plan.plan.stopLossPrice}</p>
-                        <p>--${plan.plan.enterPrice}</p>
-                        <p>--${plan.plan.enterBufferPrice}</p>
+                    {showPlanNumbers ? <>
+                        <p>SL: ${plan.plan.stopLossPrice}</p>
+                        <p>E: ${plan.plan.enterPrice}</p>
+                        <p>EB: ${plan.plan.enterBufferPrice}</p>
                         <p>Cur: ${plan.mostRecentPrice.toFixed(2)}</p>
-                    </div> :
+                    </> :
                         <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
                     }
                 </div> :

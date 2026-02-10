@@ -16,8 +16,6 @@ import UnChartedProgressDisplay from './Components/UnChartedProgressDisplay'
 import NewsPanel from './Components/ChartControlPanels/NewsPanel'
 import * as short from 'short-uuid'
 
-
-
 function ChartSingleGraph()
 {
     const dispatch = useDispatch()
@@ -27,10 +25,10 @@ function ChartSingleGraph()
     const [chartInfoDisplay, setChartInfoDisplay] = useState(0)
     const [showUnChartedList, setShowUnchartedList] = useState(false)
 
+    const [timeFrame, setTimeFrame] = useState(selectedTicker.timeFrame)
 
     const selectedTicker = useSelector(selectSingleChartStock)
     const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
-    const [timeFrame, setTimeFrame] = useState(selectedTicker.timeFrame)
 
 
 
@@ -58,7 +56,6 @@ function ChartSingleGraph()
             } else { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: currentUnChartedTicker.current.ticker, chartId: currentUnChartedTicker.current.chartId })) }
         }
     }
-
     function provideChartInfoDisplay()
     {
         switch (chartInfoDisplay)
@@ -79,18 +76,12 @@ function ChartSingleGraph()
         <div id='LHS-SingleGraphForCharting'>
             <ChartMenuBar ticker={selectedTicker.ticker} setTimeFrame={setTimeFrame} timeFrame={timeFrame} uuid={uuid} subCharts={subCharts} setSubCharts={setSubCharts} />
 
-
-
             {selectedTicker ?
                 <SingleGraphChartWrapper subCharts={subCharts} ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setTimeFrame={setTimeFrame} setChartInfoDisplay={setChartInfoDisplay} uuid={uuid} /> :
                 <div>No Chart Selected</div>}
 
             <div id='LHS-SingleChartControls'>
-                {showUnChartedList ?
-                    <UnChartedProgressDisplay setShowUnchartedList={setShowUnchartedList} /> :
-                    provideChartInfoDisplay()
-                }
-
+                {showUnChartedList ? <UnChartedProgressDisplay setShowUnchartedList={setShowUnchartedList} /> : provideChartInfoDisplay()}
                 <ContinueChartingNav ticker={selectedTicker.ticker} currentUnChartedTicker={currentUnChartedTicker} setShowUnchartedList={setShowUnchartedList} handleNavigatingToNextUnChartedStock={handleNavigatingToNextUnChartedStock} />
             </div>
         </div>

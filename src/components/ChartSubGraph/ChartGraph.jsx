@@ -22,7 +22,7 @@ import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../f
 import { calculateEMADataPoints } from '../../Utilities/technicalIndicatorFunctions'
 import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudiesVisualElement'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay, timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
     const dispatch = useDispatch()
 
@@ -1146,7 +1146,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, timeFrame, s
 
     return (
         <div className='SVGGraphWrapper'>
-            {showContextMenu.display && <ChartContextMenuContainer showContextMenu={showContextMenu} setShowContextMenu={setShowContextMenu} timeFrame={timeFrame} setTimeFrame={setTimeFrame} />}
+            {showContextMenu.display && <ChartContextMenuContainer showContextMenu={showContextMenu} ticker={ticker} chartId={chartId} setShowContextMenu={setShowContextMenu} setChartInfoDisplay={setChartInfoDisplay} timeFrame={timeFrame} setTimeFrame={setTimeFrame} />}
 
             <div ref={priceSVGWrapper} className='priceSVGWrapper'>
                 <svg ref={priceSVG}>

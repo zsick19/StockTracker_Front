@@ -31,8 +31,8 @@ function EnterExitTradeGraph()
         return (() => { if (uuid) dispatch(clearGraphControl(uuid)) })
     }, [])
     const [showEMAs, setShowEMAs] = useState(false)
-
     const [subCharts, setSubCharts] = useState([])
+    
     return (
         <div id='LHS-TradeRecord'>
             <ChartMenuBar ticker={selectedStock?.tickerSymbol} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} timeFrame={timeFrame} uuid={uuid} setShowEMAs={setShowEMAs} />
