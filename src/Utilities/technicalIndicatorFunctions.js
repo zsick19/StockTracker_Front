@@ -16,87 +16,6 @@ export const calculateEMADataPoints = (candleData, period) =>
 
     return results
 }
-export const calculateVolumeProfileDataPoints = (chartingData, binSize) =>
-{
-    // Initialize volume profile
-    const volumeProfile = {};
-    let comp = []
-
-    for (let i = 0; i < chartingData.length; i++)
-    {
-        distributeVolume(chartingData[i].HighPrice, chartingData[i].LowPrice, chartingData[i].Volume, binSize);
-    }
-
-    for (const [price, volume] of Object.entries(volumeProfile))
-    {
-        comp.push({ x: parseFloat(price), y: volume })
-    }
-
-    function distributeVolume(high, low, volume, binSize)   
-    {
-        const startBin = getBin(low, binSize);
-        const endBin = getBin(high, binSize);
-
-        let totalBins = (endBin - startBin) / binSize + 1;
-        const volumePerBin = volume / totalBins;
-
-        for (let bin = startBin; bin <= endBin; bin += binSize)
-        {
-            if (volumeProfile[bin])
-            {
-                volumeProfile[bin] += volumePerBin;
-            } else
-            {
-                volumeProfile[bin] = volumePerBin;
-            }
-        }
-        // Function to calculate the bin for a given price
-        function getBin(price, binSize) { return Math.floor(price / binSize) * binSize; }
-    }
-    // Extract bins (prices) and corresponding volumes from volumeProfile
-    return comp.sort((a, b) => a.x - b.x)
-}
-
-
-export const calculateRSI = (chartingData, averageBlock = 14) =>
-{
-    let upwardMovement = []
-    let downwardMovement = []
-    let averageUpwardMovement = []
-    let averageDownwardMovement = []
-    let rsi = []
-
-    for (let i = 0; i < chartingData.length - 1; i++)
-    {
-        if (chartingData[i + 1].ClosePrice > chartingData[i].ClosePrice)
-            upwardMovement.push(chartingData[i + 1].ClosePrice - chartingData[i].ClosePrice)
-        else upwardMovement.push(0)
-
-        if (chartingData[i + 1].ClosePrice < chartingData[i].ClosePrice)
-            downwardMovement.push(chartingData[i].ClosePrice - chartingData[i + 1].ClosePrice)
-        else downwardMovement.push(0)
-    }
-
-    for (let i = averageBlock - 1; i < upwardMovement.length - 1; i++)
-    {
-        let sumUp = 0
-        let sumDown = 0
-        for (let j = 0; j < i; j++)
-        {
-            sumUp = sumUp + upwardMovement[j]
-            sumDown = sumDown + downwardMovement[j]
-        }
-        averageUpwardMovement.push(sumUp / averageBlock)
-        averageDownwardMovement.push(sumDown / averageBlock)
-    }
-
-    for (let i = 0; i < averageUpwardMovement.length - 1; i++)
-    {
-        let relative = averageUpwardMovement[i] / averageDownwardMovement[i]
-        rsi.push({ x: chartingData[i + averageBlock].Timestamp, y: 100 - (100 / (relative + 1)) })
-    }
-    return rsi
-}
 
 export function rsiCalc(chartingData, period = 14)
 {
@@ -149,7 +68,144 @@ export function rsiCalc(chartingData, period = 14)
     return rsiValues.slice(period);
 }
 
+export function MACDCalc(chartingData, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9)
+{
+    const prices = chartingData.map(d => d.ClosePrice)
 
+    const calculateEMA = (mPrices, period) =>
+    {
+        const k = 2 / (period + 1);
+        let emaArray = [mPrices[0]]; // Start with the first price
+        for (let i = 1; i < mPrices.length; i++) { emaArray.push(mPrices[i] * k + emaArray[i - 1] * (1 - k)); }
+        return emaArray;
+    };
+
+    const fastEMA = calculateEMA(prices, fastPeriod)
+    const slowEMA = calculateEMA(prices, slowPeriod)
+
+    const macdLine = fastEMA.map((f, i) => f - slowEMA[i])
+
+    const signalLine = calculateEMA(macdLine, signalPeriod)
+
+
+    return chartingData.map((item, i) => ({
+        Timestamp: item.Timestamp,
+        macd: macdLine[i],
+        signal: signalLine[i],
+        histogram: macdLine[i] - signalLine[i]
+    }))
+}
+
+export function calculateYAxisRange(macdData, paddingPercent = 0.15)
+{
+    let globalMax = 0;
+    let globalMin = 0;
+
+    macdData.forEach(item =>
+    {
+        // Check all three components to find the true extremes
+        const localMax = Math.max(item.macd, item.signal, item.histogram);
+        const localMin = Math.min(item.macd, item.signal, item.histogram);
+
+        if (localMax > globalMax) globalMax = localMax;
+        if (localMin < globalMin) globalMin = localMin;
+    });
+
+    // Find the absolute furthest point from zero to keep chart symmetrical
+    const absoluteExtreme = Math.max(Math.abs(globalMax), Math.abs(globalMin));
+
+    // Apply padding
+    const paddedLimit = absoluteExtreme * (1 + paddingPercent);
+
+    return {
+        min: -paddedLimit, // Negative limit for the bottom
+        max: paddedLimit,  // Positive limit for the top
+        suggestedTicks: [-paddedLimit, 0, paddedLimit]
+    };
+}
+
+
+export function calculateVWAP(data, resetDaily = true)
+{
+    let cumulativeTypicalPriceVolume = 0;
+    let cumulativeVolume = 0;
+    let lastDate = null;
+
+    return data.map((candle) =>
+    {
+        const { HighPrice, LowPrice, ClosePrice, Volume, Timestamp } = candle;
+
+        // 1. Determine if we are in a new day (if resetDaily is enabled)
+        const currentDate = new Date(Timestamp).getUTCDate();
+        if (resetDaily && lastDate !== null && currentDate !== lastDate)
+        {
+            cumulativeTypicalPriceVolume = 0;
+            cumulativeVolume = 0;
+        }
+        lastDate = currentDate;
+
+        // 2. Calculate Typical Price
+        const typicalPrice = (HighPrice + LowPrice + ClosePrice) / 3;
+
+        // 3. Accumulate values
+        cumulativeTypicalPriceVolume += typicalPrice * Volume;
+        cumulativeVolume += Volume;
+
+        // 4. Calculate VWAP
+        const vwapValue = cumulativeTypicalPriceVolume / cumulativeVolume;
+
+        return {
+            Timestamp,
+            vwap: vwapValue,
+            typicalPrice: typicalPrice // Useful for debugging or other indicators
+        };
+    });
+}
+
+
+
+
+
+export const calculateVolumeProfileDataPoints = (chartingData, binSize) =>
+{
+    // Initialize volume profile
+    const volumeProfile = {};
+    let comp = []
+
+    for (let i = 0; i < chartingData.length; i++)
+    {
+        distributeVolume(chartingData[i].HighPrice, chartingData[i].LowPrice, chartingData[i].Volume, binSize);
+    }
+
+    for (const [price, volume] of Object.entries(volumeProfile))
+    {
+        comp.push({ x: parseFloat(price), y: volume })
+    }
+
+    function distributeVolume(high, low, volume, binSize)   
+    {
+        const startBin = getBin(low, binSize);
+        const endBin = getBin(high, binSize);
+
+        let totalBins = (endBin - startBin) / binSize + 1;
+        const volumePerBin = volume / totalBins;
+
+        for (let bin = startBin; bin <= endBin; bin += binSize)
+        {
+            if (volumeProfile[bin])
+            {
+                volumeProfile[bin] += volumePerBin;
+            } else
+            {
+                volumeProfile[bin] = volumePerBin;
+            }
+        }
+        // Function to calculate the bin for a given price
+        function getBin(price, binSize) { return Math.floor(price / binSize) * binSize; }
+    }
+    // Extract bins (prices) and corresponding volumes from volumeProfile
+    return comp.sort((a, b) => a.x - b.x)
+}
 
 
 export function calculateStochastic(chartingData, timeBlock = 14)

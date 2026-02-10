@@ -7,6 +7,7 @@ import { discontinuityRange, discontinuitySkipUtcWeekends, discontinuitySkipWeek
 import { makeSelectZoomStateByUUID } from '../../../features/Charting/GraphHoverZoomElement'
 import { useSelector } from 'react-redux'
 import { generateTradingHours } from '../../../Utilities/TimeFrames'
+import { makeSelectGraphCrossHairsByUUID } from '../../../features/Charting/GraphToSubGraphCrossHairElement'
 
 function RSISubChart({ candleData, uuid, timeFrame })
 {
@@ -24,6 +25,8 @@ function RSISubChart({ candleData, uuid, timeFrame })
     const selectedChartZoomStateMemo = useMemo(makeSelectZoomStateByUUID, [])
     const chartZoomState = useSelector(state => selectedChartZoomStateMemo(state, uuid))
 
+    const selectCurrentXCrossHair = useMemo(makeSelectGraphCrossHairsByUUID, [])
+    const currentCrossHairX = useSelector(state => selectCurrentXCrossHair(state, uuid))
 
     const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame) }, [timeFrame])
 
@@ -93,6 +96,7 @@ function RSISubChart({ candleData, uuid, timeFrame })
 
     const rsiLine = line().x((d, i) => createDateScale({ dateToPixel: candleData[i + periodBlock].Timestamp })).y(d => createYScale({ rsiToPixel: d.rsi })).curve(curveBasis)
 
+    //draw RSI and axis lines
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck()) return
@@ -131,6 +135,26 @@ function RSISubChart({ candleData, uuid, timeFrame })
 
     }, [candleData, chartZoomState?.x, chartDimensions])
 
+
+    //draw crosshair 
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+        const svg = select(XSVG.current)
+
+        if (currentCrossHairX.x)
+        {
+            svg.select('.crossHair').select('.yTrace').attr('x1', currentCrossHairX.x).attr('x2', currentCrossHairX.x)
+                .attr('y1', 0).attr('y2', chartDimensions.height).attr('stroke', 'black').attr('stroke-width', '1px')
+                .attr('visibility', 'visible')
+        } else
+        {
+            svg.select('.crossHair').select('.yTrace').attr('visibility', 'hidden')
+        }
+    }, [currentCrossHairX])
+
+
+
     return (
         <div className='SubChartContainer'>
             <div className='subChartGraph'>
@@ -145,7 +169,7 @@ function RSISubChart({ candleData, uuid, timeFrame })
                     <svg ref={XSVG} >
                         <g className='x-axis' />
                         <g className='crossHair'>
-                            <line className='cross' y1={0} y2={chartDimensions?.height || 0} stroke='black' strokeWidth={'0.5px'} />
+                            <line className='yTrace' />
                         </g>
                         <g className='rsiLine' />
                         <g className='overBoughtOverSold'>

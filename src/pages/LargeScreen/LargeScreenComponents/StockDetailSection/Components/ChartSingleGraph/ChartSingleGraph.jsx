@@ -21,15 +21,14 @@ function ChartSingleGraph()
     const dispatch = useDispatch()
 
     const uuid = useMemo(() => short.generate(), [])
-    const [subCharts, setSubCharts] = useState([])
-    const [chartInfoDisplay, setChartInfoDisplay] = useState(0)
-    const [showUnChartedList, setShowUnchartedList] = useState(false)
-
-    const [timeFrame, setTimeFrame] = useState(selectedTicker.timeFrame)
 
     const selectedTicker = useSelector(selectSingleChartStock)
     const currentUnChartedTicker = useSelector(selectConfirmedUnChartedTrio)
 
+    const [subCharts, setSubCharts] = useState([])
+    const [chartInfoDisplay, setChartInfoDisplay] = useState(0)
+    const [showUnChartedList, setShowUnchartedList] = useState(false)
+    const [timeFrame, setTimeFrame] = useState(selectedTicker.timeFrame)
 
 
     function handleNavigatingToNextUnChartedStock(nextDirection)

@@ -19,8 +19,9 @@ import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/En
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
-import { calculateEMADataPoints } from '../../Utilities/technicalIndicatorFunctions'
+import { calculateEMADataPoints, calculateVWAP } from '../../Utilities/technicalIndicatorFunctions'
 import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudiesVisualElement'
+import { setGraphToSubGraphCrossHair, setNoCurrentCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay, timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
@@ -83,13 +84,20 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const minPrice = useMemo(() => min(candleData, d => d.LowPrice), [candleData])
     const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [candleData])
 
+    const vwapData = useMemo(() =>
+    {
+        if (studyVisualController?.ema || showEMAs) return calculateVWAP(candleData)
+        else return undefined
+    }, [showEMAs, candleData])
+
+
 
 
     const ema9Values = useMemo(() => calculateEMADataPoints(candleData, 9), [candleData])
     const ema50Values = useMemo(() => calculateEMADataPoints(candleData, 50), [candleData])
     const ema200Values = useMemo(() => calculateEMADataPoints(candleData, 200), [candleData])
 
-    const VWAPLine = line().x(d => createDateScale({ dateToPixel: d.Timestamp })).y(d => createPriceScale({ priceToPixel: d.VWAP })).curve(curveBasis)
+    const VWAPLine = line().x(d => createDateScale({ dateToPixel: d.Timestamp })).y(d => createPriceScale({ priceToPixel: d.vwap })).curve(curveBasis)
     const emaLine = line().x(d => createDateScale({ dateToPixel: d.date })).y(d => createPriceScale({ priceToPixel: d.value })).curve(curveLinear)
 
 
@@ -293,29 +301,33 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (studyVisualController?.ema || showEMAs)
         {
 
-            stockCandleSVG.select('.vwap').selectAll('.vwapLine').remove()
-            stockCandleSVG.select('.vwap').append('path').attr('class', 'vwapLine').attr('d', VWAPLine(candleData)).attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1px')
+            if (vwapData)
+            {
+                stockCandleSVG.select('.vwap').select('.vwapLine').attr('d', VWAPLine(vwapData)).attr('stroke', 'orange').attr('fill', 'none').attr('stroke-width', '1.5px')
+            }
 
             const ema = stockCandleSVG.select('.emaLines')
             ema.selectAll('.ema9').data([ema9Values], d => d.Timestamp).join(enter =>
-                enter.append('path').attr('class', 'periodLines ema9').attr('stroke', 'green').attr('fill', 'none').attr('stroke-width', '1px').attr('d', d => emaLine(d)),
+                enter.append('path').attr('class', 'periodLines ema9').attr('stroke', 'blue').attr('fill', 'none').attr('stroke-width', '1.5px').attr('d', d => emaLine(d)),
                 update => update.attr('d', d => emaLine(d)))
 
             ema.selectAll('.ema50').data([ema50Values], d => d.Timestamp).join(enter =>
-                enter.append('path').attr('class', 'periodLines ema50').attr('stroke', 'blue').attr('fill', 'none').attr('stroke-width', '1px').attr('d', d => emaLine(d)),
+                enter.append('path').attr('class', 'periodLines ema50').attr('stroke', 'purple').attr('fill', 'none').attr('stroke-width', '1.5px').attr('d', d => emaLine(d)),
                 update => update.attr('d', d => emaLine(d))
             )
 
             ema.selectAll('.ema200').data([ema200Values], d => d.Timestamp).join(enter =>
-                enter.append('path').attr('class', 'periodLines ema50').attr('stroke', 'red').attr('fill', 'none').attr('stroke-width', '1px').attr('d', d => emaLine(d)),
+                enter.append('path').attr('class', 'periodLines ema50').attr('stroke', 'red').attr('fill', 'none').attr('stroke-width', '1.5px').attr('d', d => emaLine(d)),
                 update => update.attr('d', d => emaLine(d))
             )
         } else
         {
             stockCandleSVG.select('.emaLines').selectAll('.periodLines').remove()
+
             stockCandleSVG.select('.vwap').selectAll('.vwapLine').remove()
+            stockCandleSVG.select('.vwap').append('path').attr('class', 'vwapLine')
         }
-    }, [studyVisualController, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
+    }, [studyVisualController, vwapData, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
 
 
 
@@ -853,8 +865,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //configure svg cross hair, context menu, and tool interactions
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !isInteractive) return
+        if (preDimensionsAndCandleCheck()) return
         initializeMouseCrossHairBehavior()
+        if (!isInteractive) return
         if (!stockCandleSVG.on('contextmenu')) { stockCandleSVG.on('contextmenu', (e) => { e.preventDefault(); setShowContextMenu({ display: true, style: { left: `${e.offsetX}px`, top: `${e.offsetY}px` } }) }) }
 
         let toolingFunction = toolFunctionExports[ChartingTools.findIndex(t => t.tool === currentTool)]
@@ -1028,10 +1041,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         SVG.select('.crossY').attr('x1', 0).attr('y1', crossHairCoordinates.svgY - crossHairCoordinates.mouseHoverOffset).attr('x2', candleDimensions.width - 75).attr('y2', crossHairCoordinates.svgY - crossHairCoordinates.mouseHoverOffset).attr('visibility', 'visible')
         SVG.select('.crossX').attr('x1', crossHairCoordinates.svgX - crossHairCoordinates.mouseHoverOffset).attr('y1', 0).attr('x2', crossHairCoordinates.svgX - crossHairCoordinates.mouseHoverOffset).attr('y2', candleDimensions.height).attr('visibility', 'visible')
         SVG.select('.priceY').text(`$${createPriceScale({ pixelToPrice: e.offsetY })}`).attr("x", candleDimensions.width - 75).attr("y", e.offsetY).attr('visibility', 'visible');
+        dispatch(setGraphToSubGraphCrossHair({ uuid, x: crossHairCoordinates.svgX - crossHairCoordinates.mouseHoverOffset }))
     }
 
     function clearCrossHairs(e)
     {
+        dispatch(setNoCurrentCrossHair({ uuid }))
         stockCandleSVG.select('.crossHairs').selectAll('line').attr('visibility', 'hidden')
         stockCandleSVG.select('.crossHairs').selectAll('text').attr('visibility', 'hidden')
     }
@@ -1181,7 +1196,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     </g>
                     <g className='temp' />
                     <g className='emaLines' />
-                    <g className='vwap' />
+                    <g className='vwap'>
+                        <path className='vwapLine' />
+                    </g>
                     <g className='volumeProfile' />
                     <g className='freeLines' />
                     <g className='linesH' />

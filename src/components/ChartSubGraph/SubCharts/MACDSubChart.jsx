@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useResizeObserver } from '../../../hooks/useResizeObserver'
-import { rsiCalc } from '../../../Utilities/technicalIndicatorFunctions'
+import { calculateYAxisRange, MACDCalc, rsiCalc } from '../../../Utilities/technicalIndicatorFunctions'
 import { addDays, isSaturday, isSunday, sub, subDays, subMonths } from 'date-fns'
-import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select, selectAll, timeDay, timeMonths, zoomIdentity } from 'd3'
+import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select, selectAll, svg, timeDay, timeMonths, zoomIdentity } from 'd3'
 import { discontinuityRange, discontinuitySkipUtcWeekends, discontinuitySkipWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
 import { makeSelectZoomStateByUUID } from '../../../features/Charting/GraphHoverZoomElement'
 import { useSelector } from 'react-redux'
 import { generateTradingHours } from '../../../Utilities/TimeFrames'
+import { makeSelectGraphCrossHairsByUUID } from '../../../features/Charting/GraphToSubGraphCrossHairElement'
 
 function MACDSubChart({ candleData, uuid, timeFrame })
 {
-    let periodBlock = 14
     const YSVGWrapper = useRef()
     const YSVG = useRef()
     const XSVGWrapper = useRef()
@@ -18,11 +18,17 @@ function MACDSubChart({ candleData, uuid, timeFrame })
     const yScaleDimensions = useResizeObserver(YSVG)
     const chartDimensions = useResizeObserver(XSVG)
     const preDimensionsAndCandleCheck = () => { return (!chartDimensions) }
-    const MACDData = useMemo(() => rsiCalc(candleData, periodBlock), [candleData])
+    const MACDData = useMemo(() => MACDCalc(candleData), [candleData])
+    const MACDRange = useMemo(() => calculateYAxisRange(MACDData.slice(MACDData.length - 250)), [MACDData])
+
 
     const selectedChartZoomStateMemo = useMemo(makeSelectZoomStateByUUID, [])
     const chartZoomState = useSelector(state => selectedChartZoomStateMemo(state, uuid))
 
+
+    const selectCurrentXCrossHair = useMemo(makeSelectGraphCrossHairsByUUID, [])
+    const currentCrossHairX = useSelector(state => selectCurrentXCrossHair(state, uuid))
+    
 
     const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame) }, [timeFrame])
 
@@ -79,7 +85,7 @@ function MACDSubChart({ candleData, uuid, timeFrame })
 
         const yPixelBufferTop = 10
 
-        const yScale = scaleLinear().domain([15, 90]).range([chartDimensions.height - yPixelBufferBottom, yPixelBufferTop])
+        const yScale = scaleLinear().domain([MACDRange.min, MACDRange.max]).range([chartDimensions.height - yPixelBufferBottom, yPixelBufferTop])
 
         if (pixelToMACD !== undefined) return Math.round(yScale.invert(pixelToMACD) * 100) / 100
         if (MACDToPixel !== undefined) return yScale(MACDToPixel)
@@ -88,7 +94,8 @@ function MACDSubChart({ candleData, uuid, timeFrame })
 
     }, [candleData, chartDimensions])
 
-    const macdLine = line().x((d, i) => createDateScale({ dateToPixel: candleData[i + periodBlock].Timestamp })).y(d => createYScale({ rsiToPixel: d.rsi })).curve(curveBasis)
+    const macdLine = line().x((d, i) => createDateScale({ dateToPixel: d.Timestamp })).y(d => createYScale({ MACDToPixel: d.macd })).curve(curveBasis)
+    const signalLine = line().x((d, i) => createDateScale({ dateToPixel: d.Timestamp })).y(d => createYScale({ MACDToPixel: d.signal })).curve(curveBasis)
 
     useEffect(() =>
     {
@@ -111,22 +118,46 @@ function MACDSubChart({ candleData, uuid, timeFrame })
             xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date()))
         }
 
-        yScaleSVG.select('.y-axis').style('transform', `translateX(${yScaleDimensions.width - 1}px)`).call(yAxis)
+        //yScaleSVG.select('.y-axis').style('transform', `translateX(${yScaleDimensions.width - 1}px)`).call(yAxis)
         svg.select('.x-axis').style('transform', `translateY(${chartDimensions.height - yPixelBufferBottom}px)`).call(xAxis)
 
 
-        svg.select('.macdLine').selectAll('path').data([MACDData]).join((enter) => createMACDLine(enter), (update) => updateMACDLine(update))
+        svg.select('.macdLine').selectAll('.lineGroup').data([MACDData]).join((enter) => createMACDLine(enter), (update) => updateMACDLine(update))
 
         function createMACDLine(enter)
         {
-            enter.append('path').attr('class', 'rsi').attr('d', macdLine(MACDData)).attr('stroke', 'black').attr('fill', 'none')
+            let lineGroup = enter.append('g').attr('class', 'lineGroup')
+            lineGroup.append('path').attr('class', 'macd').attr('d', macdLine(MACDData)).attr('stroke', 'blue').attr('fill', 'none')
+            lineGroup.append('path').attr('class', 'signal').attr('d', signalLine(MACDData)).attr('stroke', 'orange').attr('fill', 'none')
         }
         function updateMACDLine(update)
         {
-            svg.select('.rsiLine').select('.rsi').attr('d', macdLine(MACDData))
+            let group = svg.select('.macdLine').select('.lineGroup')
+            group.select('.macd').attr('d', macdLine(MACDData))
+            group.select('.signal').attr('d', signalLine(MACDData))
         }
 
+
     }, [candleData, chartZoomState?.x, chartDimensions])
+
+
+    //draw crosshair 
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+        const svg = select(XSVG.current)
+
+        if (currentCrossHairX.x)
+        {
+            svg.select('.crossHair').select('.yTrace').attr('x1', currentCrossHairX.x).attr('x2', currentCrossHairX.x)
+                .attr('y1', 0).attr('y2', chartDimensions.height).attr('stroke', 'black').attr('stroke-width', '1px')
+                .attr('visibility', 'visible')
+        } else
+        {
+            svg.select('.crossHair').select('.yTrace').attr('visibility', 'hidden')
+        }
+    }, [currentCrossHairX])
+
 
     return (
         <div className='SubChartContainer'>
@@ -142,10 +173,12 @@ function MACDSubChart({ candleData, uuid, timeFrame })
                     <svg ref={XSVG} >
                         <g className='x-axis' />
                         <g className='crossHair'>
-                            <line className='cross' y1={0} y2={chartDimensions?.height || 0} stroke='black' strokeWidth={'0.5px'} />
+                            <line className='yTrace' />
                         </g>
                         <g className='macdLine' />
-                        <g className='signalLine' />
+                        <g className='zeroLine'>
+                            <line className='zeroLine' x1={-10000} x2={10000} y1={createYScale({ MACDToPixel: 0 })} y2={createYScale({ MACDToPixel: 0 })} stroke='black' strokeWidth={'0.5px'} />
+                        </g>
                         <g className='histogramLine' />
                     </svg>
                 </div>

@@ -16,6 +16,7 @@ import editChartSelectionReducers from '../features/Charting/EditChartSelection'
 import stockInfoReducers from '../features/StockData/StockInfoElement'
 import graphHoverZoomReducers from '../features/Charting/GraphHoverZoomElement'
 import graphStudiesVisualControlReducers from '../features/Charting/GraphStudiesVisualElement'
+import graphToSubGraphCrossHairsReducers from '../features/Charting/GraphToSubGraphCrossHairElement'
 
 export const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ export const store = configureStore({
     stockInfo: stockInfoReducers,
     graphHoverZoom: graphHoverZoomReducers,
     graphStudyVisual: graphStudiesVisualControlReducers,
+    graphToSubGraphCrossHairs: graphToSubGraphCrossHairsReducers,
     auth: authReducer,
     test: testReducer,
   },

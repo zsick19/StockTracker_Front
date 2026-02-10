@@ -7,6 +7,7 @@ import { setKeyLevelsCharting } from '../../features/KeyLevels/KeyLevelGraphElem
 import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
 import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
+import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 
 function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, interactionController, chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
@@ -23,6 +24,7 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
         {
             dispatch(setInitialGraphControl({ uuid }))
             dispatch(setInitialGraphStudyControl({ uuid }))
+            dispatch(setInitialGraphToSubGraphCrossHair({ uuid }))
         }
         return (() =>
         {
@@ -30,13 +32,13 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
             {
                 dispatch(clearGraphControl({ uuid }))
                 dispatch(clearGraphStudyControl({ uuid }))
+                dispatch(clearGraphToSubGraphCrossHair({ uuid }))
             }
         })
     }, [])
 
     useEffect(() =>
     {
-        console.log(chartingData)
         if (isSuccess)
         {
             dispatch(setEnterExitCharting(chartingData))

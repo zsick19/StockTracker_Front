@@ -39,9 +39,9 @@ function ChartSubGraphContainer({ ticker, uuid, incomingTF })
         switch (subChart)
         {
           case 'rsi': return <RSISubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
-          case 'vortex': return <VortexSubChart candleData={stockData.candleData} uuid={uuid} />
-          case 'stochastic': return <StochasticSubChart />
-          case 'MACD': return <MACDSubChart candleData={stockData.candleData} uuid={uuid} />
+          case 'vortex': return <VortexSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+          case 'stochastic': return <StochasticSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+          case 'MACD': return <MACDSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
         }
       })
     }
