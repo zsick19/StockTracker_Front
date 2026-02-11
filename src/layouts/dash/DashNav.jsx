@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePopulateMacroTickersMutation, useResetUserMutation } from "../../features/test/testApiSlice";
+import { ChessKing } from "lucide-react";
 
 function DashNav()
 {
@@ -36,7 +37,7 @@ function DashNav()
     }
   }
 
-
+  const [showSectorAbbr, setShowSectorAbbr] = useState(false)
 
   return (
     <nav id="DashNav">
@@ -50,11 +51,25 @@ function DashNav()
           Smaller Screen View
         </button>
       )}
+
+
       <p>Stock Tracker</p>
-
+      {showSectorAbbr && <div className="flex">
+        <p>XLRE: Real Estate</p>
+        <p>XLY: Consumer Discretionary</p>
+        <p>XLK: Technology</p>
+        <p>XLF: Financials</p>
+        <p>XLU: Utilities</p>
+        <p>XLP: Consumer Staples</p>
+        <p>XLE: Energy</p>
+        <p>XLC: Communications</p>
+        <p>XLI: Industrials</p>
+        <p>XLV: Healthcare</p>
+        <p>XLB: Materials</p>
+      </div>}
       {/* <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button> */}
-
       {/* <button onClick={() => attemptResettingUser()}>Dev Reset User</button> */}
+      <button className="buttonIcon" onMouseEnter={() => setShowSectorAbbr(true)} onMouseLeave={() => setShowSectorAbbr(false)}><ChessKing color="green" /></button>
     </nav>
   );
 }

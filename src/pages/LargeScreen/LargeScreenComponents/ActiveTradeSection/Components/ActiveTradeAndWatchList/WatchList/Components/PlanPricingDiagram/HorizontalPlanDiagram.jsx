@@ -97,7 +97,7 @@ function HorizontalPlanDiagram({ mostRecentPrice, planPricePointObject, planPric
 
 
     return (
-        <div className='HorizontalPlanSVGWrapper' ref={planWrapper} onClick={() => { if (setShowPlanNumbers) setShowPlanNumbers(true) }}>
+        <div className='HorizontalPlanSVGWrapper' ref={planWrapper} onClick={(e) => { e.stopPropagation(); { if (setShowPlanNumbers) setShowPlanNumbers(true) } }}>
             <svg ref={priceSVG}>
                 <g className='pricePoints' />
                 <g className='price' />

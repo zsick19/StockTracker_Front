@@ -18,7 +18,7 @@ function HighImportanceWatchListContainer({ highImportanceWatchListIds })
             </div>
 
             <div id='LSH-PreWatchHighImportance' className='hide-scrollbar PreWatchListContainersEveryOther'>
-                {highImportanceWatchListIds.map((id, i) => <SingleHighImportanceTickerDisplay id={id} key={`highImportance${id}`} />)}
+                {highImportanceWatchListIds.map((id, i) => <SingleHighImportanceTickerDisplay id={id} watchList={4} key={`highImportance${id}`} />)}
             </div>
         </div>
     )

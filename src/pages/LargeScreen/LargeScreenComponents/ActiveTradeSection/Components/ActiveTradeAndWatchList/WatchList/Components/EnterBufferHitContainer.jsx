@@ -3,6 +3,7 @@ import { Grip, RefreshCcwDot } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import SinglePlannedTickerDisplay from './SinglePlannedTickerDisplay'
+import SingleHighImportanceTickerDisplay from './SingleHighImportanceTickerDisplay'
 
 function EnterBufferHitContainer({ enterBufferHitIds, refetch })
 {
@@ -19,7 +20,7 @@ function EnterBufferHitContainer({ enterBufferHitIds, refetch })
                 </div>
             </div>
             <div id='LSH-PreWatchBufferHitList' className='hide-scrollbar PreWatchListContainersEveryOther'>
-                {enterBufferHitIds.map((id) => <SinglePlannedTickerDisplay id={id} watchList={0} key={`enterBufferList${id}`} />)}
+                {enterBufferHitIds.map((id) => <SingleHighImportanceTickerDisplay id={id} watchList={0} key={`enterBufferList${id}`} />)}
             </div>
         </div>
     )

@@ -1,22 +1,33 @@
 #LHS-PlanStatusView {
   display: grid;
   grid-template-rows: 15% 650px 1fr;
-
   height: 100%;
 }
 
 #LHS-PlanStatusFilterControl {
   font-size: var(--fs-100);
-  background-color: gray;
+  border: 1px solid white;
+  background-color: rgba(128, 128, 128, 0.226);
   padding: 1rem;
   border-radius: 10px;
   margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#LHS-PlanStatusFilterControl div:first-of-type {
+  display: flex;
+  justify-content: space-between;
 }
 #LHS-PlanStatusFilterControl fieldset {
+  width: 100%;
   display: flex;
   gap: 1rem;
   border: none;
+  justify-content: space-around;
 }
+
 .hiddenRadioInput {
   position: absolute;
   opacity: 0;
@@ -25,23 +36,26 @@
 }
 
 .clickableLabel {
-  padding: 10px 20px;
-  background: #2d2e35;
+  padding: 4px 20px;
+  background: #5b68cf;
   border-radius: 10px;
   cursor: pointer;
   display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0);
 }
 
 .hiddenRadioInput:checked + .clickableLabel {
   background: #0b5099;
-  color: white;
+  border: 1px solid white;
 }
+
 
 #LHS-PlanDisplays {
   border: 1px solid white;
   border-radius: 10px;
   margin-bottom: 0.5rem;
 }
+
 #LHS-PlanDisplays > div {
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 350px 1fr;
 }
@@ -52,11 +66,16 @@
   align-items: center;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
-
+  font-size: var(--fs-200);
   padding-inline: 0.5rem;
   justify-items: center;
   padding-inline: 1rem;
   background-color: rgb(0, 1, 61);
+}
+#LHS-PlanColumn p {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
 }
 
 #LHS-PlanResults {
@@ -83,8 +102,9 @@
   gap: 2rem;
   align-items: center;
   justify-content: center;
-  background-color: gray;
+  background-color: rgba(128, 128, 128, 0.226);
   border-radius: 10px;
+  border: 1px solid white;
 }
 
 .LHS-SinglePlanResult {
@@ -143,9 +163,13 @@
 }
 
 .wayOverPlan {
-  color: rgb(255, 72, 0);
+  color: rgb(0, 102, 255);
 }
 
 .planStillInPlay {
   color: green;
+}
+
+.wayUnderPlan {
+  color: red;
 }

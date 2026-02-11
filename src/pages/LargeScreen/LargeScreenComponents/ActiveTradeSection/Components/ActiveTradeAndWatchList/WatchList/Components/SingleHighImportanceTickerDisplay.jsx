@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
-import { highImportanceSelectors, useGetUsersEnterExitPlanQuery, useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { enterBufferSelectors, highImportanceSelectors, useGetUsersEnterExitPlanQuery, useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { AlertCircle, Trash2, X } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setSelectedStockAndTimelineFourSplit, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import HorizontalPlanDiagram from './PlanPricingDiagram/HorizontalPlanDiagram'
 
-function SingleHighImportanceTickerDisplay({ id })
+function SingleHighImportanceTickerDisplay({ id, watchList })
 {
     const dispatch = useDispatch()
     const [showImportantRemove, setShowImportantRemove] = useState(false)
@@ -14,8 +14,16 @@ function SingleHighImportanceTickerDisplay({ id })
     const [removeSingleEnterExitPlan] = useRemoveSingleEnterExitPlanMutation()
     const [showPlanNumbers, setShowPlanNumbers] = useState(false)
 
+    function provideSelector(data)
+    {
+        switch (watchList)
+        {
+            case 0: return enterBufferSelectors.selectById(data.enterBufferHit, id)
+            default: return highImportanceSelectors.selectById(data.highImportance, id)
+        }
+    }
 
-    const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? highImportanceSelectors.selectById(data.highImportance, id) : undefined }) })
+    const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
 
     function handleFourWaySplit()
     {

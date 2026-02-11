@@ -2,7 +2,7 @@ import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
-import { differenceInDays } from "date-fns";
+import { differenceInBusinessDays, differenceInDays } from "date-fns";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 export const enterExitAdapter = createEntityAdapter({})
@@ -53,12 +53,11 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
 
           enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
-          enterExit.trackingDays = differenceInDays(today, enterExit.dateAdded)
+          enterExit.trackingDays = differenceInBusinessDays(today, new Date(enterExit.dateAdded))
 
           function getInsertionIndexLinear(arr, num)
           {
-            for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
-            return 3;
+            for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3;
           }
 
           let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
