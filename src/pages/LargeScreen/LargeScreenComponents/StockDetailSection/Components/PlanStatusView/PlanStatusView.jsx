@@ -75,34 +75,33 @@ function PlanStatusView()
         </form>
 
         <fieldset onChange={(e) => setPlanFilters(prev => ({ ...prev, [e.target.name]: parseInt(e.target.value) }))}>
-          <div>
-            <label htmlFor="allPlansGroup">All Plans</label>
-            <input type="radio" name="groupForDisplay" id="allPlansGroup" value={4} defaultChecked />
-          </div>
-          <div>
-            <label htmlFor="highImportance">High Importance</label>
-            <input type="radio" name="groupForDisplay" id="highImportance" value={3} />
-          </div>
-          <div>
-            <label htmlFor="enterBufferHitGroup">Enter Buffer Hit</label>
-            <input type="radio" name="groupForDisplay" id="enterBufferHitGroup" value={1} />
-          </div>
-          <div>
-            <label htmlFor="otherPlansGroup">Above Enter Buffer</label>
-            <input type="radio" name="groupForDisplay" id="otherPlansGroup" value={2} />
-          </div>
-          <div>
-            <label htmlFor="stopLossHitGroup">Below StopLoss</label>
-            <input type="radio" name="groupForDisplay" id="stopLossHitGroup" value={0} />
-          </div>
+
+          <input type="radio" name="groupForDisplay" id="allPlansGroup" className='hiddenRadioInput' value={4} defaultChecked />
+          <label htmlFor="allPlansGroup" className='clickableLabel'>All Plans</label>
+
+          <input type="radio" name="groupForDisplay" id="highImportance" className='hiddenRadioInput' value={3} />
+          <label htmlFor="highImportance" className='clickableLabel'>High Importance</label>
+
+          <input type="radio" name="groupForDisplay" id="enterBufferHitGroup" className='hiddenRadioInput' value={1} />
+          <label htmlFor="enterBufferHitGroup" className='clickableLabel'>Enter Buffer Hit</label>
+
+          <input type="radio" name="groupForDisplay" id="otherPlansGroup" className='hiddenRadioInput' value={2} />
+          <label htmlFor="otherPlansGroup" className='clickableLabel'>Above Enter Buffer</label>
+
+          <input type="radio" name="groupForDisplay" id="stopLossHitGroup" className='hiddenRadioInput' value={0} />
+          <label htmlFor="stopLossHitGroup" className='clickableLabel'>Below StopLoss</label>
+
         </fieldset>
 
-        <div>
+        <div className='flex'>
           <label htmlFor="sectorFilter">Sector Filter</label>
           <select name="sector" id="sectorFilter" onChange={(e) => handleSectorChange(e)}>
             <option value="All">All Sectors</option>
             {defaultSectors.map((sector) => <option value={sector}>{sector}</option>)}
           </select>
+
+          <div><p>older than...</p></div>
+          <div><p>risk vs reward better than...</p></div>
         </div>
       </div>
 

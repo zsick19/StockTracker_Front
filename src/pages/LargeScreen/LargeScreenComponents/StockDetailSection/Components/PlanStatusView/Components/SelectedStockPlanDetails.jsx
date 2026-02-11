@@ -6,16 +6,16 @@ function SelectedStockPlanDetails({ selectedPlan, setSelectedPlan })
 {
     const [showConfirmRemove, setShowConfirmRemove] = useState(false)
 
-    console.log(selectedPlan)
     return (
         <div id='LHS-SelectedPlanDetails'>
             <h1>{selectedPlan.tickerSymbol}</h1>
 
             <div className='flex'>
                 <p>${selectedPlan.mostRecentPrice}</p>
-                <p className={selectedPlan.plan.moonPrice < selectedPlan.mostRecentPrice ? 'wayOverPlan' : 
-                    selectedPlan.plan.stopLossPrice>selectedPlan.mostRecentPrice?'wayOverPlan':'planStillInPlay'
-                    }>{(selectedPlan.percentFromEnter * -1).toFixed(2)}% Away</p>
+                <p className={selectedPlan.plan.moonPrice < selectedPlan.mostRecentPrice ? 'wayOverPlan' :
+                    selectedPlan.plan.stopLossPrice > selectedPlan.mostRecentPrice ? 'wayOverPlan' : 'planStillInPlay'}>
+                    {(selectedPlan.percentFromEnter * -1).toFixed(2)}% Away
+                </p>
             </div>
 
             <div>

@@ -45,7 +45,11 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
 
 
     return (
-        <div className={`LHS-SinglePlanResult ${selectedPlan?.tickerSymbol === plan.tickerSymbol ? 'highLightForSelectedPlan' : ''}`} onClick={() => setSelectedPlan(plan)}>
+        <div className={`LHS-SinglePlanResult ${selectedPlan?.tickerSymbol === plan.tickerSymbol ? 'highLightForSelectedPlan' : ''} 
+        ${plan.mostRecentPrice > plan.plan.moonPrice ? 'wayOverPlan' :
+                plan.mostRecentPrice < plan.plan.stopLossPrice ? 'wayOverPlan' : ''}
+                `}
+            onClick={() => setSelectedPlan(plan)}>
             <div>
                 <p>{plan.tickerSymbol}</p>
                 <p>{(plan.percentFromEnter * -1).toFixed(2)}% away</p>

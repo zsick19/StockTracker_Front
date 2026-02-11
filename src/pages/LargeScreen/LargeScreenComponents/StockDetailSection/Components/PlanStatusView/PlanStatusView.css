@@ -15,6 +15,26 @@
 #LHS-PlanStatusFilterControl fieldset {
   display: flex;
   gap: 1rem;
+  border: none;
+}
+.hiddenRadioInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.clickableLabel {
+  padding: 10px 20px;
+  background: #2d2e35;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.hiddenRadioInput:checked + .clickableLabel {
+  background: #0b5099;
+  color: white;
 }
 
 #LHS-PlanDisplays {
@@ -123,7 +143,7 @@
 }
 
 .wayOverPlan {
-  color: red;
+  color: rgb(255, 72, 0);
 }
 
 .planStillInPlay {
