@@ -8,7 +8,7 @@
 /* Title Block */
 #LSH-PreTradeWatchAsList > div > div:first-child {
   font-size: var(--fs-300);
-  background-color: rgb(8, 17, 36);
+  background-color: rgb(101, 111, 131);
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   padding: 0.25rem;

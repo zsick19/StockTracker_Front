@@ -4,13 +4,13 @@
 
 :root {
   /* colors */
-  --clr-dark: 230 35% 7%;
+  background-color: hsl(230, 51%, 10%);
+  --clr-dark: 230 51% 10%;
   --clr-light: 231 77% 90%;
   --clr-white: 0 0% 100%;
   --clr-chartBackDrop: 85, 85, 99;
   --clr-chartHeader: 58, 58, 63;
   --clr-chartFooter: 58, 58, 63;
-  background-color: rgb(58, 58, 63);
 
   /* font-sizes */
   --fs-900: 9.375rem;

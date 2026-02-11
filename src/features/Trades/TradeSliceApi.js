@@ -19,6 +19,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     trade.id = trade.tickerSymbol
                     trade.mostRecentPrice = response.mostRecentPrices[trade.tickerSymbol]
                     console.log(trade.mostRecentPrice)
+                    
 
                     trade.percentOfGain = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * 100)
                     trade.gainPerShare = trade.mostRecentPrice - trade.averagePurchasePrice
