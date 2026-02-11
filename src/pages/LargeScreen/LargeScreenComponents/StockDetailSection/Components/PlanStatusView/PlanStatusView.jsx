@@ -5,6 +5,7 @@ import './PlanStatusView.css'
 import { defaultSectors } from '../../../../../../Utilities/SectorsAndIndustries'
 import SelectedStockChartBlock from './Components/SelectedStockChartBlock'
 import SelectedStockPlanDetails from './Components/SelectedStockPlanDetails'
+import { defaultTimeFrames } from '../../../../../../Utilities/TimeFrames'
 
 function PlanStatusView()
 {
@@ -50,7 +51,8 @@ function PlanStatusView()
   }, [planFilters, planSort, combinedData])
 
 
-
+  const [timeFrame1, setTimeFrame1] = useState(defaultTimeFrames.dailyQuarter)
+  const [timeFrame2, setTimeFrame2] = useState(defaultTimeFrames.threeDayFiveMin)
 
   function handleTickerSearch()
   {
@@ -106,10 +108,10 @@ function PlanStatusView()
 
       <div id='LHS-PlanDisplays'>
         <div id='LHS-PlanColumn'>
-          <p onClick={() => setPlanSort(prev => ({ sort: 'ticker', direction: !prev.direction }))}>Ticker/Price</p>
-          <p>Enter Price</p>
-          <p><span onClick={() => setPlanSort(prev => ({ sort: 'risk', direction: !prev.direction }))}>Ri.</span> vs <span
-            onClick={() => setPlanSort(prev => ({ sort: 'reward', direction: !prev.direction }))}>Re.</span></p>
+          <p onClick={() => setPlanSort(prev => ({ sort: 'ticker', direction: !prev.direction }))}>Ticker</p>
+          <p>Current</p>
+          <p><span onClick={() => setPlanSort(prev => ({ sort: 'risk', direction: !prev.direction }))}>R</span> vs <span
+            onClick={() => setPlanSort(prev => ({ sort: 'reward', direction: !prev.direction }))}>R</span></p>
           <p>Sector</p>
           <p>Tracking</p>
           <p>Plan Diagram</p>
@@ -124,12 +126,12 @@ function PlanStatusView()
 
       {selectedPlan ?
         <div id='LHS-PlanDetailsAndChart'>
-          <SelectedStockChartBlock ticker={selectedPlan.tickerSymbol} plan={selectedPlan} />
+          <SelectedStockChartBlock ticker={selectedPlan.tickerSymbol} plan={selectedPlan} timeFrame={timeFrame1} />
+          <SelectedStockChartBlock ticker={selectedPlan.tickerSymbol} plan={selectedPlan} timeFrame={timeFrame2} />
           <SelectedStockPlanDetails selectedPlan={selectedPlan} setSelectedPlan={setSelectedPlan} />
         </div> :
         <div id='LHS-NoPlanSelected'>
           <p>Select a Plan For Details</p>
-          <p>Total Plans: {combinedData.totalCount}</p>
         </div>}
 
 

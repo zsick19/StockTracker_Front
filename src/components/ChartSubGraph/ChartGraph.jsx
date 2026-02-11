@@ -303,6 +303,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
             if (vwapData)
             {
+
                 stockCandleSVG.select('.vwap').select('.vwapLine').attr('d', VWAPLine(vwapData)).attr('stroke', 'orange').attr('fill', 'none').attr('stroke-width', '1.5px')
             }
 

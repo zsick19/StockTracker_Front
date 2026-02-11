@@ -124,7 +124,6 @@ export function calculateYAxisRange(macdData, paddingPercent = 0.15)
     };
 }
 
-
 export function calculateVWAP(data, resetDaily = true)
 {
     let cumulativeTypicalPriceVolume = 0;
@@ -155,12 +154,16 @@ export function calculateVWAP(data, resetDaily = true)
         const vwapValue = cumulativeTypicalPriceVolume / cumulativeVolume;
 
         return {
-            Timestamp,
-            vwap: vwapValue,
-            typicalPrice: typicalPrice // Useful for debugging or other indicators
+            Timestamp, vwap: vwapValue,            //typicalPrice: typicalPrice // Useful for debugging or other indicators
         };
     });
 }
+
+
+
+
+
+
 
 
 
@@ -206,8 +209,6 @@ export const calculateVolumeProfileDataPoints = (chartingData, binSize) =>
     // Extract bins (prices) and corresponding volumes from volumeProfile
     return comp.sort((a, b) => a.x - b.x)
 }
-
-
 export function calculateStochastic(chartingData, timeBlock = 14)
 {
     let currentCloseMinusLowestLowOverBlock = []
@@ -267,8 +268,6 @@ export function calculateStochastic(chartingData, timeBlock = 14)
 
     return { percentK: percentKResults, percentD: percentDResults }
 }
-
-
 export function stochasticCalc(candleData, kPeriod = 14, dPeriod = 3)
 {
     const stochasticValues = [];
@@ -313,8 +312,6 @@ export function stochasticCalc(candleData, kPeriod = 14, dPeriod = 3)
 
     return stochasticValues.slice(2);
 }
-
-
 export function calculateVortex(chartingData, timeBlock = 14)
 {
     let trueRange = []

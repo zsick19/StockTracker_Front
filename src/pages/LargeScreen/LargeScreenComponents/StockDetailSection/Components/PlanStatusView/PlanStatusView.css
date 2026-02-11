@@ -51,7 +51,7 @@
 
 #LHS-PlanDetailsAndChart {
   display: grid;
-  grid-template-columns: 40% 60%;
+  grid-template-columns: 40% 40% 1fr;
   gap: 1rem;
   padding: 1rem;
   border: 1px solid white;
@@ -100,4 +100,32 @@
 }
 #LHS-SelectedPlanChartContainer div {
   height: 100%;
+}
+#LHS-SelectedPlanChartContainer svg {
+  border-radius: 10xpx;
+}
+
+#LHS-SelectedPlanDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+}
+#LHS-SelectedPlanDetails div {
+  justify-items: center;
+  font-size: var(--fs-200);
+}
+
+#LHS-SelectedPlanDetails > div:last-of-type {
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+}
+
+.wayOverPlan {
+  color: red;
+}
+
+.planStillInPlay {
+  color: green;
 }

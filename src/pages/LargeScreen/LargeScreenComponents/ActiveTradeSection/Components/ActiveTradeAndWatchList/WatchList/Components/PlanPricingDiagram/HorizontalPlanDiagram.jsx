@@ -3,7 +3,7 @@ import './HorizontalPlanDiagram.css'
 import { useResizeObserver } from '../../../../../../../../../hooks/useResizeObserver'
 import { scaleLinear, select } from 'd3'
 
-function HorizontalPlanDiagram({ mostRecentPrice, planPricePointObject, planPriceArray, initialTrackingPrice })
+function HorizontalPlanDiagram({ mostRecentPrice, planPricePointObject, planPriceArray, initialTrackingPrice, setShowPlanNumbers })
 {
     const planWrapper = useRef()
     const priceSVG = useRef()
@@ -97,7 +97,7 @@ function HorizontalPlanDiagram({ mostRecentPrice, planPricePointObject, planPric
 
 
     return (
-        <div className='HorizontalPlanSVGWrapper' ref={planWrapper}>
+        <div className='HorizontalPlanSVGWrapper' ref={planWrapper} onClick={() => { if (setShowPlanNumbers) setShowPlanNumbers(true) }}>
             <svg ref={priceSVG}>
                 <g className='pricePoints' />
                 <g className='price' />
