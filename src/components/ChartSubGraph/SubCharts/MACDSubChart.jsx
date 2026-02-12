@@ -6,8 +6,9 @@ import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select,
 import { discontinuityRange, discontinuitySkipUtcWeekends, discontinuitySkipWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
 import { makeSelectZoomStateByUUID } from '../../../features/Charting/GraphHoverZoomElement'
 import { useSelector } from 'react-redux'
-import { generateTradingHours } from '../../../Utilities/TimeFrames'
+import { generateTradingHours, provideStartAndEndDatesForDateScale } from '../../../Utilities/TimeFrames'
 import { makeSelectGraphCrossHairsByUUID } from '../../../features/Charting/GraphToSubGraphCrossHairElement'
+import { makeSelectGraphHoursByUUID } from '../../../features/Charting/GraphMarketHourElement'
 
 function MACDSubChart({ candleData, uuid, timeFrame })
 {
@@ -28,42 +29,29 @@ function MACDSubChart({ candleData, uuid, timeFrame })
 
     const selectCurrentXCrossHair = useMemo(makeSelectGraphCrossHairsByUUID, [])
     const currentCrossHairX = useSelector(state => selectCurrentXCrossHair(state, uuid))
-    
 
-    const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame) }, [timeFrame])
+
+    const selectDisplayMarketHoursMemo = useMemo(makeSelectGraphHoursByUUID, [])
+    const displayMarketHours = useSelector((state) => selectDisplayMarketHoursMemo(state, uuid))
+
+    const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame, displayMarketHours?.showOnlyIntraDay) }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
+
 
 
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
-        let startDate
-        let futureForwardEndDate
-
-        if (timeFrame.intraDay)
-        {
-            startDate = new Date()
-            if (isSaturday(startDate)) startDate = subDays(startDate, 1)
-            else if (isSunday(startDate)) startDate = subDays(startDate, 2)
-            startDate.setHours(5, 30, 0, 0)
-            futureForwardEndDate = new Date()
-        } else if (timeFrame.unitOfDuration === 'Y')
-        {
-            startDate = sub(new Date(), { days: 365 })
-            futureForwardEndDate = addDays(new Date(), 2)
-        }
-        else if (timeFrame.unitOfDuration === 'D')
-        {
-            startDate = sub(new Date(), { days: timeFrame.duration })
-            futureForwardEndDate = addDays(new Date(), 2)
-        }
+        const startEndDate = provideStartAndEndDatesForDateScale(timeFrame)
 
         let xDateScale
         if (timeFrame.intraDay)
         {
-            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuityRange(...excludedPeriods)).domain([startDate, futureForwardEndDate]).range([0, chartDimensions.width])
+            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuityRange(...excludedPeriods))
+                .domain([startEndDate.startDate, startEndDate.futureForwardEndDate]).range([0, chartDimensions.width])
         } else
         {
-            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuitySkipUtcWeekends()).domain([startDate, futureForwardEndDate]).range([0, chartDimensions.width])
+            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuitySkipUtcWeekends())
+                .domain([startEndDate.startDate, startEndDate.futureForwardEndDate]).range([0, chartDimensions.width])
         }
 
         if (chartZoomState?.x)
@@ -76,7 +64,7 @@ function MACDSubChart({ candleData, uuid, timeFrame })
         else if (dateToPixel !== undefined) return xDateScale(new Date(dateToPixel))
         else return xDateScale
 
-    }, [candleData, chartZoomState?.x, chartDimensions])
+    }, [candleData, excludedPeriods, chartZoomState?.x, chartDimensions])
 
     const yPixelBufferBottom = 20
     const createYScale = useCallback(({ MACDToPixel = undefined, pixelToMACD = undefined } = {}) =>
@@ -138,7 +126,7 @@ function MACDSubChart({ candleData, uuid, timeFrame })
         }
 
 
-    }, [candleData, chartZoomState?.x, chartDimensions])
+    }, [candleData, excludedPeriods, chartZoomState?.x, chartDimensions])
 
 
     //draw crosshair 

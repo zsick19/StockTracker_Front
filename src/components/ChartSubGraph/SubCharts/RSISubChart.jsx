@@ -43,15 +43,17 @@ function RSISubChart({ candleData, uuid, timeFrame })
     {
         if (preDimensionsAndCandleCheck()) return
 
-
         const startEndDate = provideStartAndEndDatesForDateScale(timeFrame)
+
         let xDateScale
         if (timeFrame.intraDay)
         {
-            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuityRange(...excludedPeriods)).domain([startEndDate.startDate, startEndDate.futureForwardEndDate]).range([0, chartDimensions.width])
+            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuityRange(...excludedPeriods))
+                .domain([startEndDate.startDate, startEndDate.futureForwardEndDate]).range([0, chartDimensions.width])
         } else
         {
-            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuitySkipUtcWeekends()).domain([startEndDate.startDate, startEndDate.futureForwardEndDate]).range([0, chartDimensions.width])
+            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuitySkipUtcWeekends())
+                .domain([startEndDate.startDate, startEndDate.futureForwardEndDate]).range([0, chartDimensions.width])
         }
 
         if (chartZoomState?.x)
@@ -60,6 +62,7 @@ function RSISubChart({ candleData, uuid, timeFrame })
             const newZoomState = zoomValues.rescaleX(xDateScale)
             xDateScale.domain(newZoomState.domain())
         }
+
         if (pixelToDate !== undefined) { if (timeFrame.intraDay) { return new Date(Math.floor(xDateScale.invert(pixelToDate))).toISOString() } else return xDateScale.invert(pixelToDate).toISOString() }
         else if (dateToPixel !== undefined) return xDateScale(new Date(dateToPixel))
         else return xDateScale
