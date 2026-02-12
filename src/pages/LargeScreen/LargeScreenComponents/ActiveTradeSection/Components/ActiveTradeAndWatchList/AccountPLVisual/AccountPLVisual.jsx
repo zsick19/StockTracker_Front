@@ -6,9 +6,20 @@ import { setStockDetailState } from '../../../../../../../features/SelectedStock
 
 function AccountPLVisual({ refetch })
 {
-
     const dispatch = useDispatch()
     const [showAccountActions, setShowAccountActions] = useState(false)
+    const [rotateOnFetch, setRotateOnFetch] = useState(false)
+
+    function refetchAndRotate()
+    {
+        setRotateOnFetch(true)
+        refetch()
+        setTimeout(() =>
+        {
+            setRotateOnFetch(false)
+        }, [1000])
+    }
+
     return (
         <div id='LHS-AccountPLVisual'>
             <div >
@@ -18,7 +29,7 @@ function AccountPLVisual({ refetch })
                 </div>
                 <p>Day's P/L: +34.34 +0.33%</p>
             </div>
-            {showAccountActions ? <div>
+            {showAccountActions ? <div id='AccountDepositWithdrawForm'>
                 <input type="double" />
                 <button>Deposit</button>
                 <button>Withdraw</button>
@@ -30,7 +41,7 @@ function AccountPLVisual({ refetch })
                     <div className='flex'>
                         <button className='buttonIcon' onClick={() => setShowAccountActions(true)}><Landmark color='white' /></button>
                         <button className='buttonIcon' onClick={() => dispatch(setStockDetailState(9))}><NotebookPen color='white' /></button>
-                        <button onClick={refetch} className='buttonIcon'><RotateCcw color='white' /></button>
+                        <button onClick={refetchAndRotate} className={`buttonIcon ${rotateOnFetch ? 'rotateOnFetch' : 'hoverRotateOnFetch'}`}><RotateCcw color='white' /></button>
                     </div>
                 </>
             }

@@ -1,5 +1,5 @@
-import React from 'react'
-import { Grip, RefreshCcwDot } from 'lucide-react'
+import React, { useState } from 'react'
+import { Grip, RefreshCcwDot, SpellCheck } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import SinglePlannedTickerDisplay from './SinglePlannedTickerDisplay'
@@ -8,6 +8,17 @@ import SingleHighImportanceTickerDisplay from './SingleHighImportanceTickerDispl
 function EnterBufferHitContainer({ enterBufferHitIds, refetch })
 {
     const dispatch = useDispatch()
+    const [rotateOnFetch, setRotateOnFetch] = useState(false)
+
+    function refetchAndRotate()
+    {
+        setRotateOnFetch(true)
+        refetch()
+        setTimeout(() =>
+        {
+            setRotateOnFetch(false)
+        }, [1000])
+    }
 
 
     return (
@@ -15,7 +26,8 @@ function EnterBufferHitContainer({ enterBufferHitIds, refetch })
             <div className='flex'>
                 <p>Enter Buffer</p>
                 <div className='flex'>
-                    <button className='iconButton' onClick={() => refetch()}><RefreshCcwDot size={20} color='gray' /></button>
+                    <button onClick={refetchAndRotate} className={`buttonIcon ${rotateOnFetch ? 'rotateOnFetch' : 'hoverRotateOnFetch'}`}><RefreshCcwDot size={20} color='white' /></button>
+                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(4))}><SpellCheck size={20} color='white' /></button>
                     <button className='iconButton' onClick={() => dispatch(setStockDetailState(11))}><Grip size={20} color='white' /></button>
                 </div>
             </div>

@@ -160,6 +160,45 @@ export function calculateVWAP(data, resetDaily = true)
 }
 
 
+export function calculateVortex(chartingData, timeBlock = 14)
+{
+    let trueRange = []
+    let VMPlus = []
+    let VMMinus = []
+    for (let i = 1; i < chartingData.length - 1; i++)
+    {
+        let currentHighMinusCurrentLow1 = chartingData[i].HighPrice - chartingData[i].LowPrice
+        let currentHighMinusPreviousClose2 = Math.abs(chartingData[i].HighPrice - chartingData[i - 1].ClosePrice)
+        let currentLowMinusPreviousClose3 = Math.abs(chartingData[i].LowPrice - chartingData[i - 1].ClosePrice)
+
+        let largest = Math.max(currentHighMinusCurrentLow1, currentHighMinusPreviousClose2, currentLowMinusPreviousClose3)
+
+        trueRange.push(largest)
+        VMPlus.push(chartingData[i].HighPrice - chartingData[i - 1].LowPrice)
+        VMMinus.push(chartingData[i].LowPrice - chartingData[i - 1].HighPrice)
+
+    }
+
+    let vortexIndicatorPlus = []
+    let vortexIndicatorMinus = []
+
+    for (let i = 0; i < VMPlus.length; i++)
+    {
+        let slicedTR = trueRange.slice(i, i + timeBlock)
+        let slicedVMPlus = VMPlus.slice(i, i + timeBlock)
+        let slicedVMMinus = VMMinus.slice(i, i + timeBlock)
+
+        let summedTR = slicedTR.reduce((partialSum, a) => partialSum + a, 0)
+        let plus = slicedVMPlus.reduce((partialSum, a) => partialSum + a, 0) / summedTR
+        let minus = slicedVMMinus.reduce((partialSum, a) => partialSum + a, 0) / summedTR
+
+        vortexIndicatorPlus.push({ date: chartingData[i].Timestamp, value: plus })
+        vortexIndicatorMinus.push({ date: chartingData[i].Timestamp, value: Math.abs(minus) })
+    }
+    //does the i get adjusted at all for the shift 
+
+    return { vortexIndicatorPlus, vortexIndicatorMinus }
+}
 
 
 
@@ -311,43 +350,4 @@ export function stochasticCalc(candleData, kPeriod = 14, dPeriod = 3)
     }
 
     return stochasticValues.slice(2);
-}
-export function calculateVortex(chartingData, timeBlock = 14)
-{
-    let trueRange = []
-    let VMPlus = []
-    let VMMinus = []
-    for (let i = 1; i < chartingData.length - 1; i++)
-    {
-        let currentHighMinusCurrentLow1 = chartingData[i].HighPrice - chartingData[i].LowPrice
-        let currentHighMinusPreviousClose2 = Math.abs(chartingData[i].HighPrice - chartingData[i - 1].ClosePrice)
-        let currentLowMinusPreviousClose3 = Math.abs(chartingData[i].LowPrice - chartingData[i - 1].ClosePrice)
-
-        let largest = Math.max(currentHighMinusCurrentLow1, currentHighMinusPreviousClose2, currentLowMinusPreviousClose3)
-
-        trueRange.push(largest)
-        VMPlus.push(chartingData[i].HighPrice - chartingData[i - 1].LowPrice)
-        VMMinus.push(chartingData[i].LowPrice - chartingData[i - 1].HighPrice)
-
-    }
-
-    let vortexIndicatorPlus = []
-    let vortexIndicatorMinus = []
-
-    for (let i = 0; i < VMPlus.length; i++)
-    {
-        let slicedTR = trueRange.slice(i, i + timeBlock)
-        let slicedVMPlus = VMPlus.slice(i, i + timeBlock)
-        let slicedVMMinus = VMMinus.slice(i, i + timeBlock)
-
-        let summedTR = slicedTR.reduce((partialSum, a) => partialSum + a, 0)
-        let plus = slicedVMPlus.reduce((partialSum, a) => partialSum + a, 0) / summedTR
-        let minus = slicedVMMinus.reduce((partialSum, a) => partialSum + a, 0) / summedTR
-
-        vortexIndicatorPlus.push({ date: chartingData[i].Timestamp, value: plus })
-        vortexIndicatorMinus.push({ date: chartingData[i].Timestamp, value: Math.abs(minus) })
-    }
-    //does the i get adjusted at all for the shift 
-
-    return { vortexIndicatorPlus, vortexIndicatorMinus }
 }

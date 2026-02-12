@@ -29,8 +29,8 @@
   --ff-sans-normal: "Barlow", sans-serif;
   overflow-y: hidden;
 }
-.orangeFont{
-  color:orange
+.orangeFont {
+  color: orange;
 }
 
 /* ------------------- */
@@ -341,4 +341,26 @@ select {
 /* Optional: Add a focus state for keyboard users */
 .hidden-radio:hover + label {
   background-color: #627283;
+}
+
+.hoverRotateOnFetch > svg {
+  cursor: pointer;
+}
+
+.rotateOnFetch > svg {
+  stroke: rgb(0, 81, 255);
+  animation: spin-refresh 1s linear infinite;
+}
+
+.hoverRotateOnFetch > svg:hover {
+  stroke: rgb(0, 81, 255);
+}
+
+@keyframes spin-refresh {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
 }

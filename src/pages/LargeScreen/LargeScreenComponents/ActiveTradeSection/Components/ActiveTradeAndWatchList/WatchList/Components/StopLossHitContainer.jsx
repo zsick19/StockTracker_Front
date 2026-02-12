@@ -12,12 +12,7 @@ function StopLossHitContainer({ stopLossHitIds })
         <div id='LSH-PreWatchStopLosHit'>
             <div>
                 <p>Stop Loss Hit</p>
-
-
-                <div className='flex'>
-                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(4))}><SpellCheck size={18} color='white' /></button>
-                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(6))}><Grip size={20} color='white' /></button>
-                </div>
+                <button className='iconButton' onClick={() => dispatch(setStockDetailState(6))}><Grip size={20} color='white' /></button>
             </div>
 
             <div className='hide-scrollbar PreWatchListContainersEveryOther'>

@@ -22,6 +22,7 @@ import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../f
 import { calculateEMADataPoints, calculateVWAP } from '../../Utilities/technicalIndicatorFunctions'
 import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudiesVisualElement'
 import { setGraphToSubGraphCrossHair, setNoCurrentCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
+import './chartStyles.css'
 
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay, timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
@@ -303,7 +304,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
             if (vwapData)
             {
-
                 stockCandleSVG.select('.vwap').select('.vwapLine').attr('d', VWAPLine(vwapData)).attr('stroke', 'orange').attr('fill', 'none').attr('stroke-width', '1.5px')
             }
 
@@ -398,28 +398,33 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     {
         if (preDimensionsAndCandleCheck() || !candlesToKeepSinceLastQuery || !lastCandleData) return
 
-        stockCandleSVG.select('.lastCandleUpdate').selectAll('.previousCandles').data(candlesToKeepSinceLastQuery, d => d.Timestamp).join(enter => createPreviousCandles(enter), update => updatePreviousCandles(update))
-        function createPreviousCandles(enter)
-        {
-            enter.each(function (d, i)
-            {
-                var tickerGroups = select(this).append('g').attr('class', 'previousCandles')
-                tickerGroups.append('line').attr('class', 'lowHigh').attr('stroke', 'black').attr('stroke-width', 1).attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
-                tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
-                tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
-            })
-        }
-        function updatePreviousCandles(update)
-        {
-            update.each(function (d, i)
-            {
-                const candle = select(this)
-                candle.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
-                candle.select('.lowHigh').attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
-                candle.select('.openClose').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
-            })
-        }
+        // stockCandleSVG.select('.lastCandleUpdate').selectAll('.previousCandles').data(candlesToKeepSinceLastQuery, d => d.Timestamp).join(enter => createPreviousCandles(enter), update => updatePreviousCandles(update))
+        // function createPreviousCandles(enter)
+        // {
+        //     enter.each(function (d, i)
+        //     {
+        //         var tickerGroups = select(this).append('g').attr('class', 'previousCandles')
+        //         tickerGroups.append('line').attr('class', 'lowHigh').attr('stroke', 'black').attr('stroke-width', 1).attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
+        //         tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+        //         tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
+        //     })
+        // }
+        // function updatePreviousCandles(update)
+        // {
+        //     update.each(function (d, i)
+        //     {
+        //         const candle = select(this)
+        //         candle.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
+        //         candle.select('.lowHigh').attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
+        //         candle.select('.openClose').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+        //     })
+        // }
 
+        let centerTextOnPriceLinePixel = 4
+        let centerRectOnPriceLinePixel = 15
+        let priceOnYScale = priceScaleSVG.select('.currentPrice')
+
+        
         stockCandleSVG.select('.lastCandleUpdate').selectAll('.veryLastCandle').data([lastCandleData]).join(enter => createCandles(enter), update => updateCandles(update))
         function createCandles(enter)
         {
@@ -439,8 +444,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     .attr('stroke', 'green')
                     .attr('stroke-width', '1px')
                     .attr('stroke-dasharray', '5 5')
-                select(this).append('text').attr('class', 'livePriceText').attr('color', 'white')
-                    .text(`$${d.ClosePrice}`).attr("x", 25).attr("y", pixelPrice);
+
+                priceOnYScale.append('rect').attr('class', 'livePriceRect').attr('x', 0).attr('y', pixelPrice - centerRectOnPriceLinePixel + centerTextOnPriceLinePixel)
+                    .attr('width', '49px').attr('height', '20px').attr('fill', 'blue')
+
+                priceOnYScale.append('text').attr('class', 'livePriceText').attr('color', 'white')
+                    .text(`$${d.ClosePrice.toFixed(2)}`).attr("x", 3).attr("y", pixelPrice + centerTextOnPriceLinePixel);
             })
         }
         function updateCandles(update)
@@ -455,6 +464,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 let pixelPrice = createPriceScale({ priceToPixel: d.ClosePrice })
                 candle.select('.livePrice').attr('y1', pixelPrice).attr('y2', pixelPrice)
                 stockCandleSVG.select('.lastCandleUpdate').select('.livePriceText').text(`$${d.ClosePrice}`).attr('y', pixelPrice)
+
+                priceOnYScale.select('.livePriceRect').attr('y', pixelPrice - 15 + 4).attr('rx', 7)
+                priceOnYScale.select('.livePriceText').text(`$${d.ClosePrice.toFixed(2)}`).attr('y', pixelPrice + centerTextOnPriceLinePixel)
             })
 
         }
@@ -1167,6 +1179,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             <div ref={priceSVGWrapper} className='priceSVGWrapper'>
                 <svg ref={priceSVG}>
                     <g className='y-axis' />
+                    <g className='currentPrice' />
                 </svg>
             </div>
 

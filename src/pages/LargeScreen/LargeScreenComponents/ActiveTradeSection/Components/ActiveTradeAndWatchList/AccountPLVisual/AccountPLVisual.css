@@ -12,6 +12,14 @@
   font-size: var(--fs-100);
 }
 
+#AccountDepositWithdrawForm {
+  display: flex;
+  gap: 0.5rem;
+}
+#AccountDepositWithdrawForm > input {
+  width: 175px;
+}
+
 #LHS-AccountPLVisual > div:first-child {
   display: flex;
   align-items: center;
