@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addEnterExitToCharting, addLine, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, isSaturday, isSunday } from 'date-fns'
+import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, isSaturday, isSunday, eachDayOfInterval } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { makeSelectKeyLevelsByTicker, selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
@@ -17,14 +17,17 @@ import { defaultChartingStyles } from '../../Utilities/GraphStyles'
 import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
-import { generateTradingHours, getBreaksBetweenDates } from '../../Utilities/TimeFrames'
+import { generateTradingHours, getBreaksBetweenDates, provideStartAndEndDatesForDateScale } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
 import { calculateEMADataPoints, calculateVWAP } from '../../Utilities/technicalIndicatorFunctions'
 import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudiesVisualElement'
 import { setGraphToSubGraphCrossHair, setNoCurrentCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import './chartStyles.css'
+import { makeSelectGraphHoursByUUID } from '../../features/Charting/GraphMarketHourElement'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay, timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay,
+    timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking,
+    uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
     const dispatch = useDispatch()
 
@@ -47,6 +50,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
     const selectedStudyVisualStateMemo = useMemo(makeSelectGraphStudyByUUID, [])
     const studyVisualController = useSelector((state) => selectedStudyVisualStateMemo(state, uuid))
+
+
+    const selectDisplayMarketHoursMemo = useMemo(makeSelectGraphHoursByUUID, [])
+    const displayMarketHours = useSelector((state) => selectDisplayMarketHoursMemo(state, uuid))
+
 
     const editMode = useSelector(selectChartEditMode)
 
@@ -85,14 +93,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const minPrice = useMemo(() => min(candleData, d => d.LowPrice), [candleData])
     const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [candleData])
 
+
     const vwapData = useMemo(() =>
     {
         if (studyVisualController?.ema || showEMAs) return calculateVWAP(candleData)
         else return undefined
     }, [showEMAs, candleData])
-
-
-
 
     const ema9Values = useMemo(() => calculateEMADataPoints(candleData, 9), [candleData])
     const ema50Values = useMemo(() => calculateEMADataPoints(candleData, 50), [candleData])
@@ -103,45 +109,49 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
 
 
-    const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame) }, [timeFrame])
+    const dateBetweenStartAndFinishInterval = useMemo(() =>
+    {
+        if (timeFrame.intraDay) { return eachDayOfInterval({ start: subDays(new Date(), 30), end: addDays(new Date(), 30) }) }
+        else return undefined
+    }, [timeFrame])
+
+    const visualBreaksPeriods = useMemo(() =>
+    {
+
+        if (timeFrame.intraDay && timeFrame.duration > 3)
+        {
+            return getBreaksBetweenDates(subDays(new Date(), 10), addDays(new Date(), 10), 'days')
+        } else if (timeFrame.intraDay && timeFrame.duration <= 3)
+        {
+            return getBreaksBetweenDates(subDays(new Date(), 10), addDays(new Date(), 4), 'marketOpen')
+        } else
+        {
+            return getBreaksBetweenDates(new Date(2024, 1, 1), addYears(new Date(), 1), 'months')
+        }
+    }, [timeFrame])
+
+    const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame, displayMarketHours?.showOnlyIntraDay) }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
+
+    const stockCandleSVG = select(candleSVG.current)
+    const priceScaleSVG = select(priceSVG.current)
+
+
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
-
-        let startDate
-        let futureForwardEndDate
-
-        if (timeFrame.intraDay)
-        {
-            startDate = new Date()
-            if (isSaturday(startDate)) startDate = subDays(startDate, 1)
-            if (isSunday(startDate)) startDate = subDays(startDate, 2)
-            startDate.setHours(5, 30, 0, 0)
-            futureForwardEndDate = new Date()
-        } else if (timeFrame.unitOfDuration === 'Y')
-        {
-            startDate = sub(new Date(), { days: 365 })
-            futureForwardEndDate = addDays(new Date(), 2)
-        }
-        else if (timeFrame.unitOfDuration === 'D')
-        {
-            startDate = sub(new Date(), { days: timeFrame.duration })
-            futureForwardEndDate = addDays(new Date(), 4)
-        }
+        const startEndDate = provideStartAndEndDatesForDateScale(timeFrame)
 
         let xDateScale = null
         if (timeFrame.intraDay)
         {
-
-            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuityRange(...excludedPeriods)).domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
-
+            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuityRange(...excludedPeriods))
+                .domain([startEndDate.startDate, startEndDate.futureForwardEndDate]).range([0, candleDimensions.width])
         }
         else
         {
-            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuitySkipUtcWeekends()).domain([startDate, futureForwardEndDate]).range([0, candleDimensions.width])
+            xDateScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuitySkipUtcWeekends())
+                .domain([startEndDate.startDate, startEndDate.futureForwardEndDate]).range([0, candleDimensions.width])
         }
-
-
 
         if (chartZoomState?.x)
         {
@@ -158,7 +168,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         else if (dateToPixel !== undefined) return xDateScale(new Date(dateToPixel))
         else return xDateScale
 
-    }, [candleData, chartZoomState?.x, candleDimensions, timeFrame])
+
+    }, [candleData, excludedPeriods, chartZoomState?.x, candleDimensions, timeFrame])
 
     const createPriceScale = useCallback(({ priceToPixel = undefined, pixelToPrice = undefined } = {}) =>
     {
@@ -198,23 +209,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     tickerRef.current = ticker
 
 
-    const stockCandleSVG = select(candleSVG.current)
-    const priceScaleSVG = select(priceSVG.current)
 
-    const visualBreaksPeriods = useMemo(() =>
-    {
-
-        if (timeFrame.intraDay && timeFrame.duration > 3)
-        {
-            return getBreaksBetweenDates(subDays(new Date(), 10), addDays(new Date(), 10), 'days')
-        } else if (timeFrame.intraDay && timeFrame.duration <= 3)
-        {
-            return getBreaksBetweenDates(subDays(new Date(), 10), addDays(new Date(), 4), 'marketOpen')
-        } else
-        {
-            return getBreaksBetweenDates(new Date(2024, 1, 1), addYears(new Date(), 1), 'months')
-        }
-    }, [timeFrame])
 
     //plot stock candles and initial tracking info
     useEffect(() =>
@@ -293,7 +288,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
         }
 
-    }, [candleData, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+    }, [candleData, excludedPeriods, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
     //plot EMA and VWAP lines
     useEffect(() =>
@@ -328,7 +323,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             stockCandleSVG.select('.vwap').selectAll('.vwapLine').remove()
             stockCandleSVG.select('.vwap').append('path').attr('class', 'vwapLine')
         }
-    }, [studyVisualController, vwapData, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
+    }, [studyVisualController, excludedPeriods, vwapData, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
 
 
 
@@ -336,11 +331,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck()) return
-
-        if (timeFrame.intraDay)
+        let dateVisualSelect = stockCandleSVG.select('.visualDateBreaks')
+        if (timeFrame.intraDay && !displayMarketHours.showOnlyIntraDay)
         {
-            stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').remove()
-            stockCandleSVG.select('.visualDateBreaks').selectAll('.preMarketVisualBreak').data([...visualBreaksPeriods.preMarket]).join(enter => createMarketOpenVisualBreaks(enter), update => updateMarketOpenVisualBreaks(update))
+            dateVisualSelect.selectAll('.visualBreak').remove()
+            dateVisualSelect.selectAll('.dayBreakLine').remove()
+            dateVisualSelect.selectAll('.preMarketVisualBreak').data([...visualBreaksPeriods.preMarket]).join(enter => createMarketOpenVisualBreaks(enter), update => updateMarketOpenVisualBreaks(update))
             function createMarketOpenVisualBreaks(enter)
             {
                 enter.each(function (d, i)
@@ -374,13 +370,39 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                         .attr('width', (d) => createDateScale({ dateToPixel: visualBreaksPeriods.afterMarket[i] }) - marketClose)
                 })
             }
-        } else
+        }
+        else if (timeFrame.intraDay && displayMarketHours.showOnlyIntraDay)
         {
+            dateVisualSelect.selectAll('.visualBreak').remove()
+            dateVisualSelect.selectAll('.preMarketVisualBreak').remove()
 
+            dateVisualSelect.selectAll('.dayBreakLine').data(dateBetweenStartAndFinishInterval).join(enter => createDayLineBreaks(enter), update => updateDayLineBreaks(update))
+            function createDayLineBreaks(enter)
+            {
+                enter.each(function (d, i)
+                {
+                    let dateX = createDateScale({ dateToPixel: d })
+                    dateVisualSelect.append('line').attr('class', 'dayBreakLine')
+                        .attr('x1', dateX).attr('x2', dateX).attr('y1', 0).attr('y2', candleDimensions.height - pixelBuffer.yDirectionPixelBuffer)
+                        .attr('stroke', 'blue').attr('stroke-width', '1px')
+                })
+            }
+            function updateDayLineBreaks(update)
+            {
+                update.each(function (d, i)
+                {
+                    let updateDateX = createDateScale({ dateToPixel: d })
+                    select(this).attr('x1', updateDateX).attr('x2', updateDateX)
+                })
+            }
+        }
+        else if (!timeDay.intraDay)
+        {
+            dateVisualSelect.selectAll('.dayBreakLine').remove()
+            dateVisualSelect.selectAll('.preMarketVisualBreak').remove()
+            dateVisualSelect.selectAll('.visualBreak').remove()
             let pixelDates = visualBreaksPeriods.months.map((d) => createDateScale({ dateToPixel: d }))
-            stockCandleSVG.select('.visualDateBreaks').selectAll('.preMarketVisualBreak').remove()
-            stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').remove()
-            stockCandleSVG.select('.visualDateBreaks').selectAll('.visualBreak').data(visualBreaksPeriods.months).join(enter => createVisualBreaks(enter))
+            dateVisualSelect.selectAll('.visualBreak').data(visualBreaksPeriods.months).join(enter => createVisualBreaks(enter))
             function createVisualBreaks(enter)
             {
                 enter.append('rect').attr('class', (d, i) => { return i % 2 !== 0 ? 'monthOdd visualBreak' : 'monthEven visualBreak' })
@@ -388,43 +410,18 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     .attr('width', (d, i) => { return pixelDates[i + 1] - createDateScale({ dateToPixel: d }) })
                     .attr('height', candleDimensions.height)
             }
-
         }
-
-    }, [candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+    }, [candleDimensions, excludedPeriods, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
     //plot previous candle Data and live price
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !candlesToKeepSinceLastQuery || !lastCandleData) return
 
-        // stockCandleSVG.select('.lastCandleUpdate').selectAll('.previousCandles').data(candlesToKeepSinceLastQuery, d => d.Timestamp).join(enter => createPreviousCandles(enter), update => updatePreviousCandles(update))
-        // function createPreviousCandles(enter)
-        // {
-        //     enter.each(function (d, i)
-        //     {
-        //         var tickerGroups = select(this).append('g').attr('class', 'previousCandles')
-        //         tickerGroups.append('line').attr('class', 'lowHigh').attr('stroke', 'black').attr('stroke-width', 1).attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
-        //         tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
-        //         tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
-        //     })
-        // }
-        // function updatePreviousCandles(update)
-        // {
-        //     update.each(function (d, i)
-        //     {
-        //         const candle = select(this)
-        //         candle.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
-        //         candle.select('.lowHigh').attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
-        //         candle.select('.openClose').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
-        //     })
-        // }
-
         let centerTextOnPriceLinePixel = 4
         let centerRectOnPriceLinePixel = 15
         let priceOnYScale = priceScaleSVG.select('.currentPrice')
 
-        
         stockCandleSVG.select('.lastCandleUpdate').selectAll('.veryLastCandle').data([lastCandleData]).join(enter => createCandles(enter), update => updateCandles(update))
         function createCandles(enter)
         {
@@ -470,8 +467,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             })
 
         }
-
-    }, [lastCandleData, candlesToKeepSinceLastQuery, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+    }, [lastCandleData, excludedPeriods, candlesToKeepSinceLastQuery, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
     //plot most recent price 
     useEffect(() =>
@@ -639,7 +635,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             }
         }
 
-    }, [ticker, chartId, charting, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+    }, [ticker, excludedPeriods, chartId, charting, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
     //plot user EnterExit Plan removing any possible charting enter exit  

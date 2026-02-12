@@ -26,21 +26,29 @@ export const interDayTimeFrames = [{ label: '1M', timeFrame: defaultTimeFrames.t
 ]
 
 
-export function generateTradingHours(timeFrame,)
+export function generateTradingHours(timeFrame, displayMarketHours)
 {
   const timeRanges = [];
   let currentDate = subBusinessDays(new Date().setUTCHours(9, 0, 0, 0), timeFrame.duration + 9);
 
   let today = addDays(new Date(), 1)
+
   while (currentDate <= today)
   {
-    if (!isSaturday(currentDate) && !isSunday(currentDate))
+    if (!isSaturday(currentDate) && !isSunday(currentDate) && displayMarketHours)
+    {
+      const marketCloseTime = new Date(currentDate);
+      marketCloseTime.setUTCHours(21, 0, 0, 0);
+      const nextDayMarketOpenTime = add(marketCloseTime, { hours: 17, minutes: 30 })
+      timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
+    } else if (!isSaturday(currentDate) && !isSunday(currentDate))
     {
       const marketCloseTime = new Date(currentDate);
       marketCloseTime.setUTCHours(1, 0, 0, 0);
       const nextDayMarketOpenTime = add(marketCloseTime, { hours: 8 })
       timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
-    } else if (isSaturday(currentDate))
+    }
+    else if (isSaturday(currentDate))
     {
       let fridayClose = sub(new Date(currentDate), { hours: 8 })
       let saturdayClose = add(new Date(fridayClose), { days: 1 })
@@ -104,4 +112,30 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
   }
 
   return timeBreaks;
+}
+
+export function provideStartAndEndDatesForDateScale(timeFrame)
+{
+  let startDate
+  let futureForwardEndDate
+  if (timeFrame.intraDay)
+  {
+
+    startDate = new Date()
+    if (isSaturday(startDate)) startDate = subDays(startDate, 1)
+    if (isSunday(startDate)) startDate = subDays(startDate, 2)
+    startDate.setHours(5, 30, 0, 0)
+    futureForwardEndDate = new Date().setHours(20, 0, 0, 0)
+
+  } else if (timeFrame.unitOfDuration === 'Y')
+  {
+    startDate = subDays(new Date(), 365)
+    futureForwardEndDate = addDays(new Date(), 2)
+  }
+  else if (timeFrame.unitOfDuration === 'D')
+  {
+    startDate = subDays(new Date(), 30)
+    futureForwardEndDate = addDays(new Date(), 4)
+  }
+  return { startDate, futureForwardEndDate }
 }

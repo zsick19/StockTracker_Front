@@ -13,7 +13,9 @@ function SingleHighImportanceTickerDisplay({ id, watchList })
     const [toggleEnterExitPlanImportant, { isLoading }] = useToggleEnterExitPlanImportantMutation()
     const [removeSingleEnterExitPlan] = useRemoveSingleEnterExitPlanMutation()
     const [showPlanNumbers, setShowPlanNumbers] = useState(false)
+    const [showChangeFromYesterday, setShowChangeFromYesterday] = useState(false)
 
+    const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
     function provideSelector(data)
     {
         switch (watchList)
@@ -23,8 +25,7 @@ function SingleHighImportanceTickerDisplay({ id, watchList })
         }
     }
 
-    const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
-
+    
     function handleFourWaySplit()
     {
         dispatch(setSelectedStockAndTimelineFourSplit({ ticker: plan.tickerSymbol, chartId: plan._id }))
@@ -57,9 +58,10 @@ function SingleHighImportanceTickerDisplay({ id, watchList })
         }
     }
 
+
     return (
-        <div className='highImportancePlanAndDiagram'>
-            <div className={`SingleWatchListTicker ${plan.listChange ? 'blinkForListUpdate' : ''} ${plan.changeFromYesterdayClose === 0 ? 'trackingNeutral' : plan.changeFromYesterdayClose > 0 ? 'trackingPositive' : 'trackingNegative'}`}>
+        <div className={`highImportancePlanAndDiagram ${plan.listChange ? 'blinkForListUpdate' : ''}`}>
+            <div className={`SingleWatchListTicker  ${plan.changeFromYesterdayClose === 0 ? 'trackingNeutral' : plan.changeFromYesterdayClose > 0 ? 'trackingPositive' : 'trackingNegative'}`}>
                 <p onClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
 
                 {showImportantRemove ? <>
@@ -70,7 +72,9 @@ function SingleHighImportanceTickerDisplay({ id, watchList })
                     <>
                         <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
                         <p>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
-                        <p onClick={() => setShowImportantRemove(true)}>{plan.currentDayPercentGain.toFixed(2)}%</p>
+                        <div onClick={() => setShowImportantRemove(true)} onMouseEnter={() => setShowChangeFromYesterday(true)} onMouseLeave={() => setShowChangeFromYesterday(false)}>
+                            {showChangeFromYesterday ? <p>{plan.changeFromYesterdayClose.toFixed(2)}</p> : <p>{plan.currentDayPercentGain.toFixed(2)}%</p>}
+                        </div>
                     </>}
             </div>
 

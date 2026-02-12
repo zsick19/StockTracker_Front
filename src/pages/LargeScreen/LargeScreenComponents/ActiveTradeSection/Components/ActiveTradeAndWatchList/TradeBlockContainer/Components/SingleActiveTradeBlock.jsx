@@ -28,7 +28,6 @@ function SingleActiveTradeBlock({ id })
         dispatch(setSingleChartToTickerTimeFrameTradeId({ tickerSymbol: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
     }
 
-
     return (
         <div className={`LSH-ActiveTradeBlock ${activeTrade.classVisual}`}>
             <div className='VerticalPlanDiagrams'>
@@ -124,13 +123,13 @@ function SingleActiveTradeBlock({ id })
                     </div> :
                     showPositionInfo === 1 ?
                         <div className='flex' onClick={() => setShowPositionInfo(0)}>
-                            <p >{activeTrade.sector}</p>
+                            <p >{activeTrade.sector} sector</p>
                             <p>Hold: {differenceInBusinessDays(new Date(), activeTrade.enterDate)} Days</p>
                         </div>
                         :
                         <div className='flex' onClick={() => setShowPositionInfo(0)}>
-                            <p>Ideal Gain: ${((activeTrade.tradingPlanPrices[4] - activeTrade.tradingPlanPrices[1]) * activeTrade.availableShares).toFixed(2)}</p>
-                            <p>GPS: ${(activeTrade.tradingPlanPrices[4] - activeTrade.tradingPlanPrices[1]).toFixed(2)}</p>
+                            <p>Ideal Risk: ${((activeTrade.tradingPlanPrices[1] - activeTrade.tradingPlanPrices[0]) * activeTrade.availableShares).toFixed(2)}</p>
+                            <p>Ideal Reward: ${((activeTrade.tradingPlanPrices[4] - activeTrade.tradingPlanPrices[1]) * activeTrade.availableShares).toFixed(2)}</p>
                         </div>
 
                 }

@@ -13,13 +13,11 @@ import { clearGraphControl, setInitialGraphControl, setResetXYZoomState } from '
 import TimeFrameDropDown from '../../../../../../components/ChartMenuDropDowns/TimeFrameDropDown'
 import StudySelectPopover from '../../../../../../components/ChartMenuDropDowns/StudySelectPopover'
 import ChartMenuBar from '../../../../../../components/ChartSubGraph/ChartMenuBar'
+import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../../../../../features/Charting/GraphMarketHourElement'
 
 function EnterExitTradeGraph()
 {
     const dispatch = useDispatch()
-
-    const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
-    const [showStudiesSelect, setShowStudiesSelect] = useState(false)
 
     const selectedStock = useSelector(selectTradeChartStock)
     const [timeFrame, setTimeFrame] = useState(selectedStock?.timeFrame || defaultTimeFrames.threeDayOneMin)
@@ -27,8 +25,18 @@ function EnterExitTradeGraph()
 
     useEffect(() =>
     {
+
         dispatch(setInitialGraphControl(uuid))
-        return (() => { if (uuid) dispatch(clearGraphControl(uuid)) })
+        dispatch(setInitialGraphHoursControl({ uuid }))
+
+        return (() =>
+        {
+            if (uuid) 
+            {
+                dispatch(clearGraphControl(uuid))
+                dispatch(clearGraphHoursControl({ uuid }))
+            }
+        })
     }, [])
     const [showEMAs, setShowEMAs] = useState(false)
     const [subCharts, setSubCharts] = useState([])

@@ -3,21 +3,18 @@ import { useDispatch } from 'react-redux'
 import TimeFrameDropDown from '../ChartMenuDropDowns/TimeFrameDropDown'
 import StudySelectPopover from '../ChartMenuDropDowns/StudySelectPopover'
 import { setResetXYZoomState } from '../../features/Charting/GraphHoverZoomElement'
-import { FlaskConical, LineSquiggle, Scale3D, SquareX } from 'lucide-react'
+import { CloudMoon, FlaskConical, LineSquiggle, Scale3D, SquareX } from 'lucide-react'
 import './ChartMenuBar.css'
 import { defaultTimeFrames } from '../../Utilities/TimeFrames'
 import { setGraphEMAControl } from '../../features/Charting/GraphStudiesVisualElement'
+import { setToggleShowOnlyMarketHours } from '../../features/Charting/GraphMarketHourElement'
 
-function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts, uuid, setShowEMAs })
+function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts, uuid })
 {
-
-
+    const dispatch = useDispatch()
     const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
     const [showStudiesSelect, setShowStudiesSelect] = useState(false)
 
-
-
-    const dispatch = useDispatch()
     function handleTimeFrameChange(e)
     {
         let timeFrameSelection
@@ -52,7 +49,10 @@ function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts
 
         <div className='MenuBar'>
             <h3>{ticker}</h3>
-            <button className='timeFrameButton' onClick={() => { setShowTimeFrameSelect(true); setShowStudiesSelect(false) }}>{timeFrame.increment}{timeFrame.unitOfIncrement}</button>
+            <div className='flex'>
+                <button className='timeFrameButton' onClick={() => { setShowTimeFrameSelect(true); setShowStudiesSelect(false) }}>{timeFrame.increment}{timeFrame.unitOfIncrement}</button>
+                <button className='iconButton' onClick={() => dispatch(setToggleShowOnlyMarketHours({ uuid }))}><CloudMoon size={18} /></button>
+            </div>
 
             <div className='flex'>
                 <button className='buttonIcon' onClick={() => { setShowTimeFrameSelect(false); setShowStudiesSelect(true) }}><FlaskConical size={18} color='white' /></button>
