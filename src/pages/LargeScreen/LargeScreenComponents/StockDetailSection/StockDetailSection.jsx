@@ -28,7 +28,10 @@ function StockDetailSection()
     switch (currentStockDetail)
     {
       case 0: return <FourGraphSplitContainer />
-      case 1: return <MarketSearch currentMarketSearchPage={currentMarketSearchPage} setCurrentMarketSearchPage={setCurrentMarketSearchPage} marketSearchFilter={marketSearchFilter} setMarketSearchFilter={setMarketSearchFilter} />
+      case 1: return <MarketSearch currentMarketSearchPage={currentMarketSearchPage}
+        setCurrentMarketSearchPage={setCurrentMarketSearchPage}
+        marketSearchFilter={marketSearchFilter}
+        setMarketSearchFilter={setMarketSearchFilter} />
       case 2: return <ConfirmMarketSearch />
       case 3: return <ConfirmedStatus />
       case 4: return <PlanViabilityStatus />

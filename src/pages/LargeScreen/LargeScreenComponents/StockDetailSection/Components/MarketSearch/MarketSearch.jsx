@@ -44,7 +44,8 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
                 {searchResults}
                 <button className='ConfirmMarketNavBtns' onClick={() => setCurrentMarketSearchPage(prev => prev + 1)} disabled={!paginationInfo?.hasNext}>Next</button>
             </div>
-            <MarketSearchPageControl currentPage={currentMarketSearchPage} paginationInfo={paginationInfo} setCurrentPage={setCurrentMarketSearchPage} />
+            <MarketSearchPageControl currentPage={currentMarketSearchPage} paginationInfo={paginationInfo}
+                setCurrentPage={setCurrentMarketSearchPage} marketSearchFilter={marketSearchFilter} setMarketSearchFilter={setMarketSearchFilter}/>
         </div>
     )
 }

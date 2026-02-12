@@ -11,9 +11,9 @@ function HighImportanceWatchListContainer({ highImportanceWatchListIds })
     return (
         <div>
             <div className='flex'>
-                <p>High Importance</p>
+                <p className='orangeFont'>High Importance</p>
                 <div className='flex'>
-                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(13))}><Grip size={20} color='white' /></button>
+                    <button className='iconButton' onClick={() => dispatch(setStockDetailState(13))}><Grip size={20} color='orange' /></button>
                 </div>
             </div>
 

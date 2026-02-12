@@ -29,6 +29,9 @@
   --ff-sans-normal: "Barlow", sans-serif;
   overflow-y: hidden;
 }
+.orangeFont{
+  color:orange
+}
 
 /* ------------------- */
 /* Reset               */

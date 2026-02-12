@@ -12,8 +12,8 @@ function SingleActiveTradeBlock({ id })
 {
     const dispatch = useDispatch()
     const [showStopEnterExit, setShowStopEnterExit] = useState(0)
+    const [showPositionInfo, setShowPositionInfo] = useState(0)
     const [showTradeOptions, setShowTradeOptions] = useState(false)
-    const [showPositionInfo, setShowPositionInfo] = useState(false)
 
     const { activeTrade } = useGetUsersActiveTradesQuery(undefined, { selectFromResult: ({ data }) => ({ activeTrade: data ? activeTradeSelectors.selectById(data, id) : undefined }) })
 
@@ -117,15 +117,22 @@ function SingleActiveTradeBlock({ id })
                         <p>{activeTrade.percentOfGain.toFixed(2)}% E/X Captured</p>
                     </div>
                 </div>
-                {showPositionInfo ?
-                    <div className='flex' onClick={() => setShowPositionInfo(false)}>
-                        <p>{activeTrade.sector}</p>
-                        <p>Hold: {differenceInBusinessDays(new Date(), activeTrade.enterDate)} Days</p>
-                    </div>
-                    : <div className='flex' onClick={() => setShowPositionInfo(true)}>
-                        <p>Total P/L: ${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</p>
-                        <p>Market Value: ${(activeTrade.availableShares * activeTrade.mostRecentPrice).toFixed(2)}</p>
-                    </div>
+                {showPositionInfo === 0 ?
+                    <div className='flex'>
+                        <p onClick={() => setShowPositionInfo(1)}>Total P/L: ${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</p>
+                        <p onClick={() => setShowPositionInfo(2)}>Market Value: ${(activeTrade.availableShares * activeTrade.mostRecentPrice).toFixed(2)}</p>
+                    </div> :
+                    showPositionInfo === 1 ?
+                        <div className='flex' onClick={() => setShowPositionInfo(0)}>
+                            <p >{activeTrade.sector}</p>
+                            <p>Hold: {differenceInBusinessDays(new Date(), activeTrade.enterDate)} Days</p>
+                        </div>
+                        :
+                        <div className='flex' onClick={() => setShowPositionInfo(0)}>
+                            <p>Ideal Gain: ${((activeTrade.tradingPlanPrices[4] - activeTrade.tradingPlanPrices[1]) * activeTrade.availableShares).toFixed(2)}</p>
+                            <p>GPS: ${(activeTrade.tradingPlanPrices[4] - activeTrade.tradingPlanPrices[1]).toFixed(2)}</p>
+                        </div>
+
                 }
             </div>
 
