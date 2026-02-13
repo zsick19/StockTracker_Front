@@ -22,13 +22,26 @@
 }
 
 .newsMessageFlexDisplay > div:last-of-type {
-  padding: 1rem;
+  padding: 0.5rem;
   border-top: 1px solid white;
 }
 
 #NewsDisplaySection > div:last-child {
   display: flex;
-  text-align: center;
+  text-align: start;
   justify-content: center;
   align-items: center;
+}
+
+.IncomingNewsFeed {
+  height: 300px;
+  flex: 1;
+  overflow-y: scroll;
+}
+
+.singleNewsArticle {
+  display: grid;
+  grid-template-columns: 90% 1fr;
+  margin-bottom: 0.25rem;
+  background-color: rgb(23, 23, 43);
 }

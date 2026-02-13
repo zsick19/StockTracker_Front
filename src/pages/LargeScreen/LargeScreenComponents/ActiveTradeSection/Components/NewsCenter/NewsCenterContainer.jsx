@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import './NewsCenterContainer.css'
+import MacroNewsFeed from './Components/MacroNewsFeed';
+import CurrentTradeNewsFeed from './Components/CurrentTradeNewsFeed';
 
 function NewsCenterContainer()
 {
@@ -21,8 +23,8 @@ function NewsCenterContainer()
                 <p>  //12 pre-watch enter buffer   </p>
                 <p>  //13 pre-watch planned        </p>
             </div>);
-            case 'macro': return <div> Macro News Feed</div>
-            case 'trade': return <div>Trade News</div>
+            case 'macro': return <MacroNewsFeed />
+            case 'trade': return <CurrentTradeNewsFeed />
             case 'pretrade': return <div>Pre Trade News</div>
         }
     }

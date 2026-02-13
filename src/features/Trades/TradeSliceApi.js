@@ -1,4 +1,4 @@
-import { createEntityAdapter } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { enterBufferHitAdapter, enterExitAdapter, EnterExitPlanApiSlice, highImportanceAdapter, stopLossHitAdapter } from "../EnterExitPlans/EnterExitApiSlice";
@@ -19,7 +19,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     trade.id = trade.tickerSymbol
                     trade.mostRecentPrice = response.mostRecentPrices[trade.tickerSymbol]
                     console.log(trade.mostRecentPrice)
-                    
+
 
                     trade.percentOfGain = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * 100)
                     trade.gainPerShare = trade.mostRecentPrice - trade.averagePurchasePrice
@@ -184,10 +184,6 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ['activeTrades', 'tradeHistory']
         }),
-
-
-
-
     })
 });
 
@@ -201,3 +197,7 @@ export const {
 
 
 export const activeTradeSelectors = activeTradeAdapter.getSelectors();
+
+export const selectCurrentTradeTickers = createSelector(TradeApiSlice.endpoints.getUsersActiveTrades.select(),
+    (result) => { return result?.data.ids || [] })
+
