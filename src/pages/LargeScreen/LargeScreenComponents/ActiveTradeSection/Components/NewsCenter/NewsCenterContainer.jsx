@@ -34,9 +34,6 @@ function NewsCenterContainer()
         <div id='NewsDisplaySection' className='newsMessageFlexDisplay'>
             <fieldset onChange={(e) => setNewsDisplay(e.target.id)} id='NewsCenterDisplayNav' className='fieldSetWithTabs'>
 
-                <input type="radio" name="newsDisplay" id="details" className='hidden-radio' />
-                <label htmlFor="details">Detail Numbers</label>
-
                 <input type="radio" name="newsDisplay" id="macro" defaultChecked className='hidden-radio' />
                 <label htmlFor="macro">Macro</label>
 

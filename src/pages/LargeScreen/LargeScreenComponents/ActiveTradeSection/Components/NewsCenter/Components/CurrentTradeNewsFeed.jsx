@@ -7,6 +7,7 @@ import SingleNewsArticle from './SingleNewsArticle'
 function CurrentTradeNewsFeed()
 {
 
+   
     const tradeTickers = useSelector(state => selectCurrentTradeTickers(state))
     const { data, isLoading, isSuccess, isError, error } = useGetMajorMacroNewsQuery({ tickersToSearch: tradeTickers }, { pollingInterval: 36000 })
     console.log(data)

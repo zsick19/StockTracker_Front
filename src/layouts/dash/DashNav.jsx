@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePopulateMacroTickersMutation, useResetUserMutation } from "../../features/test/testApiSlice";
-import { ChessKing } from "lucide-react";
+import { ChessKing, ChessQueen } from "lucide-react";
 
 function DashNav()
 {
@@ -39,6 +39,7 @@ function DashNav()
 
   const [showSectorAbbr, setShowSectorAbbr] = useState(false)
 
+  const [centerInformationDisplay, setShowCenterInformationDisplay] = useState(0)
   return (
     <nav id="DashNav">
       {width > 1500 && !location.pathname.includes("/dash/largeScreen") && (
@@ -54,7 +55,8 @@ function DashNav()
 
 
       <p>Stock Tracker</p>
-      {showSectorAbbr && <div className="flex">
+      {centerInformationDisplay === 1 ? <div className="flex">
+
         <p>XLRE: Real Estate</p>
         <p>XLY: Consumer Discretionary</p>
         <p>XLK: Technology</p>
@@ -66,10 +68,26 @@ function DashNav()
         <p>XLI: Industrials</p>
         <p>XLV: Healthcare</p>
         <p>XLB: Materials</p>
-      </div>}
+
+      </div> :
+        centerInformationDisplay === 2 ? <div className="flex">
+          <p>GDX: Gold Miners</p>
+          <p>//</p>
+          <p>SMH: Semi Conductors ETF</p>
+          <p>XBI: BioTech ETF</p>
+          <p>KRP: Oil & Gas ETF</p>
+          <p>XCP: BioTech ETF</p>
+          <p>XRT: Retail ETF</p>
+        </div> : <div>
+          search bar
+        </div>}
+
       {/* <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button> */}
       {/* <button onClick={() => attemptResettingUser()}>Dev Reset User</button> */}
-      <button className="buttonIcon" onMouseEnter={() => setShowSectorAbbr(true)} onMouseLeave={() => setShowSectorAbbr(false)}><ChessKing color="green" /></button>
+      <div className="flex">
+        <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(1)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessKing color="green" /></button>
+        <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(2)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessQueen color="green" /></button>
+      </div>
     </nav>
   );
 }

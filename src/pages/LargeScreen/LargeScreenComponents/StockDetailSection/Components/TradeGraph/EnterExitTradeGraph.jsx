@@ -10,10 +10,11 @@ import { defaultTimeFrames } from '../../../../../../Utilities/TimeFrames'
 import { FlaskConical, LineSquiggle, Scale3D } from 'lucide-react'
 import * as short from 'short-uuid'
 import { clearGraphControl, setInitialGraphControl, setResetXYZoomState } from '../../../../../../features/Charting/GraphHoverZoomElement'
-import TimeFrameDropDown from '../../../../../../components/ChartMenuDropDowns/TimeFrameDropDown'
-import StudySelectPopover from '../../../../../../components/ChartMenuDropDowns/StudySelectPopover'
 import ChartMenuBar from '../../../../../../components/ChartSubGraph/ChartMenuBar'
 import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../../../../../features/Charting/GraphMarketHourElement'
+import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../../../../../features/Charting/GraphStudiesVisualElement'
+import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../../../../../features/Charting/GraphToSubGraphCrossHairElement'
+import { clearGraphVisibility, setInitialGraphVisibility } from '../../../../../../features/Charting/ChartingVisibility'
 
 function EnterExitTradeGraph()
 {
@@ -26,15 +27,21 @@ function EnterExitTradeGraph()
     useEffect(() =>
     {
 
-        dispatch(setInitialGraphControl(uuid))
+        dispatch(setInitialGraphControl({ uuid }))
+        dispatch(setInitialGraphStudyControl({ uuid }))
+        dispatch(setInitialGraphToSubGraphCrossHair({ uuid }))
         dispatch(setInitialGraphHoursControl({ uuid }))
+        dispatch(setInitialGraphVisibility({ uuid }))
 
         return (() =>
         {
             if (uuid) 
             {
-                dispatch(clearGraphControl(uuid))
+                dispatch(clearGraphControl({ uuid }))
+                dispatch(clearGraphStudyControl({ uuid }))
+                dispatch(clearGraphToSubGraphCrossHair({ uuid }))
                 dispatch(clearGraphHoursControl({ uuid }))
+                dispatch(clearGraphVisibility({ uuid }))
             }
         })
     }, [])

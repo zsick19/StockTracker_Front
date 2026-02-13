@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectSingleChartStock, setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 import SingleGraphChartWrapper from './Components/SingleGraphChartWrapper'
 import { selectConfirmedUnChartedTrio, setConfirmedUnChartedNavIndex } from '../../../../../../features/SelectedStocks/PreviousNextStockSlice'
-import VisibilityModal from './Components/VisibilityModal'
+
 import KeyLevelsPanel from './Components/ChartControlPanels/KeyLevelsPanel'
 import EnterExitPanel from './Components/ChartControlPanels/EnterExitPanel'
 import InfoPanel from './Components/ChartControlPanels/InfoPanel'

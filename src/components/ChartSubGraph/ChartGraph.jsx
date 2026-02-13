@@ -9,7 +9,7 @@ import { pixelBuffer } from './GraphChartConstants'
 import { makeSelectKeyLevelsByTicker, selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
 import { defineEnterExitPlan, makeSelectEnterExitByTicker } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { selectCurrentTool } from '../../features/Charting/ChartingTool'
-import { selectChartVisibility } from '../../features/Charting/ChartingVisibility'
+import { makeSelectGraphVisibilityByUUID, selectChartVisibility } from '../../features/Charting/ChartingVisibility'
 import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
 import ChartContextMenuContainer from './contextMenus/ChartContextMenuContainer'
 import { ChartingToolEdits, ChartingTools } from '../../Utilities/ChartingTools'
@@ -64,7 +64,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
     //redux graph functioning selectors
     const currentTool = useSelector(selectCurrentTool)
-    const chartingVisibility = useSelector(selectChartVisibility)
+
+    const selectGraphingVisibilityMemo = useMemo(makeSelectGraphVisibilityByUUID, [])
+    const graphElementVisibility = useSelector((state) => selectGraphingVisibilityMemo(state, uuid))
+
 
     //context menu show and positioning
     const [showContextMenu, setShowContextMenu] = useState({ display: false, style: {} })
@@ -949,32 +952,47 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //charting visibility
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !isInteractive) return
+        if (preDimensionsAndCandleCheck()) return
 
         let lineGroupClassName = '.line_group'
         let allPossibleClassNames = ['.freeLines', '.linesH', '.trendLines', '.wedges', '.channels', '.triangles', '.enterExits']
-        if (chartingVisibility.showAll)
+        if (graphElementVisibility.showAll && !graphElementVisibility.showOnlyEnterExit)
         {
-            chartingVisibility.anyFreeLines ? toggleAnyVisible(allPossibleClassNames[0], chartingVisibility.freeLines, chartingVisibility.previousFreeLines) : toggleSelectToHidden(allPossibleClassNames[0],)
-            chartingVisibility.anyLinesH ? toggleAnyVisible(allPossibleClassNames[1], chartingVisibility.linesH, chartingVisibility.previousLinesH) : toggleSelectToHidden(allPossibleClassNames[1])
-            chartingVisibility.anyTrendLines ? toggleAnyVisible(allPossibleClassNames[2], chartingVisibility.trendLines, chartingVisibility.previousTrendLines) : toggleSelectToHidden(allPossibleClassNames[2])
-            chartingVisibility.anyWedges ? toggleAnyVisible(allPossibleClassNames[3], chartingVisibility.wedges, chartingVisibility.previousWedges) : toggleSelectToHidden(allPossibleClassNames[3])
-            chartingVisibility.anyChannels ? toggleAnyVisible(allPossibleClassNames[4], chartingVisibility.channels, chartingVisibility.previousChannels) : toggleSelectToHidden(allPossibleClassNames[4])
-            chartingVisibility.anyTriangles ? toggleAnyVisible(allPossibleClassNames[5], chartingVisibility.triangles, chartingVisibility.previousTriangles) : toggleSelectToHidden(allPossibleClassNames[5])
-            chartingVisibility.anyEnterExits ? toggleAnyVisible(allPossibleClassNames[6], chartingVisibility.enterExits, chartingVisibility.previousEnterExits) : toggleSelectToHidden(allPossibleClassNames[6])
-        } else { allPossibleClassNames.map((singleClass, i) => { toggleSelectToHidden(singleClass) }) }
+            graphElementVisibility.anyFreeLines ?
+                toggleAnyVisible(allPossibleClassNames[0], graphElementVisibility.freeLines, graphElementVisibility.previousFreeLines) :
+                toggleSelectToHidden(allPossibleClassNames[0])
+
+            // graphElementVisibility.anyLinesH ? toggleAnyVisible(allPossibleClassNames[1], graphElementVisibility.linesH, graphElementVisibility.previousLinesH) : toggleSelectToHidden(allPossibleClassNames[1])
+            // graphElementVisibility.anyTrendLines ? toggleAnyVisible(allPossibleClassNames[2], graphElementVisibility.trendLines, graphElementVisibility.previousTrendLines) : toggleSelectToHidden(allPossibleClassNames[2])
+            // graphElementVisibility.anyWedges ? toggleAnyVisible(allPossibleClassNames[3], graphElementVisibility.wedges, graphElementVisibility.previousWedges) : toggleSelectToHidden(allPossibleClassNames[3])
+            // graphElementVisibility.anyChannels ? toggleAnyVisible(allPossibleClassNames[4], graphElementVisibility.channels, graphElementVisibility.previousChannels) : toggleSelectToHidden(allPossibleClassNames[4])
+            // graphElementVisibility.anyTriangles ? toggleAnyVisible(allPossibleClassNames[5], graphElementVisibility.triangles, graphElementVisibility.previousTriangles) : toggleSelectToHidden(allPossibleClassNames[5])
+
+            graphElementVisibility.anyEnterExits ?
+                toggleAnyVisible(allPossibleClassNames[6], graphElementVisibility.enterExits, graphElementVisibility.previousEnterExits) :
+                toggleSelectToHidden(allPossibleClassNames[6])
+
+        }
+        else if (graphElementVisibility.showOnlyEnterExit)
+        {
+            toggleAnyVisible(allPossibleClassNames[6], graphElementVisibility.enterExits, graphElementVisibility.previousEnterExits)
+            toggleSelectToHidden(allPossibleClassNames[0])
+        }
+        else { allPossibleClassNames.map((singleClass, i) => { toggleSelectToHidden(singleClass) }) }
 
 
         function toggleAnyVisible(className, showCurrentSpecific, showPreviousSpecific)
         {
-            stockCandleSVG.select(className).selectAll(lineGroupClassName).attr('visibility', () => { if (chartingVisibility.showAnyCurrent) return showCurrentSpecific ? 'visible' : 'hidden'; else return 'hidden' })
-            stockCandleSVG.select(className).selectAll('.previous').attr('visibility', () => { if (chartingVisibility.showAnyPrevious) return showPreviousSpecific ? 'visible' : 'hidden'; else return 'hidden' })
+            stockCandleSVG.select(className).selectAll(lineGroupClassName).attr('visibility', () => { if (graphElementVisibility.showAnyCurrent) return showCurrentSpecific ? 'visible' : 'hidden'; else return 'hidden' })
+            stockCandleSVG.select(className).selectAll('.previous').attr('visibility', () => { if (graphElementVisibility.showAnyPrevious) return showPreviousSpecific ? 'visible' : 'hidden'; else return 'hidden' })
         }
         function toggleSelectToHidden(className)
         {
             stockCandleSVG.select(className).selectAll(lineGroupClassName).attr('visibility', 'hidden')
         }
-    }, [charting, EnterExitPlan, chartingVisibility])
+
+
+    }, [charting, graphElementVisibility, EnterExitPlan])
 
     //keyboard event listeners
     useEffect(() =>

@@ -9,6 +9,7 @@ import { clearGraphControl, setInitialGraphControl } from '../../features/Charti
 import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
+import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
 
 function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, interactionController, chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
@@ -27,6 +28,7 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
             dispatch(setInitialGraphStudyControl({ uuid }))
             dispatch(setInitialGraphToSubGraphCrossHair({ uuid }))
             dispatch(setInitialGraphHoursControl({ uuid }))
+            dispatch(setInitialGraphVisibility({ uuid }))
         }
         return (() =>
         {
@@ -36,12 +38,14 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
                 dispatch(clearGraphStudyControl({ uuid }))
                 dispatch(clearGraphToSubGraphCrossHair({ uuid }))
                 dispatch(clearGraphHoursControl({ uuid }))
+                dispatch(clearGraphVisibility({ uuid }))
             }
         })
     }, [])
 
     useEffect(() =>
     {
+
         if (isSuccess)
         {
             dispatch(setEnterExitCharting(chartingData))

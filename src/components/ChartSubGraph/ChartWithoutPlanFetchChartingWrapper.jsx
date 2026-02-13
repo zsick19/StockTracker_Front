@@ -17,6 +17,9 @@ function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionC
         {
             dispatch(setInitialGraphControl(uuid))
             dispatch(setInitialGraphStudyControl({ uuid }))
+            dispatch(setInitialGraphToSubGraphCrossHair({ uuid }))
+            dispatch(setInitialGraphHoursControl({ uuid }))
+            dispatch(setInitialGraphVisibility({ uuid }))
         }
         return (() =>
         {
@@ -24,6 +27,9 @@ function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionC
             {
                 dispatch(clearGraphControl(uuid))
                 dispatch(setInitialGraphStudyControl({ uuid }))
+                dispatch(clearGraphToSubGraphCrossHair({ uuid }))
+                dispatch(clearGraphHoursControl({ uuid }))
+                dispatch(clearGraphVisibility({ uuid }))
             }
         })
     }, [])

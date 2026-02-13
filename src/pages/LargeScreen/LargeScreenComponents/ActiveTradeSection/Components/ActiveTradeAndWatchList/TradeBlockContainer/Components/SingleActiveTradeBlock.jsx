@@ -123,8 +123,8 @@ function SingleActiveTradeBlock({ id })
                     </div> :
                     showPositionInfo === 1 ?
                         <div className='flex' onClick={() => setShowPositionInfo(0)}>
-                            <p >{activeTrade.sector} sector</p>
-                            <p>Hold: {differenceInBusinessDays(new Date(), activeTrade.enterDate)} Days</p>
+                            <p >{activeTrade.sector}</p>
+                            <p>Hold Days: {differenceInBusinessDays(new Date(), activeTrade.enterDate)}</p>
                         </div>
                         :
                         <div className='flex' onClick={() => setShowPositionInfo(0)}>

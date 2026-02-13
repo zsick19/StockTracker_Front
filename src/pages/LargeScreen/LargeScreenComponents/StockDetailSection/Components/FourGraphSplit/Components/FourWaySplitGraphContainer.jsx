@@ -2,17 +2,15 @@ import { useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import './FourWaySplitGraph.css'
 import * as short from 'short-uuid'
-import { FlaskConical, LineSquiggle, Scale3D } from 'lucide-react'
-import { setSelectedIndexTimeFrame, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
-import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
-import { setResetXYZoomState } from '../../../../../../../features/Charting/GraphHoverZoomElement'
-import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
 import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
-import TimeFrameDropDown from '../../../../../../../components/ChartMenuDropDowns/TimeFrameDropDown'
-import StudySelectPopover from '../../../../../../../components/ChartMenuDropDowns/StudySelectPopover'
+import ChartMenuBar from '../../../../../../../components/ChartSubGraph/ChartMenuBar'
+import RSISubChart from '../../../../../../../components/ChartSubGraph/SubCharts/RSISubChart'
+import VortexSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/VortexSubChart'
+import StochasticSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/StochasticSubChart'
+import MACDSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/MACDSubChart'
 
 function FourWaySpitGraphContainer({ selectedStock, index })
 {
@@ -21,10 +19,11 @@ function FourWaySpitGraphContainer({ selectedStock, index })
     const uuid = useMemo(() => short.generate(), [])
     let interactions = { isLivePrice: true, isInteractive: false, isZoomAble: true }
 
-    const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
-    const [showStudiesSelect, setShowStudiesSelect] = useState(false)
 
-    const { data: stockData, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: selectedStock.ticker, timeFrame: selectedStock.timeFrame, liveFeed: true })
+    const [timeFrame, setTimeFrame] = useState(selectedStock.timeFrame)
+    const [subCharts, setSubCharts] = useState([])
+
+    const { data: stockData, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: selectedStock.ticker, timeFrame: timeFrame, liveFeed: true })
 
 
     let graphVisual
@@ -38,45 +37,32 @@ function FourWaySpitGraphContainer({ selectedStock, index })
     else if (isLoading) graphVisual = <GraphLoadingSpinner />
     else if (isError) graphVisual = <GraphLoadingError />
 
-    function handleTimeFrameChange(e)
+    function provideSubCharts()
     {
-        let timeFrameSelection
-        if (e.target.name === 'timeFrameIntra')
         {
-            switch (e.target.id)
+            return subCharts.map((subChart) =>
             {
-                case '1m': timeFrameSelection = defaultTimeFrames.threeDayOneMin; break;
-                case '2m': timeFrameSelection = defaultTimeFrames.threeDayTwoMin; break;
-                case '5m': timeFrameSelection = defaultTimeFrames.threeDayFiveMin; break;
-                case '15m': timeFrameSelection = defaultTimeFrames.threeDayFifteenMin; break;
-                case '30m': timeFrameSelection = defaultTimeFrames.threeDayThirtyMin; break;
-            }
+                switch (subChart)
+                {
+                    case 'rsi': return <RSISubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+                    case 'vortex': return <VortexSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+                    case 'stochastic': return <StochasticSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+                    case 'MACD': return <MACDSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+                }
+            })
         }
-        else if (e.target.name === 'timeFrameHour') { timeFrameSelection = defaultTimeFrames.threeDayOneHour }
-        else if (e.target.name === 'timeFrameDay') { timeFrameSelection = defaultTimeFrames.dailyOneYear }
-        else if (e.target.name === 'timeFrameWeek') { timeFrameSelection = defaultTimeFrames.weeklyOneYear }
-
-        setShowTimeFrameSelect(false)
-        dispatch(setSelectedIndexTimeFrame({ index: index, timeFrame: timeFrameSelection }))
     }
 
-    function handleStudySelectChange(e)
-    {
 
-    }
     return (
         <div className='LSH-FourWaySplitContainer'>
-            {showTimeFrameSelect && <TimeFrameDropDown handleTimeFrameChange={handleTimeFrameChange} setShowTimeFrameSelect={setShowTimeFrameSelect} />}
-            {showStudiesSelect && <StudySelectPopover handleStudySelectChange={handleStudySelectChange} setShowStudiesSelect={setShowStudiesSelect} />}
-            <div className='LSH-4WayGraphHeader'>
-                <h3 onDoubleClick={() => { dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({ tickerSymbol: selectedStock.ticker, tickerSector: selectedStock.tickerSector, chartId: selectedStock.chartId, plan: selectedStock.plan, planId: selectedStock.chartId })); dispatch(setStockDetailState(8)) }}>{selectedStock.ticker}</h3>
-                <button className='timeFrameButton' onClick={() => { setShowTimeFrameSelect(true); setShowStudiesSelect(false) }}>{selectedStock.timeFrame.increment}{selectedStock.timeFrame.unitOfIncrement}</button>
-                <button className='buttonIcon' onClick={() => { setShowTimeFrameSelect(false); setShowStudiesSelect(true) }}><FlaskConical size={18} color='white' /></button>
-                <button className='buttonIcon'><LineSquiggle color='white' size={18} /></button>
 
-                <button className='buttonIcon' onClick={() => dispatch(setResetXYZoomState({ uuid }))} ><Scale3D size={18} color='white' /></button>
-            </div>
+            <ChartMenuBar ticker={selectedStock.ticker} setTimeFrame={setTimeFrame} timeFrame={timeFrame}
+                uuid={uuid} subCharts={subCharts} setSubCharts={setSubCharts} />
+
             {graphVisual}
+            {subCharts.length > 0 && <div className="SubChartWrapper">{provideSubCharts()}</div>}
+
         </div>
     )
 }
