@@ -8,6 +8,7 @@
 /* Title Block */
 #LSH-PreTradeWatchAsList > div > div:first-child {
   font-size: var(--fs-300);
+  height: 2rem;
   background-color: rgb(101, 111, 131);
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
@@ -86,4 +87,24 @@
 
 .trackingNeutral {
   color: rgb(221, 221, 221);
+}
+
+#LSH-PreWatchPlanList {
+  position: relative;
+  width: 100%;
+}
+
+.WatchListSectorSelect {
+  top: 2rem;
+  width: 100%;
+  display: flex;
+  gap: 1rem;
+  padding-inline: 1rem;
+}
+
+.WatchListSectorSelect select {
+  width: 100%;
+  color: white;
+  border: none;
+  background-color: rgb(11, 11, 71);
 }

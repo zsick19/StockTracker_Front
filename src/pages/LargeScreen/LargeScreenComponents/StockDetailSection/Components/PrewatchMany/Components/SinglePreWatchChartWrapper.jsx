@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { enterBufferSelectors, enterExitPlannedSelectors, highImportanceAdapter, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import ChartWithoutPlanFetchChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithoutPlanFetchChartingWrapper'
 import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import { useDispatch } from 'react-redux'
 import { setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import * as short from 'short-uuid'
 
 function SinglePreWatchChartWrapper({ id, watchList, candleData })
 {
@@ -21,7 +22,7 @@ function SinglePreWatchChartWrapper({ id, watchList, candleData })
     }
 
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
-
+    console.log(plan)
     const dispatch = useDispatch()
 
     function handleTradeView()
@@ -30,10 +31,12 @@ function SinglePreWatchChartWrapper({ id, watchList, candleData })
         dispatch(setStockDetailState(8))
     }
 
+    const uuid = useMemo(() => short.generate(), [])
+
     return (
         <div className='SinglePreWatchChartBlock'>
             <div>
-                <ChartWithoutPlanFetchChartingWrapper
+                <ChartWithoutPlanFetchChartingWrapper uuid={uuid}
                     ticker={id} candleData={{ candleData: candleData }}
                     interactionController={{ isLivePrice: true, isInteractive: false, isZoomAble: true }}
                     chartId={plan._id} timeFrame={defaultTimeFrames.threeDayOneMin}

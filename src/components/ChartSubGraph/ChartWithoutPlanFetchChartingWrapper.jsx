@@ -3,7 +3,10 @@ import ChartGraph from './ChartGraph'
 import { useDispatch } from 'react-redux'
 import { setEnterExitChartingFromPlan } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
-import { setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
+import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
+import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
+import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
+import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
 
 function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame,
     planData, mostRecentPrice, initialTracking, uuid })
@@ -15,12 +18,14 @@ function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionC
     {
         if (uuid)
         {
+
             dispatch(setInitialGraphControl(uuid))
             dispatch(setInitialGraphStudyControl({ uuid }))
             dispatch(setInitialGraphToSubGraphCrossHair({ uuid }))
             dispatch(setInitialGraphHoursControl({ uuid }))
             dispatch(setInitialGraphVisibility({ uuid }))
         }
+
         return (() =>
         {
             if (uuid)

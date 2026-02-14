@@ -114,20 +114,27 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
   return timeBreaks;
 }
 
-export function provideStartAndEndDatesForDateScale(timeFrame)
+export function provideStartAndEndDatesForDateScale(timeFrame, focusDates)
 {
   let startDate
   let futureForwardEndDate
-  if (timeFrame.intraDay)
-  {
 
+
+
+  if (timeFrame.intraDay && focusDates === undefined)
+  {
     startDate = new Date()
     if (isSaturday(startDate)) startDate = subDays(startDate, 1)
     if (isSunday(startDate)) startDate = subDays(startDate, 2)
     startDate.setHours(5, 30, 0, 0)
     futureForwardEndDate = new Date().setHours(20, 0, 0, 0)
-
-  } else if (timeFrame.unitOfDuration === 'Y')
+  }
+  else if (timeFrame.intraDay && focusDates)
+  {
+    startDate = new Date(focusDates.startDate)
+    futureForwardEndDate = new Date(focusDates.endDate)
+  }
+  else if (timeFrame.unitOfDuration === 'Y')
   {
     startDate = subDays(new Date(), 365)
     futureForwardEndDate = addDays(new Date(), 2)

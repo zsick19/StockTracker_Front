@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { enterBufferSelectors, enterExitPlannedSelectors, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import ChartWithoutPlanFetchChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithoutPlanFetchChartingWrapper'
 import { ClipboardPen } from 'lucide-react'
 import { differenceInCalendarDays } from 'date-fns'
+import * as short from 'short-uuid'
 function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPlansForRemoval, handleRemovalToggle, selectedPlansForUpdate, handleUpdateToggle })
 {
 
@@ -19,13 +20,13 @@ function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPl
     }
 
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
-
+    const uuid = useMemo(() => short.generate(), [])
 
     return (
         <div className='SingleViabilityChartBlock' >
             <div onClick={() => handleRemovalToggle(plan.tickerSymbol, plan._id)} className={selectedPlansForRemoval.find((t) => t.tickerSymbol === plan.tickerSymbol) ? 'setForRemoval' : ''}>
                 {candleData &&
-                    <ChartWithoutPlanFetchChartingWrapper ticker={id} candleData={{ candleData: candleData }}
+                    <ChartWithoutPlanFetchChartingWrapper ticker={id} uuid={uuid} candleData={{ candleData: candleData }}
                         interactionController={{ nonLivePrice: true, nonInteractive: true, nonZoomAble: true }}
                         chartId={plan._id} timeFrame={defaultTimeFrames.threeDayOneMin}
                         planData={plan.plan} mostRecentPrice={plan.mostRecentPrice}

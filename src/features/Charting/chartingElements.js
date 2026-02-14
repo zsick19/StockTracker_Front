@@ -86,7 +86,6 @@ const chartingElementSlice = createSlice({
 
       if (action.payload.charting)
       {
-        console.log(action.payload.charting)
         state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false }
       }
       else

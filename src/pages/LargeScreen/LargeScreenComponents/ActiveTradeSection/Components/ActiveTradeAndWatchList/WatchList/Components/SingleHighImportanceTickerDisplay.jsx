@@ -6,7 +6,7 @@ import { setSelectedStockAndTimelineFourSplit, setSingleChartTickerTimeFrameChar
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import HorizontalPlanDiagram from './PlanPricingDiagram/HorizontalPlanDiagram'
 
-function SingleHighImportanceTickerDisplay({ id, watchList })
+function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
 {
     const dispatch = useDispatch()
     const [showImportantRemove, setShowImportantRemove] = useState(false)
@@ -25,7 +25,7 @@ function SingleHighImportanceTickerDisplay({ id, watchList })
         }
     }
 
-    
+
     function handleFourWaySplit()
     {
         dispatch(setSelectedStockAndTimelineFourSplit({ ticker: plan.tickerSymbol, chartId: plan._id }))
@@ -60,36 +60,40 @@ function SingleHighImportanceTickerDisplay({ id, watchList })
 
 
     return (
-        <div className={`highImportancePlanAndDiagram ${plan.listChange ? 'blinkForListUpdate' : ''}`}>
-            <div className={`SingleWatchListTicker  ${plan.changeFromYesterdayClose === 0 ? 'trackingNeutral' : plan.changeFromYesterdayClose > 0 ? 'trackingPositive' : 'trackingNegative'}`}>
-                <p onClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
+        <>
+            {(sectorHighlight === 'all' || sectorHighlight === plan.sector) &&
+                <div className={`highImportancePlanAndDiagram ${plan.listChange ? 'blinkForListUpdate' : ''}`}>
+                    <div className={`SingleWatchListTicker  ${plan.changeFromYesterdayClose === 0 ? 'trackingNeutral' : plan.changeFromYesterdayClose > 0 ? 'trackingPositive' : 'trackingNegative'}`}>
+                        <p onClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
 
-                {showImportantRemove ? <>
-                    <button className='buttonIcon' onClick={() => attemptRemovingImportance()} disabled={isLoading}><AlertCircle size={14} color='red' /></button>
-                    <button className='buttonIcon' onClick={() => attemptRemovingPlan()}><Trash2 color='red' size={14} /></button>
-                    <button className='buttonIcon' onClick={() => setShowImportantRemove(false)}><X color='white' size={14} /></button>
-                </> :
-                    <>
-                        <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
-                        <p>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
-                        <div onClick={() => setShowImportantRemove(true)} onMouseEnter={() => setShowChangeFromYesterday(true)} onMouseLeave={() => setShowChangeFromYesterday(false)}>
-                            {showChangeFromYesterday ? <p>{plan.changeFromYesterdayClose.toFixed(2)}</p> : <p>{plan.currentDayPercentGain.toFixed(2)}%</p>}
+                        {showImportantRemove ? <>
+                            <button className='buttonIcon' onClick={() => attemptRemovingImportance()} disabled={isLoading}><AlertCircle size={14} color='red' /></button>
+                            <button className='buttonIcon' onClick={() => attemptRemovingPlan()}><Trash2 color='red' size={14} /></button>
+                            <button className='buttonIcon' onClick={() => setShowImportantRemove(false)}><X color='white' size={14} /></button>
+                        </> :
+                            <>
+                                <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
+                                <p>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
+                                <div onClick={() => setShowImportantRemove(true)} onMouseEnter={() => setShowChangeFromYesterday(true)} onMouseLeave={() => setShowChangeFromYesterday(false)}>
+                                    {showChangeFromYesterday ? <p>{plan.changeFromYesterdayClose.toFixed(2)}</p> : <p>{plan.currentDayPercentGain.toFixed(2)}%</p>}
+                                </div>
+                            </>}
+                    </div>
+
+                    {showPlanNumbers ? <div className='SingleTickerDiagram' onClick={() => setShowPlanNumbers(prev => !prev)}>
+                        <p>ST: ${plan.plan.stopLossPrice}</p>
+                        <p>E: ${plan.plan.enterPrice}</p>
+                        <p>EB: ${plan.plan.enterBufferPrice}</p>
+                        <p>Cur: ${plan.mostRecentPrice.toFixed(2)}</p>
+                    </div> :
+                        <div className='SingleTickerDiagram' onClick={() => setShowPlanNumbers(prev => !prev)} >
+                            <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
+                            <p>{plan.plan.percents[0].toFixed(2)} v {plan.plan.percents[3].toFixed(2)}</p>
                         </div>
-                    </>}
-            </div>
-
-            {showPlanNumbers ? <div className='SingleTickerDiagram' onClick={() => setShowPlanNumbers(prev => !prev)}>
-                <p>ST: ${plan.plan.stopLossPrice}</p>
-                <p>E: ${plan.plan.enterPrice}</p>
-                <p>EB: ${plan.plan.enterBufferPrice}</p>
-                <p>Cur: ${plan.mostRecentPrice.toFixed(2)}</p>
-            </div> :
-                <div className='SingleTickerDiagram' onClick={() => setShowPlanNumbers(prev => !prev)} >
-                    <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
-                    <p>{plan.plan.percents[0].toFixed(2)} v {plan.plan.percents[3].toFixed(2)}</p>
-                </div>
+                    }
+                </ div>
             }
-        </ div>
+        </>
     )
 }
 

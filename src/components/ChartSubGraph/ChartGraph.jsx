@@ -30,7 +30,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
     const dispatch = useDispatch()
-
+    let lineGroupClassName = '.line_group'
+    let allPossibleClassNames = ['.freeLines', '.linesH', '.trendLines', '.wedges', '.channels', '.triangles', '.enterExits']
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
     async function attemptToUpdateEnterExit() { try { await updateEnterExitPlan({ ticker, chartId }) } catch (error) { console.log(error) } }
     //redux charting data selectors
@@ -55,6 +56,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const selectDisplayMarketHoursMemo = useMemo(makeSelectGraphHoursByUUID, [])
     const displayMarketHours = useSelector((state) => selectDisplayMarketHoursMemo(state, uuid))
 
+    if (ticker === 'ABEO') console.log(displayMarketHours)
 
     const editMode = useSelector(selectChartEditMode)
 
@@ -142,7 +144,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
-        const startEndDate = provideStartAndEndDatesForDateScale(timeFrame)
+        const startEndDate = provideStartAndEndDatesForDateScale(timeFrame, displayMarketHours?.focusDates)
+        if (ticker === 'ABEO' && displayMarketHours?.focusDates) console.log(startEndDate)
 
         let xDateScale = null
         if (timeFrame.intraDay)
@@ -172,7 +175,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         else return xDateScale
 
 
-    }, [candleData, excludedPeriods, chartZoomState?.x, candleDimensions, timeFrame])
+    }, [candleData, excludedPeriods, displayMarketHours, chartZoomState?.x, candleDimensions, timeFrame])
 
     const createPriceScale = useCallback(({ priceToPixel = undefined, pixelToPrice = undefined } = {}) =>
     {
@@ -291,7 +294,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
         }
 
-    }, [candleData, excludedPeriods, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+    }, [candleData, excludedPeriods, displayMarketHours, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
     //plot EMA and VWAP lines
     useEffect(() =>
@@ -414,7 +417,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     .attr('height', candleDimensions.height)
             }
         }
-    }, [candleDimensions, excludedPeriods, chartZoomState?.x, chartZoomState?.y, timeFrame])
+    }, [candleDimensions, excludedPeriods, displayMarketHours, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
     //plot previous candle Data and live price
     useEffect(() =>
@@ -470,7 +473,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             })
 
         }
-    }, [lastCandleData, excludedPeriods, candlesToKeepSinceLastQuery, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+    }, [lastCandleData, excludedPeriods, displayMarketHours, candlesToKeepSinceLastQuery, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
     //plot most recent price 
     useEffect(() =>
@@ -638,7 +641,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             }
         }
 
-    }, [ticker, excludedPeriods, chartId, charting, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+    }, [ticker, excludedPeriods, displayMarketHours, chartId, charting, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
     //plot user EnterExit Plan removing any possible charting enter exit  
@@ -952,10 +955,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //charting visibility
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck()) return
+        if (preDimensionsAndCandleCheck() || !graphElementVisibility) return
 
-        let lineGroupClassName = '.line_group'
-        let allPossibleClassNames = ['.freeLines', '.linesH', '.trendLines', '.wedges', '.channels', '.triangles', '.enterExits']
         if (graphElementVisibility.showAll && !graphElementVisibility.showOnlyEnterExit)
         {
             graphElementVisibility.anyFreeLines ?
@@ -978,7 +979,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             toggleAnyVisible(allPossibleClassNames[6], graphElementVisibility.enterExits, graphElementVisibility.previousEnterExits)
             toggleSelectToHidden(allPossibleClassNames[0])
         }
-        else { allPossibleClassNames.map((singleClass, i) => { toggleSelectToHidden(singleClass) }) }
+        else
+        {
+            allPossibleClassNames.map((singleClass, i) => { toggleSelectToHidden(singleClass) })
+        }
 
 
         function toggleAnyVisible(className, showCurrentSpecific, showPreviousSpecific)
