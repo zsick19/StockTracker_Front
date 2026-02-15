@@ -16,40 +16,41 @@ function DateFocusDropDown({ uuid, setShowDateFocusSelect })
                 <p>Today's Market</p>
                 <fieldset onChange={(e) => { dispatch(setFocusStartFinishDate({ uuid, focusDates: e.target.value })); setShowDateFocusSelect(false) }}>
                     <input type="radio" name="focusPeriod" id="OMHO" value='OMHO' className='hiddenInput' />
-                    <label htmlFor="OMHO" className='timeFrameDropLabel'>Market Hours</label>
+                    <label htmlFor="OMHO" className='timeFrameDropLabel'>MH</label>
+
                     <input type="radio" name="focusPeriod" id="PMPM" value='PMPM' className='hiddenInput' />
-                    <label htmlFor="PMPM" className='timeFrameDropLabel'>Pre/Post</label>
+                    <label htmlFor="PMPM" className='timeFrameDropLabel'>P/P</label>
                 </fieldset>
 
                 <fieldset onChange={(e) => { dispatch(setFocusStartFinishDate({ uuid, focusDates: e.target.value })); setShowDateFocusSelect(false) }}>
                     <input type="radio" name="focusPeriod" id="P2D" value='P2D' className='hiddenInput' />
-                    <label htmlFor="P2D" className='timeFrameDropLabel'>Past 2 Days</label>
+                    <label htmlFor="P2D" className='timeFrameDropLabel'>2D</label>
 
                     <input type="radio" name="focusPeriod" id="P3D" value='P3D' className='hiddenInput' />
-                    <label htmlFor="P3D" className='timeFrameDropLabel'>Past 3 Days</label>
+                    <label htmlFor="P3D" className='timeFrameDropLabel'>3D</label>
 
                     <input type="radio" name="focusPeriod" id="P5D" value='P5D' className='hiddenInput' />
-                    <label htmlFor="P5D" className='timeFrameDropLabel'>Past 5 Days</label>
+                    <label htmlFor="P5D" className='timeFrameDropLabel'>5D</label>
                 </fieldset>
 
                 <fieldset onChange={(e) => { dispatch(setFocusStartFinishDate({ uuid, focusDates: e.target.value })); setShowDateFocusSelect(false) }}>
-                    <input type="radio" name="focusPeriod" id="P2D" value='P2W' className='hiddenInput' />
-                    <label htmlFor="P2W" className='timeFrameDropLabel'>Past 2 Weeks</label>
+                    <input type="radio" name="focusPeriod" id="P2W" value='P2W' className='hiddenInput' />
+                    <label htmlFor="P2W" className='timeFrameDropLabel'>2W</label>
 
-                    <input type="radio" name="focusPeriod" id="P3D" value='P3W' className='hiddenInput' />
-                    <label htmlFor="P3w" className='timeFrameDropLabel'>Past 3 Weeks</label>
+                    <input type="radio" name="focusPeriod" id="P3w" value='P3W' className='hiddenInput' />
+                    <label htmlFor="P3w" className='timeFrameDropLabel'>3W</label>
 
-                    <input type="radio" name="focusPeriod" id="P5D" value='P5M' className='hiddenInput' />
-                    <label htmlFor="P5M" className='timeFrameDropLabel'>Past Month</label>
+                    <input type="radio" name="focusPeriod" id="PM" value='PM' className='hiddenInput' />
+                    <label htmlFor="PM" className='timeFrameDropLabel'>PM</label>
 
-                    <input type="radio" name="focusPeriod" id="P5D" value='P5Q' className='hiddenInput' />
-                    <label htmlFor="P5Q" className='timeFrameDropLabel'>Past Quarter</label>
+                    <input type="radio" name="focusPeriod" id="PQ" value='PQ' className='hiddenInput' />
+                    <label htmlFor="PQ" className='timeFrameDropLabel'>PQ</label>
 
-                    <input type="radio" name="focusPeriod" id="P5D" value='P5HalfYear' className='hiddenInput' />
-                    <label htmlFor="P5HalfYear" className='timeFrameDropLabel'>Past Half Year</label>
+                    <input type="radio" name="focusPeriod" id="PHY" value='PHY' className='hiddenInput' />
+                    <label htmlFor="PHY" className='timeFrameDropLabel'>HY</label>
 
-                    <input type="radio" name="focusPeriod" id="P5D" value='P5Year' className='hiddenInput' />
-                    <label htmlFor="P5Year" className='timeFrameDropLabel'>Past Year</label>
+                    <input type="radio" name="focusPeriod" id="PY" value='PY' className='hiddenInput' />
+                    <label htmlFor="PY" className='timeFrameDropLabel'>PY</label>
 
                 </fieldset>
 

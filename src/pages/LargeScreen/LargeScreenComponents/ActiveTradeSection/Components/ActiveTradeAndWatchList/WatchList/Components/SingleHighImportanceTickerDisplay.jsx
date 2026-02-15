@@ -9,11 +9,13 @@ import HorizontalPlanDiagram from './PlanPricingDiagram/HorizontalPlanDiagram'
 function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
 {
     const dispatch = useDispatch()
-    const [showImportantRemove, setShowImportantRemove] = useState(false)
     const [toggleEnterExitPlanImportant, { isLoading }] = useToggleEnterExitPlanImportantMutation()
     const [removeSingleEnterExitPlan] = useRemoveSingleEnterExitPlanMutation()
+
+    const [showImportantRemove, setShowImportantRemove] = useState(false)
     const [showPlanNumbers, setShowPlanNumbers] = useState(false)
     const [showChangeFromYesterday, setShowChangeFromYesterday] = useState(false)
+    const [showIdealRiskVReward, setShowIdealRiskVReward] = useState(false)
 
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
     function provideSelector(data)
@@ -88,7 +90,10 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
                     </div> :
                         <div className='SingleTickerDiagram' onClick={() => setShowPlanNumbers(prev => !prev)} >
                             <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
-                            <p>{plan.plan.percents[0].toFixed(2)} v {plan.plan.percents[3].toFixed(2)}</p>
+                            {showIdealRiskVReward ?
+                                <p onMouseLeave={() => setShowIdealRiskVReward(false)}> {plan.plan.percents[0].toFixed(2)} v {plan.plan.percents[3].toFixed(2)}</p> :
+                                <p onMouseEnter={() => setShowIdealRiskVReward(true)}>{plan.currentRiskVReward.risk.toFixed(2)} v {plan.currentRiskVReward.reward.toFixed(2)}</p>
+                            }
                         </div>
                     }
                 </ div>

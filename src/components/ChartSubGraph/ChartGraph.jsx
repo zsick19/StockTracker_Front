@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addEnterExitToCharting, addLine, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, isSaturday, isSunday, eachDayOfInterval } from 'date-fns'
+import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, isSaturday, isSunday, eachDayOfInterval, isWeekend, isMonday, getDay } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { makeSelectKeyLevelsByTicker, selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
@@ -13,7 +13,7 @@ import { makeSelectGraphVisibilityByUUID, selectChartVisibility } from '../../fe
 import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
 import ChartContextMenuContainer from './contextMenus/ChartContextMenuContainer'
 import { ChartingToolEdits, ChartingTools } from '../../Utilities/ChartingTools'
-import { defaultChartingStyles } from '../../Utilities/GraphStyles'
+import { allPossibleClassNames, defaultChartingStyles, lineGroupClassName } from '../../Utilities/GraphStyles'
 import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
@@ -30,33 +30,25 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
     const dispatch = useDispatch()
-    let lineGroupClassName = '.line_group'
-    let allPossibleClassNames = ['.freeLines', '.linesH', '.trendLines', '.wedges', '.channels', '.triangles', '.enterExits']
+
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
     async function attemptToUpdateEnterExit() { try { await updateEnterExitPlan({ ticker, chartId }) } catch (error) { console.log(error) } }
-    //redux charting data selectors
 
+    //redux charting data selectors
     const selectKeyLevelMemo = useMemo(makeSelectKeyLevelsByTicker, [ticker])
     const KeyLevels = useSelector((state) => selectKeyLevelMemo(state, ticker))
-
-
 
     const selectedEnterExitMemo = useMemo(makeSelectEnterExitByTicker, [])
     const EnterExitPlan = useSelector(state => selectedEnterExitMemo(state, ticker))
 
-
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
-
 
     const selectedStudyVisualStateMemo = useMemo(makeSelectGraphStudyByUUID, [])
     const studyVisualController = useSelector((state) => selectedStudyVisualStateMemo(state, uuid))
 
-
     const selectDisplayMarketHoursMemo = useMemo(makeSelectGraphHoursByUUID, [])
     const displayMarketHours = useSelector((state) => selectDisplayMarketHoursMemo(state, uuid))
-
-    if (ticker === 'ABEO') console.log(displayMarketHours)
 
     const editMode = useSelector(selectChartEditMode)
 
@@ -80,6 +72,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const [captureComplete, setCaptureComplete] = useState(false)
     const [editChartElement, setEditChartElement] = useState()
 
+
     //chart plotting necessities
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
     const priceSVG = useRef()
@@ -88,35 +81,48 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const candleSVGWrapper = useRef(null)
     let priceDimensions = useResizeObserver(priceSVGWrapper)
     let candleDimensions = useResizeObserver(candleSVGWrapper)
+    const stockCandleSVG = select(candleSVG.current)
+    const priceScaleSVG = select(priceSVG.current)
+
 
     //chart zoom states    
     const selectedChartZoomStateMemo = useMemo(makeSelectZoomStateByUUID, [])
     const chartZoomState = useSelector(state => selectedChartZoomStateMemo(state, uuid))
     const [enableZoom, setEnableZoom] = useState(true)
 
+
     //chart scale creation
     const minPrice = useMemo(() => min(candleData, d => d.LowPrice), [candleData])
     const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [candleData])
 
 
+    //indicator line data
     const vwapData = useMemo(() =>
     {
         if (studyVisualController?.ema || showEMAs) return calculateVWAP(candleData)
         else return undefined
     }, [showEMAs, candleData])
+    const VWAPLine = line().x(d => createDateScale({ dateToPixel: d.Timestamp })).y(d => createPriceScale({ priceToPixel: d.vwap })).curve(curveBasis)
 
     const ema9Values = useMemo(() => calculateEMADataPoints(candleData, 9), [candleData])
     const ema50Values = useMemo(() => calculateEMADataPoints(candleData, 50), [candleData])
     const ema200Values = useMemo(() => calculateEMADataPoints(candleData, 200), [candleData])
-
-    const VWAPLine = line().x(d => createDateScale({ dateToPixel: d.Timestamp })).y(d => createPriceScale({ priceToPixel: d.vwap })).curve(curveBasis)
     const emaLine = line().x(d => createDateScale({ dateToPixel: d.date })).y(d => createPriceScale({ priceToPixel: d.value })).curve(curveLinear)
 
 
 
     const dateBetweenStartAndFinishInterval = useMemo(() =>
     {
-        if (timeFrame.intraDay) { return eachDayOfInterval({ start: subDays(new Date(), 30), end: addDays(new Date(), 30) }) }
+        if (timeFrame.intraDay)
+        {
+            let allDays = eachDayOfInterval({ start: subDays(new Date(), 30), end: addDays(new Date(), 30) })
+            const businessDays = allDays.filter(day =>
+            {
+                const dayOfWeek = getDay(day);
+                return dayOfWeek !== 0 && dayOfWeek !== 1;
+            })
+            return businessDays
+        }
         else return undefined
     }, [timeFrame])
 
@@ -135,17 +141,14 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
     }, [timeFrame])
 
-    const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame, displayMarketHours?.showOnlyIntraDay) }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
 
-    const stockCandleSVG = select(candleSVG.current)
-    const priceScaleSVG = select(priceSVG.current)
+    const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame, displayMarketHours?.showOnlyIntraDay) }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
 
 
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
         const startEndDate = provideStartAndEndDatesForDateScale(timeFrame, displayMarketHours?.focusDates)
-        if (ticker === 'ABEO' && displayMarketHours?.focusDates) console.log(startEndDate)
 
         let xDateScale = null
         if (timeFrame.intraDay)
@@ -329,7 +332,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             stockCandleSVG.select('.vwap').selectAll('.vwapLine').remove()
             stockCandleSVG.select('.vwap').append('path').attr('class', 'vwapLine')
         }
-    }, [studyVisualController, excludedPeriods, vwapData, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
+    }, [studyVisualController, excludedPeriods, vwapData, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
 
 
 
@@ -388,7 +391,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 enter.each(function (d, i)
                 {
                     let dateX = createDateScale({ dateToPixel: d })
-                    dateVisualSelect.append('line').attr('class', 'dayBreakLine')
+                    dateVisualSelect.append('line').attr('class', `dayBreakLine ${d}`)
                         .attr('x1', dateX).attr('x2', dateX).attr('y1', 0).attr('y2', candleDimensions.height - pixelBuffer.yDirectionPixelBuffer)
                         .attr('stroke', 'blue').attr('stroke-width', '1px')
                 })
@@ -491,7 +494,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             update => update.attr('y1', createPriceScale({ priceToPixel: mostRecentPrice.Price })).attr('y2', createPriceScale({ priceToPixel: mostRecentPrice.Price }))
         )
 
-    }, [mostRecentPrice, candleData, chartZoomState?.x, chartZoomState?.y, timeFrame])
+    }, [mostRecentPrice, candleData, displayMarketHours, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
 
 
@@ -867,7 +870,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             })
         }
 
-    }, [ticker, KeyLevels, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+    }, [ticker, KeyLevels, candleData, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
 
@@ -1192,7 +1195,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
     return (
         <div className='SVGGraphWrapper'>
-            {showContextMenu.display && <ChartContextMenuContainer showContextMenu={showContextMenu} ticker={ticker} chartId={chartId} setShowContextMenu={setShowContextMenu} setChartInfoDisplay={setChartInfoDisplay} timeFrame={timeFrame} setTimeFrame={setTimeFrame} />}
+            {showContextMenu.display && <ChartContextMenuContainer uuid={uuid} showContextMenu={showContextMenu} ticker={ticker} chartId={chartId} setShowContextMenu={setShowContextMenu} setChartInfoDisplay={setChartInfoDisplay} timeFrame={timeFrame} setTimeFrame={setTimeFrame} />}
 
             <div ref={priceSVGWrapper} className='priceSVGWrapper'>
                 <svg ref={priceSVG}>

@@ -17,3 +17,7 @@ export const defaultChartingStyles = {
     channelMainColor: 'white',
     channelLineDottedColor: 'white'
 }
+
+
+export const lineGroupClassName = '.line_group'
+export const allPossibleClassNames = ['.freeLines', '.linesH', '.trendLines', '.wedges', '.channels', '.triangles', '.enterExits']

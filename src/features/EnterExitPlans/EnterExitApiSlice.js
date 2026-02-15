@@ -55,6 +55,11 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
           enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
           enterExit.trackingDays = differenceInBusinessDays(today, new Date(enterExit.dateAdded))
 
+          enterExit.currentRiskVReward = {
+            risk: ((enterExit.mostRecentPrice - enterExit.plan.stopLossPrice) * 100 / enterExit.mostRecentPrice),
+            reward: ((enterExit.plan.exitPrice - enterExit.mostRecentPrice) * 100 / enterExit.mostRecentPrice),
+          }
+
           function getInsertionIndexLinear(arr, num)
           {
             for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3;
@@ -110,6 +115,16 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
               entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.tradePrice) / entityToUpdate.plan.enterPrice) * 100
               entityToUpdate.changeFromYesterdayClose = entityToUpdate.mostRecentPrice - entityToUpdate.yesterdayClose
               entityToUpdate.currentDayPercentGain = (entityToUpdate.changeFromYesterdayClose / entityToUpdate.yesterdayClose) * 100
+
+
+
+              entityToUpdate.currentRiskVReward = {
+                risk: ((entityToUpdate.mostRecentPrice - entityToUpdate.plan.stopLossPrice) * 100 / entityToUpdate.mostRecentPrice),
+                reward: ((entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * 100 / entityToUpdate.mostRecentPrice),
+              }
+
+
+
               function getInsertionIndexLinear(arr, num)
               {
                 for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }

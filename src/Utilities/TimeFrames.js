@@ -119,8 +119,6 @@ export function provideStartAndEndDatesForDateScale(timeFrame, focusDates)
   let startDate
   let futureForwardEndDate
 
-
-
   if (timeFrame.intraDay && focusDates === undefined)
   {
     startDate = new Date()
@@ -139,10 +137,17 @@ export function provideStartAndEndDatesForDateScale(timeFrame, focusDates)
     startDate = subDays(new Date(), 365)
     futureForwardEndDate = addDays(new Date(), 2)
   }
-  else if (timeFrame.unitOfDuration === 'D')
+  else if (timeFrame.unitOfDuration === 'D' && focusDates === undefined)
   {
-    startDate = subDays(new Date(), 30)
+    startDate = subDays(new Date(), timeFrame.duration)
     futureForwardEndDate = addDays(new Date(), 4)
   }
+  else if (timeFrame.unitOfDuration === 'D' && focusDates)
+  {
+    startDate = new Date(focusDates.startDate)
+    futureForwardEndDate = new Date(focusDates.endDate)
+  }
+
+
   return { startDate, futureForwardEndDate }
 }

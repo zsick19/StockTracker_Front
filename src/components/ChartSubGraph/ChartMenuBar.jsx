@@ -74,7 +74,8 @@ function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts
             <button className='buttonIcon' onClick={() => dispatch(setGraphEMAControl({ uuid }))}><LineSquiggle color='white' size={18} /></button>
 
             <button className='buttonIcon' onClick={() => setShowDateFocusSelect(prev => !prev)}
-                onContextMenu={(e) => { e.preventDefault(); dispatch(setResetXYZoomState({ uuid })) }}>
+                onContextMenu={(e) => { e.preventDefault(); dispatch(setResetXYZoomState({ uuid })) }}
+                style={{ transform: 'scaleX(-1)', transformOrigin: 'center center' }}>
                 <Scale3D size={18} color='white' />
             </button>
 

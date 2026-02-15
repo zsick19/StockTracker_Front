@@ -14,8 +14,9 @@ import { setSingleChartTickerTimeFrameAndChartingId } from '../../../features/Se
 import { selectConfirmedUnChartedTrio, setConfirmedUnChartedNavIndex } from '../../../features/SelectedStocks/PreviousNextStockSlice'
 import { makeSelectChartAlteredByTicker } from '../../../features/Charting/chartingElements'
 import { makeSelectEnterExitPlanAltered } from '../../../features/EnterExitPlans/EnterExitGraphElement'
+import { setFocusStartFinishDate } from '../../../features/Charting/GraphMarketHourElement'
 
-function ChartContextMenuContainer({ ticker, chartId, showContextMenu, setShowContextMenu, timeFrame, setTimeFrame, setChartInfoDisplay })
+function ChartContextMenuContainer({ ticker, chartId, showContextMenu, setShowContextMenu, timeFrame, setTimeFrame, setChartInfoDisplay, uuid })
 {
   const dispatch = useDispatch()
   const [showConfirmRemove, setShowConfirmRemove] = useState(false)
@@ -156,7 +157,44 @@ function ChartContextMenuContainer({ ticker, chartId, showContextMenu, setShowCo
     <>
       <div id='ChartContextMenuOverlay' onContextMenu={(e) => e.preventDefault()} onClick={(e) => closeContextMenu()}></div>
       <div id='ChartContextMenuContainer' onContextMenu={(e) => e.preventDefault()} style={showContextMenu.style} onClick={(e) => e.stopPropagation()}>
+        <div className='contextTimeFrameNavigation'>
 
+          <fieldset onChange={(e) => { dispatch(setFocusStartFinishDate({ uuid, focusDates: e.target.value })); closeContextMenu() }}>
+            <input type="radio" name="focusPeriod" id="OMHO" value='OMHO' className='hiddenInput' />
+            <label htmlFor="OMHO" className='contextTimeFocusLabel marketHours'>MH</label>
+
+            <input type="radio" name="focusPeriod" id="PMPM" value='PMPM' className='hiddenInput' />
+            <label htmlFor="PMPM" className='contextTimeFocusLabel marketHours'>P/P</label>
+            <br />
+            <input type="radio" name="focusPeriod" id="P2D" value='P2D' className='hiddenInput' />
+            <label htmlFor="P2D" className='contextTimeFocusLabel marketDays'>2D</label>
+
+            <input type="radio" name="focusPeriod" id="P3D" value='P3D' className='hiddenInput' />
+            <label htmlFor="P3D" className='contextTimeFocusLabel marketDays'>3D</label>
+
+            <input type="radio" name="focusPeriod" id="P5D" value='P5D' className='hiddenInput' />
+            <label htmlFor="P5D" className='contextTimeFocusLabel marketDays'>5D</label>
+            <br />
+            <input type="radio" name="focusPeriod" id="P2W" value='P2W' className='hiddenInput' />
+            <label htmlFor="P2W" className='contextTimeFocusLabel marketWeeks'>2W</label>
+
+            <input type="radio" name="focusPeriod" id="P3w" value='P3W' className='hiddenInput' />
+            <label htmlFor="P3w" className='contextTimeFocusLabel marketWeeks'>3W</label>
+
+            <input type="radio" name="focusPeriod" id="PM" value='PM' className='hiddenInput' />
+            <label htmlFor="PM" className='contextTimeFocusLabel marketWeeks'>PM</label>
+
+            <input type="radio" name="focusPeriod" id="PQ" value='PQ' className='hiddenInput' />
+            <label htmlFor="PQ" className='contextTimeFocusLabel marketWeeks'>PQ</label>
+
+            <input type="radio" name="focusPeriod" id="PHY" value='PHY' className='hiddenInput' />
+            <label htmlFor="PHY" className='contextTimeFocusLabel marketWeeks'>HY</label>
+
+            <input type="radio" name="focusPeriod" id="PY" value='PY' className='hiddenInput' />
+            <label htmlFor="PY" className='contextTimeFocusLabel marketWeeks'>PY</label>
+          </fieldset>
+
+        </div>
         <div className='contextNavigation'>
           <button className='outsideNav' onClick={() => { handleNavigatingToNextUnChartedStock(false); closeContextMenu() }}><ChevronLeft /></button>
 
