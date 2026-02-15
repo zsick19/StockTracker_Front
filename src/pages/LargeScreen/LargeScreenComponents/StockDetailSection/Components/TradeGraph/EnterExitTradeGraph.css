@@ -57,3 +57,20 @@
   background: rgb(28, 29, 41);
   border-bottom-right-radius: 10px;
 }
+
+#PreTradeInitiator {
+  display: grid;
+  grid-template-columns: 2rem 85% 1fr;
+}
+
+#RecordTradeForm input {
+  width: 100%;
+}
+
+#PreTradeInitiator div:first-of-type {
+}
+
+#PreTradeMenuChoice {
+  display: flex;
+  flex-direction: column;
+}
