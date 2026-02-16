@@ -5,6 +5,8 @@ import { useDispatch } from 'react-redux'
 import { setSelectedStockAndTimelineFourSplit, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import HorizontalPlanDiagram from './PlanPricingDiagram/HorizontalPlanDiagram'
+import { useGetStockAverageTrueRangeQuery } from '../../../../../../../../features/StockData/StockDataSliceApi'
+import ATRRequest from './ATRRequest'
 
 function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
 {
@@ -78,7 +80,8 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
                                 <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
                                 <p onClick={() => setShow1000Dollars(prev => !prev)}>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
                                 <div onClick={() => setShowImportantRemove(true)} onMouseEnter={() => setShowChangeFromYesterday(true)} onMouseLeave={() => setShowChangeFromYesterday(false)}>
-                                    {showChangeFromYesterday ? <p>{plan.changeFromYesterdayClose.toFixed(2)}</p> : <p>{plan.currentDayPercentGain.toFixed(2)}%</p>}
+                                    {showChangeFromYesterday ? <ATRRequest changeFromYesterdayClose={plan.changeFromYesterdayClose} ticker={plan.tickerSymbol} /> :
+                                        <p>{plan.currentDayPercentGain.toFixed(2)}%</p>}
                                 </div>
                             </>}
                     </div>

@@ -139,11 +139,17 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
           body: { tickerGroup: nextBatch }
         }
       },
+    }),
+    getStockAverageTrueRange: builder.query({
+      query: (args) => ({
+        url: `/stockData/atr/${args.ticker}`
+      }),
+      keepUnusedDataFor: 28800 //8 hours
     })
   }),
 });
 
 export const { useGetStockDataUsingTimeFrameQuery,
-  useGetGroupedBy12StockDataInfiniteQuery
-
+  useGetGroupedBy12StockDataInfiniteQuery,
+  useGetStockAverageTrueRangeQuery
 } = StockDataApiSlice;
