@@ -181,7 +181,7 @@ function PlanStatusView()
             <span onClick={() => setPlanSort(prev => ({ sort: 'risk', direction: !prev.direction }))}>R {provideDirectionArrow('risk')}</span> vs <span
               onClick={() => setPlanSort(prev => ({ sort: 'reward', direction: !prev.direction }))}>R{provideDirectionArrow('reward')}</span>
           </p>
-          <p onClick={() => setPlanSort(prev => ({ sort: 'sector', direction: !prev.direction }))}>Sector{provideDirectionArrow('sector')}</p>
+          <p onClick={() => setPlanSort(prev => ({ sort: 'sector', direction: !prev.direction }))}>$1000{provideDirectionArrow('sector')}</p>
           <p onClick={() => setPlanSort(prev => ({ sort: 'tracking', direction: !prev.direction }))}>Tracking{provideDirectionArrow('tracking')}</p>
           <p>Plan Diagram</p>
           <p onClick={() => setPlanSort(prev => ({ sort: 'importance', direction: !prev.direction }))}>Actions{provideDirectionArrow('importance')}</p>

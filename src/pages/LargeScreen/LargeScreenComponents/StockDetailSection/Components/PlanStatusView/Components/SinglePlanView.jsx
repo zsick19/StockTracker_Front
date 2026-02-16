@@ -59,8 +59,14 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
                 <p>{(plan.percentFromEnter * -1).toFixed(2)}% </p>
                 <p>from ${plan.plan.enterPrice.toFixed(2)}</p>
             </div>
-            <div> {plan.plan.percents[0].toFixed(2)} vs {plan.plan.percents[3].toFixed(2)}</div>
-            <p>{plan?.sector}</p>
+            <div>
+                <p>{plan.plan.percents[0].toFixed(2)} vs {plan.plan.percents[3].toFixed(2)}</p>
+                <p>{plan?.sector}</p>
+            </div>
+            <div>
+                <p>Current: ${plan.with1000DollarsCurrentGain.toFixed(2)}</p>
+                <p>Ideal: ${plan.with1000DollarsIdealGain.toFixed(2)} </p>
+            </div>
             <div>
                 <p>{plan.trackingDays > 1 ? `${plan.trackingDays} Days` : `${plan.trackingDays} Day`}</p>
                 <p>{plan.mostRecentPrice > plan.initialTrackingPrice ? 'Moving Away' : 'Moving Towards'}</p>

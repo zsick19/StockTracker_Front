@@ -16,6 +16,7 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
     const [showPlanNumbers, setShowPlanNumbers] = useState(false)
     const [showChangeFromYesterday, setShowChangeFromYesterday] = useState(false)
     const [showIdealRiskVReward, setShowIdealRiskVReward] = useState(false)
+    const [show1000Dollars, setShow1000Dollars] = useState(false)
 
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
     function provideSelector(data)
@@ -75,7 +76,7 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
                         </> :
                             <>
                                 <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
-                                <p>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
+                                <p onClick={() => setShow1000Dollars(prev => !prev)}>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
                                 <div onClick={() => setShowImportantRemove(true)} onMouseEnter={() => setShowChangeFromYesterday(true)} onMouseLeave={() => setShowChangeFromYesterday(false)}>
                                     {showChangeFromYesterday ? <p>{plan.changeFromYesterdayClose.toFixed(2)}</p> : <p>{plan.currentDayPercentGain.toFixed(2)}%</p>}
                                 </div>
@@ -86,10 +87,12 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
                         <p>ST: ${plan.plan.stopLossPrice}</p>
                         <p>E: ${plan.plan.enterPrice}</p>
                         <p>EB: ${plan.plan.enterBufferPrice}</p>
-                        <p>Cur: ${plan.mostRecentPrice.toFixed(2)}</p>
+                        <p>Ex: ${plan.plan.exitPrice}</p>
                     </div> :
                         <div className='SingleTickerDiagram' onClick={() => setShowPlanNumbers(prev => !prev)} >
-                            <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />
+                            {show1000Dollars ?
+                                <p>Ideal: ${plan.with1000DollarsIdealGain.toFixed(2)} vs Current: ${plan.with1000DollarsCurrentGain.toFixed(2)}</p> :
+                                <HorizontalPlanDiagram mostRecentPrice={plan.mostRecentPrice} planPricePointObject={plan.plan} initialTrackingPrice={plan.initialTrackingPrice} />}
                             {showIdealRiskVReward ?
                                 <p onMouseLeave={() => setShowIdealRiskVReward(false)}> {plan.plan.percents[0].toFixed(2)} v {plan.plan.percents[3].toFixed(2)}</p> :
                                 <p onMouseEnter={() => setShowIdealRiskVReward(true)}>{plan.currentRiskVReward.risk.toFixed(2)} v {plan.currentRiskVReward.reward.toFixed(2)}</p>

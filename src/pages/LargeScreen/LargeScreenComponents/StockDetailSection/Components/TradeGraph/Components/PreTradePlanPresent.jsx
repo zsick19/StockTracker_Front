@@ -3,8 +3,9 @@ import { useInitiateTradeRecordMutation } from '../../../../../../../features/Tr
 import ToMakeXAmount from '../PreTradeComponents/ToMakeXAmount'
 import WithXAmount from '../PreTradeComponents/WithXAmount'
 import WithXShares from '../PreTradeComponents/WithXShares'
+import PreTradePlanExamine from '../PreTradeComponents/PreTradePlanExamine'
 
-function PreTradePlanPresent({ selectedStock })
+function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
 {
     const [initiateTradeRecord] = useInitiateTradeRecordMutation()
     const [preTradeDetailDisplay, setPreTradeDetailDisplay] = useState(1)
@@ -45,10 +46,7 @@ function PreTradePlanPresent({ selectedStock })
     {
         switch (preTradeDetailDisplay)
         {
-            case 0: return (
-                <div>
-                    Plan Figures here
-                </div>)
+            case 0: return <PreTradePlanExamine selectedStock={selectedStock} />
             case 1: return <ToMakeXAmount selectedStock={selectedStock.plan} />
             case 2: return <WithXShares selectedStock={selectedStock.plan} />
             case 3: return <WithXAmount selectedStock={selectedStock.plan} />
@@ -72,6 +70,7 @@ function PreTradePlanPresent({ selectedStock })
                         <button onClick={() => setPreTradeDetailDisplay(1)}>G</button>
                         <button onClick={() => setPreTradeDetailDisplay(2)}>S</button>
                         <button onClick={() => setPreTradeDetailDisplay(3)}>X</button>
+                        <button onClick={() => setShowSupportingTickers(prev => !prev)}>4</button>
                     </div>
 
                     {provideDetailDisplay()}

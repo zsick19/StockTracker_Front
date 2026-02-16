@@ -15,6 +15,7 @@ import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../../..
 import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../../../../../features/Charting/GraphStudiesVisualElement'
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../../../../../features/Charting/GraphToSubGraphCrossHairElement'
 import { clearGraphVisibility, setInitialGraphVisibility } from '../../../../../../features/Charting/ChartingVisibility'
+import FourWayGraphWrapper from './SupportGraphComponents/FourWayGraphWrapper'
 
 function EnterExitTradeGraph()
 {
@@ -48,17 +49,20 @@ function EnterExitTradeGraph()
     const [showEMAs, setShowEMAs] = useState(false)
     const [subCharts, setSubCharts] = useState([])
 
+    const [showSupportingTickers, setShowSupportingTickers] = useState(false)
+
     return (
         <div id='LHS-TradeRecord'>
-            <ChartMenuBar ticker={selectedStock?.tickerSymbol} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} timeFrame={timeFrame} uuid={uuid} setShowEMAs={setShowEMAs} />
-
-            {selectedStock ? <TradeGraphChartWrapper selectedStock={selectedStock} subCharts={subCharts} uuid={uuid} timeFrame={timeFrame} setTimeFrame={setTimeFrame} showEMAs={showEMAs} /> : <div></div>}
+            {showSupportingTickers ? <FourWayGraphWrapper selectedStock={selectedStock} /> :
+                <>
+                    <ChartMenuBar ticker={selectedStock?.tickerSymbol} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} timeFrame={timeFrame} uuid={uuid} setShowEMAs={setShowEMAs} />
+                    {selectedStock ? <TradeGraphChartWrapper selectedStock={selectedStock} subCharts={subCharts} uuid={uuid} timeFrame={timeFrame} setTimeFrame={setTimeFrame} showEMAs={showEMAs} /> : <div></div>}
+                </>
+            }
 
             <div id='LHS-PlanPresentBeforeTrade'>
                 {selectedStock?.planId ?
-                    selectedStock?.trade ?
-                        <TradePresent selectedStock={selectedStock} /> :
-                        <PreTradePlanPresent selectedStock={selectedStock} />
+                    selectedStock?.trade ? <TradePresent selectedStock={selectedStock} setShowSupportingTickers={setShowSupportingTickers} /> : <PreTradePlanPresent selectedStock={selectedStock} setShowSupportingTickers={setShowSupportingTickers} />
                     : <div>
                         <p>No plan set for this ticker</p>
                         <div>
