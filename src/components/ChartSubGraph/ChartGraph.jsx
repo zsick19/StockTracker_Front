@@ -92,8 +92,24 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
 
     //chart scale creation
-    const minPrice = useMemo(() => min(candleData, d => d.LowPrice), [candleData])
-    const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [candleData])
+    const minPrice = useMemo(() =>
+    {
+        if (ticker === 'SPY')
+        {
+            if (timeFrame.unitOfIncrement === 'D' && KeyLevels?.quarterlyEM?.quarterlyLower) { return KeyLevels.quarterlyEM.quarterlyLower }
+            else if (timeFrame.unitOfIncrement === 'M' && KeyLevels?.weeklyEM?.previousWeeklyEM) return KeyLevels.weeklyEM.previousWeeklyEM.at(-1).lower
+        }
+        else return min(candleData, d => d.LowPrice)
+    }, [candleData, KeyLevels?.monthlyEM, timeFrame.unitOfIncrement])
+    const maxPrice = useMemo(() =>
+    {
+        if (ticker === 'SPY')
+        {
+            if (timeFrame.unitOfIncrement === 'D' && KeyLevels?.quarterlyEM?.quarterlyUpper) { return KeyLevels.quarterlyEM.quarterlyUpper }
+            else if (timeFrame.unitOfIncrement === 'M' && KeyLevels?.weeklyEM?.previousWeeklyEM) return KeyLevels.weeklyEM.previousWeeklyEM.at(-1).upper
+        }
+        else return max(candleData, d => d.HighPrice)
+    }, [candleData, KeyLevels?.monthlyEM, timeFrame.unitOfIncrement])
     const minVol = useMemo(() => min(candleData, d => d.Volume), [candleData])
     const maxVol = useMemo(() => max(candleData, d => d.Volume), [candleData])
 
@@ -186,6 +202,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     {
         if (preDimensionsAndCandleCheck()) return
 
+
+
+
         const yScale = scaleLinear()
             .domain([minPrice - pixelBuffer.yPriceBuffer, maxPrice + pixelBuffer.yPriceBuffer])
             .range([candleDimensions.height - pixelBuffer.yDirectionPixelBuffer, 0])
@@ -194,6 +213,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 const c = b - a;
                 return function (t) { return +(a + t * c).toFixed(2); };
             })
+
+
+
+
 
         if (chartZoomState?.y)
         {
@@ -206,7 +229,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         else if (priceToPixel !== undefined) { return yScale(priceToPixel) }
         else return yScale
 
-    }, [candleData, chartZoomState?.y, priceDimensions])
+    }, [candleData, KeyLevels?.monthlyEM, chartZoomState?.y, priceDimensions])
 
     const createVolumeScale = useCallback(({ volumeToPixel = undefined, pixelToVolume = undefined } = {}) =>
     {
@@ -298,7 +321,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
 
 
-    }, [candleData, excludedPeriods, displayMarketHours, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+    }, [candleData, minPrice, maxPrice, excludedPeriods, displayMarketHours, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
     //plot EMA and VWAP lines
     useEffect(() =>
@@ -494,7 +517,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 {
                     let volumePixel = createVolumeScale({ volumeToPixel: d.Volume })
 
-                    select(this).append('rect').attr('class', 'vol-bar').attr('width', 2)
+
+                    select(this).append('rect').attr('class', d => `vol-bar`).attr('width', 2)
                         .attr('x', d => createDateScale({ dateToPixel: d.Timestamp }) - 1)
                         .attr('y', volumePixel - pixelBuffer.yDirectionPixelBuffer)
                         .attr('height', d => candleDimensions.height - volumePixel)

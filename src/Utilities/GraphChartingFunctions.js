@@ -175,6 +175,7 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
     const stockSVG = select(svg)
     const temp = select(svg).select('.temp')
     const XOffset = 10
+    const leftSideText = 100
     const mouseMoveXYOffset = 2
 
     const svgPriceLineStyles = {
@@ -188,18 +189,22 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
         pixelSet.current = { ...pixelSet.current, firstClick: false, secondClick: true }
         temp.append('line').attr('class', `enterLine ${traceClassName}`).attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY).attr('stroke', svgPriceLineStyles.enter.stroke).attr('stroke-width', 1)
         temp.append('text').attr('class', `enterInfo ${traceClassName}`).text(svgPriceLineStyles.enter.text).attr("x", e.offsetX).attr("y", e.offsetY).attr('dy', `${svgPriceLineStyles.enter.dyText}px`).attr('dx', `${svgPriceLineStyles.enter.dxText}px`)
-        temp.append('text').attr('class', `enterPrice ${traceClassName}`).text(`$${yScale({ pixelToPrice: e.offsetY })}`).attr("x", e.offsetX + XOffset).attr("y", e.offsetY).attr('dx', `${svgPriceLineStyles.enter.dxPrice}px`).attr('dy', `${svgPriceLineStyles.enter.dyPrice}px`)
+        temp.append('text').attr('class', `enterPrice ${traceClassName}`).text(`$${yScale({ pixelToPrice: e.offsetY })}`)
+            .attr("y", e.offsetY).attr("x", leftSideText)
+            .attr('dy', `${svgPriceLineStyles.enter.dyPrice}px`)
+        // .attr('dx', `${svgPriceLineStyles.enter.dxPrice}px`)
         stockSVG.on('mousemove', (e) =>
         {
             temp.select('.enterLine').attr('y1', e.offsetY - mouseMoveXYOffset).attr('y2', e.offsetY - mouseMoveXYOffset)
             temp.select('.enterInfo').attr('x', e.offsetX).attr('y', e.offsetY - mouseMoveXYOffset)
-            temp.select('.enterPrice').attr('x', e.offsetX + 10).attr('y', e.offsetY - mouseMoveXYOffset).text((`$${yScale({ pixelToPrice: e.offsetY })}`))
+            temp.select('.enterPrice').attr('x', leftSideText).attr('y', e.offsetY - mouseMoveXYOffset).text((`$${yScale({ pixelToPrice: e.offsetY })}`))
         })
 
     } else if (pixelSet.current.secondClick)//capture enter price
     {
         pixelSet.current = { ...pixelSet.current, X1: e.offsetX, X1Offset: e.offsetX + XOffset, Y1: e.offsetY, Y1Price: yScale({ pixelToPrice: e.offsetY }), secondClick: false, thirdClick: true }
-        temp.append('text').attr('class', 'enterPercentage traceLine').attr("x", pixelSet.current.X1Offset).attr("y", e.offsetY).attr('dx', '250px')
+        temp.append('text').attr('class', 'enterPercentage traceLine')
+            .attr("x", leftSideText).attr("y", e.offsetY).attr('dx', '250px')
         setPricePositionRemoveInfoText('enter', pixelSet.current.X1Offset, e.offsetY, 'enterBuffer', 'Enter Buffer')
         recordPriorAddNextWithTrace('.enterLine', e.offsetY, 'enterBufferLine', 'yellow', 'enterBuffer', pixelSet.current.Y1)
     } else if (pixelSet.current.thirdClick && e.offsetY < pixelSet.current.Y1) //capture enter buffer price
@@ -242,7 +247,10 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
         temp.select(`.${infoClassNamePrior}Info`).remove()
 
         temp.append('text').attr('class', `${infoClassNameNext}Info traceLine`).text(textNext).attr("x", xPosition).attr("y", yPosition).attr('dy', '20px').attr('dx', '20px')
-        temp.append('text').attr('class', `${infoClassNameNext}Price traceLine`).text(`$${yScale({ pixelToPrice: yPosition })}`).attr("x", xPosition).attr("y", yPosition).attr('dx', '150px').attr('dy', '20px')
+        temp.append('text').attr('class', `${infoClassNameNext}Price traceLine`).text(`$${yScale({ pixelToPrice: yPosition })}`)
+            .attr("x", leftSideText).attr("y", yPosition)
+            .attr('dy', '20px')
+        // .attr('dx', '150px')
     }
 
     function recordPriorAddNextWithTrace(priorClassName, yOffset, className, color, infoPriceClassName, pixelStop) 

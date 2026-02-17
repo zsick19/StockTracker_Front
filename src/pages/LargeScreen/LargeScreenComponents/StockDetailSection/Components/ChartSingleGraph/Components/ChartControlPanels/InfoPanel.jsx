@@ -9,17 +9,19 @@ function InfoPanel()
 
   return (
     <div id='StockInfoPanel'>
-      <div>
-        <h2>{stockInfo.Symbol}-{stockInfo.CompanyName}</h2>
-        <p>{stockInfo.Sector} - {stockInfo.Industry}</p>
-        <p>{stockInfo.Country}</p>
 
+      <div>
+        <h2>{stockInfo.Symbol}</h2>
+        <h2>{stockInfo.CompanyName}</h2>
+        <p>{stockInfo.Sector} - {stockInfo.Industry}</p>
       </div>
+
       <div>
         <p>Average Volume: {abbreviateNumber(stockInfo.AvgVolume)}</p>
         <p>Market Cap: {abbreviateNumber(stockInfo.MarketCap)}</p>
-        <p>Average True Range: ${stockInfo.ATR}</p>
+        <p>{stockInfo.Country}</p>
       </div>
+
     </div>
   )
 }

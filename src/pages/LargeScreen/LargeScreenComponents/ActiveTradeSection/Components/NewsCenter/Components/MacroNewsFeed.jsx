@@ -4,7 +4,7 @@ import SingleNewsArticle from './SingleNewsArticle'
 
 function MacroNewsFeed()
 {
-    const [tickersToSearch, setTickersToSearch] = useState(['SPY', 'DIA', 'QQQ', 'ES', 'IWM', 'TLT'])
+    const [tickersToSearch, setTickersToSearch] = useState(['SPY', 'DIA', 'QQQ', 'IWM', 'TLT'])
 
     const { data, isLoading, isSuccess, isError, error } = useGetMajorMacroNewsQuery({ tickersToSearch }, { pollingInterval: () => avoidPollingAfterHours() })
 
@@ -24,7 +24,7 @@ function MacroNewsFeed()
 
     function handleMacroFeedChange(e)
     {
-        if (e.target.value === 'all') setTickersToSearch(['SPY', 'DIA', 'QQQ', 'ES', 'IWM', 'TLT'])
+        if (e.target.value === 'all') setTickersToSearch(['SPY', 'DIA', 'QQQ', 'IWM', 'TLT'])
         else setTickersToSearch([e.target.value])
         e.target.blur()
     }
@@ -43,7 +43,7 @@ function MacroNewsFeed()
                     <option value="DIA">DIA</option>
                     <option value="IWM">IWM</option>
                     <option value="TLT">TLT</option>
-                    <option value="ES">Futures</option>
+                    {/* <option value="/ES">Futures</option> */}
                     <option value="VIX">VIX</option>
                 </select>
             </div>

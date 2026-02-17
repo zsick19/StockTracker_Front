@@ -5,9 +5,9 @@ import { InitializationApiSlice } from "../Initializations/InitializationSliceAp
 import { differenceInBusinessDays } from "date-fns";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
-export const enterExitAdapter = createEntityAdapter({})
-export const enterBufferHitAdapter = createEntityAdapter({})
-export const stopLossHitAdapter = createEntityAdapter({})
+export const enterExitAdapter = createEntityAdapter({ sortComparer: (a, b) => b.percentFromEnter - a.percentFromEnter })
+export const enterBufferHitAdapter = createEntityAdapter({ sortComparer: (a, b) => b.percentFromEnter - a.percentFromEnter })
+export const stopLossHitAdapter = createEntityAdapter({ sortComparer: (a, b) => b.percentFromEnter - a.percentFromEnter })
 export const highImportanceAdapter = createEntityAdapter({})
 
 export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
@@ -73,6 +73,10 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
           enterExit.priceVsPlanUponFetch = priceVsPlan
           enterExit.listChange = false
 
+
+
+
+
           if (enterExit?.highImportance)
           {
             highImportanceResponse.push(enterExit)
@@ -119,8 +123,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
               entityToUpdate.changeFromYesterdayClose = entityToUpdate.mostRecentPrice - entityToUpdate.yesterdayClose
               entityToUpdate.currentDayPercentGain = (entityToUpdate.changeFromYesterdayClose / entityToUpdate.yesterdayClose) * 100
 
-
-
               entityToUpdate.currentRiskVReward = {
                 risk: ((entityToUpdate.mostRecentPrice - entityToUpdate.plan.stopLossPrice) * 100 / entityToUpdate.mostRecentPrice),
                 reward: ((entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * 100 / entityToUpdate.mostRecentPrice),
@@ -129,8 +131,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
               let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / entityToUpdate.mostRecentPrice)
               entityToUpdate.with1000DollarsCurrentGain = (entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
 
-
-
               function getInsertionIndexLinear(arr, num)
               {
                 for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
@@ -138,6 +138,10 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
               }
               let priceVsPlan = getInsertionIndexLinear([entityToUpdate.plan.stopLossPrice, entityToUpdate.plan.enterPrice, entityToUpdate.plan.enterBufferPrice], data.tradePrice)
               if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch) entityToUpdate.listChange = true
+
+
+
+
             }
           })
         }
@@ -240,7 +244,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
         return result.data ? { data: result.data } : { error: result.error }
       },
-      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }, 'enterExitPlans','singleEnterExit']
+      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }, 'enterExitPlans', 'singleEnterExit']
     }),
     removeSingleEnterExitPlan: builder.mutation({
       async queryFn(args, api, extraOptions, baseQuery)

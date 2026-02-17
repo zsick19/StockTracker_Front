@@ -149,6 +149,10 @@
   justify-content: space-around;
 }
 
+.TradeOptionControl input {
+  width: 150px;
+}
+
 .TradeOptionControl p {
   color: rgb(160, 160, 160);
   margin-right: 0.5rem;

@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import { activeTradeSelectors, useGetUsersActiveTradesQuery } from '../../../../../../../../features/Trades/TradeSliceApi'
+import React, { useRef, useState } from 'react'
+import { activeTradeSelectors, useAlterTradeRecordMutation, useGetUsersActiveTradesQuery } from '../../../../../../../../features/Trades/TradeSliceApi'
 import { setSelectedStockAndTimelineFourSplit, setSingleChartToTickerTimeFrameTradeId } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
-import { ArrowUp, ChartCandlestick, ChevronDown, ChevronUp, CopySlash, Expand, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, CopySlash, Expand, X } from 'lucide-react'
 import VerticalPlanDiagram from './VerticalPlanDiagram'
 import VerticalMoveDiagram from './VerticalMoveDiagram'
 import { differenceInBusinessDays } from 'date-fns'
@@ -28,6 +28,32 @@ function SingleActiveTradeBlock({ id })
         dispatch(setSingleChartToTickerTimeFrameTradeId({ tickerSymbol: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
     }
 
+    const [alterTradeRecord] = useAlterTradeRecordMutation()
+    const liquidatePrice = useRef()
+
+    async function liquidateFullPosition()
+    {
+        let price = parseFloat(liquidatePrice.current.value)
+
+        if (!price || price > (activeTrade.mostRecentPrice * 1.2) || price < (activeTrade.mostRecentPrice * 0.8)) return
+
+        try
+        {
+            let results = await alterTradeRecord({
+                action: 'closeAll',
+                tickerSymbol: activeTrade.tickerSymbol,
+                tradeId: activeTrade._id,
+                tradePrice: price,
+                positionSizeOfAlter: activeTrade.availableShares
+            })
+        } catch (error)
+        {
+            console.log(error)
+        }
+
+    }
+
+
     return (
         <div className={`LSH-ActiveTradeBlock ${activeTrade.classVisual}`}>
             <div className='VerticalPlanDiagrams'>
@@ -50,10 +76,13 @@ function SingleActiveTradeBlock({ id })
 
                     {showTradeOptions ?
                         <div className='TradeOptionControl'>
-                            <button onClick={() => handleStockToFourWay()} className='iconButton'><p>1/4</p><CopySlash color='red' size={16} /></button>
-                            <button onClick={() => handleStockToFourWay()} className='iconButton'><p>1/2</p><CopySlash color='red' size={16} /></button>
-                            <button onClick={() => handleStockToFourWay()} className='iconButton'><p>All</p><CopySlash color='red' size={16} /></button>
                             <button onClick={() => setShowTradeOptions(false)} className='iconButton'> <X color='white' size={16} /></button>
+
+                            <input type="number" placeholder='Sell Price' ref={liquidatePrice} autoComplete='off' />
+                            <button onClick={() => liquidateFullPosition()} className='iconButton'>
+                                <p>All</p><CopySlash color='red' size={16} />
+                            </button>
+
 
                         </div>
                         : <div className='TimeFrameOptions'>
@@ -67,15 +96,21 @@ function SingleActiveTradeBlock({ id })
                     }
 
                 </div>
+
                 <div>
+
                     {showStopEnterExit === 0 ?
                         <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive currentPL' : 'activeTradeNegative currentPL'} onClick={() => setShowStopEnterExit(1)}>
-                            <h2>{activeTrade.percentFromOpen > 0 && '+'}{activeTrade.percentFromOpen.toFixed(2)}%</h2>
                             <div>
+                                <h2>{activeTrade.percentFromOpen > 0 && '+'}{activeTrade.percentFromOpen.toFixed(2)}%</h2>
                                 <p>GPS: ${activeTrade.gainPerShare.toFixed(2)}</p>
-                                <p>Position Size: {activeTrade.availableShares}</p>
                             </div>
-                        </div> : showStopEnterExit === 1 ?
+                            <div>
+                                <p>Total P/L: ${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</p>
+                                <p>MV: ${(activeTrade.availableShares * activeTrade.mostRecentPrice).toFixed(2)}</p>
+                            </div>
+                        </div> :
+                        showStopEnterExit === 1 ?
                             <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(2)}>
                                 <div>
                                     <p>${activeTrade.tradingPlanPrices[0]}</p>
@@ -91,7 +126,6 @@ function SingleActiveTradeBlock({ id })
                                 </div>
                             </div> :
                             showStopEnterExit === 2 ?
-
                                 <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(3)}>
                                     <div>
                                         <p>${activeTrade.tradingPlanPrices[3]}</p>
@@ -108,18 +142,20 @@ function SingleActiveTradeBlock({ id })
                                 </div>
                                 : <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(0)}>
                                     <div>Risk</div>
-                                    <p>{activeTrade.idealPercents[0]}% vs {activeTrade.idealPercents[3]}%</p>
+                                    <p>{activeTrade.idealPercents[0]} vs {activeTrade.idealPercents[3]}</p>
                                     <div>Reward</div>
-                                </div>
-                    }
+                                </div>}
+
                     <div className={activeTrade.percentFromOpen >= 0 ? 'moveCapturePositive MoveCaptured' : 'moveCaptureNegative MoveCaptured'}>
                         <p>{activeTrade.percentOfGain.toFixed(2)}% E/X Captured</p>
                     </div>
+
                 </div>
+                
                 {showPositionInfo === 0 ?
                     <div className='flex'>
-                        <p onClick={() => setShowPositionInfo(1)}>Total P/L: ${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</p>
-                        <p onClick={() => setShowPositionInfo(2)}>Market Value: ${(activeTrade.availableShares * activeTrade.mostRecentPrice).toFixed(2)}</p>
+                        <p onClick={() => setShowPositionInfo(1)}>Position Size: {activeTrade.availableShares}</p>
+                        <p onClick={() => setShowPositionInfo(2)}>GPP ${(activeTrade.availableShares * 0.01).toFixed(2)}</p>
                     </div> :
                     showPositionInfo === 1 ?
                         <div className='flex' onClick={() => setShowPositionInfo(0)}>
@@ -128,8 +164,8 @@ function SingleActiveTradeBlock({ id })
                         </div>
                         :
                         <div className='flex' onClick={() => setShowPositionInfo(0)}>
-                            <p>Ideal Risk: ${((activeTrade.tradingPlanPrices[1] - activeTrade.tradingPlanPrices[0]) * activeTrade.availableShares).toFixed(2)}</p>
-                            <p>Ideal Reward: ${((activeTrade.tradingPlanPrices[4] - activeTrade.tradingPlanPrices[1]) * activeTrade.availableShares).toFixed(2)}</p>
+                            <p>Total Risk: ${((activeTrade.tradingPlanPrices[1] - activeTrade.tradingPlanPrices[0]) * activeTrade.availableShares).toFixed(2)}</p>
+                            <p>Total Reward: ${((activeTrade.tradingPlanPrices[4] - activeTrade.tradingPlanPrices[1]) * activeTrade.availableShares).toFixed(2)}</p>
                         </div>
 
                 }

@@ -17,16 +17,17 @@ function WithXShares({ selectedStock })
                 <p>With {withXShares} Shares</p>
                 <input type="number" ref={xShares} />
                 <button onClick={() => setWithXShares(parseInt(xShares.current.value))}>s</button>
+                <p>Exit Price: ${selectedStock.plan.exitPrice}</p>
             </div>
             <div>
                 <p>Ideal Price: ${selectedStock.plan.enterPrice}</p>
-                <p>Total Cost: {sharesBoughtAtIdealCost.toFixed(2)}</p>
+                <p>Total Cost: ${sharesBoughtAtIdealCost.toFixed(2)}</p>
                 <p>Potential GPS: {gainPSTradingIdeal.toFixed(2)} </p>
                 <p>Total Gain: ${(gainPSTradingIdeal * withXShares).toFixed(2)}</p>
             </div>
             <div>
                 <p>Current Price: ${selectedStock.mostRecentPrice}</p>
-                <p>Total Cost: {sharesBoughtAtCurrentCost.toFixed(2)}</p>
+                <p>Total Cost: ${sharesBoughtAtCurrentCost.toFixed(2)}</p>
                 <p>Potential GPS: {gainPSTradingCurrent.toFixed(2)}</p>
                 <p>Total Gain: ${(gainPSTradingCurrent * withXShares).toFixed(2)}</p>
             </div>

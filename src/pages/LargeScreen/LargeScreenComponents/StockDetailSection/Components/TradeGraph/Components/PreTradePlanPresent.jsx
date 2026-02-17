@@ -22,23 +22,35 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
     {
         e.preventDefault()
         if (selectedStock?.tradeId || !tradeRecordDetails.positionSize > 0 || !tradeRecordDetails.purchasePrice > 0) return
-        let planPricing = selectedStock.plan
+        let planPricing = selectedStock.plan.plan
+
+
+        let tradingPlanPrices = [planPricing.stopLossPrice, tradeRecordDetails.purchasePrice, planPricing.enterBufferPrice, planPricing.exitBufferPrice, planPricing.exitPrice, planPricing.moonPrice]
+        let idealPercents = pricingWithPurchase.map((p, i) => calcPercentage(tradeRecordDetails.purchasePrice, p)).filter(t => t !== 0)
 
         try
         {
             const results = await initiateTradeRecord({
                 ...tradeRecordDetails,
-                tickerSector: selectedStock.tickerSector,
-                tradingPlanPrices: [planPricing.stopLossPrice, tradeRecordDetails.purchasePrice, planPricing.enterBufferPrice,
-                planPricing.exitBufferPrice, planPricing.exitPrice, planPricing.moonPrice],
+                tickerSector: selectedStock.plan.sector,
+                tradingPlanPrices,
                 enterExitPlanId: selectedStock.planId,
-                tickerSymbol: selectedStock.tickerSymbol
+                tickerSymbol: selectedStock.tickerSymbol,
+                idealPercents,
+                idealGainPercent: idealPercents[3]
             })
 
             setServerTradeResponse(results)
         } catch (error)
         {
             console.log(error)
+        }
+
+        function calcPercentage(basePrice, p2)
+        {
+            let difference = basePrice - p2
+            let percentage = (difference / basePrice) * 100
+            return Math.abs(parseFloat(percentage.toFixed(2)))
         }
 
     }
@@ -58,7 +70,6 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
 
 
-
     function provideDetailDisplay()
     {
         switch (preTradeDetailDisplay)
@@ -69,6 +80,14 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
             case 3: return <WithXAmount selectedStock={plan} />
             case 4: return <CompanyInfo selectedStock={plan} />
         }
+    }
+
+    const [showConfirmTradeValues, setShowConfirmTradeValues] = useState(false)
+
+    function checkAndThenShowConfirm()
+    {
+        if (tradeRecordDetails.purchasePrice > (selectedStock.plan.mostRecentPrice * 1.2) || tradeRecordDetails.purchasePrice < (selectedStock.plan.mostRecentPrice * 0.8)) return
+        else setShowConfirmTradeValues(true)
     }
 
     return (
@@ -94,19 +113,28 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
                         {provideDetailDisplay()}
                     </div>
 
-
-                    <form id='RecordTradeForm' onSubmit={attemptToInitiateTradeRecord} onChange={(e) => setTradeRecordDetails(prev => ({ ...prev, [e.target.name]: parseFloat(e.target.value) }))}>
+                    {showConfirmTradeValues ?
                         <div>
-                            <input type="double" name="purchasePrice" id="purchasePrice" />
-                            <label htmlFor='purchasePrice'>Purchase Price</label>
-                        </div>
-                        <div>
-                            <input type="number" name="positionSize" id="numberOfShares" min={1} />
-                            <label htmlFor="numberOfShares">Quantity</label>
-                        </div>
-                        <button>Record Trade</button>
-                    </form>
-                </div>
+                            <p>${tradeRecordDetails.purchasePrice}</p>
+                            <p>Purchase Price</p>
+                            <p>${tradeRecordDetails.purchasePrice}</p>
+                            <p>Quantity</p>
+                            <button onClick={() => attemptToInitiateTradeRecord()}>Record Trade</button>
+                            <button onClick={() => setShowConfirmTradeValues(false)}>Cancel</button>
+                        </div> :
+                        <form id='RecordTradeForm' onSubmit={(e) => { e.preventDefault(); checkAndThenShowConfirm() }} onChange={(e) => setTradeRecordDetails(prev => ({ ...prev, [e.target.name]: parseFloat(e.target.value) }))}>
+                            <div>
+                                <input type="double" name="purchasePrice" id="purchasePrice" autoComplete='off' value={tradeRecordDetails.purchasePrice} />
+                                <label htmlFor='purchasePrice'>Purchase Price</label>
+                            </div>
+                            <div>
+                                <input type="number" name="positionSize" id="numberOfShares" min={1} autoComplete='off' value={tradeRecordDetails.positionSize} />
+                                <label htmlFor="numberOfShares">Quantity</label>
+                            </div>
+                            <button disabled={tradeRecordDetails.purchasePrice === undefined || tradeRecordDetails.positionSize === undefined}>Submit Trade</button>
+                        </form>
+                    }
+                </div >
             }
         </>
     )

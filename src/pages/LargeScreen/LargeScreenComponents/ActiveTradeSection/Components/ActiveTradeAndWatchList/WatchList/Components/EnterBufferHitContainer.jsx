@@ -9,6 +9,8 @@ function EnterBufferHitContainer({ enterBufferHitIds, refetch })
 {
     const dispatch = useDispatch()
     const [rotateOnFetch, setRotateOnFetch] = useState(false)
+    const [sectorHighlight, setSectorHighlight] = useState('all')
+    const [showSectorSelect, setShowSectorSelect] = useState(false)
 
     function refetchAndRotate()
     {
@@ -32,7 +34,7 @@ function EnterBufferHitContainer({ enterBufferHitIds, refetch })
                 </div>
             </div>
             <div id='LSH-PreWatchBufferHitList' className='hide-scrollbar PreWatchListContainersEveryOther'>
-                {enterBufferHitIds.map((id) => <SingleHighImportanceTickerDisplay id={id} watchList={0} key={`enterBufferList${id}`} />)}
+                {enterBufferHitIds.map((id) => <SingleHighImportanceTickerDisplay id={id} watchList={0} key={`enterBufferList${id}`} sectorHighlight={sectorHighlight} />)}
             </div>
         </div>
     )

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useAddListOfTickersDirectlyToConfirmedListMutation, useAddTickerDirectlyToConfirmedListMutation, useGetUsersConfirmedSummaryQuery } from '../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
 import { useDispatch, useSelector } from 'react-redux'
-import { ArrowBigRight, ChevronDown, ChevronUp, Dot } from 'lucide-react'
+import { ArrowBigRight, ChevronDown, ChevronUp, Dot, RotateCcw } from 'lucide-react'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { confirmedStatuses } from '../../../../../../Utilities/ConfirmedStatuses'
@@ -23,6 +23,7 @@ function ConfirmedStatus()
 
     const [tableFilters, setTableFilters] = useState({ tickerSearch: undefined, status: 0, addedWithin: 0, olderThan: 0 })
     const [tableSort, setTableSort] = useState({ sort: undefined, direction: undefined })
+    const [rotateOnFetch, setRotateOnFetch] = useState(false)
 
     const [selectedConfirmed, setSelectedConfirmed] = useState(undefined)
 
@@ -74,6 +75,7 @@ function ConfirmedStatus()
         {
             return <tr className={`ConfirmedTableRow`} id={confirmed.tickerSymbol === selectedConfirmed?.tickerSymbol ? 'selected' : ''} onClick={() => setSelectedConfirmed(confirmed)}>
                 <td>{confirmed.tickerSymbol}</td>
+                <td>{confirmed.sector}</td>
                 <td>{confirmed.status >= 0 ? confirmedStatuses[confirmed.status] : 'Quick Add'}</td>
                 <td>{new Date(confirmed.dateAdded).toLocaleDateString()}</td>
                 <td><button><ArrowBigRight size={16} onClick={(e) => { e.stopPropagation(); jumpToChart(confirmed) }} /></button></td>
@@ -94,13 +96,21 @@ function ConfirmedStatus()
     }
     function handlePickUpFromLastUncharted()
     {
-        console.log(pickUpUncharted)
-        //dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: pickUpUncharted.ticker, chartingId: pickUpUncharted._id }))
+        if (pickUpUncharted) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: pickUpUncharted.ticker, chartingId: pickUpUncharted._id })) }
         dispatch(setStockDetailState(5))
     }
 
 
 
+    function refetchAndRotate()
+    {
+        setRotateOnFetch(true)
+        refetch()
+        setTimeout(() =>
+        {
+            setRotateOnFetch(false)
+        }, [1000])
+    }
 
     async function attemptConvertDirectAddInputAndSubmit()
     {
@@ -231,15 +241,18 @@ function ConfirmedStatus()
             </div>
 
             <div id='DirectAddContinueCharting'>
-                <p>Total Confirmed: {data?.length || 0}</p>
-
                 {directAddServerResponse ?
                     <p>{directAddServerResponse}</p> :
                     <form onSubmit={(e) => { e.preventDefault(); attemptConvertDirectAddInputAndSubmit() }} className='flex'>
                         <input type="text" ref={directAddTicker} placeholder='Direct Add' />
                         <button>Add Tickers</button>
-                    </form>
-                }
+                    </form>}
+
+                <div className='flex'>
+                    <button onClick={refetchAndRotate} className={`buttonIcon ${rotateOnFetch ? 'rotateOnFetch' : 'hoverRotateOnFetch'}`}><RotateCcw color='white' /></button>
+                    <p>Total Confirmed: {data?.length || 0}</p>
+                </div>
+
                 <button onClick={() => handlePickUpFromLastUncharted()}>Continue Charting</button>
             </div>
 
@@ -250,6 +263,9 @@ function ConfirmedStatus()
                         <tr>
                             <th onClick={() => setTableSort(prev => ({ sort: 'ticker', direction: !prev.direction }))}>
                                 <div>Ticker{tableSort.sort === 'ticker' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
+                            </th>
+                            <th onClick={() => setTableSort(prev => ({ sort: 'sector', direction: !prev.direction }))}>
+                                <div>Sector {tableSort.sort === 'sector' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
                             </th>
                             <th onClick={() => setTableSort(prev => ({ sort: 'status', direction: !prev.direction }))}>
                                 <div>Status {tableSort.sort === 'status' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>

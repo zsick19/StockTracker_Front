@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { enterBufferSelectors, highImportanceSelectors, useGetUsersEnterExitPlanQuery, useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { enterBufferSelectors, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery, useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { AlertCircle, Trash2, X } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setSelectedStockAndTimelineFourSplit, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
@@ -26,6 +26,7 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
         switch (watchList)
         {
             case 0: return enterBufferSelectors.selectById(data.enterBufferHit, id)
+            case 1: return stopLossHitSelectors.selectById(data.stopLossHit, id)
             default: return highImportanceSelectors.selectById(data.highImportance, id)
         }
     }
@@ -41,11 +42,13 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
         dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({ ticker: plan.tickerSymbol, chartId: plan._id, planId: plan._id, plan, watchList }))
         dispatch(setStockDetailState(8))
     }
-    async function attemptRemovingImportance()
+
+    async function attemptToggleImportance()
     {
         try
         {
-            const results = await toggleEnterExitPlanImportant({ tickerSymbol: plan.tickerSymbol, planId: plan._id, markImportant: false }).unwrap()
+            let hasImportance = plan.highImportance ? false : true
+            const results = await toggleEnterExitPlanImportant({ tickerSymbol: plan.tickerSymbol, planId: plan._id, markImportant: hasImportance }).unwrap()
         } catch (error)
         {
             console.log(error)
@@ -71,17 +74,20 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
                     <div className={`SingleWatchListTicker  ${plan.changeFromYesterdayClose === 0 ? 'trackingNeutral' : plan.changeFromYesterdayClose > 0 ? 'trackingPositive' : 'trackingNegative'}`}>
                         <p onClick={handleFourWaySplit}>{plan.tickerSymbol}</p>
 
-                        {showImportantRemove ? <>
-                            <button className='buttonIcon' onClick={() => attemptRemovingImportance()} disabled={isLoading}><AlertCircle size={14} color='red' /></button>
-                            <button className='buttonIcon' onClick={() => attemptRemovingPlan()}><Trash2 color='red' size={14} /></button>
-                            <button className='buttonIcon' onClick={() => setShowImportantRemove(false)}><X color='white' size={14} /></button>
-                        </> :
+                        {showImportantRemove ?
+                            <>
+                                <button className='buttonIcon' onClick={() => attemptToggleImportance()} disabled={isLoading}><AlertCircle size={14} color='red' /></button>
+                                <button className='buttonIcon' onClick={() => attemptRemovingPlan()}><Trash2 color='red' size={14} /></button>
+                                <button className='buttonIcon' onClick={() => setShowImportantRemove(false)}><X color='white' size={14} /></button>
+                            </> :
                             <>
                                 <p onClick={handleTradeView}>${plan.mostRecentPrice.toFixed(2)}</p>
                                 <p onClick={() => setShow1000Dollars(prev => !prev)}>{(plan.percentFromEnter * -1).toFixed(2)}%</p>
                                 <div onClick={() => setShowImportantRemove(true)} onMouseEnter={() => setShowChangeFromYesterday(true)} onMouseLeave={() => setShowChangeFromYesterday(false)}>
-                                    {showChangeFromYesterday ? <ATRRequest changeFromYesterdayClose={plan.changeFromYesterdayClose} ticker={plan.tickerSymbol} /> :
-                                        <p>{plan.currentDayPercentGain.toFixed(2)}%</p>}
+                                    {showChangeFromYesterday ?
+                                        <ATRRequest changeFromYesterdayClose={plan.changeFromYesterdayClose} ticker={plan.tickerSymbol} /> :
+                                        <p>{plan.currentDayPercentGain.toFixed(2)}%</p>
+                                    }
                                 </div>
                             </>}
                     </div>
