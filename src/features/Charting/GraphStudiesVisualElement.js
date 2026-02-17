@@ -8,7 +8,9 @@ const graphStudiesVisualElement = createSlice({
         {
             state[action.payload.uuid] = {
                 ema: false,
-                vwap: false
+                vwap: false,
+                volume: false,
+                volumeProfile: false
             }
         },
         setGraphEMAControl: (state, action) =>
@@ -21,6 +23,16 @@ const graphStudiesVisualElement = createSlice({
             if (!action.payload.uuid) return
             state[action.payload.uuid].vwap = !state[action.payload.uuid].vwap
         },
+        setGraphVolumeControl: (state, action) =>
+        {
+            if (!action.payload.uuid) return
+            state[action.payload.uuid].volume = !state[action.payload.uuid].volume
+        },
+        setGraphVolumeProfileControl: (state, action) =>
+        {
+            if (!action.payload.uuid) return
+            state[action.payload.uuid].volumeProfile = !state[action.payload.uuid].volumeProfile
+        },
         clearGraphStudyControl: (state, action) =>
         {
             delete state[action.payload.uuid]
@@ -31,6 +43,9 @@ const graphStudiesVisualElement = createSlice({
 export const {
     setInitialGraphStudyControl,
     setGraphEMAControl,
+    setGraphVWAPControl,
+    setGraphVolumeControl,
+    setGraphVolumeProfileControl,
     clearGraphStudyControl
 
 } = graphStudiesVisualElement.actions;

@@ -38,7 +38,7 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
     }
     function handleTradeView()
     {
-        dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({ ticker: plan.tickerSymbol, chartId: plan._id, planId: plan._id, plan }))
+        dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({ ticker: plan.tickerSymbol, chartId: plan._id, planId: plan._id, plan, watchList }))
         dispatch(setStockDetailState(8))
     }
     async function attemptRemovingImportance()

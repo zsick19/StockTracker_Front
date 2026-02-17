@@ -10,7 +10,7 @@ function WithXAmount({ selectedStock })
     const planExitMinusCurrent = selectedStock.plan.exitPrice - selectedStock.mostRecentPrice
     const planExitMinusIdeal = selectedStock.plan.exitPrice - selectedStock.plan.enterPrice
     return (
-        <div className='flex'>
+        <div id='WithXAmount'>
             <div>
                 <p>With ${withXAmount}</p>
                 <input type="double" ref={withAmount} />

@@ -11,6 +11,9 @@
   height: 100%;
   margin-bottom: 1rem;
 }
+#LHS-TradeChartWrapper .SVGGraphWrapper {
+  border-bottom-left-radius: 10px;
+}
 
 #LHS-PlanPresentBeforeTrade {
   height: 20%;

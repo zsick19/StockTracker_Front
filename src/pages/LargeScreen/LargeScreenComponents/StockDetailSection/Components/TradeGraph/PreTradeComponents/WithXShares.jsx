@@ -12,7 +12,7 @@ function WithXShares({ selectedStock })
     const gainPSTradingCurrent = selectedStock.plan.exitPrice - selectedStock.mostRecentPrice
 
     return (
-        <div className='flex'>
+        <div id='WithXShares'>
             <div>
                 <p>With {withXShares} Shares</p>
                 <input type="number" ref={xShares} />

@@ -4,15 +4,16 @@ import ToMakeXAmount from '../PreTradeComponents/ToMakeXAmount'
 import WithXAmount from '../PreTradeComponents/WithXAmount'
 import WithXShares from '../PreTradeComponents/WithXShares'
 import PreTradePlanExamine from '../PreTradeComponents/PreTradePlanExamine'
-import { Banknote, Coins, Expand, HandCoins, Plane } from 'lucide-react'
+import { AlertCircle, Banknote, Coins, HandCoins, Plane } from 'lucide-react'
+import CompanyInfo from '../PreTradeComponents/CompanyInfo'
+import '../PreTradeComponents/PreTradeStyles.css'
+import { enterBufferSelectors, enterExitPlannedSelectors, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+
 
 function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
 {
     const [initiateTradeRecord] = useInitiateTradeRecordMutation()
     const [preTradeDetailDisplay, setPreTradeDetailDisplay] = useState(0)
-
-
-
 
     const [tradeRecordDetails, setTradeRecordDetails] = useState({ positionSize: undefined, purchasePrice: undefined })
     const [serverTradeResponse, setServerTradeResponse] = useState(undefined)
@@ -43,14 +44,30 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
     }
 
 
+
+    function provideSelector(data)
+    {
+        switch (selectedStock.watchList)
+        {
+            case 0: return enterBufferSelectors.selectById(data.enterBufferHit, selectedStock.tickerSymbol)
+            case 1: return stopLossHitSelectors.selectById(data.stopLossHit, selectedStock.tickerSymbol)
+            case 2: return enterExitPlannedSelectors.selectById(data.plannedTickers, selectedStock.tickerSymbol)
+            case 4: return highImportanceSelectors.selectById(data.highImportance, selectedStock.tickerSymbol)
+        }
+    }
+    const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
+
+
+
     function provideDetailDisplay()
     {
         switch (preTradeDetailDisplay)
         {
-            case 0: return <PreTradePlanExamine selectedStock={selectedStock} />
-            case 1: return <ToMakeXAmount selectedStock={selectedStock.plan} />
-            case 2: return <WithXShares selectedStock={selectedStock.plan} />
-            case 3: return <WithXAmount selectedStock={selectedStock.plan} />
+            case 0: return <PreTradePlanExamine selectedStock={plan} setShowSupportingTickers={setShowSupportingTickers} />
+            case 1: return <ToMakeXAmount selectedStock={plan} />
+            case 2: return <WithXShares selectedStock={plan} />
+            case 3: return <WithXAmount selectedStock={plan} />
+            case 4: return <CompanyInfo selectedStock={plan} />
         }
     }
 
@@ -66,11 +83,11 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
                 <div id='PreTradeInitiator'>
 
                     <div id='PreTradeMenuChoice'>
-                        <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(0)}><Plane color='white' /></button>
-                        <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(1)}><Coins color='green' /></button>
-                        <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(2)}><Banknote color='green' /></button>
-                        <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(3)}><HandCoins color='green' /></button>
-                        <button className='buttonIcon' onClick={() => setShowSupportingTickers(prev => !prev)}><Expand color='white' /></button>
+                        <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(4)}><AlertCircle color={preTradeDetailDisplay === 4 ? 'green' : 'white'} /></button>
+                        <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(0)}><Plane color={preTradeDetailDisplay === 0 ? 'green' : 'white'} /></button>
+                        <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(1)}><Coins color={preTradeDetailDisplay === 1 ? 'green' : 'white'} /></button>
+                        <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(2)}><Banknote color={preTradeDetailDisplay === 2 ? 'green' : 'white'} /></button>
+                        <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(3)}><HandCoins color={preTradeDetailDisplay === 3 ? 'green' : 'white'} /></button>
                     </div>
 
                     <div id='PreTradeDetailContent'>

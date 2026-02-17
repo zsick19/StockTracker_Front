@@ -11,6 +11,7 @@ import { setFocusStartFinishDate, setToggleShowOnlyMarketHours } from '../../fea
 import { setToggleAllVisibility } from '../../features/Charting/ChartingVisibility'
 import ChartVisibilityDropDown from '../ChartMenuDropDowns/ChartVisibilityDropDown'
 import DateFocusDropDown from '../ChartMenuDropDowns/DateFocusDropDown'
+import ChartOverlayDropDown from '../ChartMenuDropDowns/ChartOverlayDropDown'
 
 function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts, uuid })
 {
@@ -19,6 +20,7 @@ function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts
     const [showStudiesSelect, setShowStudiesSelect] = useState(false)
     const [showVisibilitySelect, setShowVisibilitySelect] = useState(false)
     const [showDateFocusSelect, setShowDateFocusSelect] = useState(false)
+    const [showChartStudyOverlaySelect, setShowChartStudyOverlaySelect] = useState(false)
 
     function handleTimeFrameChange(e)
     {
@@ -53,6 +55,7 @@ function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts
         {showStudiesSelect && <StudySelectPopover handleStudySelectChange={handleStudySelectChange} setShowStudiesSelect={setShowStudiesSelect} subCharts={subCharts} />}
         {showVisibilitySelect && <ChartVisibilityDropDown uuid={uuid} setShowVisibilitySelect={setShowVisibilitySelect} />}
         {showDateFocusSelect && <DateFocusDropDown uuid={uuid} setShowDateFocusSelect={setShowDateFocusSelect} />}
+        {showChartStudyOverlaySelect && <ChartOverlayDropDown uuid={uuid} setShowChartStudyOverlaySelect={setShowChartStudyOverlaySelect} />}
 
         <div className='MenuBar'>
             <h3>{ticker}</h3>
@@ -71,7 +74,7 @@ function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts
                 <EyeOff color='white' size={18} />
             </button>
 
-            <button className='buttonIcon' onClick={() => dispatch(setGraphEMAControl({ uuid }))}><LineSquiggle color='white' size={18} /></button>
+            <button className='buttonIcon' onClick={() => setShowChartStudyOverlaySelect(prev => !prev)}><LineSquiggle color='white' size={18} /></button>
 
             <button className='buttonIcon' onClick={() => setShowDateFocusSelect(prev => !prev)}
                 onContextMenu={(e) => { e.preventDefault(); dispatch(setResetXYZoomState({ uuid })) }}

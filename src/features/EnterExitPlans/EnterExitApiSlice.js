@@ -2,7 +2,7 @@ import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
-import { differenceInBusinessDays, differenceInDays } from "date-fns";
+import { differenceInBusinessDays } from "date-fns";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 export const enterExitAdapter = createEntityAdapter({})
@@ -10,21 +10,12 @@ export const enterBufferHitAdapter = createEntityAdapter({})
 export const stopLossHitAdapter = createEntityAdapter({})
 export const highImportanceAdapter = createEntityAdapter({})
 
-const initialState = {
-  enterExit: enterExitAdapter.getInitialState(),
-  enterBufferHit: enterBufferHitAdapter.getInitialState(),
-  stopLossHit: stopLossHitAdapter.getInitialState()
-}
-
 export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getUsersEnterExitPlan: builder.query({
       query: () => ({
         url: `/user/enterExitPlans`,
-        validateStatus: (response, result) =>
-        {
-          return response.status === 200 && !result.isError
-        }
+        validateStatus: (response, result) => { return response.status === 200 && !result.isError }
       }),
       transformResponse: responseData =>
       {
@@ -39,7 +30,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         const target = new Date()
         target.setHours(9, 30, 0, 0)
 
-        //console.log(responseData.mostRecentPrice)
 
         responseData.plans.forEach((enterExit) =>
         {
@@ -109,7 +99,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
       providesTags: (result, error, args) => [{ type: 'enterExitPlans' }],
       async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
       {
-
         const userId = getState().auth.userId
         const ws = getWebSocket(userId, 'PlannedWatchListTickers')
 
@@ -251,7 +240,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
         return result.data ? { data: result.data } : { error: result.error }
       },
-      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }, 'enterExitPlans']
+      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }, 'enterExitPlans','singleEnterExit']
     }),
     removeSingleEnterExitPlan: builder.mutation({
       async queryFn(args, api, extraOptions, baseQuery)
@@ -295,7 +284,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: (result, error, args) => ['userData', 'chartingData', 'enterExitPlans']
     })
-  }),
+  })
 });
 
 export const { useGetUsersEnterExitPlanQuery, useToggleEnterExitPlanImportantMutation, useUpdateEnterExitPlanMutation, useRemoveSingleEnterExitPlanMutation, useRemoveGroupedEnterExitPlanMutation } = EnterExitPlanApiSlice;
@@ -305,6 +294,7 @@ export const highImportanceSelectors = highImportanceAdapter.getSelectors()
 export const enterExitPlannedSelectors = enterExitAdapter.getSelectors()
 export const enterBufferSelectors = enterBufferHitAdapter.getSelectors()
 export const stopLossHitSelectors = stopLossHitAdapter.getSelectors()
+
 
 export const selectAllPlansAndCombined = createSelector([(res) => res.data],
   (data) =>
@@ -316,7 +306,6 @@ export const selectAllPlansAndCombined = createSelector([(res) => res.data],
     const enterBuffer = enterBufferHitAdapter.getSelectors().selectAll(data.enterBufferHit)
     const allOtherPlans = enterExitAdapter.getSelectors().selectAll(data.plannedTickers)
     const counts = { highImportance: highImportanceTickers.length, stopLoss: stopLossHit.length, enterBuffer: enterBuffer.length, allOtherPlans: allOtherPlans.length }
-
 
     return {
       counts,

@@ -37,12 +37,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //redux charting data selectors
     const selectKeyLevelMemo = useMemo(makeSelectKeyLevelsByTicker, [ticker])
     const KeyLevels = useSelector((state) => selectKeyLevelMemo(state, ticker))
-
     const selectedEnterExitMemo = useMemo(makeSelectEnterExitByTicker, [])
     const EnterExitPlan = useSelector(state => selectedEnterExitMemo(state, ticker))
-
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
+
+
 
     const selectedStudyVisualStateMemo = useMemo(makeSelectGraphStudyByUUID, [])
     const studyVisualController = useSelector((state) => selectedStudyVisualStateMemo(state, uuid))
@@ -94,6 +94,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //chart scale creation
     const minPrice = useMemo(() => min(candleData, d => d.LowPrice), [candleData])
     const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [candleData])
+    const minVol = useMemo(() => min(candleData, d => d.Volume), [candleData])
+    const maxVol = useMemo(() => max(candleData, d => d.Volume), [candleData])
 
 
     //indicator line data
@@ -125,7 +127,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
         else return undefined
     }, [timeFrame])
-
     const visualBreaksPeriods = useMemo(() =>
     {
 
@@ -140,9 +141,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             return getBreaksBetweenDates(new Date(2024, 1, 1), addYears(new Date(), 1), 'months')
         }
     }, [timeFrame])
-
-
     const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame, displayMarketHours?.showOnlyIntraDay) }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
+
+
+
 
 
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
@@ -201,13 +203,23 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
 
         if (pixelToPrice !== undefined) return Math.round(yScale.invert(pixelToPrice) * 100) / 100
-        else if (priceToPixel !== undefined)
-        {
-            return yScale(priceToPixel)
-        }
+        else if (priceToPixel !== undefined) { return yScale(priceToPixel) }
         else return yScale
 
     }, [candleData, chartZoomState?.y, priceDimensions])
+
+    const createVolumeScale = useCallback(({ volumeToPixel = undefined, pixelToVolume = undefined } = {}) =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+
+        const yScale = scaleLinear().domain([minVol, maxVol]).range([candleDimensions.height - pixelBuffer.yDirectionPixelBuffer, candleDimensions.height * .75])
+
+        if (pixelToVolume !== undefined) return Math.round(yScale.invert(pixelToVolume) * 100) / 100
+        else if (volumeToPixel !== undefined) return yScale(volumeToPixel)
+        else return yScale
+    }, [candleData, candleDimensions])
+
+
 
     //scaleRefs for user charting drag functionality
     const yScaleRef = useRef()
@@ -227,26 +239,15 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
         let xAxis
         const yAxis = axisLeft(createPriceScale())
-        if (timeFrame.intraDay && timeFrame.duration > 3)
-        {
-            xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date()))
-        } else if (timeFrame.intraDay && timeFrame.duration <= 3)
-        {
-            xAxis = axisBottom(createDateScale())
-        } else
-        {
-            xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date()))
-        }
+
+        if (timeFrame.intraDay && timeFrame.duration > 3) { xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date())) }
+        else if (timeFrame.intraDay && timeFrame.duration <= 3) { xAxis = axisBottom(createDateScale()) }
+        else { xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date())) }
+
 
         priceScaleSVG.select('.y-axis').style('transform', `translateX(${priceDimensions.width - 1}px)`).call(yAxis)
-        try
-        {
-            stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
-        } catch (error)
-        {
-            console.log(error)
-        }
-
+        try { stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis) }
+        catch (error) { console.log(error) }
 
         stockCandleSVG.select('.tickerVal').selectAll('.candle').data(candleData, d => d.Timestamp).join(enter => createCandles(enter), update => updateCandles(update))
         function createCandles(enter)
@@ -272,9 +273,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
 
 
-
         stockCandleSVG.select('.initialTrack').selectAll('line').remove()
-
         if (initialTracking)
         {
             let pixelPrice = createPriceScale({ priceToPixel: initialTracking.price })
@@ -297,6 +296,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
         }
 
+
+
     }, [candleData, excludedPeriods, displayMarketHours, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
     //plot EMA and VWAP lines
@@ -305,12 +306,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (preDimensionsAndCandleCheck()) return
         if (studyVisualController?.ema || showEMAs)
         {
-
-            if (vwapData)
-            {
-                stockCandleSVG.select('.vwap').select('.vwapLine').attr('d', VWAPLine(vwapData)).attr('stroke', 'orange').attr('fill', 'none').attr('stroke-width', '1.5px')
-            }
-
             const ema = stockCandleSVG.select('.emaLines')
             ema.selectAll('.ema9').data([ema9Values], d => d.Timestamp).join(enter =>
                 enter.append('path').attr('class', 'periodLines ema9').attr('stroke', 'blue').attr('fill', 'none').attr('stroke-width', '1.5px').attr('d', d => emaLine(d)),
@@ -325,10 +320,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 enter.append('path').attr('class', 'periodLines ema50').attr('stroke', 'red').attr('fill', 'none').attr('stroke-width', '1.5px').attr('d', d => emaLine(d)),
                 update => update.attr('d', d => emaLine(d))
             )
+        } else { stockCandleSVG.select('.emaLines').selectAll('.periodLines').remove() }
+
+        if (studyVisualController?.vwap && vwapData)
+        {
+            stockCandleSVG.select('.vwap').select('.vwapLine').attr('d', VWAPLine(vwapData)).attr('stroke', 'orange').attr('fill', 'none').attr('stroke-width', '1.5px')
         } else
         {
-            stockCandleSVG.select('.emaLines').selectAll('.periodLines').remove()
-
             stockCandleSVG.select('.vwap').selectAll('.vwapLine').remove()
             stockCandleSVG.select('.vwap').append('path').attr('class', 'vwapLine')
         }
@@ -478,6 +476,51 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
     }, [lastCandleData, excludedPeriods, displayMarketHours, candlesToKeepSinceLastQuery, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
+
+    //plot volume bars
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+
+        if (studyVisualController?.volume)
+        {
+
+            stockCandleSVG.select('.candleVolumeBars').selectAll('.vol-bar').data(candleData, d => d.Volume)
+                .join(enter => generateVolumeBars(enter), update => updateVolumeBars(update))
+
+            function generateVolumeBars(enter)
+            {
+                enter.each(function (d, i)
+                {
+                    let volumePixel = createVolumeScale({ volumeToPixel: d.Volume })
+
+                    select(this).append('rect').attr('class', 'vol-bar').attr('width', 2)
+                        .attr('x', d => createDateScale({ dateToPixel: d.Timestamp }) - 1)
+                        .attr('y', volumePixel - pixelBuffer.yDirectionPixelBuffer)
+                        .attr('height', d => candleDimensions.height - volumePixel)
+                        .attr('fill', d => d.ClosePrice > d.OpenPrice ? 'green' : 'red')
+                })
+            }
+            function updateVolumeBars(update)
+            {
+                update.each(function (d, i) { select(this).attr('x', d => createDateScale({ dateToPixel: d.Timestamp })) })
+            }
+        } else
+        {
+            stockCandleSVG.select('.candleVolumeBars').selectAll('.vol-bar').remove()
+        }
+
+    }, [candleData, studyVisualController?.volume, timeFrame, excludedPeriods, displayMarketHours, chartZoomState?.x, candleDimensions])
+
+
+
+
+
+
+
+
+
+
     //plot most recent price 
     useEffect(() =>
     {
@@ -495,8 +538,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         )
 
     }, [mostRecentPrice, candleData, displayMarketHours, chartZoomState?.x, chartZoomState?.y, timeFrame])
-
-
 
     //plot user charting  
     useEffect(() =>
@@ -1181,7 +1222,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         let percentExitBuffer = ((update.exitBufferPrice - update.enterPrice) / update.enterPrice) * 100
         let percentExit = ((update.exitPrice - update.enterPrice) / update.enterPrice) * 100
         let percentMoon = ((update.moonPrice - update.enterPrice) / update.enterPrice) * 100
-        update.percents = [percentEnterStop, percentEnterBuffer, percentExitBuffer, percentExit, percentMoon]
+        update.percents = [parseFloat(percentEnterStop.toFixed(2)), parseFloat(percentEnterBuffer.toFixed(2)),
+        parseFloat(percentExitBuffer.toFixed(2)), parseFloat(percentExit.toFixed(2)), parseFloat(percentMoon.toFixed(2))]
 
         if (EnterExitPlan)
         {
@@ -1223,6 +1265,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     <g className='initialTrack' />
                     <g className='enterExits' />
                     <g className='tickerVal' />
+                    <g className='candleVolumeBars' />
                     <g className='lastCandleUpdate' />
                     <g className='crossHairs' >
                         <line className='crossY' strokeWidth='0.5px' stroke='black'></line>

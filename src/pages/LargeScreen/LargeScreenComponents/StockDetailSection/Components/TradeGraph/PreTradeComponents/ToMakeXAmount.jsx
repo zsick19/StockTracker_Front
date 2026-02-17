@@ -12,7 +12,7 @@ function ToMakeXAmount({ selectedStock })
 
 
     return (
-        <div className='flex'>
+        <div id='ToMakeXAmount'>
             <div>
                 <p>To Gain ${makeXAmount}</p>
                 <input type="double" ref={makeAmount} />
