@@ -11,11 +11,13 @@ import { differenceInBusinessDays } from 'date-fns'
 function SingleActiveTradeBlock({ id })
 {
     const dispatch = useDispatch()
+    const liquidatePrice = useRef()
     const [showStopEnterExit, setShowStopEnterExit] = useState(0)
     const [showPositionInfo, setShowPositionInfo] = useState(0)
     const [showTradeOptions, setShowTradeOptions] = useState(false)
 
     const { activeTrade } = useGetUsersActiveTradesQuery(undefined, { selectFromResult: ({ data }) => ({ activeTrade: data ? activeTradeSelectors.selectById(data, id) : undefined }) })
+    const [alterTradeRecord] = useAlterTradeRecordMutation()
 
     const handleStockToFourWay = () =>
     {
@@ -28,8 +30,6 @@ function SingleActiveTradeBlock({ id })
         dispatch(setSingleChartToTickerTimeFrameTradeId({ tickerSymbol: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
     }
 
-    const [alterTradeRecord] = useAlterTradeRecordMutation()
-    const liquidatePrice = useRef()
 
     async function liquidateFullPosition()
     {
@@ -53,7 +53,8 @@ function SingleActiveTradeBlock({ id })
 
     }
 
-
+    const [showGainPercentOrGPP, setShowGainPercentOrGPP] = useState(true)
+    console.log(activeTrade)
     return (
         <div className={`LSH-ActiveTradeBlock ${activeTrade.classVisual}`}>
             <div className='VerticalPlanDiagrams'>
@@ -86,28 +87,29 @@ function SingleActiveTradeBlock({ id })
 
                         </div>
                         : <div className='TimeFrameOptions'>
-                            <button onClick={() => handleStockToFourWay()} className='timeFrameButton'>1M</button>
-                            <button onClick={() => handleStockToFourWay()} className='timeFrameButton'>2M</button>
-                            <button onClick={() => handleStockToFourWay()} className='timeFrameButton'>5M</button>
-                            <button onClick={() => handleStockToFourWay()} className='timeFrameButton'>1H</button>
-                            <button onClick={() => handleStockToFourWay()} className='timeFrameButton'>4H</button>
+                            <div className='flex'>
+                                <p>Day's P/L:</p>
+                                <p className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>${activeTrade?.todaysGain.toFixed(2)}</p>
+                                <p className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>{activeTrade.todaysGainPercent.toFixed(2)}%</p>
+                            </div>
+                            <p>{activeTrade.sector}</p>
                             <button onClick={() => handleStockToFourWay()} className='iconButton'><Expand color='white' size={16} /></button>
                         </div>
                     }
-
                 </div>
 
                 <div>
-
                     {showStopEnterExit === 0 ?
                         <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive currentPL' : 'activeTradeNegative currentPL'} onClick={() => setShowStopEnterExit(1)}>
-                            <div>
-                                <h2>{activeTrade.percentFromOpen > 0 && '+'}{activeTrade.percentFromOpen.toFixed(2)}%</h2>
-                                <p>GPS: ${activeTrade.gainPerShare.toFixed(2)}</p>
+                            <div onMouseEnter={() => setShowGainPercentOrGPP(false)} onMouseLeave={() => setShowGainPercentOrGPP(true)}>
+                                {showGainPercentOrGPP ?
+                                    <h2>{activeTrade.percentFromOpen > 0 && '+'}{activeTrade.percentFromOpen.toFixed(2)}%</h2> :
+                                    <p>GPP ${(activeTrade.availableShares * 0.01).toFixed(2)}</p>
+                                }
                             </div>
                             <div>
                                 <p>Total P/L: ${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</p>
-                                <p>MV: ${(activeTrade.availableShares * activeTrade.mostRecentPrice).toFixed(2)}</p>
+                                <p>GPS: ${activeTrade.gainPerShare.toFixed(2)}</p>
                             </div>
                         </div> :
                         showStopEnterExit === 1 ?
@@ -151,23 +153,40 @@ function SingleActiveTradeBlock({ id })
                     </div>
 
                 </div>
-                
+
                 {showPositionInfo === 0 ?
-                    <div className='flex'>
-                        <p onClick={() => setShowPositionInfo(1)}>Position Size: {activeTrade.availableShares}</p>
-                        <p onClick={() => setShowPositionInfo(2)}>GPP ${(activeTrade.availableShares * 0.01).toFixed(2)}</p>
+                    <div className='TradeBlockBottom'>
+                        <div onClick={() => setShowPositionInfo(1)}>
+                            <p>Position Size</p>
+                            <p>{activeTrade.availableShares}</p>
+                        </div>
+                        <div onClick={() => setShowPositionInfo(2)}>
+                            <p>Market Value</p>
+                            <p>${(activeTrade.availableShares * activeTrade.mostRecentPrice).toFixed(2)}</p>
+                        </div>
                     </div> :
                     showPositionInfo === 1 ?
-                        <div className='flex' onClick={() => setShowPositionInfo(0)}>
-                            <p >{activeTrade.sector}</p>
-                            <p>Hold Days: {differenceInBusinessDays(new Date(), activeTrade.enterDate)}</p>
+                        <div className='TradeBlockBottom' onClick={() => setShowPositionInfo(0)}>
+                            <div >
+                                <p>ATR</p>
+                                <p>${activeTrade?.atrAtPurchase}</p>
+                            </div>
+                            <div>
+                                <p>Hold Days</p>
+                                <p>{differenceInBusinessDays(new Date(), activeTrade.enterDate)}/{activeTrade?.daysToCover}</p>
+                            </div>
                         </div>
                         :
-                        <div className='flex' onClick={() => setShowPositionInfo(0)}>
-                            <p>Total Risk: ${((activeTrade.tradingPlanPrices[1] - activeTrade.tradingPlanPrices[0]) * activeTrade.availableShares).toFixed(2)}</p>
-                            <p>Total Reward: ${((activeTrade.tradingPlanPrices[4] - activeTrade.tradingPlanPrices[1]) * activeTrade.availableShares).toFixed(2)}</p>
+                        <div className='TradeBlockBottom' onClick={() => setShowPositionInfo(0)}>
+                            <div>
+                                <p>Total Risk</p>
+                                <p>${((activeTrade.tradingPlanPrices[1] - activeTrade.tradingPlanPrices[0]) * activeTrade.availableShares).toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p>Total Reward</p>
+                                <p>${((activeTrade.tradingPlanPrices[4] - activeTrade.tradingPlanPrices[1]) * activeTrade.availableShares).toFixed(2)}</p>
+                            </div>
                         </div>
-
                 }
             </div>
 

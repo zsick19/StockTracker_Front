@@ -11,6 +11,7 @@ import RSISubChart from "./SubCharts/RSISubChart";
 import VortexSubChart from "./SubCharts/VortexSubChart";
 import MACDSubChart from "./SubCharts/MACDSubChart";
 import StochasticSubChart from './SubCharts/StochasticSubChart'
+import CorrelationSubChart from "./SubCharts/CorrelationSubChart";
 
 function ChartSubGraphContainer({ ticker, uuid, incomingTF })
 {
@@ -33,25 +34,27 @@ function ChartSubGraphContainer({ ticker, uuid, incomingTF })
 
   function provideSubCharts()
   {
+
+    return subCharts.map((subChart) =>
     {
-      return subCharts.map((subChart) =>
+      switch (subChart)
       {
-        switch (subChart)
-        {
-          case 'rsi': return <RSISubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
-          case 'vortex': return <VortexSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
-          case 'stochastic': return <StochasticSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
-          case 'MACD': return <MACDSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
-        }
-      })
-    }
+        case 'rsi': return <RSISubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+        case 'vortex': return <VortexSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+        case 'stochastic': return <StochasticSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+        case 'MACD': return <MACDSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+        case 'correlation': return <CorrelationSubChart candleData={stockData.candleData} uuid={uuid} timeFrame={timeFrame} />
+      }
+    })
   }
 
   return (
     <div className="ChartSubContainer">
       <ChartMenuBar ticker={ticker.ticker} timeFrame={timeFrame} setTimeFrame={setTimeFrame} uuid={uuid} subCharts={subCharts} setSubCharts={setSubCharts} />
       {actualChart}
-      {subCharts.length > 0 && <div className="SubChartWrapper">{provideSubCharts()}</div>}
+      {subCharts.length > 0 && <div className="SubChartWrapper">
+        {provideSubCharts()}
+      </div>}
     </div>
   );
 }

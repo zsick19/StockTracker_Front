@@ -2,6 +2,7 @@ import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { enterBufferHitAdapter, enterExitAdapter, EnterExitPlanApiSlice, highImportanceAdapter, stopLossHitAdapter } from "../EnterExitPlans/EnterExitApiSlice";
+import { isToday } from "date-fns";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 const activeTradeAdapter = createEntityAdapter()
@@ -18,7 +19,9 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 {
                     trade.id = trade.tickerSymbol
                     trade.mostRecentPrice = response.mostRecentPrices[trade.tickerSymbol]
-                    console.log(trade.mostRecentPrice)
+                    trade.previousClose = response.previousClose[trade.tickerSymbol]
+
+
 
 
                     trade.percentOfGain = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * 100)
@@ -31,8 +34,19 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     (trade.mostRecentPrice - trade.tradingPlanPrices[2]) * 100 / trade.tradingPlanPrices[2],
                     (trade.mostRecentPrice - trade.tradingPlanPrices[3]) * 100 / trade.tradingPlanPrices[3],
                     (trade.mostRecentPrice - trade.tradingPlanPrices[4]) * 100 / trade.tradingPlanPrices[4],
-                    (trade.mostRecentPrice - trade.tradingPlanPrices[5]) * 100 / trade.tradingPlanPrices[5]
-                    ]
+                    (trade.mostRecentPrice - trade.tradingPlanPrices[5]) * 100 / trade.tradingPlanPrices[5]]
+
+                    if (isToday(trade.enterDate))
+                    {
+                        trade.todaysGain = trade.totalGain
+                        trade.todaysGainPercent = trade.percentFromOpen
+                    } else
+                    {
+                        trade.todaysGain = (trade.mostRecentPrice - trade.previousClose) * trade.availableShares
+                        trade.todaysGainPercent = ((trade.mostRecentPrice - trade.previousClose) / trade.previousClose) * 100
+                    }
+
+
 
                     function getInsertionIndex(arr, num)
                     {
@@ -95,6 +109,15 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                         ]
 
 
+                        if (isToday(activeTradeToUpdate.enterDate))
+                        {
+                            activeTradeToUpdate.todaysGain = activeTradeToUpdate.totalGain
+                            activeTradeToUpdate.todaysGainPercent = activeTradeToUpdate.percentFromOpen
+                        } else
+                        {
+                            activeTradeToUpdate.todaysGain = (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.previousClose) * activeTradeToUpdate.availableShares
+                            activeTradeToUpdate.todaysGainPercent = ((activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.previousClose) / activeTradeToUpdate.previousClose) * 100
+                        }
 
 
 

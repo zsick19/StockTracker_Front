@@ -12,6 +12,7 @@ import { ChartingToolEdits } from '../../../../../../../Utilities/ChartingTools'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool } from '../../../../../../../features/Charting/ChartingTool'
 import { selectChartEditMode, setChartEditMode } from '../../../../../../../features/Charting/EditChartSelection'
+import CorrelationSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/CorrelationSubChart'
 
 function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, showEMAs, subCharts })
 {
@@ -38,18 +39,17 @@ function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, 
 
     function provideSubCharts()
     {
+        return subCharts.map((subChart) =>
         {
-            return subCharts.map((subChart) =>
+            switch (subChart)
             {
-                switch (subChart)
-                {
-                    case 'rsi': return <RSISubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
-                    case 'vortex': return <VortexSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
-                    case 'stochastic': return <StochasticSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
-                    case 'MACD': return <MACDSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
-                }
-            })
-        }
+                case 'rsi': return <RSISubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
+                case 'vortex': return <VortexSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
+                case 'stochastic': return <StochasticSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
+                case 'MACD': return <MACDSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
+                case 'correlation': return <CorrelationSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
+            }
+        })
     }
 
 
@@ -57,7 +57,13 @@ function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, 
         <div id='LHS-TradeChartWrapper'>
             <div id='LHS-SingleChartAndSubCharts'>
                 {chartContent}
-                {subCharts.length > 0 && <div className="SubChartWrapper">{provideSubCharts()}</div>}
+
+                {subCharts.length > 0 &&
+                    <div className="SubChartWrapper">
+                        {provideSubCharts()}
+                    </div>
+                }
+
             </div>
 
             <div id='LHS-TradeWrapperChartingTools'>

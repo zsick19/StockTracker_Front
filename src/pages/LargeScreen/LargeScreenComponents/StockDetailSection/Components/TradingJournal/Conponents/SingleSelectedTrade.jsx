@@ -22,12 +22,12 @@ function SingleSelectedTrade({ trade, selectedTrade, setSelectedTrade, setShowSe
                 <p>{holdPeriod} day hold</p>
             </div>
             <div>
-                <p>${trade?.averagePurchasePrice}</p>
+                <p>${trade?.averagePurchasePrice.toFixed(2)}</p>
                 <p>${trade?.averageSellPrice}</p>
             </div>
             <div>
-                <p>Reward: {riskRewardIdeal.actualReward}</p>
                 <p>{riskRewardIdeal.risk} vs {riskRewardIdeal.reward}</p>
+                <p>GPS: {riskRewardIdeal.actualReward}</p>
             </div>
 
             <p>+{trade?.exitGainPercent}%</p>
