@@ -43,9 +43,9 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
         })
     }, [])
 
+
     useEffect(() =>
     {
-
         if (isSuccess)
         {
             dispatch(setEnterExitCharting(chartingData))

@@ -47,7 +47,6 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     }
 
 
-
                     function getInsertionIndex(arr, num)
                     {
                         const index = arr.findIndex(element => element >= num);

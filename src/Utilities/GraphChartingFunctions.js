@@ -50,7 +50,7 @@ const infoTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, 
     const calculateTextValues = (initial, trace) =>
     {
         let dx = differenceInBusinessDays(initial.date, trace.date)
-        let dy = Math.round(((trace.price - initial.price) / initial.price) * 100)
+        let dy = (((trace.price - initial.price) / initial.price) * 100).toFixed(2)
         return [`$ ${trace.price.toString()}`, `dx: ${Math.abs(dx)}d`, `dy: ${dy}%`]
     }
 }

@@ -255,7 +255,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
 
 
-    //plot stock candles and initial tracking info
+    //plot stock candles and any initial tracking info
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck()) return
@@ -266,7 +266,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (timeFrame.intraDay && timeFrame.duration > 3) { xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date())) }
         else if (timeFrame.intraDay && timeFrame.duration <= 3) { xAxis = axisBottom(createDateScale()) }
         else { xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date())) }
-
 
         priceScaleSVG.select('.y-axis').style('transform', `translateX(${priceDimensions.width - 1}px)`).call(yAxis)
         try { stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis) }
@@ -295,31 +294,38 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
 
 
-
+        
         stockCandleSVG.select('.initialTrack').selectAll('line').remove()
+        let trackingLines = stockCandleSVG.select('.initialTrack')
+
         if (initialTracking)
         {
             let pixelPrice = createPriceScale({ priceToPixel: initialTracking.price })
             let pixelDate = createDateScale({ dateToPixel: initialTracking.date })
 
-            let trackingLines = stockCandleSVG.select('.initialTrack')
-            trackingLines.append('line').attr('x1', 0).attr('x2', candleDimensions.width)
-                .attr('y1', pixelPrice).attr('y2', pixelPrice)
-                .attr('stroke', 'green')
-                .attr('stroke-width', '0.5px')
-                .attr('stroke-dasharray', '5 2 5')
-                .attr('opacity', 0.75)
-
-            trackingLines.append('line').attr('x1', pixelDate).attr('x2', pixelDate)
-                .attr('y1', 0).attr('y2', candleDimensions.height)
-                .attr('stroke', 'green')
-                .attr('stroke-width', '0.5px')
-                .attr('stroke-dasharray', '5 2 5')
-                .attr('opacity', 0.75)
-
+            trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '0.5px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
+            trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+                .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
         }
 
+        if (EnterExitPlan?.tradeEnterDate)
+        {
+            let pixelDate = createDateScale({ dateToPixel: EnterExitPlan.tradeEnterDate })
+            trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+                .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
+        }
 
+        if (EnterExitPlan?.dateCreated)
+        {
+            let pixelDate = createDateScale({ dateToPixel: EnterExitPlan.dateCreated })
+            let pixelPrice = createPriceScale({ priceToPixel: EnterExitPlan.initialTrackingPrice })
+
+            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
+            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+                .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
+        }
 
     }, [candleData, minPrice, maxPrice, excludedPeriods, displayMarketHours, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
@@ -713,6 +719,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
 
     //plot user EnterExit Plan removing any possible charting enter exit  
+    const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
     useEffect(() =>
     {
         if (!EnterExitPlan) stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
@@ -724,13 +731,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
         function createEnterExit(enter)
         {
-            const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
             const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
             enter.each(function (d)
             {
                 var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
 
-                const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => yScaleRef.current({ priceToPixel: price }))
+                const planArray = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
+                const yPositions = planArray.map((price) => yScaleRef.current({ priceToPixel: price }))
                 lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
@@ -744,15 +751,20 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 {
                     lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
                         .attr('stroke-width', 10).attr('visibility', 'hidden').on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); })
+
+                    lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', 100).attr('y', position).text(`$${planArray[index]}`)
+                    if (index === 0) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index]}%`) }
+                    else if (index > 1) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index - 1]}%`) }
                 })
             })
         }
+
         function updateEnterExit(update)
         {
-            const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
             update.each(function (d)
             {
-                const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => createPriceScale({ priceToPixel: price }))
+                const planArray = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
+                const yPositions = planArray.map((price) => createPriceScale({ priceToPixel: price }))
                 update.select('.stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1])
                 update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2])
                 update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
@@ -764,6 +776,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 yPositions.map((position, index) =>
                 {
                     update.select(`.${names[index]}`).attr('y1', position).attr('y2', position)
+                    update.select(`.${names[index]}Text`).attr('y', position)
+                    update.select(`.${names[index]}Percents`).attr('y', position)
                 })
             })
         }
@@ -1047,11 +1061,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             toggleAnyVisible(allPossibleClassNames[6], graphElementVisibility.enterExits, graphElementVisibility.previousEnterExits)
             toggleSelectToHidden(allPossibleClassNames[0])
         }
-        else
-        {
-            allPossibleClassNames.map((singleClass, i) => { toggleSelectToHidden(singleClass) })
-        }
+        else { allPossibleClassNames.map((singleClass, i) => { toggleSelectToHidden(singleClass) }) }
 
+        if (graphElementVisibility.enterExitText) { stockCandleSVG.select('.enterExits').selectAll('text').attr('visibility', 'visible') }
+        else { stockCandleSVG.select('.enterExits').selectAll('text').attr('visibility', 'hidden') }
 
         function toggleAnyVisible(className, showCurrentSpecific, showPreviousSpecific)
         {
@@ -1062,7 +1075,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         {
             stockCandleSVG.select(className).selectAll(lineGroupClassName).attr('visibility', 'hidden')
         }
-
 
     }, [charting, graphElementVisibility, EnterExitPlan])
 

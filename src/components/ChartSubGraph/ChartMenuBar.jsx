@@ -8,7 +8,7 @@ import './ChartMenuBar.css'
 import { defaultTimeFrames } from '../../Utilities/TimeFrames'
 import { setGraphEMAControl } from '../../features/Charting/GraphStudiesVisualElement'
 import { setFocusStartFinishDate, setToggleShowOnlyMarketHours } from '../../features/Charting/GraphMarketHourElement'
-import { setToggleAllVisibility } from '../../features/Charting/ChartingVisibility'
+import { setToggleAllVisibility, setToggleEnterExitText } from '../../features/Charting/ChartingVisibility'
 import ChartVisibilityDropDown from '../ChartMenuDropDowns/ChartVisibilityDropDown'
 import DateFocusDropDown from '../ChartMenuDropDowns/DateFocusDropDown'
 import ChartOverlayDropDown from '../ChartMenuDropDowns/ChartOverlayDropDown'
@@ -69,7 +69,9 @@ function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts
                 {subCharts.length > 0 && <button className='buttonIcon' onClick={() => { setSubCharts([]) }}><SquareX size={18} color='white' /></button>}
             </div>
 
-            <button className='buttonIcon' onClick={() => { setShowVisibilitySelect(false); setShowTimeFrameSelect(false); setShowVisibilitySelect(prev => !prev) }}
+            <button className='buttonIcon'
+                onMouseEnter={() => dispatch(setToggleEnterExitText({ uuid }))}
+                onClick={() => { setShowVisibilitySelect(false); setShowTimeFrameSelect(false); setShowVisibilitySelect(prev => !prev) }}
                 onContextMenu={(e) => { e.preventDefault(); dispatch(setToggleAllVisibility({ uuid })) }}>
                 <EyeOff color='white' size={18} />
             </button>

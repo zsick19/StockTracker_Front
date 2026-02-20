@@ -11,7 +11,7 @@ const chartingVisibilitySlice = createSlice({
                 trendLines: true,
                 currentPrice: true,
                 enterExitPlan: true,
-
+                enterExitText: false,
                 anyFreeLines: true, freeLines: true, previousFreeLines: true,
                 // anyLinesH: true, linesH: true, previousLinesH: true,
                 // anyTrendLines: true, trendLines: true, previousTrendLines: true,
@@ -37,6 +37,11 @@ const chartingVisibilitySlice = createSlice({
             if (!action.payload.uuid) return
             state[action.payload.uuid].showOnlyEnterExit = !state[action.payload.uuid].showOnlyEnterExit
         },
+        setToggleEnterExitText: (state, action) =>
+        {
+            if (!action.payload.uuid) return
+            state[action.payload.uuid].enterExitText = !state[action.payload.uuid].enterExitText
+        },
         setIndividualVisibility: (state, action) =>
         {
             state.chartingVisibility[action.payload.chartingElement] = action.payload.visible
@@ -46,7 +51,7 @@ const chartingVisibilitySlice = createSlice({
     }
 })
 
-export const { setInitialGraphVisibility, setToggleAllVisibility, setToggleOnlyEnterExitVisibility, clearGraphVisibility } = chartingVisibilitySlice.actions
+export const { setInitialGraphVisibility, setToggleAllVisibility, setToggleOnlyEnterExitVisibility, setToggleEnterExitText, clearGraphVisibility } = chartingVisibilitySlice.actions
 
 export default chartingVisibilitySlice.reducer
 

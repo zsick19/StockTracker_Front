@@ -14,6 +14,8 @@ const enterExitGraphElementsSlice = createSlice({
             {
                 state[chartingData.tickerSymbol] = {
                     ...chartingData.plannedId.plan,
+                    initialTrackingPrice: chartingData.plannedId?.initialTrackingPrice || undefined,
+                    tradeEnterDate: chartingData.plannedId?.tradeEnterDate || undefined,
                     id: chartingData.plannedId._id, enterExitPlanAltered: false
                 }
             }
