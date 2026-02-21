@@ -47,7 +47,7 @@ function ConfirmMarketSearch()
         {
             await submitConfirmedPatterns({ confirmed: keepTheseTickers.keepInfo, remove: keepTheseTickers.remove }).unwrap()
             setSubmitServerResponse('Patterns Confirmed!')
-            setTimeout(() => { dispatch(setStockDetailState(3)) }, [1500])
+            setTimeout(() => { dispatch(setStockDetailState(3)) }, [1000])
         } catch (error)
         {
             console.log(error)

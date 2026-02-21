@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useAddListOfTickersDirectlyToConfirmedListMutation, useAddTickerDirectlyToConfirmedListMutation, useGetUsersConfirmedSummaryQuery } from '../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
 import { useDispatch, useSelector } from 'react-redux'
-import { ArrowBigRight, ChevronDown, ChevronUp, Dot, RotateCcw } from 'lucide-react'
+import { ArrowBigRight, ChevronDown, ChevronUp, Dot, RotateCcw, Trash2, X } from 'lucide-react'
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { setSingleChartTickerTimeFrameAndChartingId } from '../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { confirmedStatuses } from '../../../../../../Utilities/ConfirmedStatuses'
 import { subDays } from 'date-fns'
 import './ConfirmedStatus.css'
 import { selectCurrentUnConfirmed, setConfirmedUnChartedData } from '../../../../../../features/SelectedStocks/PreviousNextStockSlice'
+import { useRemoveChartableStockMutation } from '../../../../../../features/Charting/ChartingSliceApi'
+import SingleConfirmedTR from './Components/SingleConfirmedTR'
 
 function ConfirmedStatus()
 {
@@ -20,6 +22,11 @@ function ConfirmedStatus()
     const { data, isSuccess, isError, isLoading, error, refetch } = useGetUsersConfirmedSummaryQuery()
     const [addTickerDirectlyToConfirmedList] = useAddTickerDirectlyToConfirmedListMutation()
     const [addListOfTickersDirectlyToConfirmedList] = useAddListOfTickersDirectlyToConfirmedListMutation()
+
+
+    const [removeChartableStock] = useRemoveChartableStockMutation()
+
+
 
     const [tableFilters, setTableFilters] = useState({ tickerSearch: undefined, status: 0, addedWithin: 0, olderThan: 0 })
     const [tableSort, setTableSort] = useState({ sort: undefined, direction: undefined })
@@ -69,19 +76,8 @@ function ConfirmedStatus()
     useEffect(() => { if (isSuccess) dispatch(setConfirmedUnChartedData(data)) }, [data])
 
     let dataTableBody
-    if (isSuccess)
-    {
-        dataTableBody = filteredSortedResults.map((confirmed, i) =>
-        {
-            return <tr className={`ConfirmedTableRow`} id={confirmed.tickerSymbol === selectedConfirmed?.tickerSymbol ? 'selected' : ''} onClick={() => setSelectedConfirmed(confirmed)}>
-                <td>{confirmed.tickerSymbol}</td>
-                <td>{confirmed.sector}</td>
-                <td>{confirmed.status >= 0 ? confirmedStatuses[confirmed.status] : 'Quick Add'}</td>
-                <td>{new Date(confirmed.dateAdded).toLocaleDateString()}</td>
-                <td><button><ArrowBigRight size={16} onClick={(e) => { e.stopPropagation(); jumpToChart(confirmed) }} /></button></td>
-            </tr>
-        })
-    }
+
+    if (isSuccess) { dataTableBody = filteredSortedResults.map((confirmed, i) => <SingleConfirmedTR key={confirmed.tickerSymbol} confirmed={confirmed} selectedConfirmed={selectedConfirmed} setSelectedConfirmed={setSelectedConfirmed} jumpToChart={jumpToChart} attemptRemovingConfirmed={attemptRemovingConfirmed} />) }
     else if (isLoading) { dataTableBody = <div>Loading...</div> }
     else if (isError) { dataTableBody = <div>Error Loading Confirmed Summaries</div> }
 
@@ -100,6 +96,22 @@ function ConfirmedStatus()
         dispatch(setStockDetailState(5))
     }
 
+
+
+
+    async function attemptRemovingConfirmed(confirmedForRemoval)
+    {
+        try
+        {
+            const results = await removeChartableStock({ chartId: confirmedForRemoval._id })
+
+            console.log(results)
+        } catch (error)
+        {
+            console.log(error)
+
+        }
+    }
 
 
     function refetchAndRotate()
@@ -273,6 +285,7 @@ function ConfirmedStatus()
                             <th onClick={() => setTableSort(prev => ({ sort: 'date', direction: !prev.direction }))}>
                                 <div>Date Added{tableSort.sort === 'date' ? tableSort.direction ? <ChevronUp size={16} /> : <ChevronDown size={16} /> : <Dot size={16} />}</div>
                             </th>
+                            <th>Remove</th>
                             <th>Chart</th>
                         </tr>
                     </thead>

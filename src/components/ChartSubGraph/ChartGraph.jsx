@@ -3,13 +3,13 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addEnterExitToCharting, addLine, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { sub, addDays, isToday, subMonths, addYears, subDays, startOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, isSaturday, isSunday, eachDayOfInterval, isWeekend, isMonday, getDay } from 'date-fns'
+import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
-import { makeSelectKeyLevelsByTicker, selectTickerKeyLevels } from '../../features/KeyLevels/KeyLevelGraphElements'
+import { makeSelectKeyLevelsByTicker } from '../../features/KeyLevels/KeyLevelGraphElements'
 import { defineEnterExitPlan, makeSelectEnterExitByTicker } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { selectCurrentTool } from '../../features/Charting/ChartingTool'
-import { makeSelectGraphVisibilityByUUID, selectChartVisibility } from '../../features/Charting/ChartingVisibility'
+import { makeSelectGraphVisibilityByUUID } from '../../features/Charting/ChartingVisibility'
 import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
 import ChartContextMenuContainer from './contextMenus/ChartContextMenuContainer'
 import { ChartingToolEdits, ChartingTools } from '../../Utilities/ChartingTools'
@@ -294,7 +294,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
 
 
-        
+
         stockCandleSVG.select('.initialTrack').selectAll('line').remove()
         let trackingLines = stockCandleSVG.select('.initialTrack')
 

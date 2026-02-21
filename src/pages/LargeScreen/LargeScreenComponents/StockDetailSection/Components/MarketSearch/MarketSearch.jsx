@@ -38,14 +38,14 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
 
     return (
         <div id='LHS-MarketSearchContainer'>
-            <MarketSearchFilterBar searchFilter={marketSearchFilter} setSearchFilter={setMarketSearchFilter} />
+            <MarketSearchFilterBar searchFilter={marketSearchFilter} setSearchFilter={setMarketSearchFilter} setCurrentMarketSearchPage={setCurrentMarketSearchPage} />
             <div id='LHS-MarketSearchResultContainer'>
-                <button className='ConfirmMarketNavBtns' onClick={() => setCurrentMarketSearchPage(prev => prev - 1)} disabled={!paginationInfo?.hasPrevious}>Prev</button>
+                <button className='ConfirmMarketNavBtns' onClick={() => setCurrentMarketSearchPage(prev => prev - 1)} disabled={!paginationInfo?.hasPrevious || isLoading}>Prev</button>
                 {searchResults}
-                <button className='ConfirmMarketNavBtns' onClick={() => setCurrentMarketSearchPage(prev => prev + 1)} disabled={!paginationInfo?.hasNext}>Next</button>
+                <button className='ConfirmMarketNavBtns' onClick={() => setCurrentMarketSearchPage(prev => prev + 1)} disabled={!paginationInfo?.hasNext || isLoading}>Next</button>
             </div>
             <MarketSearchPageControl currentPage={currentMarketSearchPage} paginationInfo={paginationInfo}
-                setCurrentPage={setCurrentMarketSearchPage} marketSearchFilter={marketSearchFilter} setMarketSearchFilter={setMarketSearchFilter}/>
+                setCurrentPage={setCurrentMarketSearchPage} marketSearchFilter={marketSearchFilter} setMarketSearchFilter={setMarketSearchFilter} />
         </div>
     )
 }

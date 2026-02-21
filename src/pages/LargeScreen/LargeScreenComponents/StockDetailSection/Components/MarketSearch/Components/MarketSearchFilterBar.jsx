@@ -5,7 +5,7 @@ import { selectUserMarketSearchFilters } from '../../../../../../../features/Ini
 import { useCreateNewSavedFilterMutation, useRemoveSavedFilterMutation } from '../../../../../../../features/MarketSearch/MarketSearchFilterSliceApi'
 import { ChevronDown, CircleX, PanelTopOpen } from 'lucide-react'
 
-function MarketSearchFilterBar({ searchFilter, setSearchFilter })
+function MarketSearchFilterBar({ searchFilter, setSearchFilter, setCurrentMarketSearchPage })
 {
     const titleForSavingFilter = useRef()
 
@@ -90,6 +90,7 @@ function MarketSearchFilterBar({ searchFilter, setSearchFilter })
     function handleSubmittingFilterChange()
     {
         setSearchFilter(filterToSubmit)
+        setCurrentMarketSearchPage(1)
         setFilterBarOpen(false)
         setDisplayFilterSave(false)
         setSavedFilterServerMessage(undefined)

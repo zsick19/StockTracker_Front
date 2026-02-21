@@ -134,17 +134,13 @@
 
 .ConfirmedTableRow {
   text-align: center;
+
+  background-color: rgb(52, 82, 52);
   font-size: var(--fs-200);
 }
 
-.ConfirmedTableRow:nth-child(even) {
-  background-color: #7a7a7a;
-}
-.ConfirmedTableRow:nth-child(odd) {
-  background-color: #4b4b4b;
-}
-
 .ConfirmedTableRow button {
+  margin: auto;
   border: none;
   background: none;
   color: white;
@@ -155,7 +151,13 @@
   background-color: rgb(100, 19, 19);
 }
 
-#LHS-ConfirmedSelectedStatus {
-  /* display: grid;
-  grid-template-columns: 60% 40%; */
+.Confirmed,
+.QuickAdd {
+  background-color: red;
+}
+
+.doubleConfirmTrashAndX {
+  display: flex;
+  padding: 0px;
+  padding-top: 2px;
 }

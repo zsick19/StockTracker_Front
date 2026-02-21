@@ -66,34 +66,13 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
               }))
           }
 
-          // dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization",undefined,
-          //   (draft)=>{
-          //     draft.userStockHistory.filter((history)=>{
-          //       return history.tickerSymbol!==removedCharted.removedChart.tickerSymbol
-          //     })
-          //   }
-          // ))
-
-
-          // dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization", undefined,
-          //   (draft) =>
-          //   {
-          //     if (removedHistory.deletedCount > 0)
-          //     {
-          //       draft.userStockHistory = draft.userStockHistory.filter((t) => t._id !== args.historyId)
-          //       draft.patternedTickers = draft.patternedTickers.filter((t) => t !== args.ticker)
-          //     }
-          //     return draft
-          //   })
-          //);
-
-
+      
         } catch
         {
           // If mutation fails, the cache remains untouched
         }
       },
-      invalidatesTags: (result, error, args) => ['userData']
+      invalidatesTags: (result, error, args) => ['userData', 'confirmedSummary']
     })
   }),
 });

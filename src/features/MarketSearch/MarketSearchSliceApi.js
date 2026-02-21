@@ -13,7 +13,19 @@ export const MarketSearchApiSlice = apiSlice.injectEndpoints({
                 body: { ...args.searchFilter }
             })
         }),
+        getUsersMarketSearchProgress: builder.mutation({
+            query: () => ({
+                url: `/user/marketSearch/record`,
+            })
+        }),
+        setMarketSearchFilterAndPageProgress: builder.mutation({
+            query: (args) => ({
+                url: `/user/marketSearch/record`,
+                method: 'POST',
+                body: { marketFilters: args.searchFilter, mostRecentPage: args.currentPage, resultsPerPage: args.resultsPerPage }
+            })
+        })
     }),
 });
 
-export const { useGetMarketSearchStockDataQuery } = MarketSearchApiSlice;
+export const { useGetMarketSearchStockDataQuery, useGetUsersMarketSearchProgressMutation, useSetMarketSearchFilterAndPageProgressMutation } = MarketSearchApiSlice;

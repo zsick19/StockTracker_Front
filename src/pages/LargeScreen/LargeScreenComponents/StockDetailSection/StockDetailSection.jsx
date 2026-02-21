@@ -21,7 +21,8 @@ function StockDetailSection()
   const currentStockDetail = useSelector(selectStockDetailControl)
 
   const [currentMarketSearchPage, setCurrentMarketSearchPage] = useState(1)
-  const [marketSearchFilter, setMarketSearchFilter] = useState({ AvgVolume: undefined, Sector: undefined, Industry: undefined, MarketCap: undefined, ATR: undefined, Volume: undefined, Country: undefined })
+  const [marketSearchFilter, setMarketSearchFilter] = useState({ AvgVolume: undefined, Sector: undefined, Industry: undefined,
+     MarketCap: undefined, ATR: undefined, Volume: undefined, Country: undefined })
 
   function provideDetailContent()
   {

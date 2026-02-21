@@ -1,29 +1,48 @@
 import { useEffect, useState } from 'react'
 import PaginationFirstLast from '../../../../../../../components/Pagination/PaginationFirstLast'
+import { useGetUsersMarketSearchProgressMutation, useSetMarketSearchFilterAndPageProgressMutation } from '../../../../../../../features/MarketSearch/MarketSearchSliceApi'
 
 function MarketSearchPageControl({ paginationInfo, setCurrentPage, marketSearchFilter, setMarketSearchFilter })
 {
-    function revertToPageAndFilterFromLocalStorage()
+    const [setMarketSearchFilterAndPageProgress, { isLoading }] = useSetMarketSearchFilterAndPageProgressMutation()
+    const [getUsersMarketSearchProgress, { isLoading: isProgressLoading }] = useGetUsersMarketSearchProgressMutation()
+    const [showSavedProgressMessage, setShowSavedProgressMessage] = useState(false)
+
+    async function revertToPageAndFilterFromLocalStorage()
     {
-        let currentpage = localStorage.getItem('currentMarketSearchPage')
-        let filter = JSON.parse(localStorage.getItem('currentMarketSearchFilter'))
-        if (currentpage && filter)
+        try
         {
-            setCurrentPage(currentpage)
-            setMarketSearchFilter(prev => ({ ...prev, ...filter }))
+            const results = await getUsersMarketSearchProgress()
+            setCurrentPage(results.data.marketSearchProgress.mostRecentPage)
+            setMarketSearchFilter(results.data.marketSearchProgress.filterParams)
+        } catch (error)
+        {
+            console.log(error)
         }
     }
 
-    function saveFilterAndPage()
+    async function saveFilterAndPage()
     {
-        localStorage.setItem('currentMarketSearchPage', JSON.stringify(paginationInfo?.currentPage))
-        localStorage.setItem('currentMarketSearchFilter', JSON.stringify(marketSearchFilter))
+        try
+        {
+            const results = await setMarketSearchFilterAndPageProgress({ currentPage: paginationInfo.currentPage, searchFilter: marketSearchFilter, resultsPerPage: 9 })
+            setShowSavedProgressMessage(true)
+            setTimeout(() =>
+            {
+                setShowSavedProgressMessage(false)
+            }, [1000])
+        } catch (error)
+        {
+            console.log(error)
+        }
     }
 
     return (<div id='LHS-MarketSearchPageControl'>
         <PaginationFirstLast paginationInfo={paginationInfo} onPageChange={setCurrentPage} />
-        <button onClick={() => revertToPageAndFilterFromLocalStorage()}>Revert To Previous</button>
-        <button onClick={() => saveFilterAndPage()}>Save Page and Filter</button>
+        <button onClick={() => revertToPageAndFilterFromLocalStorage()} disabled={isProgressLoading}>Revert To Previous</button>
+        <button onClick={() => saveFilterAndPage()} disabled={isLoading}>
+            {showSavedProgressMessage ? 'Progress Saved' : 'Save Page and Filter'}
+        </button>
         <p>Total Results: {paginationInfo?.totalResults || undefined}</p>
     </div>
     )

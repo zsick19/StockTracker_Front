@@ -11,20 +11,20 @@ import { clearGraphControl, setInitialGraphControl } from '../../../../../../../
 
 function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTickers })
 {
+    const dispatch = useDispatch()
+    const uuid = useMemo(() => short.generate(), [])
+
     const [showKeepOrRemove, setShowKeepOrRemove] = useState(false)
     const [confirmed, setConfirmed] = useState(keepTheseTickers.keepInfo.find(t => t.ticker === ticker) ? 1 : keepTheseTickers.remove.includes(ticker) ? 2 : 0)
 
-    const dispatch = useDispatch()
-    const uuid = useMemo(() => short.generate(), [])
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame: defaultTimeFrames.dailyOneYear, liveFeed: false, info: true })
-
     let graphContent
     let tickerInfoContent = <div className='StockInfoBlock'><p>{ticker}</p></div>
 
     useEffect(() =>
     {
-        dispatch(setInitialGraphControl(uuid))
-        return (() => { if (uuid) dispatch(clearGraphControl(uuid)) })
+        dispatch(setInitialGraphControl({ uuid }))
+        return (() => { if (uuid) dispatch(clearGraphControl({ uuid })) })
     }, [])
 
 
@@ -34,7 +34,7 @@ function SingleUnconfirmedResultBlock({ ticker, keepTheseTickers, setKeepTheseTi
 
         graphContent = <div className={`ChartGraphWrapper `}>
             <ChartGraph ticker={{ ticker: ticker }} showEMAs={true} isInteractive={false} isLivePrice={false} isZoomAble={true}
-                candleData={data.candleData} nonInteractive={true} timeFrame={defaultTimeFrames.dailyHalfYear} uuid={uuid} />
+                candleData={data.candleData} timeFrame={defaultTimeFrames.dailyHalfYear} uuid={uuid} />
         </div>
 
         tickerInfoContent = <div className='StockInfoBlock'>
