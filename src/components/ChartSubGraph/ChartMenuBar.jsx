@@ -70,7 +70,7 @@ function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts
             </div>
 
             <button className='buttonIcon'
-                onMouseEnter={() => dispatch(setToggleEnterExitText({ uuid }))}
+                onMouseEnter={() => { console.log('moving'); dispatch(setToggleEnterExitText({ uuid })) }}
                 onClick={() => { setShowVisibilitySelect(false); setShowTimeFrameSelect(false); setShowVisibilitySelect(prev => !prev) }}
                 onContextMenu={(e) => { e.preventDefault(); dispatch(setToggleAllVisibility({ uuid })) }}>
                 <EyeOff color='white' size={18} />

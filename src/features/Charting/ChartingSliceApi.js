@@ -52,8 +52,7 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
         try
         {
           const { data: removedCharted } = await queryFulfilled;
-          console.log(removedCharted)
-
+  
           if (removedCharted.removedEnterExit)
           {
             dispatch(EnterExitPlanApiSlice.util.updateQueryData("getUsersEnterExitPlan", undefined,

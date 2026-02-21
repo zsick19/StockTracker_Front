@@ -569,6 +569,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
     }, [mostRecentPrice, candleData, displayMarketHours, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
+    const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
     //plot user charting  
     useEffect(() =>
     {
@@ -630,10 +631,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             {
                 var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today chartingEnterExit' : 'line_group previous chartingEnterExit')
 
-                const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
+                //const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
                 const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
 
-                const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => yScaleRef.current({ priceToPixel: price }))
+                // const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => yScaleRef.current({ priceToPixel: price }))
+                const planArray = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
+                const yPositions = planArray.map((price) => yScaleRef.current({ priceToPixel: price }))
+
                 lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
@@ -645,27 +649,30 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                         .attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
                         .attr('stroke-width', 10).attr('visibility', 'hidden').on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); })
 
-                    //      lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', startXPosition).attr('y', position).text((d) => `$${100}`)
+                    lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', 100).attr('y', position).text(`$${planArray[index]}`)
+                    if (index === 0) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index]}%`) }
+                    else if (index > 1) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index - 1]}%`) }
                 })
             })
         }
         function updateEnterExit(update)
         {
-
-            const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
             update.each(function (d)
             {
-                const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => createPriceScale({ priceToPixel: price }))
+                const planArray = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
+                const yPositions = planArray.map((price) => yScaleRef.current({ priceToPixel: price }))
+
                 update.select('.stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1])
                 update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2])
                 update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
                 update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5])
 
-
                 yPositions.map((position, index) =>
                 {
                     update.select(`.${names[index]}`).attr('y1', position).attr('y2', position)
-                    update.select(`.${names[index]}Text`).attr('x', candleDimensions.width * 0.9).attr('y', yPositions[index])
+                    update.select(`.${names[index]}Text`).attr('y', position).text(`$${planArray[index]}`)
+                    if (index === 0) { update.select(`.${names[index]}Percents`).attr('y', position).text(`${d.percents[index]}%`) }
+                    else if (index > 1) { update.select(`.${names[index]}Percents`).attr('y', position).text(`${d.percents[index - 1]}%`) }
                 })
             })
         }
@@ -719,7 +726,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
 
     //plot user EnterExit Plan removing any possible charting enter exit  
-    const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
     useEffect(() =>
     {
         if (!EnterExitPlan) stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
@@ -757,6 +763,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     else if (index > 1) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index - 1]}%`) }
                 })
             })
+
         }
 
         function updateEnterExit(update)
@@ -776,15 +783,16 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 yPositions.map((position, index) =>
                 {
                     update.select(`.${names[index]}`).attr('y1', position).attr('y2', position)
-                    update.select(`.${names[index]}Text`).attr('y', position)
-                    update.select(`.${names[index]}Percents`).attr('y', position)
+                    update.select(`.${names[index]}Text`).attr('y', position).text(`$${planArray[index]}`)
+                    if (index === 0) { update.select(`.${names[index]}Percents`).attr('y', position).text(`${d.percents[index]}%`) }
+                    else if (index > 1) { update.select(`.${names[index]}Percents`).attr('y', position).text(`${d.percents[index - 1]}%`) }
                 })
             })
         }
 
         //remove the charting svg for enter exit plans 
 
-    }, [ticker, chartId, EnterExitPlan, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+    }, [ticker, chartId, charting, EnterExitPlan, candleData, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
     //plot macro key levels
     useEffect(() =>
@@ -965,7 +973,16 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (preDimensionsAndCandleCheck()) return
         initializeMouseCrossHairBehavior()
         if (!isInteractive) return
-        if (!stockCandleSVG.on('contextmenu')) { stockCandleSVG.on('contextmenu', (e) => { e.preventDefault(); setShowContextMenu({ display: true, style: { left: `${e.offsetX}px`, top: `${e.offsetY}px` } }) }) }
+        if (!stockCandleSVG.on('contextmenu'))
+        {
+            stockCandleSVG.on('contextmenu', (e) =>
+            {
+                e.preventDefault();
+                let xPosition = e.offsetX; if (xPosition > candleDimensions.width - 400) xPosition = candleDimensions.width - 400
+                let yPosition = e.offsetY; if (yPosition > candleDimensions.height - 300) yPosition = candleDimensions.height - 300
+                setShowContextMenu({ display: true, style: { left: `${xPosition}px`, top: `${yPosition}px` } })
+            })
+        }
 
         let toolingFunction = toolFunctionExports[ChartingTools.findIndex(t => t.tool === currentTool)]
         stockCandleSVG.on('click', (e) => toolingFunction(e, setEnableZoom, candleSVG.current, pixelSet, setCaptureComplete, createDateScale, createPriceScale))
