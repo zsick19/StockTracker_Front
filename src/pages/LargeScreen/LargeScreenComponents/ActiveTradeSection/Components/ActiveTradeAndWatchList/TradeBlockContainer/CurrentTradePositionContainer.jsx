@@ -12,7 +12,7 @@ function CurrentTradePositionContainer()
     const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery()
 
     let tradeDisplayContent
-    if (isSuccess && activeTrades.ids.length > 4) { tradeDisplayContent = <ActiveTradeListWrapper ids={activeTrades.ids} /> }
+    if (isSuccess && activeTrades.ids.length > 7) { tradeDisplayContent = <ActiveTradeListWrapper ids={activeTrades.ids} /> }
     else if (isSuccess && activeTrades.ids.length > 0) { tradeDisplayContent = <ActiveTradeBlockWrapper ids={activeTrades.ids} /> }
     else if (isSuccess) { tradeDisplayContent = <div className='LSH-ActiveTradesMessage'>            <h2>Currently No Active Trades</h2>        </div> }
     else if (isLoading) { tradeDisplayContent = <div className='LSH-ActiveTradeMessage'><h2>Loading Current Trades...</h2></div> }

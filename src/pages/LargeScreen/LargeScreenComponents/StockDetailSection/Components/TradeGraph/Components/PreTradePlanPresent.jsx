@@ -9,6 +9,7 @@ import CompanyInfo from '../PreTradeComponents/CompanyInfo'
 import '../PreTradeComponents/PreTradeStyles.css'
 import { enterBufferSelectors, enterExitPlannedSelectors, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { useGetStockAverageTrueRangeQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
+import TradeRecordedVisual from './TradeRecordedVisual'
 
 
 function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
@@ -26,11 +27,8 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
         if (selectedStock?.tradeId || !tradeRecordDetails.positionSize > 0 || !tradeRecordDetails.purchasePrice > 0) return
         let planPricing = selectedStock.plan.plan
 
-
         let tradingPlanPrices = [planPricing.stopLossPrice, tradeRecordDetails.purchasePrice, planPricing.enterBufferPrice, planPricing.exitBufferPrice, planPricing.exitPrice, planPricing.moonPrice]
         let idealPercents = tradingPlanPrices.map((p, i) => calcPercentage(tradeRecordDetails.purchasePrice, p)).filter(t => t !== 0)
-        console.log(planPricing)
-
 
         let atrAtPurchase = undefined
         let daysToCover = undefined
@@ -56,10 +54,7 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
             })
 
             setServerTradeResponse(results.data)
-        } catch (error)
-        {
-            console.log(error)
-        }
+        } catch (error) { console.log(error) }
 
         function calcPercentage(basePrice, p2)
         {
@@ -106,20 +101,11 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
     }
 
 
-    console.log(serverTradeResponse)
-
     return (
         <>
-
-            {serverTradeResponse ? <div>
-                {console.log('hey inside server trade response')}
-                Trade Recorded!!!
-                <button>Alter Trade</button>
-                <button>Go To Watch All Trades</button>
-            </div> :
+            {serverTradeResponse ? <TradeRecordedVisual serverTradeResponse={serverTradeResponse} /> :
 
                 <div id='PreTradeInitiator'>
-
                     <div className='TradeMenuChoice'>
                         <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(4)}><AlertCircle color={preTradeDetailDisplay === 4 ? 'green' : 'white'} /></button>
                         <button className='buttonIcon' onClick={() => setPreTradeDetailDisplay(0)}><Plane color={preTradeDetailDisplay === 0 ? 'green' : 'white'} /></button>

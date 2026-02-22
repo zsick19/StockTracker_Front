@@ -1,6 +1,5 @@
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { enterBufferHitAdapter, enterExitAdapter, EnterExitPlanApiSlice, stopLossHitAdapter } from "../EnterExitPlans/EnterExitApiSlice";
-import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
 
 const possibleDefaultMacros = ['SPY', 'ES', 'DIA', 'QQQ', 'IWM', 'TLT', 'XLRE', 'XLY', 'XLK', 'XLF', 'XLU', 'XLP', 'XLE', 'XLC', 'XLI', 'XLV', 'XLB', 'GLD', 'SLV', 'GDX', 'SMH', 'XBI', 'KRE', 'XOP', 'XRT']
 
@@ -13,7 +12,7 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
         if (possibleDefaultMacros.includes(args.tickerSymbol)) return { url: `/chartingData/macro/${args.chartId}` }
         else if (args?.chartId) return { url: `/chartingData/${args.chartId}` };
       },
-      providesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
+      providesTags: (result, error, args) => [{ type: 'chartingData', id: args.tickerSymbol }]
     }),
 
 
@@ -52,7 +51,7 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
         try
         {
           const { data: removedCharted } = await queryFulfilled;
-  
+
           if (removedCharted.removedEnterExit)
           {
             dispatch(EnterExitPlanApiSlice.util.updateQueryData("getUsersEnterExitPlan", undefined,
@@ -65,7 +64,7 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
               }))
           }
 
-      
+
         } catch
         {
           // If mutation fails, the cache remains untouched

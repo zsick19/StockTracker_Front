@@ -186,17 +186,10 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
 
                 )
 
-                try
-                {
-                    // 2. Wait for the actual server request to finish
-                    await queryFulfilled;
-                } catch
-                {
-                    // 3. If the server request fails, roll back the manual change
-                    patchResult.undo();
-                }
+                try { await queryFulfilled; }
+                catch { patchResult.undo(); }
             },
-            invalidatesTags: ['activeTrades', 'tradeHistory']
+            invalidatesTags: (result, error, args) => ['activeTrades', 'tradeHistory', { type: 'chartingData', id: args.tickerSymbol }]
         }),
         alterTradeRecord: builder.mutation({
             query: (args) => ({

@@ -14,6 +14,7 @@ import PreWatchMany from './Components/PrewatchMany/PrewatchMany';
 import { Binoculars, ChartCandlestick, Expand, ListChecks, ListTodo, NotebookPen, PencilRuler, PiggyBank, SpellCheck } from 'lucide-react';
 import PlanStatusView from './Components/PlanStatusView/PlanStatusView';
 import SyncWithBackendVisual from './Components/SyncVisual/SyncWithBackendVisual';
+import BestPositionSplit from './Components/BestPositionSplit/BestPositionSplit';
 
 function StockDetailSection()
 {
@@ -21,8 +22,10 @@ function StockDetailSection()
   const currentStockDetail = useSelector(selectStockDetailControl)
 
   const [currentMarketSearchPage, setCurrentMarketSearchPage] = useState(1)
-  const [marketSearchFilter, setMarketSearchFilter] = useState({ AvgVolume: undefined, Sector: undefined, Industry: undefined,
-     MarketCap: undefined, ATR: undefined, Volume: undefined, Country: undefined })
+  const [marketSearchFilter, setMarketSearchFilter] = useState({
+    AvgVolume: undefined, Sector: undefined, Industry: undefined,
+    MarketCap: undefined, ATR: undefined, Volume: undefined, Country: undefined
+  })
 
   function provideDetailContent()
   {
@@ -45,6 +48,7 @@ function StockDetailSection()
       case 8: return <EnterExitTradeGraph />
       case 9: return <TradingJournal />
       case 10: return <SyncWithBackendVisual />
+      case 14: return <BestPositionSplit />
     }
   }
 
@@ -61,7 +65,7 @@ function StockDetailSection()
         <button onClick={() => dispatch(setStockDetailState(5))}><PencilRuler color='yellow' /><p>Charting Graph</p></button>
         <button onClick={() => dispatch(setStockDetailState(4))}><SpellCheck color='green' /><p>Viability Check</p></button>
         <button onClick={() => dispatch(setStockDetailState(7))}><PiggyBank color='pink' /><p>Plans</p></button>
-        <button onClick={() => dispatch(setStockDetailState(8))}><ChartCandlestick color='yellow' /><p>Trade Graph</p></button>
+        <button onClick={() => dispatch(setStockDetailState(14))}><ChartCandlestick color='yellow' /><p>Best Positions</p></button>
         <button onClick={() => dispatch(setStockDetailState(9))}><NotebookPen color='green' /><p>Trading Journal</p></button>
       </nav>
       {provideDetailContent()}
