@@ -61,7 +61,8 @@ function EnterExitTradeGraph()
 
             <div id='LHS-PlanPresentBeforeTrade'>
                 {selectedStock?.planId ?
-                    selectedStock?.trade ? <TradePresent selectedStock={selectedStock} setShowSupportingTickers={setShowSupportingTickers} /> :
+                    selectedStock?.trade ? 
+                    <TradePresent selectedStock={selectedStock} setShowSupportingTickers={setShowSupportingTickers} /> :
                         <PreTradePlanPresent selectedStock={selectedStock} setShowSupportingTickers={setShowSupportingTickers} />
                     : <div>
                         <p>No plan set for this ticker</p>

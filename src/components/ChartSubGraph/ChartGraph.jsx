@@ -312,7 +312,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (EnterExitPlan?.tradeEnterDate)
         {
             let pixelDate = createDateScale({ dateToPixel: EnterExitPlan.tradeEnterDate })
-            trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+            trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2  5').attr('opacity', 0.75)
                 .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
         }
 
@@ -570,6 +570,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     }, [mostRecentPrice, candleData, displayMarketHours, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
     const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
+    const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
+
     //plot user charting  
     useEffect(() =>
     {
@@ -631,10 +633,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             {
                 var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today chartingEnterExit' : 'line_group previous chartingEnterExit')
 
-                //const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
-                const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
-
-                // const yPositions = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice].map((price) => yScaleRef.current({ priceToPixel: price }))
                 const planArray = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
                 const yPositions = planArray.map((price) => yScaleRef.current({ priceToPixel: price }))
 
@@ -737,7 +735,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
         function createEnterExit(enter)
         {
-            const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
             enter.each(function (d)
             {
                 var lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')

@@ -19,8 +19,8 @@ const selectedStockSlice = createSlice({
         {
             return [
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, trade: action.payload?.trade, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
-                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayFiveMin, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
-                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneHour, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayFifteenMin, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyMonth, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
             ]
         },

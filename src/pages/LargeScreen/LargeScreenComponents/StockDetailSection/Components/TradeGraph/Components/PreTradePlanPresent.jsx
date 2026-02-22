@@ -14,7 +14,7 @@ import { useGetStockAverageTrueRangeQuery } from '../../../../../../../features/
 function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
 {
     const [initiateTradeRecord] = useInitiateTradeRecordMutation()
-    const [preTradeDetailDisplay, setPreTradeDetailDisplay] = useState(0)
+    const [preTradeDetailDisplay, setPreTradeDetailDisplay] = useState(4)
 
     const [tradeRecordDetails, setTradeRecordDetails] = useState({ positionSize: undefined, purchasePrice: undefined })
     const [serverTradeResponse, setServerTradeResponse] = useState(undefined)
@@ -29,6 +29,8 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
 
         let tradingPlanPrices = [planPricing.stopLossPrice, tradeRecordDetails.purchasePrice, planPricing.enterBufferPrice, planPricing.exitBufferPrice, planPricing.exitPrice, planPricing.moonPrice]
         let idealPercents = tradingPlanPrices.map((p, i) => calcPercentage(tradeRecordDetails.purchasePrice, p)).filter(t => t !== 0)
+        console.log(planPricing)
+
 
         let atrAtPurchase = undefined
         let daysToCover = undefined
@@ -40,6 +42,7 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
 
         try
         {
+            setPreTradeDetailDisplay(4)
             const results = await initiateTradeRecord({
                 ...tradeRecordDetails,
                 atrAtPurchase,
@@ -52,7 +55,7 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
                 idealGainPercent: idealPercents[3]
             })
 
-            setServerTradeResponse(results)
+            setServerTradeResponse(results.data)
         } catch (error)
         {
             console.log(error)
@@ -102,10 +105,14 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
         else setShowConfirmTradeValues(true)
     }
 
+
+    console.log(serverTradeResponse)
+
     return (
         <>
 
             {serverTradeResponse ? <div>
+                {console.log('hey inside server trade response')}
                 Trade Recorded!!!
                 <button>Alter Trade</button>
                 <button>Go To Watch All Trades</button>

@@ -54,7 +54,7 @@ function SingleActiveTradeBlock({ id })
     }
 
     const [showGainPercentOrGPP, setShowGainPercentOrGPP] = useState(true)
-    console.log(activeTrade)
+
     return (
         <div className={`LSH-ActiveTradeBlock ${activeTrade.classVisual}`}>
             <div className='VerticalPlanDiagrams'>

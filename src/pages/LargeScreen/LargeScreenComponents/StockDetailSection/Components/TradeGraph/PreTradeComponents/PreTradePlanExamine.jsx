@@ -1,9 +1,9 @@
 import React from 'react'
 import { useGetStockAverageTrueRangeQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
 
-function PreTradePlanExamine({ selectedStock, })
+function PreTradePlanExamine({ selectedStock })
 {
-    const { data, isLoading, isError, isSuccess, error, refetch } = useGetStockAverageTrueRangeQuery({ ticker: selectedStock.tickerSymbol })
+    const { data, isLoading, isError, isSuccess, error, refetch } = useGetStockAverageTrueRangeQuery({ ticker: selectedStock?.tickerSymbol })
 
     let atrContent
     if (isSuccess)

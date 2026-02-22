@@ -68,7 +68,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
 
                     return trade
                 })
-                console.log(tradeResponse)
+
                 return activeTradeAdapter.setAll(activeTradeAdapter.getInitialState(), tradeResponse)
             },
             async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
@@ -151,12 +151,12 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 } catch (error)
                 {
                     await cacheEntryRemoved
-                    unsubscribe('activeTradePrice', incomingTradeListener, arg.userId, 'ActiveTrades')
+                    unsubscribe('activeTradePrice', incomingTradeListener, userId, 'ActiveTrades')
                 }
 
                 await cacheEntryRemoved
                 console.log('removed cache entry')
-                unsubscribe('activeTradePrice', incomingTradeListener, arg.userId, 'ActiveTrades')
+                unsubscribe('activeTradePrice', incomingTradeListener, userId, 'ActiveTrades')
             },
             providesTags: ['activeTrades']
         }),
