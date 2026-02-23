@@ -118,7 +118,7 @@
   grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
   font-size: var(--fs-200);
-  background-color: green;
+
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   height: 4rem;

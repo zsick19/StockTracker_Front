@@ -36,8 +36,8 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
 
         function checkKeyPressForAction(e)
         {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
             e.preventDefault()
-            if (document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.tagName.toLowerCase() === 'textarea') return;
 
             if (e.key === 'f' && paginationInfo?.hasNext) setCurrentMarketSearchPage(prev => prev + 1)
             else if (e.key === 'd' && paginationInfo?.hasPrevious) setCurrentMarketSearchPage(prev => prev - 1)

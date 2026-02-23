@@ -35,7 +35,7 @@ export const PatternApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: removedHistory } = await queryFulfilled;
-                    console.log(removedHistory)
+
                     dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization", undefined,
                         (draft) =>
                         {

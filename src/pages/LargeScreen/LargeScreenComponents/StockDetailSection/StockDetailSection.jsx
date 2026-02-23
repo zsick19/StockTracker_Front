@@ -57,8 +57,6 @@ function StockDetailSection()
   return (
     <section id="StockDetailSection">
       <nav>
-        <button onClick={() => dispatch(setStockDetailState(0))}><Expand color='yellow' /><p>Four Graph</p></button>
-
         <button onClick={() => dispatch(setStockDetailState(1))}><Binoculars color='green' /><p>Market Search</p></button>
         <button onClick={() => dispatch(setStockDetailState(2))}><ListTodo color='green' /><p>Double Check</p></button>
         <button onClick={() => dispatch(setStockDetailState(3))}><ListChecks color='pink' /><p>Confirmed</p></button>
@@ -67,6 +65,7 @@ function StockDetailSection()
         <button onClick={() => dispatch(setStockDetailState(7))}><PiggyBank color='pink' /><p>Plans</p></button>
         <button onClick={() => dispatch(setStockDetailState(14))}><ChartCandlestick color='yellow' /><p>Best Positions</p></button>
         <button onClick={() => dispatch(setStockDetailState(9))}><NotebookPen color='green' /><p>Trading Journal</p></button>
+        <button onClick={() => dispatch(setStockDetailState(0))}><Expand color='yellow' /><p>Four Graph</p></button>
       </nav>
       {provideDetailContent()}
     </section>

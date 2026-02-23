@@ -104,8 +104,6 @@ function ConfirmedStatus()
         try
         {
             const results = await removeChartableStock({ chartId: confirmedForRemoval._id })
-
-            console.log(results)
         } catch (error)
         {
             console.log(error)

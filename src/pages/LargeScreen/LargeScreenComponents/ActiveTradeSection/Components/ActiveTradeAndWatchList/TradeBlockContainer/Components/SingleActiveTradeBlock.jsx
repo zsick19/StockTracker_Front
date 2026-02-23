@@ -68,7 +68,7 @@ function SingleActiveTradeBlock({ id })
                     <div className='PriceTickerInfo'>
                         <h2 onClick={() => { setShowTradeOptions(prev => !prev); }}>{activeTrade.tickerSymbol}</h2>
                         <div className='PriceMovementPerTrade' onClick={() => handleStockToTradeChart()}>
-                            <h2 className={activeTrade.priceDirection}>${activeTrade.mostRecentPrice.toFixed(2)}</h2>
+                            <h2 className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>${activeTrade.mostRecentPrice.toFixed(2)}</h2>
                             {activeTrade.priceDirection === 'negativeDirection' && < ChevronDown size={18} color='red' />}
                             {activeTrade.priceDirection === 'positiveDirection' && <ChevronUp size={18} color='green' />}
                         </div>
@@ -99,18 +99,20 @@ function SingleActiveTradeBlock({ id })
                 </div>
 
                 <div>
-                    {showStopEnterExit === 0 ? <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive currentPL' : 'activeTradeNegative currentPL'} onClick={() => setShowStopEnterExit(1)}>
-                        <div onMouseEnter={() => setShowGainPercentOrGPP(false)} onMouseLeave={() => setShowGainPercentOrGPP(true)}>
-                            <h2>{activeTrade.percentFromOpen > 0 && '+'}{activeTrade.percentFromOpen.toFixed(2)}%</h2>
-                            <p>GPS: ${activeTrade.gainPerShare.toFixed(2)}</p>
-                        </div>
+                    {showStopEnterExit === 0 ?
+                        <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive currentPL' : 'activeTradeNegative currentPL'} onClick={() => setShowStopEnterExit(1)}>
+                            <div onMouseEnter={() => setShowGainPercentOrGPP(false)} onMouseLeave={() => setShowGainPercentOrGPP(true)}>
+                                <h2>{activeTrade.percentFromOpen > 0 && '+'}{activeTrade.percentFromOpen.toFixed(2)}%</h2>
+                                <p>GPS: ${activeTrade.gainPerShare.toFixed(2)}</p>
+                            </div>
 
-                        <div>
-                            <p>Open P/L: ${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</p>
-                            <p>Day's P/L: ${activeTrade?.todaysGain.toFixed(2)}</p>
-                        </div>
-                    </div> :
-                        showStopEnterExit === 1 ? <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(2)}>
+                            <div>
+                                <h2>${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</h2>
+                                <p >Day's P/L: ${activeTrade?.todaysGain.toFixed(2)}</p>
+                            </div>
+                        </div> :
+                        showStopEnterExit === 1 ? <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive PlanStopEnterExit' : 'activeTradeNegative PlanStopEnterExit'}
+                            onClick={() => setShowStopEnterExit(2)}>
                             <div>
                                 <p>${activeTrade.tradingPlanPrices[0]}</p>
                                 <p>StopLoss</p>
@@ -124,7 +126,8 @@ function SingleActiveTradeBlock({ id })
                                 <p>Enter Buffer</p>
                             </div>
                         </div> :
-                            showStopEnterExit === 2 ? <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(3)}>
+                            showStopEnterExit === 2 ? <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive PlanStopEnterExit' : 'activeTradeNegative PlanStopEnterExit'}
+                                onClick={() => setShowStopEnterExit(3)}>
                                 <div>
                                     <p>${activeTrade.tradingPlanPrices[3]}</p>
                                     <p>Exit Buffer</p>
@@ -138,7 +141,8 @@ function SingleActiveTradeBlock({ id })
                                     <p>Moon Shot</p>
                                 </div>
                             </div>
-                                : <div className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(0)}>
+                                : <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive PlanStopEnterExit' : 'activeTradeNegative PlanStopEnterExit'}
+                                    onClick={() => setShowStopEnterExit(0)}>
                                     <div>Risk</div>
                                     <p>{activeTrade.idealPercents[0]} vs {activeTrade.idealPercents[3]}</p>
                                     <div>Reward</div>

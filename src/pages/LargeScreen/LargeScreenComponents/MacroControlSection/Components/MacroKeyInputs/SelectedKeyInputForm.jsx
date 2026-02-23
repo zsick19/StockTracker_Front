@@ -40,8 +40,10 @@ function SelectedKeyInputForm({ selectedStock, setShowMacroKeyLevelDisplay, show
                 showDailyWeeklyMonthly === 1 ?
                     <WeeklyInputForm setSelectedData={setSelectedData} selectedData={selectedData} /> :
                     <MonthlyInputForm selectedData={selectedData} setSelectedData={setSelectedData} />}
-            <button>Submit</button>
-            <button type='button' onClick={() => setShowMacroKeyLevelDisplay(false)}>Cancel</button>
+            <div>
+                <button>Submit</button>
+                <button type='button' onClick={() => setShowMacroKeyLevelDisplay(false)}>Cancel</button>
+            </div>
         </form>
     )
 }

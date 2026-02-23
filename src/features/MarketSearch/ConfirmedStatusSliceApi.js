@@ -32,7 +32,10 @@ export const ConfirmedStatusApiSlice = apiSlice.injectEndpoints({
                             (draft) =>
                             {
                                 draft.userStockHistory = data.userHistory
-                                draft.patternedTickers = draft.patternedTickers.push(data.directConfirmed.tickerSymbol)
+
+                                let tickerToAdd = data.directConfirmed.tickerSymbol
+                                if (tickerToAdd) draft.patternedTickers.push(tickerToAdd)
+
 
                                 return draft
                             })
@@ -71,7 +74,7 @@ export const ConfirmedStatusApiSlice = apiSlice.injectEndpoints({
                                 draft.userStockHistory = data.userHistory
                                 data.directConfirmed.tickerSymbol.map((directAdd) =>
                                 {
-                                    draft.patternedTickers = draft.patternedTickers.push(directAdd.tickerSymbol)
+                                    draft.patternedTickers.push(directAdd.tickerSymbol)
                                 })
 
                                 return draft

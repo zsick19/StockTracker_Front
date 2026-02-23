@@ -1,5 +1,6 @@
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { enterBufferHitAdapter, enterExitAdapter, EnterExitPlanApiSlice, stopLossHitAdapter } from "../EnterExitPlans/EnterExitApiSlice";
+import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
 
 const possibleDefaultMacros = ['SPY', 'ES', 'DIA', 'QQQ', 'IWM', 'TLT', 'XLRE', 'XLY', 'XLK', 'XLF', 'XLU', 'XLP', 'XLE', 'XLC', 'XLI', 'XLV', 'XLB', 'GLD', 'SLV', 'GDX', 'SMH', 'XBI', 'KRE', 'XOP', 'XRT']
 
@@ -62,6 +63,13 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
                 enterBufferHitAdapter.removeOne(draft.enterBufferHit, enterExitToBeRemoved)
                 stopLossHitAdapter.removeOne(draft.stopLossHit, enterExitToBeRemoved)
               }))
+
+            dispatch(InitializationApiSlice.util.updateQueryData("getUserInitialization", undefined,
+              (draft) =>
+              {
+                draft.userStockHistory.filter((t) => t !== removedCharted.removedEnterExit.tickerSymbol)
+              }
+            ))
           }
 
 

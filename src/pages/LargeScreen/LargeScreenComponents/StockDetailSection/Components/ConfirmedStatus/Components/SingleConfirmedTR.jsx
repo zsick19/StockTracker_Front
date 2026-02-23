@@ -4,7 +4,7 @@ import { ArrowBigRight, Trash2, X } from 'lucide-react';
 
 function SingleConfirmedTR({ confirmed, jumpToChart, attemptRemovingConfirmed, selectedConfirmed, setSelectedConfirmed })
 {
-    let confirmedStatus = confirmed.status >= 0 ? confirmedStatuses[confirmed.status] : 'Quick Add'
+    let confirmedStatus = confirmed.status >= 0 ? confirmedStatuses[confirmed.status] : 'QuickAdd'
     const [showDoubleCheckRemove, setShowDoubleCheckRemove] = useState(false)
 
 
@@ -18,7 +18,7 @@ function SingleConfirmedTR({ confirmed, jumpToChart, attemptRemovingConfirmed, s
             {showDoubleCheckRemove ?
                 <td className='doubleConfirmTrashAndX' onClick={(e) => e.stopPropagation()}>
                     <button className='buttonIcon'>
-                        <Trash2 onClick={() => attemptRemovingConfirmed(confirmed)} size={16} color='red' />
+                        <Trash2 onClick={() => attemptRemovingConfirmed(confirmed)} size={16} color='black' />
                     </button>
 
                     <button className='buttonIcon'>

@@ -13,7 +13,7 @@ function SingleSearchResultBlock({ search, found, index })
     const [addRemoveErrorMessage, setAddRemoveErrorMessage] = useState(undefined)
 
     const { item } = useGetUserInitializationQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.userStockHistory.find((i) => i.symbol === search.Symbol), }), skip: !found, });
-    const [mostRecentAction, setMostRecentAction] = useState(item ? item.history.at(-1).action : undefined)
+    const [mostRecentAction, setMostRecentAction] = useState(item ? item?.mostRecentHistory?.action || item.history.at(-1).action : undefined)
 
     async function attemptToAddPattern(search)
     {
@@ -55,8 +55,13 @@ function SingleSearchResultBlock({ search, found, index })
 
         function checkKeyPressForAction(e)
         {
+
+            const target = e.target;
+            const isEditable = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+            if (isEditable) return;
+
             e.preventDefault()
-            if (document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.tagName.toLowerCase() === 'textarea') return;
             if (e.key === '7' && index === 0) handleClickToggleAction(search)
             else if (e.key === '8' && index === 1) handleClickToggleAction(search)
             else if (e.key === '9' && index === 2) handleClickToggleAction(search)
@@ -68,6 +73,7 @@ function SingleSearchResultBlock({ search, found, index })
             else if (e.key === '1' && index === 6) handleClickToggleAction(search)
             else if (e.key === '2' && index === 7) handleClickToggleAction(search)
             else if (e.key === '3' && index === 8) handleClickToggleAction(search)
+
         }
 
         return () => { document.removeEventListener('keydown', checkKeyPressForAction) }

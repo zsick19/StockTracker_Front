@@ -312,18 +312,24 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (EnterExitPlan?.tradeEnterDate)
         {
             let pixelDate = createDateScale({ dateToPixel: EnterExitPlan.tradeEnterDate })
+            let pixelPrice = createPriceScale({ priceToPixel: EnterExitPlan.enterPrice })
+
             trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2  5').attr('opacity', 0.75)
                 .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
+
+            trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
         }
 
         if (EnterExitPlan?.dateCreated)
         {
             let pixelDate = createDateScale({ dateToPixel: EnterExitPlan.dateCreated })
             let pixelPrice = createPriceScale({ priceToPixel: EnterExitPlan.initialTrackingPrice })
+            let pastPixelSize = EnterExitPlan?.tradeEnterDate ? '1px' : '3px'
 
-            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', pastPixelSize).attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
                 .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
-            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', pastPixelSize).attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
                 .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
         }
 
@@ -993,7 +999,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         let completeCapture = {}
         let pixelCapture = pixelSet.current
 
-        if (currentTool === 'Enter Exit')
+        if (currentTool === 'Enter Exit' && pixelCapture?.X1)
         {
             completeCapture.dateP1 = new Date(createDateScale({ pixelToDate: pixelCapture.X1 })).toISOString()
 
@@ -1012,7 +1018,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 attemptToUpdateEnterExit()
             } else { dispatch(addEnterExitToCharting({ ticker, enterExit: completeCapture })) }
 
-        } else
+        } else if (pixelCapture?.X1)
         {
             if (pixelCapture?.X1) completeCapture.dateP1 = new Date(createDateScale({ pixelToDate: pixelCapture.X1 })).toISOString()
             if (pixelCapture?.X2) completeCapture.dateP2 = new Date(createDateScale({ pixelToDate: pixelCapture.X2 })).toISOString()
@@ -1100,24 +1106,29 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
         function resetTempBeforeCompletion(e)
         {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
             if (e.key === 'Escape')
             {
-                if (document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.tagName.toLowerCase() === 'textarea') return;
                 e.preventDefault()
                 resetTemp()
             }
         }
         function deleteSelectedEditChartElement(e)
         {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+
             if (e.key === 'Delete')
             {
-                if (document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.tagName.toLowerCase() === 'textarea') return;
                 e.preventDefault()
                 dispatch(removeChartingElement({ ...editChartElement, ticker }))
             }
         }
 
-        return (() => { document.removeEventListener('keydown', resetTempBeforeCompletion) })
+        return (() =>
+        {
+            document.removeEventListener('keydown', resetTempBeforeCompletion)
+            document.removeEventListener('keydown', deleteSelectedEditChartElement)
+        })
     }, [editChartElement, captureComplete])
 
     //zoomXBehavior

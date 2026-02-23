@@ -11,6 +11,7 @@ export const InitializationApiSlice = apiSlice.injectEndpoints({
       {
         response.patternedTickers = []
         response.userStockHistory.map((history) => { response.patternedTickers.push(history.symbol) })
+
         return response
       },
       keepUnusedDataFor: 60000,

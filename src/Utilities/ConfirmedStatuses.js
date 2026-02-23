@@ -1,1 +1,1 @@
-export const confirmedStatuses = ['Confirmed', 'Charted', '', 'Planned', 'Traded']
+export const confirmedStatuses = ['Confirmed', 'Charted', 'Planned', 'Traded']

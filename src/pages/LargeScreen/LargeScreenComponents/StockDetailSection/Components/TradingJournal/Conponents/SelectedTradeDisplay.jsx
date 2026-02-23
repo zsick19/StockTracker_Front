@@ -3,6 +3,7 @@ import React from 'react'
 function SelectedTradeDisplay({ selectedTrade, setShowSelectedTradeOrStats })
 {
 
+    console.log(selectedTrade)
     return (
         <div id='LHS-TradeJournalSelectedTradeDisplay' className='TradeStatsSelectedSection'>
             <div>
