@@ -1,9 +1,15 @@
 import { differenceInBusinessDays } from 'date-fns'
 import React from 'react'
+import { getSimplifiedRatio } from '../../../../../../../Utilities/UtilityHelperFunctions'
 
 function CurrentTradeStats({ trade })
 {
 
+    console.log(trade)
+
+    let purchasedRisk = (trade.tradingPlanPrices[1] - trade.tradingPlanPrices[0]) * trade.availableShares
+    let idealReward = (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * trade.availableShares
+    let ratioResult = getSimplifiedRatio(idealReward, purchasedRisk, 5)
 
     return (
         <div id='CurrentTradeStats'>
@@ -13,17 +19,18 @@ function CurrentTradeStats({ trade })
 
                 <p>Enter Date: {new Date(trade.enterDate).toDateString()}</p>
                 <p>Hold Period: {differenceInBusinessDays(new Date(), trade.enterDate)}</p>
+                <p>Market Value: ${(trade.availableShares * trade.averagePurchasePrice).toFixed(2)}</p>
             </div>
 
 
 
             <div>
-                <p>Ideal Risk: </p>
-                <p>Ideal Reward: ${(trade.averagePurchasePrice * (trade.idealGainPercent / 100) * trade.availableShares).toFixed(2)}</p>
-                <br />
-                <p>Avg Price: ${trade.averagePurchasePrice}</p>
+                <p>Ideal Reward: ${(idealReward).toFixed(2)}</p>
+                <p>Assumed Risk: ${(purchasedRisk).toFixed(2)} </p>
+                <p>RvR: ~{ratioResult.string}</p>
+                
                 <p>Position Size: {trade.availableShares}</p>
-                <p>Market Value: ${(trade.availableShares * trade.averagePurchasePrice).toFixed(2)}</p>
+                <p>Avg Purchase Price: ${trade.averagePurchasePrice}</p>
             </div>
 
 

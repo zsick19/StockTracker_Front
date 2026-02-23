@@ -3,15 +3,28 @@ import React from 'react'
 function TradeRecordedVisual({ serverTradeResponse })
 {
     console.log(serverTradeResponse)
+
+    let idealGainPerShare = serverTradeResponse.tradingPlanPrices[4] - serverTradeResponse.tradingPlanPrices[1]
+    let totalRisk = (serverTradeResponse.tradingPlanPrices[1] - serverTradeResponse.tradingPlanPrices[0]) * serverTradeResponse.availableShares
+
     return (
         <div id='TradeRecordedVisual'>
-            <p>{serverTradeResponse.tickerSymbol}</p>
+            <h1>{serverTradeResponse.tickerSymbol} Trade Recorded</h1>
+
             <div className='flex'>
-                {serverTradeResponse.tradingPlanPrices.map((p) => <p>{p}</p>)}
+                <p>Avg Purchase Price: ${serverTradeResponse.averagePurchasePrice}</p>
+                <p>Position Size: {serverTradeResponse.availableShares}</p>
             </div>
-            Trade Recorded!!!
-            <button>Alter Trade</button>
-            <button>Go To Watch All Trades</button>
+            <div className='flex'>
+                <p>Risk {serverTradeResponse.idealPercents[0]}%</p>
+                <p>Reward {serverTradeResponse.idealPercents[3]}%</p>
+                <p>Ideal GPS: ${idealGainPerShare.toFixed(2)}</p>
+            </div>
+
+            <div>
+                <p>Total Risk: ${totalRisk.toFixed(2)}</p>
+                <p>Ideal Total Gain: ${(idealGainPerShare * serverTradeResponse.availableShares).toFixed(2)}</p>
+            </div>
         </div>
     )
 }

@@ -25,7 +25,8 @@ function TradePresent({ selectedStock })
             let results
             if (action === 'closeAll')
             {
-                results = await alterTradeRecord({ action, tickerSymbol: selectedStock.tickerSymbol, tradeId: selectedStock.trade._id, tradePrice: alterTradeDetails.tradePrice, positionSizeOfAlter: selectedStock.trade.availableShares })
+                results = await alterTradeRecord({ action, tickerSymbol: selectedStock.tickerSymbol, tradeId: selectedStock.trade._id, 
+                    tradePrice: alterTradeDetails.tradePrice, positionSizeOfAlter: selectedStock.trade.availableShares })
             } else
             {
                 results = await alterTradeRecord({ action, tickerSymbol: selectedStock.tickerSymbol, tradeId: selectedStock.trade._id, ...alterTradeDetails })

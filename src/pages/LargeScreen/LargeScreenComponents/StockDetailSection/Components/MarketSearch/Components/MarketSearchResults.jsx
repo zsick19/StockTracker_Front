@@ -11,7 +11,7 @@ function MarketSearchResults({ searchResults })
 
     return (
         <div id='LHS-MarketSearchResultBlocks'>
-            {searchResults.map((search) => { return <SingleSearchResultBlock search={search} found={patterns.includes(search.Symbol)} /> })}
+            {searchResults.map((search, index) => { return <SingleSearchResultBlock key={`marketSearchBlock${search.Symbol}`} index={index} search={search} found={patterns.includes(search.Symbol)} /> })}
         </div >
     )
 }

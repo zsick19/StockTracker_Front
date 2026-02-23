@@ -28,11 +28,23 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
         </div>
     }
 
+    useEffect(() => { if (isSuccess) { setPaginationInfo(new PaginationInfo(currentMarketSearchPage, data.totalResults, 9)) } }, [data])
+
     useEffect(() =>
     {
-        if (isSuccess) { setPaginationInfo(new PaginationInfo(currentMarketSearchPage, data.totalResults, 9)) }
-    }, [data])
+        document.addEventListener('keydown', checkKeyPressForAction)
 
+        function checkKeyPressForAction(e)
+        {
+            e.preventDefault()
+            if (document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.tagName.toLowerCase() === 'textarea') return;
+
+            if (e.key === 'f' && paginationInfo?.hasNext) setCurrentMarketSearchPage(prev => prev + 1)
+            else if (e.key === 'd' && paginationInfo?.hasPrevious) setCurrentMarketSearchPage(prev => prev - 1)
+        }
+
+        return () => { document.removeEventListener('keydown', checkKeyPressForAction) }
+    }, [paginationInfo])
 
 
 
@@ -40,7 +52,8 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
         <div id='LHS-MarketSearchContainer'>
             <MarketSearchFilterBar searchFilter={marketSearchFilter} setSearchFilter={setMarketSearchFilter} setCurrentMarketSearchPage={setCurrentMarketSearchPage} />
             <div id='LHS-MarketSearchResultContainer'>
-                <button className='ConfirmMarketNavBtns' onClick={() => setCurrentMarketSearchPage(prev => prev - 1)} disabled={!paginationInfo?.hasPrevious || isLoading}>Prev</button>
+                <button className='ConfirmMarketNavBtns' onClick={() => setCurrentMarketSearchPage(prev => prev - 1)}
+                    disabled={!paginationInfo?.hasPrevious || isLoading}>Prev</button>
                 {searchResults}
                 <button className='ConfirmMarketNavBtns' onClick={() => setCurrentMarketSearchPage(prev => prev + 1)} disabled={!paginationInfo?.hasNext || isLoading}>Next</button>
             </div>

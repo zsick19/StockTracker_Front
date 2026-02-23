@@ -6,10 +6,11 @@ function TradeSuccessCompleted({ completedTrade })
 {
     const dispatch = useDispatch()
 
-
+    console.log(completedTrade)
     return (
-        <div>
-            trade stats displayed from results
+        <div id='SuccessfulTradeExit'>
+            <h1>Trade Exit Recorded</h1>
+
             <button onClick={() => dispatch(setStockDetailState(9))}>Trade Journal</button>
         </div>
     )

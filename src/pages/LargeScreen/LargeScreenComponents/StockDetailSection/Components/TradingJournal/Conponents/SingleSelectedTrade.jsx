@@ -33,7 +33,7 @@ function SingleSelectedTrade({ trade, selectedTrade, setSelectedTrade, setShowSe
             <p>+{trade?.exitGainPercent}%</p>
             <p>{trade?.exitMovePercent}%</p>
             <div>
-                <p>${trade?.exitGain}</p>
+                <p>${trade?.exitGain.toFixed(2)}</p>
                 <p>{trade.availableShares === 0 ? 'Closed' : `${trade.availableShares === 0} Shares`}</p>
             </div>
         </div>

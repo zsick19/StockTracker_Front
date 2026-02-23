@@ -189,7 +189,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 try { await queryFulfilled; }
                 catch { patchResult.undo(); }
             },
-            invalidatesTags: (result, error, args) => ['activeTrades', 'tradeHistory', { type: 'chartingData', id: args.tickerSymbol }]
+            invalidatesTags: (result, error, args) => ['activeTrades', 'tradeHistory', 'tradingJournal', { type: 'chartingData', id: args.tickerSymbol }]
         }),
         alterTradeRecord: builder.mutation({
             query: (args) => ({
@@ -197,7 +197,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 method: 'PUT',
                 body: { ...args }
             }),
-            invalidatesTags: ['activeTrades', 'tradeHistory']
+            invalidatesTags: ['activeTrades', 'tradeHistory', 'tradingJournal']
         }),
     })
 });

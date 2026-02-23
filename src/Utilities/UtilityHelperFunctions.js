@@ -29,3 +29,21 @@ export function getInsertionIndexLinear(arr, num)
     for (let i = 0; i < arr.length; i++) { if (arr[i] >= num) { return i; } }
     return arr.length;
 }
+
+export function getSimplifiedRatio(num1, num2, precision = 1) {
+  // 1. Optional: Round to handle floating point messiness
+  const n1 = Math.round(num1 / precision);
+  const n2 = Math.round(num2 / precision);
+
+  // 2. Euclidean Algorithm to find Greatest Common Divisor
+  const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+  
+  const commonDivisor = gcd(n1, n2);
+
+  // 3. Return the simplified parts
+  return {
+    ratio1: n1 / commonDivisor,
+    ratio2: n2 / commonDivisor,
+    string: `${n1 / commonDivisor}:${n2 / commonDivisor}`
+  };
+}
