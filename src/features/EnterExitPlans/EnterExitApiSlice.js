@@ -265,7 +265,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         })
         return result.data ? { data: result.data } : { error: result.error }
       },
-      invalidatesTags: (result, error, args) => ['userData', 'chartingData', 'enterExitPlans']
+      invalidatesTags: (result, error, args) => ['userData', 'chartingData', 'enterExitPlans', 'confirmedSummary']
     }),
     removeGroupedEnterExitPlan: builder.mutation({
       async queryFn(args, api, extraOptions, baseQuery)
@@ -286,7 +286,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
         return result.data ? { data: result.data } : { error: result.error }
       },
-      invalidatesTags: (result, error, args) => ['userData', 'chartingData', 'enterExitPlans']
+      invalidatesTags: (result, error, args) => ['userData', 'chartingData', 'enterExitPlans', 'confirmedSummary']
     })
   })
 });

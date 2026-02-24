@@ -13,7 +13,8 @@ function SingleSearchResultBlock({ search, found, index })
     const [addRemoveErrorMessage, setAddRemoveErrorMessage] = useState(undefined)
 
     const { item } = useGetUserInitializationQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.userStockHistory.find((i) => i.symbol === search.Symbol), }), skip: !found, });
-    const [mostRecentAction, setMostRecentAction] = useState(item ? item?.mostRecentHistory?.action || item.history.at(-1).action : undefined)
+    const [mostRecentAction, setMostRecentAction] = useState(item ? item?.mostRecentHistory : undefined)
+    
 
     async function attemptToAddPattern(search)
     {
