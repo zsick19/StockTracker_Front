@@ -5,3 +5,11 @@
 .confirmed {
   background-color: brown;
 }
+
+.planned {
+  background-color: brown;
+}
+
+.traded {
+  background-color: orange;
+}

@@ -41,6 +41,26 @@ function ConfirmMarketSearch()
 
     useEffect(() => { if (isSuccess) { setTotalPages(Math.ceil(data.length / patternsPerPage)) } }, [data])
 
+    useEffect(() =>
+    {
+        document.addEventListener('keydown', checkKeyPressForAction)
+
+        function checkKeyPressForAction(e)
+        {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+            e.preventDefault()
+
+            if (e.key === 'f' && currentPage !== totalPages) setCurrentPage(prev => prev + 1)
+            else if (e.key === 'd' && currentPage !== 1) setCurrentPage(prev => prev - 1)
+        }
+
+        return () => { document.removeEventListener('keydown', checkKeyPressForAction) }
+    }, [currentPage, totalPages])
+
+
+
+
+
     async function attemptSubmittingConfirmations()
     {
         try

@@ -3,12 +3,21 @@ import './AccountPLVisual.css'
 import { Landmark, NotebookPen, RotateCcw } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import { useGetUsersAccountBalanceQuery } from '../../../../../../../features/AccountBalance/AccountBalanceApiSlice'
 
 function AccountPLVisual({ refetch })
 {
     const dispatch = useDispatch()
     const [showAccountActions, setShowAccountActions] = useState(false)
     const [rotateOnFetch, setRotateOnFetch] = useState(false)
+
+    const { data, isLoading, isSuccess, isError, error } = useGetUsersAccountBalanceQuery()
+    console.log(data)
+
+    
+
+
+
 
     function refetchAndRotate()
     {
