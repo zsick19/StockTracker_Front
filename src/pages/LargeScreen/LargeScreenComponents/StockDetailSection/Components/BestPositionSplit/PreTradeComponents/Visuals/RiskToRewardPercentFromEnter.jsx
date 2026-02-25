@@ -170,14 +170,14 @@ function RiskToRewardPercentFromEnter({ enterExitPlans })
             <svg ref={rvrChart} fill='blue'>
                 <defs>
                     <linearGradient id="myFadeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="steelblue" stop-opacity="0" />
-                        <stop offset="50%" stop-color="steelblue" stop-opacity="1" />
-                        <stop offset="100%" stop-color="steelblue" stop-opacity="0" />
+                        <stop offset="0%" stop-color="blue" stop-opacity="0" />
+                        <stop offset="50%" stop-color="green" stop-opacity="1" />
+                        <stop offset="100%" stop-color="blue" stop-opacity="0" />
                     </linearGradient>
                     <linearGradient id="myFadeGradientBad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="orange" stop-opacity="0" />
-                        <stop offset="50%" stop-color="orange" stop-opacity="1" />
-                        <stop offset="100%" stop-color="orange" stop-opacity="0" />
+                        <stop offset="0%" stop-color="red" stop-opacity="0" />
+                        <stop offset="50%" stop-color="red" stop-opacity="1" />
+                        <stop offset="100%" stop-color="red" stop-opacity="0" />
                     </linearGradient>
                 </defs>
 

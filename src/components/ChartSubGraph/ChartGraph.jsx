@@ -19,7 +19,7 @@ import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/En
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates, provideStartAndEndDatesForDateScale } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
-import { calculateEMADataPoints, calculateVWAP } from '../../Utilities/technicalIndicatorFunctions'
+import { calculateEMADataPoints, calculateVolumeProfile, calculateVWAP } from '../../Utilities/technicalIndicatorFunctions'
 import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudiesVisualElement'
 import { setGraphToSubGraphCrossHair, setNoCurrentCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import './chartStyles.css'
@@ -126,6 +126,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const ema50Values = useMemo(() => calculateEMADataPoints(candleData, 50), [candleData])
     const ema200Values = useMemo(() => calculateEMADataPoints(candleData, 200), [candleData])
     const emaLine = line().x(d => createDateScale({ dateToPixel: d.date })).y(d => createPriceScale({ priceToPixel: d.value })).curve(curveLinear)
+//    const vpData = useMemo(() => calculateVolumeProfile(candleData), [])
 
 
 

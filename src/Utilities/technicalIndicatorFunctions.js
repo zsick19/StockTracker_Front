@@ -201,53 +201,101 @@ export function calculateVortex(chartingData, timeBlock = 14)
 }
 
 
-
-
-
-
-
-
-
-export const calculateVolumeProfileDataPoints = (chartingData, binSize) =>
+export function calculateVolumeProfile(data, binsCount = 50)
 {
-    // Initialize volume profile
-    const volumeProfile = {};
-    let comp = []
+    if (!data || data.length === 0) return null;
 
-    for (let i = 0; i < chartingData.length; i++)
+    // 1. Find the total price range for the period
+    const highs = data.map(d => d.HighPrice);
+    const lows = data.map(d => d.LowPrice);
+    const minPrice = Math.min(...lows);
+    const maxPrice = Math.max(...highs);
+    const priceRange = maxPrice - minPrice;
+
+    // 2. Calculate dynamic bin width (Row Height)
+    // Higher price = larger bin width automatically
+    const binWidth = priceRange / binsCount;
+
+    // 3. Initialize profile buckets
+    const bins = {};
+    for (let i = 0; i < binsCount; i++)
     {
-        distributeVolume(chartingData[i].HighPrice, chartingData[i].LowPrice, chartingData[i].Volume, binSize);
+        const level = minPrice + (i * binWidth) + (binWidth / 2);
+        // Use a fixed precision to avoid floating point key issues
+        bins[level.toFixed(4)] = 0;
     }
 
-    for (const [price, volume] of Object.entries(volumeProfile))
+    // 4. Distribute volume
+    data.forEach(candle =>
     {
-        comp.push({ x: parseFloat(price), y: volume })
-    }
+        // For simple profile, assign volume to the bin containing the 'close' price
+        // For accuracy, we find which bin the close price belongs to
+        const binIndex = Math.floor((candle.ClosePrice - minPrice) / binWidth);
+        const cappedIndex = Math.min(Math.max(binIndex, 0), binsCount - 1);
+        const levelKey = (minPrice + (cappedIndex * binWidth) + (binWidth / 2)).toFixed(4);
 
-    function distributeVolume(high, low, volume, binSize)   
-    {
-        const startBin = getBin(low, binSize);
-        const endBin = getBin(high, binSize);
+        bins[levelKey] += candle.Volume;
+    });
 
-        let totalBins = (endBin - startBin) / binSize + 1;
-        const volumePerBin = volume / totalBins;
+    // 5. Format results and find Point of Control (POC)
+    const profile = Object.keys(bins).map(price => ({
+        price: parseFloat(price),
+        volume: bins[price]
+    })).sort((a, b) => a.price - b.price);
 
-        for (let bin = startBin; bin <= endBin; bin += binSize)
-        {
-            if (volumeProfile[bin])
-            {
-                volumeProfile[bin] += volumePerBin;
-            } else
-            {
-                volumeProfile[bin] = volumePerBin;
-            }
-        }
-        // Function to calculate the bin for a given price
-        function getBin(price, binSize) { return Math.floor(price / binSize) * binSize; }
-    }
-    // Extract bins (prices) and corresponding volumes from volumeProfile
-    return comp.sort((a, b) => a.x - b.x)
+    const poc = profile.reduce((prev, current) =>
+        (prev.volume > current.volume) ? prev : current
+    );
+
+    return { profile, poc };
 }
+
+
+
+
+
+
+
+// export const calculateVolumeProfileDataPoints = (chartingData, binSize) =>
+// {
+//     // Initialize volume profile
+//     const volumeProfile = {};
+//     let comp = []
+
+//     for (let i = 0; i < chartingData.length; i++)
+//     {
+//         distributeVolume(chartingData[i].HighPrice, chartingData[i].LowPrice, chartingData[i].Volume, binSize);
+//     }
+
+//     for (const [price, volume] of Object.entries(volumeProfile))
+//     {
+//         comp.push({ x: parseFloat(price), y: volume })
+//     }
+
+//     function distributeVolume(high, low, volume, binSize)   
+//     {
+//         const startBin = getBin(low, binSize);
+//         const endBin = getBin(high, binSize);
+
+//         let totalBins = (endBin - startBin) / binSize + 1;
+//         const volumePerBin = volume / totalBins;
+
+//         for (let bin = startBin; bin <= endBin; bin += binSize)
+//         {
+//             if (volumeProfile[bin])
+//             {
+//                 volumeProfile[bin] += volumePerBin;
+//             } else
+//             {
+//                 volumeProfile[bin] = volumePerBin;
+//             }
+//         }
+//         // Function to calculate the bin for a given price
+//         function getBin(price, binSize) { return Math.floor(price / binSize) * binSize; }
+//     }
+//     // Extract bins (prices) and corresponding volumes from volumeProfile
+//     return comp.sort((a, b) => a.x - b.x)
+// }
 export function calculateStochastic(chartingData, timeBlock = 14)
 {
     let currentCloseMinusLowestLowOverBlock = []
@@ -358,39 +406,45 @@ export function stochasticCalc(candleData, kPeriod = 14, dPeriod = 3)
 //  @param {Array} candles - Array of objects {high: number, low: number, close: number}
 //  @param {number} period - The lookback period (typically 14)
 //  @returns {Array} - Array of ATR values (null for early periods) 
-export function calculateATR(candles, period = 14) {
-  if (candles.length < period) return [];
+export function calculateATR(candles, period = 14)
+{
+    if (candles.length < period) return [];
 
-  let atr = new Array(candles.length).fill(null);
-  let tr = new Array(candles.length);
+    let atr = new Array(candles.length).fill(null);
+    let tr = new Array(candles.length);
 
-  // 1. Calculate True Range (TR) for each candle
-  for (let i = 0; i < candles.length; i++) {
-    const current = candles[i];
-    if (i === 0) {
-      tr[i] = current.high - current.low; // First candle has no previous close
-    } else {
-      const prevClose = candles[i - 1].close;
-      tr[i] = Math.max(
-        current.high - current.low,
-        Math.abs(current.high - prevClose),
-        Math.abs(current.low - prevClose)
-      );
+    // 1. Calculate True Range (TR) for each candle
+    for (let i = 0; i < candles.length; i++)
+    {
+        const current = candles[i];
+        if (i === 0)
+        {
+            tr[i] = current.high - current.low; // First candle has no previous close
+        } else
+        {
+            const prevClose = candles[i - 1].close;
+            tr[i] = Math.max(
+                current.high - current.low,
+                Math.abs(current.high - prevClose),
+                Math.abs(current.low - prevClose)
+            );
+        }
     }
-  }
 
-  // 2. Calculate initial ATR (Simple Moving Average of first 'n' TR values)
-  let sumTR = 0;
-  for (let i = 0; i < period; i++) {
-    sumTR += tr[i];
-  }
-  atr[period - 1] = sumTR / period;
+    // 2. Calculate initial ATR (Simple Moving Average of first 'n' TR values)
+    let sumTR = 0;
+    for (let i = 0; i < period; i++)
+    {
+        sumTR += tr[i];
+    }
+    atr[period - 1] = sumTR / period;
 
-  // 3. Calculate subsequent ATR values using Wilder's Smoothing
-  // Formula: ATR_new = ((ATR_prev * (n - 1)) + TR_current) / n
-  for (let i = period; i < candles.length; i++) {
-    atr[i] = (atr[i - 1] * (period - 1) + tr[i]) / period;
-  }
+    // 3. Calculate subsequent ATR values using Wilder's Smoothing
+    // Formula: ATR_new = ((ATR_prev * (n - 1)) + TR_current) / n
+    for (let i = period; i < candles.length; i++)
+    {
+        atr[i] = (atr[i - 1] * (period - 1) + tr[i]) / period;
+    }
 
-  return atr;
+    return atr;
 }

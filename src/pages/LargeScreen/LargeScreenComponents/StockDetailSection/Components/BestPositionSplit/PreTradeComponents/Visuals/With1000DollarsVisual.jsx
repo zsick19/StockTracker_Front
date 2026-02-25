@@ -35,8 +35,8 @@ function With1000DollarsVisual({ enterExitPlans })
             maxReward = max(enterExitPlans, d => d.with1000DollarsCurrentGain)
             maxRisk = min(enterExitPlans, d => d.with1000DollarsCurrentRisk)
         }
-
-        let scale = scaleLinear().domain([(maxReward * 1.1), (maxRisk * 1.1)]).range([5, dollarChartDimensions.height - 5]);
+        let extreme = maxReward > maxRisk ? maxReward : maxRisk
+        let scale = scaleLinear().domain([(extreme * 1.1), (extreme * -1.1)]).range([5, dollarChartDimensions.height - 5]);
 
         if (zoomState)
         {
@@ -136,7 +136,7 @@ function With1000DollarsVisual({ enterExitPlans })
         const bestSelect = select(dollarsChart.current).select('.best')
         bestSelect
             .attr("x", xScale(-1.5))
-            .attr("y", ((-dollarChartDimensions.height / 2) + 30))
+            .attr("y", ((-dollarChartDimensions.height / 2)))
             .attr("width", width)
             .attr("height", dollarChartDimensions.height / 2 + 10)
             .attr("fill", "url(#myFadeGradient2)")
@@ -146,7 +146,7 @@ function With1000DollarsVisual({ enterExitPlans })
         const worstSelect = select(dollarsChart.current).select('.worst')
         worstSelect
             .attr("x", xScale(-1.5))
-            .attr("y", -dollarChartDimensions.height)
+            .attr("y", -dollarChartDimensions.height - 10)
             .attr("width", width)
             .attr("height", dollarChartDimensions.height / 2 + 10)
             .attr("fill", "url(#myFadeGradientBad2)")
@@ -165,7 +165,7 @@ function With1000DollarsVisual({ enterExitPlans })
                 <defs>
                     <linearGradient id="myFadeGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stop-color="steelblue" stop-opacity="0" />
-                        <stop offset="50%" stop-color="steelblue" stop-opacity="1" />
+                        <stop offset="50%" stop-color="green" stop-opacity="1" />
                         <stop offset="100%" stop-color="steelblue" stop-opacity="0" />
                     </linearGradient>
                     <linearGradient id="myFadeGradientBad2" x1="0%" y1="0%" x2="100%" y2="0%">

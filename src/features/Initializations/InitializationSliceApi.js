@@ -9,6 +9,7 @@ export const InitializationApiSlice = apiSlice.injectEndpoints({
       }),
       transformResponse: (response) =>
       {
+        console.log(response.patternedTickers)
         response.patternedTickers = []
         response.userStockHistory.map((history) => { response.patternedTickers.push(history.symbol) })
 
