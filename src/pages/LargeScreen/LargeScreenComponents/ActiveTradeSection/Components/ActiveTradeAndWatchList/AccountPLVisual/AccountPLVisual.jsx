@@ -12,9 +12,8 @@ function AccountPLVisual({ refetch })
     const [rotateOnFetch, setRotateOnFetch] = useState(false)
 
     const { data, isLoading, isSuccess, isError, error } = useGetUsersAccountBalanceQuery()
-    console.log(data)
 
-    
+
 
 
 

@@ -5,32 +5,47 @@
   gap: 1rem;
 }
 
-#BestPositionSplitContainer div {
+#BestPositionSplitContainer div:first-child,
+#BestPositionSplitContainer div:last-child {
   border-radius: 10px;
 }
 #BestPositionSplitContainer > div {
   display: grid;
   grid-template-columns: 1fr 300px;
-  gap: 1rem;
-}
-
-#BestPositionSplitContainer > div > div {
-  background-color: rgb(36, 33, 65);
 }
 
 .PreTradePositionSplitContainer {
   width: 100%;
   height: 100%;
+  background-color: rgb(32, 32, 54);
+  border: 1px solid white;
 }
 
-.PreTradePositionSplitContainer > div:first-of-type {
-  border: 1px solid white;
-  border-radius: 10px;
+.PreTradePositionSplitContainer > div {
   display: flex;
   flex-direction: column;
   text-align: center;
   font-size: var(--fs-100);
-  background-color: rgb(57, 57, 85);
+  padding-block: 0.5rem;
+}
+
+.PositionGraphWithLeftRightText {
+  display: grid;
+  grid-template-columns: 1rem 1fr 1rem;
+  height: 100%;
+  width: 100%;
+  padding-inline: 0.5rem;
+}
+.PositionGraphWithLeftRightText p:first-of-type {
+  align-self: center;
+  writing-mode: vertical-rl;
+  transform: rotate(-180deg);
+  text-orientation: sideways-right;
+}
+.PositionGraphWithLeftRightText p:last-of-type {
+  align-self: center;
+  text-orientation: mixed;
+  writing-mode: vertical-lr;
 }
 
 .positionChartWrapper {
@@ -39,12 +54,28 @@
 .positionChartWrapper svg {
   width: 100%;
   height: 100%;
-  background-color: rgb(32, 32, 54);
 }
 .positionChartWrapper svg .yAxis,
 .positionChartWrapper svg .xAxis {
   fill: rgb(32, 32, 54);
 }
 
-#TradePositionSplitContainer {
+.PreTradePositionListController {
+  padding: 1rem;
+  padding-left: 0.5rem;
+  gap: 0.5rem;
+}
+
+.ListOfTickersForBestPosition {
+  font-size: var(--fs-100);
+  flex: 1;
+  height: 400px;
+  overflow-y: scroll;
+  background-color: rgb(66, 66, 90);
+}
+
+.BestPositionDataRow,
+.BestPositionListTitle {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 }

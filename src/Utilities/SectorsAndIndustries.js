@@ -16,3 +16,21 @@ export const averageVolumeOptions = [
     { text: 'Over 1M', value: 1000000, direction: 'over' },
     { text: 'Over 2M', value: 2000000, direction: 'over' },
 ]
+
+
+//export const defaultSectors = ['Healthcare', 'Consumer Staples', 'Industrials', 'Communication Services', 
+// "Utilities", "Technology", "Financials", "Materials", "Energy", "Consumer Discretionary", "Real Estate"]
+
+export const sectorColors = {
+    'Healthcare': 'crimson',
+    'Consumer Staples': 'darkorange',
+    'Industrials': 'gold',
+    'Communication Services': 'lawngreen',
+    "Utilities": 'teal',
+    "Technology": 'deepskyblue',
+    "Financials": 'royalblue',
+    "Materials": 'indigo',
+    "Energy": 'deeppink',
+    "Consumer Discretionary": 'saddlebrown',
+    "Real Estate": 'slategray'
+}

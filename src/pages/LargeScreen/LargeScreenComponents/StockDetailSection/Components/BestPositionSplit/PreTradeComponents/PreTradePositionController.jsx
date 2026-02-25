@@ -1,25 +1,58 @@
 import React from 'react'
 
-function PreTradePositionController({ whatPreTradeToDisplay, setWhatPreTradesToDisplay, diagramToDisplay, setDiagramToDisplay })
+function PreTradePositionController({ whatPreTradeToDisplay, dataForVisual, setWhatPreTradesToDisplay, diagramToDisplay, setDiagramToDisplay })
 {
+
+    function provideTitle()
+    {
+        switch (diagramToDisplay)
+        {
+            case 0: return <h2>Risk v Reward</h2>
+            case 1: return <h2>$1000 Position Gain/Risk</h2>
+        }
+    }
+
+    function provideDiagramOptions()
+    {
+        switch (diagramToDisplay)
+        {
+            case 0: return <div> Options for RvR</div>
+            case 1: return <div> Options for $1000</div>
+        }
+    }
+
+
     return (
         <div className='PreTradePositionListController'>
-            <div className='PreTradePositionList'>
-                <fieldset onChange={(e) => setWhatPreTradesToDisplay(e.target.value)}>
-                    <input type="radio" id='allPositionVisuals' name='preTradePositionVisual' value='allPositionVisuals' />
-                    <label htmlFor="allPositionVisuals">All</label>
-                    <input type="radio" id='highImportancePositionVisuals' name='preTradePositionVisual' value='highImportancePositionVisuals' />
-                    <label htmlFor="highImportancePositionVisuals">High Importance</label>
-                    <input type="radio" id='enterBufferPositionVisuals' name='preTradePositionVisual' value='enterBufferPositionVisuals' />
-                    <label htmlFor="enterBufferPositionVisuals">Enter Buffer</label>
-                    <input type="radio" id='stopLossPositionVisuals' name='preTradePositionVisual' value='stopLossPositionVisuals' />
-                    <label htmlFor="stopLossPositionVisuals">StopLoss</label>
-                    <input type="radio" id='plannedPositionVisuals' name='preTradePositionVisual' value='plannedPositionVisuals' />
-                    <label htmlFor="plannedPositionVisuals">Planned</label>
-                </fieldset>
-                List of Pretrades and interactions
+            {provideTitle()}
+
+            <select className='PreTradePositionList' onChange={(e) => setWhatPreTradesToDisplay(e.target.value)}>
+                <option value="allPositionVisuals">All Plans</option>
+                <option value="enterBufferPositionVisuals">Enter Buffer</option>
+                <option value="highImportancePositionVisuals">High Importance</option>
+                <option value="stopLossPositionVisuals">Stop Loss Hit</option>
+                <option value="plannedPositionVisuals">Other Planned</option>
+            </select>
+
+            <div className='BestPositionListTitle'>
+                <p>Ticker</p>
+                <p>Price</p>
+                <p>% to E</p>
+                <p>1k Risk</p>
+                <p>1k Gain</p>
             </div>
-            <p>{whatPreTradeToDisplay}</p>
+            <div className='ListOfTickersForBestPosition hide-scrollbar'>
+                {dataForVisual.map((ex) => <div className='BestPositionDataRow'>
+                    <p>{ex.tickerSymbol}</p>
+                    <p>${ex.mostRecentPrice.toFixed(2)}</p>
+                    <p>{-ex.percentFromEnter.toFixed(2)}%</p>
+                    <p>${ex.with1000DollarsCurrentRisk.toFixed(2)}</p>
+                    <p>${ex.with1000DollarsCurrentGain.toFixed(2)}</p>
+                </div>
+                )}
+            </div>
+
+            {provideDiagramOptions()}
 
         </div>
     )

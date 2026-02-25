@@ -4,33 +4,9 @@ import RiskToRewardPercentFromEnter from './Visuals/RiskToRewardPercentFromEnter
 import With1000DollarsVisual from './Visuals/With1000DollarsVisual'
 
 
-function PreTradePositionVisualizationWrapper({ whatPreTradeToDisplay, diagramToDisplay, setDiagramToDisplay })
+function PreTradePositionVisualizationWrapper({ dataForVisual, whatPreTradeToDisplay, diagramToDisplay, setDiagramToDisplay })
 {
 
-    const { data: combinedData } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: (results) => ({ ...results, data: selectAllPlansAndCombined(results) }) })
-    const [dataForVisual, setDataForVisual] = useState([])
-
-
-    useEffect(() =>
-    {
-        if (!combinedData) return
-
-        if (whatPreTradeToDisplay === 'enterBufferPositionVisuals' && combinedData.counts.enterBuffer === 0)
-        {
-            setDataForVisual(combinedData.combined)
-        } else
-        {
-
-            switch (whatPreTradeToDisplay)
-            {
-                case 'allPositionVisuals': setDataForVisual(combinedData.combined); break;
-                case 'highImportancePositionVisuals': setDataForVisual(combinedData.highImportance); break;
-                case 'stopLossPositionVisuals': setDataForVisual(combinedData.stopLossHit); break;
-                case 'plannedPositionVisuals': setDataForVisual(combinedData.allOtherPlans); break;
-                default: setDataForVisual(combinedData.enterBuffer); break;
-            }
-        }
-    }, [combinedData, whatPreTradeToDisplay])
 
     function providePositionVisualization()
     {
@@ -39,17 +15,22 @@ function PreTradePositionVisualizationWrapper({ whatPreTradeToDisplay, diagramTo
             case 0:
                 return (<>
                     <p>% Above Enter</p>
-                    <RiskToRewardPercentFromEnter enterExitPlans={dataForVisual} />
+                    <div className='PositionGraphWithLeftRightText'>
+                        <p>Risk %</p>
+                        <RiskToRewardPercentFromEnter enterExitPlans={dataForVisual} />
+                        <p>Reward %</p>
+                    </div>
                     <p>% Below Enter</p>
                 </>)
             case 1: return (<>
-                <p>Current Reward With $1000 Position</p>
-                <With1000DollarsVisual enterExitPlans={dataForVisual} />
-                <p>%s From Enter</p>
+                <p>Total Gain</p>
+                <div className='PositionGraphWithLeftRightText'>
+                    <p>% Below Enter</p>
+                    <With1000DollarsVisual enterExitPlans={dataForVisual} />
+                    <p>% Above Enter</p>
+                </div>
+                <p>Total Risk</p>
             </>)
-
-            default:
-                break;
         }
     }
 
