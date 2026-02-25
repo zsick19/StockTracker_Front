@@ -1,6 +1,6 @@
 import React from 'react'
 
-function PreTradePositionController({ whatPreTradeToDisplay, setWhatPreTradesToDisplay })
+function PreTradePositionController({ whatPreTradeToDisplay, setWhatPreTradesToDisplay, diagramToDisplay, setDiagramToDisplay })
 {
     return (
         <div className='PreTradePositionListController'>

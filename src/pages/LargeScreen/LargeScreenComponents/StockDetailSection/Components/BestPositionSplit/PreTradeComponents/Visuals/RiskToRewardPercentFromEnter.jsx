@@ -97,10 +97,7 @@ function RiskToRewardPercentFromEnter({ enterExitPlans })
         }
         function removePlanGroup(remove)
         {
-            remove.each(function (d, i)
-            {
-                select(this).remove()
-            })
+            remove.each(function (d, i) { select(this).remove() })
         }
 
     }, [enterExitPlans, rvrChartDimensions, zoomState, zoomStateY])
@@ -137,28 +134,12 @@ function RiskToRewardPercentFromEnter({ enterExitPlans })
 
 
     return (
-        <div ref={rvrChartWrapper} id='rvrChartWrapper'>
+        <div ref={rvrChartWrapper} className='positionChartWrapper'>
             <svg ref={rvrChart} fill='blue'>
                 <g className='xAxis' fill='blue' />
                 <g className='yAxis' fill='blue' />
                 <g className='enterExitPlans' />
             </svg>
-
-            {/* 
-            RiskToRewardPercentFromEnter
-            <p></p>
-            {maxRisk.toFixed(2)}
-            <p></p>
-            {maxReward.toFixed(2)}
-            {enterExitPlans.map((m) => (<div>
-
-                <p>{m.tickerSymbol}            </p>
-                <p>{m.percentFromEnter}            </p>
-                <p>{m.currentRiskVReward.risk}</p>
-                <p>{m.currentRiskVReward.reward}</p>
-
-            </div>))} */}
-
         </div>
     )
 }
