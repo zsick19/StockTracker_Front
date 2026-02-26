@@ -73,11 +73,12 @@
   gap: 0.5rem;
 }
 .TimeFrameOptions {
-  display: flex;
+  display: grid;
   font-size: var(--fs-100);
-  justify-content: space-between;
   align-items: center;
   height: 1.25rem;
+  grid-template-columns: 1fr 1fr;
+  justify-items: center;
 }
 .timeFrameButton {
   background: rgba(35, 34, 61, 0.507);
@@ -176,4 +177,19 @@
   justify-content: space-evenly;
   justify-items: center;
   font-size: var(--fs-200);
+}
+
+.TradeBlockMiniChart {
+  height: 275px;
+  width: 100%;
+  display: flex;
+  border-radius: 10px;
+}
+.TradeBlockMiniChart div {
+  border-radius: 10px;
+}
+
+.TradeBlockMiniChart svg {
+  height: 100%;
+  width: 100%;
 }

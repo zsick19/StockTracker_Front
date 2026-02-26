@@ -9,7 +9,7 @@ import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } fro
 import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
 
 function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionController, chartId, timeFrame,
-    planData, mostRecentPrice, initialTracking, uuid })
+    planData, mostRecentPrice, initialTracking, uuid, lastCandleData })
 {
     const dispatch = useDispatch()
     useEffect(() => { dispatch(setEnterExitChartingFromPlan({ tickerSymbol: ticker, plan: planData, planId: chartId })) }, [])
@@ -43,7 +43,10 @@ function ChartWithoutPlanFetchChartingWrapper({ ticker, candleData, interactionC
         <div className="ChartGraphWrapper">
             <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData}
                 mostRecentPrice={{ Price: mostRecentPrice }}
-                timeFrame={timeFrame} isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive} isZoomAble={interactionController.isZoomAble}
+                timeFrame={timeFrame} lastCandleData={lastCandleData}
+                isLivePrice={interactionController?.isLivePrice}
+                isInteractive={interactionController?.isInteractive}
+                isZoomAble={interactionController.isZoomAble}
                 initialTracking={initialTracking} uuid={uuid} />
         </div>)
 }

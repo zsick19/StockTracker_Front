@@ -1,5 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { defaultTimeFrames } from "../../Utilities/TimeFrames";
+import { sectorToTicker } from "../../Utilities/SectorsAndIndustries";
+
 
 
 const selectedStockSlice = createSlice({
@@ -22,6 +24,17 @@ const selectedStockSlice = createSlice({
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayFifteenMin, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyMonth, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
+            ]
+        },
+        setSelectedStockAndTimelineFourSplitWithSector: (state, action) =>
+        {
+
+            let sectorTicker = sectorToTicker[action.payload.sector]
+            return [
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, trade: action.payload?.trade, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyMonth, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
+                { ticker: sectorTicker, timeFrame: defaultTimeFrames.threeDayOneMin, chartId: action.payload?.sectorChartId, tickerSector: action.payload?.tickerSector },
+                { ticker: sectorTicker, timeFrame: defaultTimeFrames.dailyMonth, chartId: action.payload?.sectorChartId, tickerSector: action.payload?.tickerSector },
             ]
         },
         setSingleChartTickerTimeFrameAndChartingId: (state, action) =>
@@ -60,7 +73,7 @@ export const {
     setSelectedIndexTimeFrame,
     setSingleChartTickerTimeFrameAndChartingId,
     setSingleChartTickerTimeFrameChartIdPlanIdForTrade,
-    setSingleChartToTickerTimeFrameTradeId
+    setSingleChartToTickerTimeFrameTradeId, setSelectedStockAndTimelineFourSplitWithSector
 
 } = selectedStockSlice.actions;
 

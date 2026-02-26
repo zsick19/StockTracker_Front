@@ -91,9 +91,9 @@ function PlanViabilityStatus()
 
   return (
     <div id='LSH-PlanViabilityStatus'>
+
       <div id='LSH-ViabilityActionBar'>
         <div>
-
           <button onClick={() => setPlanListToDisplay(3)} className={planListToDisplay === 3 ? 'selectedPlanList' : ''}>High Importance</button>
           <button onClick={() => setPlanListToDisplay(0)} className={planListToDisplay === 0 ? 'selectedPlanList' : ''}>Stop Loss</button>
           <button onClick={() => setPlanListToDisplay(1)} className={planListToDisplay === 1 ? 'selectedPlanList' : ''}>Enter Buffer</button>
@@ -111,10 +111,7 @@ function PlanViabilityStatus()
             <button onClick={() => setShowRemoveConfirmation(false)}>Cancel</button>
           </div>
           : <button onClick={() => setShowRemoveConfirmation(true)}>Remove Nonviable</button>}
-
       </div>
-
-
 
       {showTickersForRemoval && <>
         <div className='LSH-ViabilityUpdateListUnderLay' onClick={() => setShowTickersForRemoval(false)}></div>

@@ -27,3 +27,5 @@ function MacroWatchListContainer({ setPrimaryChartTicker, setSecondaryChartTicke
 }
 
 export default MacroWatchListContainer
+
+

@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import * as short from 'short-uuid'
 import { clearGraphControl, setInitialGraphControl } from "../../../../features/Charting/GraphHoverZoomElement";
 import { defaultTimeFrames } from "../../../../Utilities/TimeFrames";
+import ZonesInputForm from "./Components/MacroKeyInputs/ZonesInputForm";
 
 function MacroControlSection()
 {
@@ -39,7 +40,7 @@ function MacroControlSection()
   const [secondaryChartTicker, setSecondaryChartTicker] = useState({ ticker: "SPY", _id: usersSPYId });
 
   const [showAddWatchlist, setShowAddWatchlist] = useState(false)
-  const [showMacroKeyLevelDisplay, setShowMacroKeyLevelDisplay] = useState(false)
+  const [showMacroKeyLevelDisplay, setShowMacroKeyLevelDisplay] = useState(0)
   const [errorMessage, setErrorMessage] = useState(undefined)
 
   const [createUserWatchList, { isSuccess, isError }] = useCreateUserWatchListMutation()
@@ -84,8 +85,8 @@ function MacroControlSection()
           <button onClick={() => setShowAddWatchlist(false)}>Cancel</button>
         </div> :
           <div className="LSH-MacroOptionControlButtons">
-            <button onClick={() => { }}><ListOrdered size={16} /></button>
-            <button onClick={() => setShowMacroKeyLevelDisplay(true)}><ChartLine color="white" size={16} /></button>
+            <button onClick={() => setShowMacroKeyLevelDisplay(2)}><ListOrdered color="white" size={16} /></button>
+            <button onClick={() => setShowMacroKeyLevelDisplay(1)}><ChartLine color="white" size={16} /></button>
             <button onClick={() => setShowAddWatchlist(true)}><CirclePlus color="white" size={16} /></button>
           </div>}
 
@@ -101,8 +102,12 @@ function MacroControlSection()
       <div id="LSH-MacroCharts">
         <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} incomingTF={defaultTimeFrames.threeDayOneMin} />
 
-        {showMacroKeyLevelDisplay ? <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
-          <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyQuarter} />}
+        {showMacroKeyLevelDisplay === 0 ?
+          <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyQuarter} /> :
+          showMacroKeyLevelDisplay === 1 ?
+            <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
+            <ZonesInputForm />
+        }
       </div>
     </section>
   );

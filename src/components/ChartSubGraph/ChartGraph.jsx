@@ -29,6 +29,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, initialTracking,
     uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
 {
+
+
     const dispatch = useDispatch()
 
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
@@ -380,7 +382,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     {
         if (preDimensionsAndCandleCheck()) return
         let dateVisualSelect = stockCandleSVG.select('.visualDateBreaks')
-        if (timeFrame.intraDay && !displayMarketHours.showOnlyIntraDay)
+        if (timeFrame.intraDay && !displayMarketHours?.showOnlyIntraDay)
         {
             dateVisualSelect.selectAll('.visualBreak').remove()
             dateVisualSelect.selectAll('.dayBreakLine').remove()
@@ -464,7 +466,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //plot previous candle Data and live price
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !candlesToKeepSinceLastQuery || !lastCandleData) return
+        if (preDimensionsAndCandleCheck() || !lastCandleData) return
 
         let centerTextOnPriceLinePixel = 4
         let centerRectOnPriceLinePixel = 15
@@ -481,7 +483,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' })
                     .attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
                 tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
-
                 let pixelPrice = createPriceScale({ priceToPixel: d.ClosePrice })
                 tickerGroups.append('line').attr('class', 'livePrice')
                     .attr('x1', -5000).attr('x2', candleDimensions.width)
@@ -741,7 +742,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (!EnterExitPlan) stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
 
         if (preDimensionsAndCandleCheck() || !EnterExitPlan) return
-
+        console.log(EnterExitPlan)
         //enter exit plan creation and update
         // stockCandleSVG.select('.enterExit').select('.twoPercentLine').remove()
         stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
@@ -753,24 +754,28 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
                 const planArray = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
                 const yPositions = planArray.map((price) => yScaleRef.current({ priceToPixel: price }))
+
                 lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
                 lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
 
                 let twoPercentAboveEnter = createPriceScale({ priceToPixel: (d.enterPrice + (d.enterPrice * 0.02)) })
-                lineGroup.append('line').attr('class', `twoPercentLine`).attr('x1', 0).attr('x2', 5000)
-                    .attr('y1', twoPercentAboveEnter).attr('y2', twoPercentAboveEnter).attr('stroke', 'purple').attr('stroke-dasharray', '3 10 3')
+                lineGroup.append('line').attr('class', `twoPercentLine`).attr('x1', 0).attr('x2', 5000).attr('y1', twoPercentAboveEnter).attr('y2', twoPercentAboveEnter).attr('stroke', 'purple').attr('stroke-dasharray', '3 10 3')
 
-                yPositions.map((position, index) =>
+                if (d?.percents)
                 {
-                    lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
-                        .attr('stroke-width', 10).attr('visibility', 'hidden').on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); })
 
-                    lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', 100).attr('y', position).text(`$${planArray[index]}`).attr('visibility', 'hidden')
-                    if (index === 0) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index]}%`).attr('visibility', 'hidden') }
-                    else if (index > 1) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index - 1]}%`).attr('visibility', 'hidden') }
-                })
+                    yPositions.map((position, index) =>
+                    {
+                        lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
+                            .attr('stroke-width', 10).attr('visibility', 'hidden').on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); })
+
+                        lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', 100).attr('y', position).text(`$${planArray[index]}`).attr('visibility', 'hidden')
+                        if (index === 0) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index]}%`).attr('visibility', 'hidden') }
+                        else if (index > 1) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index - 1]}%`).attr('visibility', 'hidden') }
+                    })
+                }
             })
 
         }

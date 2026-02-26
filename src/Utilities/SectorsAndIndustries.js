@@ -34,3 +34,16 @@ export const sectorColors = {
     "Consumer Discretionary": 'saddlebrown',
     "Real Estate": 'slategray'
 }
+export const sectorToTicker = {
+    'Healthcare': 'XLV',
+    'Consumer Staples': 'XLP',
+    'Industrials': 'XLI',
+    'Communication Services': 'XLC',
+    "Utilities": 'XLU',
+    "Technology": 'XLK',
+    "Financials": 'XLF',
+    "Materials": 'XLB',
+    "Energy": 'XLE',
+    "Consumer Discretionary": 'XLY',
+    "Real Estate": 'XLRE'
+}

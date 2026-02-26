@@ -34,6 +34,8 @@ const enterExitGraphElementsSlice = createSlice({
             if (action.payload.plan?.length)
             {
                 let planArray = action.payload.plan
+
+
                 state[action.payload.tickerSymbol] = {
                     stopLossPrice: planArray[0],
                     enterPrice: planArray[1],
@@ -41,7 +43,9 @@ const enterExitGraphElementsSlice = createSlice({
                     exitBufferPrice: planArray[3],
                     exitPrice: planArray[4],
                     moonPrice: planArray[5],
-                    id: action.payload.planId, enterExitPlanAltered: false
+                    id: action.payload.planId,
+                    percents: [1, 1, 1, 1, 1, 1],
+                    enterExitPlanAltered: false
                 }
             } else
             {

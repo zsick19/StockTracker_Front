@@ -21,7 +21,14 @@ export const KeyLevelsApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ['chartingData', 'stockKeyLevels']
         }),
+        takeInDailyZoneLevels: builder.mutation({
+            query: (args) => ({
+                url: `/chartingData/keyLevels/dailyZones`,
+                method: 'POST',
+                body: { zones: args.zones }
+            })
+        })
     }),
 });
 
-export const { useGetStockKeyLevelsQuery, useGetUsersMacroKeyLevelsQuery, useUpdateStockKeyLevelsMutation } = KeyLevelsApiSlice;
+export const { useGetStockKeyLevelsQuery, useGetUsersMacroKeyLevelsQuery, useUpdateStockKeyLevelsMutation, useTakeInDailyZoneLevelsMutation } = KeyLevelsApiSlice;

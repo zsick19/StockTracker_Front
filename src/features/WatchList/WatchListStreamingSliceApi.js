@@ -1,4 +1,4 @@
-import { createEntityAdapter } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from "../../AppRedux/api/ws";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
@@ -81,3 +81,15 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
 export const {
     useFetchUsersMacroWatchListQuery
 } = WatchListStreamingApiSlice;
+
+
+export const selectMacroTickersAndChartIds = () =>
+    createSelector(
+        WatchListStreamingApiSlice.endpoints.fetchUsersMacroWatchList.select(),
+        (result) =>
+        {
+            let macroTickerToIds = {}
+            result.data?.watchLists.forEach((watchList) => { watchList.tickersContained.forEach((ticker) => { macroTickerToIds[ticker.ticker] = ticker._id }) })
+            return macroTickerToIds
+        }
+    )
