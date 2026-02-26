@@ -5,7 +5,6 @@ import { sectorColors } from '../../../../../../../../Utilities/SectorsAndIndust
 
 function With1000DollarsVisual({ enterExitPlans })
 {
-
     const dollarsChart = useRef()
     const dollarChartWrapper = useRef()
     const dollarChartDimensions = useResizeObserver(dollarChartWrapper)
@@ -13,13 +12,10 @@ function With1000DollarsVisual({ enterExitPlans })
     const [zoomState, setZoomState] = useState(undefined)
     const [zoomStateY, setZoomStateY] = useState(undefined)
 
-
-
     const xScale = useMemo(() =>
     {
         if (!dollarChartDimensions) return
         let scale = scaleLinear().domain([5, -5]).range([dollarChartDimensions.width - 5, 5]);
-
         return scale
     }, [dollarChartDimensions, zoomStateY]);
 
@@ -134,24 +130,14 @@ function With1000DollarsVisual({ enterExitPlans })
         let width = xScale(1.5) - xScale(-1.5)
 
         const bestSelect = select(dollarsChart.current).select('.best')
-        bestSelect
-            .attr("x", xScale(-1.5))
-            .attr("y", ((-dollarChartDimensions.height / 2)))
-            .attr("width", width)
-            .attr("height", dollarChartDimensions.height / 2 + 10)
-            .attr("fill", "url(#myFadeGradient2)")
-            .attr('opacity', 0.5)
-            .attr("transform", "scale(1, -1)");
+        bestSelect.attr("x", xScale(-1.5)).attr("y", ((-dollarChartDimensions.height / 2)))
+            .attr("width", width).attr("height", dollarChartDimensions.height / 2 + 10)
+            .attr("fill", "url(#myFadeGradient2)").attr('opacity', 0.5).attr("transform", "scale(1, -1)");
 
         const worstSelect = select(dollarsChart.current).select('.worst')
-        worstSelect
-            .attr("x", xScale(-1.5))
-            .attr("y", -dollarChartDimensions.height - 10)
-            .attr("width", width)
-            .attr("height", dollarChartDimensions.height / 2 + 10)
-            .attr("fill", "url(#myFadeGradientBad2)")
-            .attr('opacity', 0.5)
-            .attr("transform", "scale(1, -1)");
+        worstSelect.attr("x", xScale(-1.5)).attr("y", -dollarChartDimensions.height - 10)
+            .attr("width", width).attr("height", dollarChartDimensions.height / 2 + 10)
+            .attr("fill", "url(#myFadeGradientBad2)").attr('opacity', 0.5).attr("transform", "scale(1, -1)");
 
     }, [dollarChartDimensions, zoomState, zoomStateY])
 

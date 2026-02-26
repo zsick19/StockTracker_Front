@@ -7,6 +7,7 @@ function GeneralMessages()
             <p>Spy Gamma Flip Line Status: Above</p>
             <p>You don't make money if you don't sell when you're up.</p>
             <p>A win is a win, is a win, is a win.</p>
+            <p>Above 2% and it gets rocky...we take the win.</p>
         </div>
     )
 }

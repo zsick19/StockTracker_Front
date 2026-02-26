@@ -22,24 +22,22 @@ function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPl
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
     const uuid = useMemo(() => short.generate(), [])
 
+
     return (
         <div className='SingleViabilityChartBlock' >
             <div onClick={() => handleRemovalToggle(plan.tickerSymbol, plan._id)} className={selectedPlansForRemoval.find((t) => t.tickerSymbol === plan.tickerSymbol) ? 'setForRemoval' : ''}>
                 {candleData &&
                     <ChartWithoutPlanFetchChartingWrapper ticker={id} uuid={uuid} candleData={{ candleData: candleData }}
-                        interactionController={{ nonLivePrice: true, nonInteractive: true, nonZoomAble: true }}
+                        interactionController={{ isLivePrice: false, isInteractive: false, isZoomAble: true }}
                         chartId={plan._id} timeFrame={defaultTimeFrames.threeDayOneMin}
-                        planData={plan.plan} mostRecentPrice={plan.mostRecentPrice}
-                        initialTrackingPrice={{ price: plan.initialTrackingPrice, date: plan.dateAdded }} />
+                        planData={{ ...plan.plan, initialTrackingPrice: plan.initialTrackingPrice }} mostRecentPrice={plan.mostRecentPrice} />
                 }
             </div>
             <div className='SingleViabilityChartBlockTitle' onClick={() => handleUpdateToggle(plan.tickerSymbol, plan._id)}>
                 {id}
                 <p>{differenceInCalendarDays(new Date(), plan.dateAdded)} Days</p>
-
                 {watchList === 3 && <button>Remove Importance</button>}
-                <button className='iconButton'>
-                    <ClipboardPen size={18} color={selectedPlansForUpdate.find((t) => t.tickerSymbol === plan.tickerSymbol) ? 'green' : 'white'} /> </button>
+                <button className='iconButton'><ClipboardPen size={18} color={selectedPlansForUpdate.find((t) => t.tickerSymbol === plan.tickerSymbol) ? 'green' : 'white'} /> </button>
             </div>
         </div >
     )

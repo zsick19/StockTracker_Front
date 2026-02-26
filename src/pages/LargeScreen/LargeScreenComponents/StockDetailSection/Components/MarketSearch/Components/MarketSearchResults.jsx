@@ -7,7 +7,6 @@ function MarketSearchResults({ searchResults })
 {
     const memoizedUserPatterns = useMemo(() => selectUsersPatternedHistory(), [])
     const patterns = useSelector(memoizedUserPatterns)
-    console.log(patterns)
 
     return (
         <div id='LHS-MarketSearchResultBlocks'>

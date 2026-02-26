@@ -126,7 +126,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const ema50Values = useMemo(() => calculateEMADataPoints(candleData, 50), [candleData])
     const ema200Values = useMemo(() => calculateEMADataPoints(candleData, 200), [candleData])
     const emaLine = line().x(d => createDateScale({ dateToPixel: d.date })).y(d => createPriceScale({ priceToPixel: d.value })).curve(curveLinear)
-//    const vpData = useMemo(() => calculateVolumeProfile(candleData), [])
+    //    const vpData = useMemo(() => calculateVolumeProfile(candleData), [])
 
 
 
@@ -299,16 +299,16 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         stockCandleSVG.select('.initialTrack').selectAll('line').remove()
         let trackingLines = stockCandleSVG.select('.initialTrack')
 
-        if (initialTracking)
-        {
-            let pixelPrice = createPriceScale({ priceToPixel: initialTracking.price })
-            let pixelDate = createDateScale({ dateToPixel: initialTracking.date })
+        // if (initialTracking)
+        // {
+        //     let pixelPrice = createPriceScale({ priceToPixel: initialTracking.price })
+        //     let pixelDate = createDateScale({ dateToPixel: initialTracking.date })
 
-            trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '0.5px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
-                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
-            trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
-                .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
-        }
+        //     trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '0.5px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+        //         .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
+        //     trackingLines.append('line').attr('stroke', 'green').attr('stroke-width', '3px').attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+        //         .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
+        // }
 
         if (EnterExitPlan?.tradeEnterDate)
         {
@@ -325,13 +325,18 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (EnterExitPlan?.dateCreated)
         {
             let pixelDate = createDateScale({ dateToPixel: EnterExitPlan.dateCreated })
-            let pixelPrice = createPriceScale({ priceToPixel: EnterExitPlan.initialTrackingPrice })
             let pastPixelSize = EnterExitPlan?.tradeEnterDate ? '1px' : '3px'
-
-            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', pastPixelSize).attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
-                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
             trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', pastPixelSize).attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
                 .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
+        }
+
+        if (EnterExitPlan?.initialTrackingPrice)
+        {
+            let pixelPrice = createPriceScale({ priceToPixel: EnterExitPlan.initialTrackingPrice })
+            let pastPixelSize = EnterExitPlan?.tradeEnterDate ? '1px' : '3px'
+            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', pastPixelSize).attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
+
         }
 
     }, [candleData, minPrice, maxPrice, excludedPeriods, displayMarketHours, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
@@ -762,9 +767,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     lineGroup.append('line').attr('class', `${names[index]} edit`).attr('x1', 0).attr('x2', 5000).attr('y1', position).attr('y2', position).attr('stroke', lineColors[index])
                         .attr('stroke-width', 10).attr('visibility', 'hidden').on('mouseover', function (e, d) { setEditChartElement({ chartingElement: d, group: 'enterExitLines' }); })
 
-                    lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', 100).attr('y', position).text(`$${planArray[index]}`)
-                    if (index === 0) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index]}%`) }
-                    else if (index > 1) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index - 1]}%`) }
+                    lineGroup.append('text').attr('class', `${names[index]}Text`).attr('x', 100).attr('y', position).text(`$${planArray[index]}`).attr('visibility', 'hidden')
+                    if (index === 0) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index]}%`).attr('visibility', 'hidden') }
+                    else if (index > 1) { lineGroup.append('text').attr('class', `${names[index]}Percents`).attr('x', 200).attr('y', position).text(`${d.percents[index - 1]}%`).attr('visibility', 'hidden') }
                 })
             })
 
@@ -1084,7 +1089,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
         else { allPossibleClassNames.map((singleClass, i) => { toggleSelectToHidden(singleClass) }) }
 
-        if (graphElementVisibility.enterExitText) { stockCandleSVG.select('.enterExits').selectAll('text').attr('visibility', 'visible') }
+        if (graphElementVisibility.enterExitText)
+        { stockCandleSVG.select('.enterExits').selectAll('text').attr('visibility', 'visible') }
         else { stockCandleSVG.select('.enterExits').selectAll('text').attr('visibility', 'hidden') }
 
         function toggleAnyVisible(className, showCurrentSpecific, showPreviousSpecific)
