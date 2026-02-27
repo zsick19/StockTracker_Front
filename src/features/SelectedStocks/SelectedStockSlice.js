@@ -28,13 +28,11 @@ const selectedStockSlice = createSlice({
         },
         setSelectedStockAndTimelineFourSplitWithSector: (state, action) =>
         {
-
-            let sectorTicker = sectorToTicker[action.payload.sector]
             return [
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, trade: action.payload?.trade, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyMonth, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
-                { ticker: sectorTicker, timeFrame: defaultTimeFrames.threeDayOneMin, chartId: action.payload?.sectorChartId, tickerSector: action.payload?.tickerSector },
-                { ticker: sectorTicker, timeFrame: defaultTimeFrames.dailyMonth, chartId: action.payload?.sectorChartId, tickerSector: action.payload?.tickerSector },
+                { ticker: action.payload.sectorTickerSymbol, timeFrame: defaultTimeFrames.threeDayOneMin, chartId: action.payload?.sectorChartId, tickerSector: action.payload?.tickerSector },
+                { ticker: action.payload.sectorTickerSymbol, timeFrame: defaultTimeFrames.dailyMonth, chartId: action.payload?.sectorChartId, tickerSector: action.payload?.tickerSector },
             ]
         },
         setSingleChartTickerTimeFrameAndChartingId: (state, action) =>

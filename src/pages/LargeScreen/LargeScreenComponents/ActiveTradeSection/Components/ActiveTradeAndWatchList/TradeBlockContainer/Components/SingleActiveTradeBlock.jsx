@@ -9,6 +9,7 @@ import VerticalMoveDiagram from './VerticalMoveDiagram'
 import { differenceInBusinessDays } from 'date-fns'
 import { selectMacroTickersAndChartIds } from '../../../../../../../../features/WatchList/WatchListStreamingSliceApi'
 import MiniGraphChartWrapper from './MiniGraphChartWrapper'
+import { sectorToTicker } from '../../../../../../../../Utilities/SectorsAndIndustries'
 
 function SingleActiveTradeBlock({ id })
 {
@@ -24,6 +25,7 @@ function SingleActiveTradeBlock({ id })
     const macroToChartMemo = useMemo(selectMacroTickersAndChartIds, [])
     const macroToChartId = useSelector(state => macroToChartMemo(state))
 
+
     const handleStockToFourWay = () =>
     {
         dispatch(setStockDetailState(0))
@@ -31,8 +33,12 @@ function SingleActiveTradeBlock({ id })
     }
     const handleStockToFourWaySector = () =>
     {
+        let sectorTicker = sectorToTicker[activeTrade.sector]
         dispatch(setStockDetailState(0))
-        dispatch(setSelectedStockAndTimelineFourSplitWithSector({ ticker: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, sectorChartId: macroToChartId[activeTrade.sector], sector: activeTrade.sector, trade: activeTrade }))
+        dispatch(setSelectedStockAndTimelineFourSplitWithSector({
+            ticker: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId,
+            sectorChartId: macroToChartId[sectorTicker], tickerSector: activeTrade.sector, sectorTickerSymbol:sectorTicker, trade: activeTrade
+        }))
 
     }
     const handleStockToTradeChart = () =>

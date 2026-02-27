@@ -106,7 +106,7 @@ function MacroControlSection()
           <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyQuarter} /> :
           showMacroKeyLevelDisplay === 1 ?
             <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
-            <ZonesInputForm />
+            <ZonesInputForm setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} />
         }
       </div>
     </section>

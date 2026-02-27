@@ -13,3 +13,12 @@
   background-color: rgb(55, 54, 61);
   width: 100%;
 }
+
+#centerSearch {
+  width: 1200px;
+  border-radius: 10px;
+  border: none;
+  background-color: rgb(85, 85, 105);
+  text-align: center;
+  color: white;
+}

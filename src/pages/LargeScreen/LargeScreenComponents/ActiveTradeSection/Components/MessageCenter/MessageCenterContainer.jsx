@@ -3,6 +3,7 @@ import './MessageCenterContainer.css'
 import GeneralMessages from './Components/GeneralMessages'
 import PriceMessages from './Components/PriceMessages'
 import FlashAlert from './Components/FlashAlert'
+import MacroConditions from './Components/MacroConditions'
 
 function MessageCenterContainer()
 {
@@ -15,6 +16,7 @@ function MessageCenterContainer()
         {
             case 'general': return <GeneralMessages />
             case 'price': return <PriceMessages />
+            case 'macroConditions': return <MacroConditions />
         }
     }
 
@@ -26,6 +28,8 @@ function MessageCenterContainer()
 
                 <input type="radio" name="messageDisplay" id="price" className='hidden-radio' />
                 <label htmlFor="price">Price Alerts</label>
+                <input type="radio" name="messageDisplay" id="macroConditions" className='hidden-radio' />
+                <label htmlFor="macroConditions">Macro Conditions</label>
             </fieldset>
             <div>
                 {/* <button onClick={() => setFlashAlert([{ alert: 'blah blah blah' }])}>trial flash</button> */}

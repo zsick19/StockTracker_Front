@@ -47,3 +47,5 @@ export const sectorToTicker = {
     "Consumer Discretionary": 'XLY',
     "Real Estate": 'XLRE'
 }
+
+export const allSectorTickers = ['XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE']

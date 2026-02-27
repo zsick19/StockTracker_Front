@@ -16,14 +16,8 @@ function VerticalPlanDiagram({ idealPrices, currentPrice, percentOfGain, actualE
         let bufferAmount = (idealPrices[5] - idealPrices[0]) * 0.05
         const scale = scaleLinear().domain([(idealPrices[5] + bufferAmount), (idealPrices[0] - bufferAmount)]).range([0, verticalDimensions.height])
         return scale(priceToPixel)
-    }, [verticalDimensions])
+    }, [verticalDimensions, idealPrices])
 
-    const yScaleOutOf100 = useCallback((priceToPixel) =>
-    {
-        if (preCheck()) return
-        const scale = scaleLinear().domain([-5, 105]).range([0, verticalDimensions.height])
-        return scale(priceToPixel)
-    }, [verticalDimensions])
 
     const priceSVG = select(verticalSVG.current)
 
@@ -68,7 +62,7 @@ function VerticalPlanDiagram({ idealPrices, currentPrice, percentOfGain, actualE
 
 
 
-    }, [verticalDimensions])
+    }, [verticalDimensions, idealPrices])
 
 
     useEffect(() =>

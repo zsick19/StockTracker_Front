@@ -11,6 +11,7 @@ const keyLevelGraphElementsSlice = createSlice({
 
             state[chartingData.tickerSymbol] = {
                 gammaFlip: chartingData?.gammaFlip || undefined,
+                dailyZone: chartingData?.dailyZone || undefined,
                 dailyEM: chartingData.dailyEM,
                 weeklyEM: chartingData.weeklyEM,
                 monthlyEM: chartingData.monthlyEM,

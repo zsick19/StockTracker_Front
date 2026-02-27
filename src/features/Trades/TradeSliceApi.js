@@ -158,7 +158,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 console.log('removed cache entry')
                 unsubscribe('activeTradePrice', incomingTradeListener, userId, 'ActiveTrades')
             },
-            providesTags: ['activeTrades']
+            providesTags: (result) => { return result ? [{ type: 'activeTrades', id: 'LIST' }, ...(result.ids.map((id) => ({ type: 'activeTrades', id })) || []),] : [{ type: 'activeTrades', id: 'LIST' }] }
         }),
         getUsersTradeHistory: builder.query({
             query: () => ({

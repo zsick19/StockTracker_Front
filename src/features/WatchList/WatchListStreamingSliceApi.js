@@ -75,11 +75,28 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
                 unsubscribe('macroWatchListUpdate', incomingTradeListener, userId, 'macroWatchList')
             }
         }),
+        fetchMacroDailyZoneInfo: builder.query({
+            query: () => ({
+                url: '/user/watchlist/dailyMacroZones'
+            }),
+            transformResponse: (response) =>
+            {
+                let values = {}
+                response.forEach((zone) =>
+                {
+                    values[zone.tickerSymbol] = zone.dailyZone
+                })
+                return values
+            },
+            keepUnusedDataFor: 60 * 60 * 18,
+            providesTags: ['dailyMacroZones']
+        })
     }),
 });
 
 export const {
-    useFetchUsersMacroWatchListQuery
+    useFetchUsersMacroWatchListQuery,
+    useFetchMacroDailyZoneInfoQuery
 } = WatchListStreamingApiSlice;
 
 

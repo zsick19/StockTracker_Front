@@ -204,22 +204,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const createPriceScale = useCallback(({ priceToPixel = undefined, pixelToPrice = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
-
-
-
-
         const yScale = scaleLinear()
             .domain([minPrice - pixelBuffer.yPriceBuffer, maxPrice + pixelBuffer.yPriceBuffer])
             .range([candleDimensions.height - pixelBuffer.yDirectionPixelBuffer, 0])
-            .interpolate(function (a, b)
-            {
-                const c = b - a;
-                return function (t) { return +(a + t * c).toFixed(2); };
-            })
-
-
-
-
+            .interpolate(function (a, b) { const c = b - a; return function (t) { return +(a + t * c).toFixed(2); }; })
 
         if (chartZoomState?.y)
         {
@@ -816,7 +804,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         stockCandleSVG.select('.keyLevels').selectAll('rect').remove()
 
         if (preDimensionsAndCandleCheck() || !KeyLevels) return
-
+        let keyLevelSelection = stockCandleSVG.select('.keyLevels')
         const textOffSetFromRight = 120
         if (KeyLevels.dailyEM && timeFrame.intraDay)
         {
@@ -969,6 +957,43 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     enter.append('line').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'purple').attr('stroke-width', '1px').attr('stroke-dasharray', '5 2 5').attr('y1', dtePixel).attr('y2', dtePixel)
                 })
             })
+        }
+
+        if (KeyLevels.dailyZone)
+        {
+
+            let lowPixel = createPriceScale({ priceToPixel: KeyLevels.dailyZone.low })
+            let midPixel = createPriceScale({ priceToPixel: KeyLevels.dailyZone.mid })
+            let highPixel = createPriceScale({ priceToPixel: KeyLevels.dailyZone.high })
+            let closePixel = createPriceScale({ priceToPixel: KeyLevels.dailyZone.close })
+            let trendPixel = createPriceScale({ priceToPixel: KeyLevels.dailyZone.trend })
+
+            keyLevelSelection.append('line')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('stroke', 'yellow').attr('stroke-dasharray', '10 10')
+                .attr('y1', lowPixel).attr('y2', lowPixel).attr('opacity', 0.5)
+
+            keyLevelSelection.append('rect').attr('x', 0).attr('width', 5000).attr('fill', "url(#zoneBearish)").attr('opacity', 0.15)
+                .attr('y', (d) => midPixel).attr('height', d => lowPixel - midPixel)
+            keyLevelSelection.append('rect').attr('x', 0).attr('width', 5000).attr('fill', 'url(#zoneBullish)').attr('opacity', 0.15)
+                .attr('y', (d) => highPixel).attr('height', d => midPixel - highPixel)
+
+            keyLevelSelection.append('line')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('stroke', 'blue').attr('stroke-dasharray', '10 10')
+                .attr('y1', midPixel).attr('y2', midPixel)
+            keyLevelSelection.append('line')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('stroke', 'red').attr('stroke-dasharray', '10 10').attr('opacity', 0.5)
+                .attr('y1', highPixel).attr('y2', highPixel)
+            keyLevelSelection.append('line')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('stroke', 'black').attr('opacity', 1)
+                .attr('y1', closePixel).attr('y2', closePixel)
+            keyLevelSelection.append('line')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('stroke', 'black').attr('opacity', 1).attr('stroke-dasharray', '10 10')
+                .attr('y1', trendPixel).attr('y2', trendPixel)
         }
 
     }, [ticker, KeyLevels, candleData, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
@@ -1332,9 +1357,21 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                             <stop offset="75%" stop-color="green" stop-opacity="1" />
                             <stop offset="100%" stop-color="green" stop-opacity="1" />
                         </linearGradient>
+
+                        <linearGradient id="zoneBearish" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="yellow" stop-opacity="1" />
+                            <stop offset="80%" stop-color="yellow" stop-opacity=".75" />
+                            <stop offset="100%" stop-color="red" stop-opacity="1" />
+                        </linearGradient>
+                        <linearGradient id="zoneBullish" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="blue" stop-opacity="1" />
+                            <stop offset="90%" stop-color="yellow" stop-opacity="1" />
+                            <stop offset="100%" stop-color="yellow" stop-opacity="1" />
+                        </linearGradient>
                     </defs>
                     <g className='x-axis' />
                     <g className='visualDateBreaks' />
+                    <g className='keyLevels' />
                     <g className='initialTrack' />
                     <g className='enterExits' />
                     <g className='tickerVal' />
@@ -1359,7 +1396,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     <g className='highVolumeNodes' />
                     <g className='channels' />
                     <g className='triangles' />
-                    <g className='keyLevels' />
                     <g className='currentPrice' />
                 </svg>
             </div>

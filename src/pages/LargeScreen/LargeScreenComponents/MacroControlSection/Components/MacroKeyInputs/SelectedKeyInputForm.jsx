@@ -22,7 +22,7 @@ function SelectedKeyInputForm({ selectedStock, setShowMacroKeyLevelDisplay, show
         try
         {
             await updateStockKeyLevels({ chartId: selectedStock._id, updatedKeyLevels: selectedData }).unwrap()
-            setShowMacroKeyLevelDisplay(false)
+            setShowMacroKeyLevelDisplay(0)
         } catch (error)
         {
             setErrorMessage(error.message)
@@ -42,7 +42,7 @@ function SelectedKeyInputForm({ selectedStock, setShowMacroKeyLevelDisplay, show
                     <MonthlyInputForm selectedData={selectedData} setSelectedData={setSelectedData} />}
             <div>
                 <button>Submit</button>
-                <button type='button' onClick={() => setShowMacroKeyLevelDisplay(false)}>Cancel</button>
+                <button type='button' onClick={() => setShowMacroKeyLevelDisplay(0)}>Cancel</button>
             </div>
         </form>
     )

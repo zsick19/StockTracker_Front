@@ -26,7 +26,8 @@ export const KeyLevelsApiSlice = apiSlice.injectEndpoints({
                 url: `/chartingData/keyLevels/dailyZones`,
                 method: 'POST',
                 body: { zones: args.zones }
-            })
+            }),
+            invalidatesTags: ['dailyMacroZones']
         })
     }),
 });

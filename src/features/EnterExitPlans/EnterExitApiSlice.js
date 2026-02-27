@@ -245,7 +245,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
         return result.data ? { data: result.data } : { error: result.error }
       },
-      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.ticker }, 'enterExitPlans', 'confirmedSummary', 'singleEnterExit']
+      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.ticker }, 'enterExitPlans', 'confirmedSummary', 'singleEnterExit', { type: 'activeTrades', id: args.ticker }]
     }),
     removeSingleEnterExitPlan: builder.mutation({
       async queryFn(args, api, extraOptions, baseQuery)

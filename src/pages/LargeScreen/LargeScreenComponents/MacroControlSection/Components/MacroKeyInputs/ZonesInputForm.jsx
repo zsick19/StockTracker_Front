@@ -2,7 +2,7 @@ import React, { useRef } from 'react'
 import { useTakeInDailyZoneLevelsMutation } from '../../../../../../features/KeyLevels/KeyLevelSliceApi'
 import { processZoneString } from '../../../../../../Utilities/UtilityHelperFunctions'
 
-function ZonesInputForm()
+function ZonesInputForm({ setShowMacroKeyLevelDisplay })
 {
     const [takeInDailyZoneLevels] = useTakeInDailyZoneLevelsMutation()
 
@@ -28,6 +28,7 @@ function ZonesInputForm()
             ZonesInputForm
             <input type="text" ref={zoneRef} />
             <button onClick={() => attemptZoneEntry()}>Take in zones</button>
+            <button onClick={() => setShowMacroKeyLevelDisplay(0)}>Clear To Graph</button>
 
         </div>
     )

@@ -79,7 +79,7 @@ function DashNav()
           <p>XCP: BioTech ETF</p>
           <p>XRT: Retail ETF</p>
         </div> : <div>
-          search bar
+          <input type="text" id="centerSearch" placeholder="Tracker Search" />
         </div>}
 
       {/* <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button> */}
