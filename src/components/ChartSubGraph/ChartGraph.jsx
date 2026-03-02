@@ -39,12 +39,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //redux charting data selectors
     const selectKeyLevelMemo = useMemo(makeSelectKeyLevelsByTicker, [ticker])
     const KeyLevels = useSelector((state) => selectKeyLevelMemo(state, ticker))
-    const selectedEnterExitMemo = useMemo(makeSelectEnterExitByTicker, [])
+    const selectedEnterExitMemo = useMemo(makeSelectEnterExitByTicker, [ticker])
     const EnterExitPlan = useSelector(state => selectedEnterExitMemo(state, ticker))
-    const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [])
+    const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [ticker])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
 
-
+    if (ticker === 'XLV') console.log(EnterExitPlan)
 
     const selectedStudyVisualStateMemo = useMemo(makeSelectGraphStudyByUUID, [])
     const studyVisualController = useSelector((state) => selectedStudyVisualStateMemo(state, uuid))
@@ -577,8 +577,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !charting) return
+        if (!EnterExitPlan) stockCandleSVG.select('.enterExits').selectAll('.line_group').remove()
 
-        if (!EnterExitPlan) stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
 
         //free line creation and update
         stockCandleSVG.select('.freeLines').selectAll('.line_group').data(charting.freeLines).join((enter) => createLineAndCircle(enter), (update) => updateLines(update))
@@ -727,13 +727,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //plot user EnterExit Plan removing any possible charting enter exit  
     useEffect(() =>
     {
-        if (!EnterExitPlan) stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
-
         if (preDimensionsAndCandleCheck() || !EnterExitPlan) return
-        console.log(EnterExitPlan)
+        if (!EnterExitPlan)
+        {
+
+            stockCandleSVG.select('.enterExits').selectAll('.line_group').remove()
+            stockCandleSVG.select('.enterExits').select('.twoPercentLine').remove()
+        }
+
+
         //enter exit plan creation and update
-        // stockCandleSVG.select('.enterExit').select('.twoPercentLine').remove()
-        stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
+        stockCandleSVG.select('.enterExits').selectAll('.line_group').data([EnterExitPlan]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update), (remove) => removeEnterExit(remove))
         function createEnterExit(enter)
         {
             enter.each(function (d)
@@ -789,6 +793,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     if (index === 0) { update.select(`.${names[index]}Percents`).attr('y', position).text(`${d.percents[index]}%`) }
                     else if (index > 1) { update.select(`.${names[index]}Percents`).attr('y', position).text(`${d.percents[index - 1]}%`) }
                 })
+            })
+        }
+        function removeEnterExit(remove)
+        {
+            remove.each(function (d)
+            {
+                stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
             })
         }
 

@@ -195,7 +195,7 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
                 <br />
 
                 <p className='veryTinyText'>Utility</p>
-                <button disabled={!chartId || !chartingAltered.altered} title='Direct Save' onClick={attemptSavingCharting}><Save size={20} color={chartingAltered.altered ? 'white' : 'gray'} /></button>
+                <button disabled={!chartId || !chartingAltered.altered} title='Direct Save' onClick={attemptSavingCharting}><Save size={20} color={chartingAltered.altered ? 'blue' : 'white'} /></button>
                 {serverResponse === "positive" && <Check color='green' size={20} />}
                 {serverResponse === "negative" && <X color='red' size={20} />}
 
@@ -204,7 +204,7 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
                         <button onClick={() => setShowDoubleCheckRemoval(false)}><X /> </button>
                         {(chartId && (chartId !== userSpyId)) && <button onClick={() => { attemptRemoveOfConfirmedStock(); setShowDoubleCheckRemoval(false) }}><Trash2 color='red' /></button>}
                     </div>
-                    : (chartId && (chartId !== userSpyId)) && <button onClick={() => setShowDoubleCheckRemoval(true)}><Trash2 /></button>
+                    : (chartId && (chartId !== userSpyId)) && <button onClick={() => setShowDoubleCheckRemoval(true)}><Trash2 color='gray' /></button>
                 }
 
 

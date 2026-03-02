@@ -37,7 +37,7 @@ function SingleActiveTradeBlock({ id })
         dispatch(setStockDetailState(0))
         dispatch(setSelectedStockAndTimelineFourSplitWithSector({
             ticker: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId,
-            sectorChartId: macroToChartId[sectorTicker], tickerSector: activeTrade.sector, sectorTickerSymbol:sectorTicker, trade: activeTrade
+            sectorChartId: macroToChartId[sectorTicker], tickerSector: activeTrade.sector, sectorTickerSymbol: sectorTicker, trade: activeTrade
         }))
 
     }
@@ -105,12 +105,10 @@ function SingleActiveTradeBlock({ id })
                             </div>
                             : <div className='TimeFrameOptions'>
                                 <div className='flex' onClick={() => setShowMiniGraph(true)}>
-                                    {/* <p >Today</p> */}
                                     <p ><span className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>${(activeTrade.mostRecentPrice - activeTrade.previousClose).toFixed(2)}</span></p>
                                     <p className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>{((activeTrade.mostRecentPrice - activeTrade.previousClose) / activeTrade.previousClose * 100).toFixed(2)}%</p>
                                 </div>
                                 <p onClick={() => handleStockToFourWaySector()} onContextMenu={(e) => { e.preventDefault(); handleStockToFourWay() }}>{activeTrade.sector}</p>
-                                {/* <button onClick={() => handleStockToFourWay()} className='iconButton'><Expand color='white' size={16} /></button> */}
                             </div>
                         }
                     </div>
@@ -198,7 +196,7 @@ function SingleActiveTradeBlock({ id })
                             <div className='TradeBlockBottom' onClick={() => setShowPositionInfo(0)}>
                                 <div >
                                     <p>ATR</p>
-                                    <p>${activeTrade?.atrAtPurchase}</p>
+                                    <p>${(activeTrade.mostRecentPrice - activeTrade.previousClose).toFixed(2)} vs ${activeTrade?.atrAtPurchase}</p>
                                 </div>
                                 <div>
                                     <p>Hold Days</p>

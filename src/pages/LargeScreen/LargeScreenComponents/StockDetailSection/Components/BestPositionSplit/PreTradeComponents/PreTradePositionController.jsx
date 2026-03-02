@@ -52,7 +52,7 @@ function PreTradePositionController({ whatPreTradeToDisplay, dataForVisual, setW
                 )}
             </div>
 
-            {provideDiagramOptions()}
+            {/* {provideDiagramOptions()} */}
 
         </div>
     )

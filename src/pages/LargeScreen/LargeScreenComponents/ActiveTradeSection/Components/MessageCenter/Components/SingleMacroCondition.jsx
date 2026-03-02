@@ -74,7 +74,7 @@ function SingleMacroCondition({ macroTicker, zoneData })
         else { setBorderColor('red') }
 
 
-    }, [item.mostRecentPrice, diagramDimensions])
+    }, [item?.mostRecentPrice, diagramDimensions])
     const svgBorderStyle = {
         border: `2px solid ${borderColor}`,
     }
