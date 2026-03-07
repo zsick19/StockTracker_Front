@@ -39,7 +39,7 @@ export const ChartingApiSlice = apiSlice.injectEndpoints({
 
         return result.data ? { data: result.data } : { error: result.error }
       },
-      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.chartId }]
+      invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.ticker }]
     }),
 
     removeChartableStock: builder.mutation({

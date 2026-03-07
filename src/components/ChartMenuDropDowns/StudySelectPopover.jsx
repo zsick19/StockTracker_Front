@@ -31,9 +31,6 @@ function StudySelectPopover({ handleStudySelectChange, setShowStudiesSelect, sub
                     <input type="checkbox" name="study" id="stochastic" checked={studyChangeCapture.includes('stochastic')} />
                     <label htmlFor="stochastic">Stochastic</label>
 
-                    <input type="checkbox" name="study" id="volumeProfile" checked={studyChangeCapture.includes('volumeProfile')} />
-                    <label htmlFor="volumeProfile">Volume Profile</label>
-
                     <input type="checkbox" name="study" id="correlation" checked={studyChangeCapture.includes('correlation')} />
                     <label htmlFor="correlation">Correlation</label>
 

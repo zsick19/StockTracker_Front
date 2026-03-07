@@ -12,12 +12,15 @@ const graphToSubGraphCrossHairElement = createSlice({
         },
         setGraphToSubGraphCrossHair: (state, action) =>
         {
-            if (!action.payload.uuid) return
+            if (!action.payload.uuid || !state[action.payload?.uuid]) return
+
+
             state[action.payload.uuid].x = action.payload.x
+
         },
         setNoCurrentCrossHair: (state, action) =>
         {
-            if (!action.payload.uuid) return
+            if (!action.payload.uuid || !state[action.payload?.uuid]) return
             state[action.payload.uuid].x = undefined
         },
         clearGraphToSubGraphCrossHair: (state, action) =>

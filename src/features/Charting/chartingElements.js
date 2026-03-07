@@ -19,6 +19,19 @@ const chartingElementSlice = createSlice({
       state[ticker].freeLines = state[ticker].freeLines.map((line) => { if (line.id === update.id) { return update; } else return line; });
       state[ticker].chartingAltered = true;
     },
+    addHorizontalLine: (state, action) =>
+    {
+      let { lineH, ticker } = action.payload
+      let nextLineHId = state[ticker].linesHId + 1
+      lineH.id = nextLineHId
+      lineH.dateCreated = new Date().toLocaleDateString();
+
+      state[ticker].linesHId = nextLineHId
+      state[ticker].linesH.push(lineH)
+      state[ticker].chartingAltered = true;
+    },
+
+
     addVolumeNode: (state, action) =>
     {
       let { completeCapture, ticker, isHighVolNode } = action.payload
@@ -42,9 +55,10 @@ const chartingElementSlice = createSlice({
     {
       console.log(action.payload)
     },
+
+
     addEnterExitToCharting: (state, action) =>
     {
-
       let { enterExit, ticker } = action.payload
       enterExit.dateCreated = new Date().toLocaleDateString();
       state[ticker].enterExitLines = enterExit
@@ -56,6 +70,8 @@ const chartingElementSlice = createSlice({
       state[ticker].enterExitLines = updatedEnterExit
       state[ticker].chartingAltered = true
     },
+
+
     updateKeyPrice: (state, action) =>
     {
       state.keyPriceLines = state.keyPriceLines.map((keyPrice) =>
@@ -69,14 +85,13 @@ const chartingElementSlice = createSlice({
     removeChartingElement: (state, action) =>
     {
       let { group, ticker, chartingElement } = action.payload
+
+
+
       switch (group)
       {
-        case "freeLines": state[ticker].freeLines = state[ticker].freeLines.filter((t) => { return t.id !== chartingElement.id; }); break;
-        case "trendLines": state[ticker].trendLines = state[ticker].trendLines.filter((t) => { return t.id !== chartingElement.id; }); break;
-        case "channels": state[ticker].channels = state[ticker].channels.filter((t) => { return t.id !== chartingElement.id; }); break;
-        case "linesH": state[ticker].linesH = state[ticker].linesH.filter((t) => { return t.id !== chartingElement.id; }); break;
-        case "triangles": state[ticker].triangles = state[ticker].triangles.filter((t) => { return t.id !== chartingElement.id; }); break;
-        case "wedges": state[ticker].wedges = state[ticker].wedges.filter((t) => { return t.id !== action.payload.chartingElement.id; }); break;
+        case "freeLines": state[ticker].freeLines = state[ticker].freeLines.filter((t) => t.id !== chartingElement.id); break;
+        case "linesH": state[ticker].linesH = state[ticker].linesH.filter((t) => t.id !== chartingElement.id); break;
         case "enterExit": state[ticker].enterExitLines = undefined; break;
       }
       state[ticker].chartingAltered = true;
@@ -84,10 +99,7 @@ const chartingElementSlice = createSlice({
     setPreviousCharting: (state, action) =>
     {
 
-      if (action.payload.charting)
-      {
-        state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false }
-      }
+      if (action.payload.charting) { state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false } }
       else
       {
         state[action.payload.tickerSymbol] = {
@@ -113,6 +125,10 @@ const chartingElementSlice = createSlice({
 export const {
   addLine,
   updateLine,
+  addHorizontalLine,
+
+
+
   addEnterExitToCharting,
   updateEnterExitToCharting,
   removeChartingElement,
