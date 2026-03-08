@@ -20,6 +20,7 @@ import RSISubChart from '../../../../../../../components/ChartSubGraph/SubCharts
 import VortexSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/VortexSubChart'
 import StochasticSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/StochasticSubChart'
 import MACDSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/MACDSubChart'
+import CorrelationSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/CorrelationSubChart'
 
 
 function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, chartId, setChartInfoDisplay, uuid })
@@ -144,6 +145,7 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
                     case 'vortex': return <VortexSubChart candleData={data.candleData} uuid={uuid} />
                     case 'stochastic': return <StochasticSubChart candleData={data.candleData} uuid={uuid} />
                     case 'MACD': return <MACDSubChart candleData={data.candleData} uuid={uuid} />
+                    case 'correlation': return <CorrelationSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
                 }
             })
         }

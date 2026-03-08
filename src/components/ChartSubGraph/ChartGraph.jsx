@@ -337,7 +337,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             {
                 enter.append('rect').attr('class', (d, i) => { return i % 2 !== 0 ? 'monthOdd visualBreak' : 'monthEven visualBreak' })
                     .attr('x', (d, i) => createDateScale({ dateToPixel: d })).attr('y', -pixelBuffer.yDirectionPixelBuffer)
-                    .attr('width', (d, i) => { return pixelDates[i + 1] - createDateScale({ dateToPixel: d }) })
+                    .attr('width', (d, i) =>
+                    {
+                        if (i !== pixelDates.length - 1) { return pixelDates[i + 1] - createDateScale({ dateToPixel: d }) }
+                        else { return 0 }
+                    })
                     .attr('height', candleDimensions.height)
             }
         }
@@ -736,8 +740,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 {
                     const pricePixel = createPriceScale({ priceToPixel: d.price })
                     select(this).append('line').attr('class', (d, i) => isToday(d.dateCreated) ? `line_group today chartingLowVolNode` : `line_group previous chartingLowVolNode`)
-                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1).attr('stroke', 'url(#fadeLowVolume)')
-                        .attr('stroke-width', 20).on('mouseover', function (e, d)
+                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1)
+                        .attr('stroke', 'blue')
+                        .attr('stroke-width', 5).on('mouseover', function (e, d)
                         {
                             editChartElementRef.current = { chartingElement: d, group: 'lowVolumeNodes' }
 
@@ -762,8 +767,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 {
                     const pricePixel = createPriceScale({ priceToPixel: d.price })
                     select(this).append('line').attr('class', (d, i) => isToday(d.dateCreated) ? `line_group today chartingHighVolNode` : `line_group previous chartingHighVolNode`)
-                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1).attr('stroke', 'url(#fadeHighVolume)')
-                        .attr('stroke-width', 20).on('mouseover', function (e, d)
+                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1).attr('stroke', 'orange')
+                        .attr('stroke-width', 5).on('mouseover', function (e, d)
                         {
                             editChartElementRef.current = { chartingElement: d, group: 'highVolumeNodes' }
 
@@ -812,7 +817,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         {
             let pixelDate = createDateScale({ dateToPixel: EnterExitPlan.dateCreated })
             let pastPixelSize = EnterExitPlan?.tradeEnterDate ? '1px' : '3px'
-            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', pastPixelSize).attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+            trackingLines.append('line').attr('stroke', 'teal').attr('stroke-width', pastPixelSize).attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
                 .attr('x1', pixelDate).attr('x2', pixelDate).attr('y1', 0).attr('y2', candleDimensions.height)
         }
 
@@ -820,7 +825,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         {
             let pixelPrice = createPriceScale({ priceToPixel: EnterExitPlan.initialTrackingPrice })
             let pastPixelSize = EnterExitPlan?.tradeEnterDate ? '1px' : '3px'
-            trackingLines.append('line').attr('stroke', 'blue').attr('stroke-width', pastPixelSize).attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
+            trackingLines.append('line').attr('stroke', 'teal').attr('stroke-width', pastPixelSize).attr('stroke-dasharray', '5 2 5').attr('opacity', 0.75)
                 .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
         }
 
@@ -1479,6 +1484,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     </defs>
                     <g className='x-axis' />
                     <g className='visualDateBreaks' />
+                    <g className='lowVolumeNodes' />
+                    <g className='highVolumeNodes' />
                     <g className='keyLevels' />
                     <g className='initialTrack' />
                     <g className='enterExits' />
@@ -1501,8 +1508,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     <g className='linesH' />
                     <g className='trendLines' />
 
-                    <g className='lowVolumeNodes' />
-                    <g className='highVolumeNodes' />
                     <g className='currentPrice' />
                 </svg>
             </div>

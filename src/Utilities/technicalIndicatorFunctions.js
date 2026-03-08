@@ -250,52 +250,42 @@ export function calculateVolumeProfile(data, binsCount = 50)
     return { profile, poc };
 }
 
+export function calculateCorrelation(dataA, dataB, window = 20)
+{
+    const result = [];
+    const pricesA = dataA.map(d => d.ClosePrice);
+    const pricesB = dataB.map(d => d.ClosePrice);
+
+
+    for (let i = window; i <= pricesA.length; i++)
+    {
+        const sliceA = pricesA.slice(i - window, i);
+        const sliceB = pricesB.slice(i - window, i);
+        const corr = calculatePearson(sliceA, sliceB);
+        result.push({ x: dataA[i - 1].Timestamp, y: corr.toFixed(2) });
+    }
+    return result;
+}
+
+function calculatePearson(a, b)
+{
+    const n = a.length;
+    const meanA = a.reduce((s, v) => s + v) / n;
+    const meanB = b.reduce((s, v) => s + v) / n;
+    let num = 0, denA = 0, denB = 0;
+    for (let i = 0; i < n; i++)
+    {
+        const dA = a[i] - meanA, dB = b[i] - meanB;
+        num += dA * dB;
+        denA += dA ** 2;
+        denB += dB ** 2;
+    }
+    return num / Math.sqrt(denA * denB) || 0;
+}
 
 
 
 
-
-
-// export const calculateVolumeProfileDataPoints = (chartingData, binSize) =>
-// {
-//     // Initialize volume profile
-//     const volumeProfile = {};
-//     let comp = []
-
-//     for (let i = 0; i < chartingData.length; i++)
-//     {
-//         distributeVolume(chartingData[i].HighPrice, chartingData[i].LowPrice, chartingData[i].Volume, binSize);
-//     }
-
-//     for (const [price, volume] of Object.entries(volumeProfile))
-//     {
-//         comp.push({ x: parseFloat(price), y: volume })
-//     }
-
-//     function distributeVolume(high, low, volume, binSize)   
-//     {
-//         const startBin = getBin(low, binSize);
-//         const endBin = getBin(high, binSize);
-
-//         let totalBins = (endBin - startBin) / binSize + 1;
-//         const volumePerBin = volume / totalBins;
-
-//         for (let bin = startBin; bin <= endBin; bin += binSize)
-//         {
-//             if (volumeProfile[bin])
-//             {
-//                 volumeProfile[bin] += volumePerBin;
-//             } else
-//             {
-//                 volumeProfile[bin] = volumePerBin;
-//             }
-//         }
-//         // Function to calculate the bin for a given price
-//         function getBin(price, binSize) { return Math.floor(price / binSize) * binSize; }
-//     }
-//     // Extract bins (prices) and corresponding volumes from volumeProfile
-//     return comp.sort((a, b) => a.x - b.x)
-// }
 export function calculateStochastic(chartingData, timeBlock = 14)
 {
     let currentCloseMinusLowestLowOverBlock = []

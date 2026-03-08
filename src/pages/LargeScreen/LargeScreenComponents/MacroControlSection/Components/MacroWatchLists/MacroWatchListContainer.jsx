@@ -8,7 +8,7 @@ function MacroWatchListContainer({ setPrimaryChartTicker, setSecondaryChartTicke
     let watchListVisual
     if (isSuccess)
     {
-        watchListVisual = data.watchLists.map((watchList) => <MacroWatchList watchList={watchList} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />)
+        watchListVisual = data.watchLists.map((watchList) => <MacroWatchList key={watchList._id} watchList={watchList} setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />)
     }
     else if (isLoading) { watchListVisual = <div>Loading...</div> }
     else if (isError)

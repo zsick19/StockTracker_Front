@@ -20,6 +20,7 @@ function RSISubChart({ candleData, uuid, timeFrame })
     const XSVG = useRef()
     const yScaleDimensions = useResizeObserver(YSVG)
     const chartDimensions = useResizeObserver(XSVG)
+
     const preDimensionsAndCandleCheck = () => { return (!chartDimensions) }
     const rsiData = useMemo(() => rsiCalc(candleData, periodBlock), [candleData])
 

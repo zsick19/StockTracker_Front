@@ -18,7 +18,7 @@ function MacroNewsFeed()
     let newsContent
     if (isSuccess)
     {
-        newsContent = data.map((article) => <SingleNewsArticle article={article} />)
+        newsContent = data.map((article) => <SingleNewsArticle article={article} key={article.ID} />)
     }
 
 

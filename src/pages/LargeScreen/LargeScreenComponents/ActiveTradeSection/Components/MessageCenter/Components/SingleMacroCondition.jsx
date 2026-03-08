@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useFetchUsersMacroWatchListQuery } from '../../../../../../../features/WatchList/WatchListStreamingSliceApi';
 import { useResizeObserver } from '../../../../../../../hooks/useResizeObserver';
 import { color, scaleLinear, select, selectAll } from 'd3';
+import { TrendingDown, TrendingUp } from 'lucide-react';
 
 function SingleMacroCondition({ macroTicker, zoneData })
 {
@@ -103,7 +104,7 @@ function SingleMacroCondition({ macroTicker, zoneData })
                     <g className='price' />
                 </svg>
             </div>
-            <p style={textStyle}>{item.ticker}</p>
+            <p style={textStyle}>{item.ticker} {zoneData.trend > zoneData.close ? <TrendingUp size={12} /> : <TrendingDown size={12} />}</p>
         </div>
     )
 }

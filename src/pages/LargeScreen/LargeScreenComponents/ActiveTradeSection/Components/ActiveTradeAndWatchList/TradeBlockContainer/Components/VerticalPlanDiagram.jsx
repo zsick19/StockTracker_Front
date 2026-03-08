@@ -32,7 +32,7 @@ function VerticalPlanDiagram({ idealPrices, currentPrice, percentOfGain, actualE
         pricePointSelection.selectAll('.priceShading').remove()
 
         pricePointSelection.append('rect').attr('class', 'priceShading').attr('width', verticalDimensions.width)
-            .attr('x', 0).attr('y', yScale(idealPrices[2])).attr('height', yScale(idealPrices[1]) - yScale(idealPrices[2]))
+            .attr('x', 0).attr('y', yScale(idealPrices[2])).attr('height', Math.abs(yScale(idealPrices[1]) - yScale(idealPrices[2])))
             .attr('fill', 'yellow').attr('opacity', shadingLevel)
 
         pricePointSelection.append('rect').attr('class', 'priceShading')

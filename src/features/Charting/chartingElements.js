@@ -92,6 +92,8 @@ const chartingElementSlice = createSlice({
       {
         case "freeLines": state[ticker].freeLines = state[ticker].freeLines.filter((t) => t.id !== chartingElement.id); break;
         case "linesH": state[ticker].linesH = state[ticker].linesH.filter((t) => t.id !== chartingElement.id); break;
+        case 'highVolumeNodes': state[ticker].highVolumeNodes = state[ticker].highVolumeNodes.filter((t) => t.id !== chartingElement.id); break;
+        case 'lowVolumeNodes': state[ticker].lowVolumeNodes = state[ticker].lowVolumeNodes.filter((t) => t.id !== chartingElement.id); break;
         case "enterExit": state[ticker].enterExitLines = undefined; break;
       }
       state[ticker].chartingAltered = true;
