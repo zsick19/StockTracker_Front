@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import './AccountPLVisual.css'
-import { Landmark, NotebookPen, RotateCcw } from 'lucide-react'
+import { Check, Landmark, NotebookPen, RotateCcw, X } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
-import { useGetUsersAccountBalanceQuery } from '../../../../../../../features/AccountBalance/AccountBalanceApiSlice'
+import { useGetUsersAccountBalanceQuery, useUpdateAccountRiskThresholdMutation } from '../../../../../../../features/AccountBalance/AccountBalanceApiSlice'
 
 function AccountPLVisual({ refetch })
 {
@@ -12,9 +12,17 @@ function AccountPLVisual({ refetch })
     const [rotateOnFetch, setRotateOnFetch] = useState(false)
 
     const { data, isLoading, isSuccess, isError, error } = useGetUsersAccountBalanceQuery()
+    // console.log(data)
 
-
-
+    let riskTH
+    let positionRisk
+    let cashBalance
+    if (isSuccess)
+    {
+        riskTH = data.accountDeposit * (data.riskThreshold / 100)
+        positionRisk = data.currentPositionRisk
+        cashBalance = data.accountDeposit
+    }
 
 
 
@@ -28,11 +36,27 @@ function AccountPLVisual({ refetch })
         }, [1000])
     }
 
+    const [updateAccountRiskThreshold] = useUpdateAccountRiskThresholdMutation()
+    const [showThresholdInput, setShowThresholdInput] = useState(false)
+    const thresholdInputRef = useRef()
+    async function attemptUpdateOfThreshold()
+    {
+
+        try
+        {
+            await updateAccountRiskThreshold({ risk: thresholdInputRef.current.value })
+            setShowThresholdInput(false)
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
     return (
         <div id='LHS-AccountPLVisual'>
             <div >
                 <div>
-                    <h3>$18,334.32</h3>
+                    <h3>${data?.accountDeposit.toFixed(2)}</h3>
                     <p>Net Account Balance</p>
                 </div>
                 <p>Day's P/L: +34.34 +0.33%</p>
@@ -44,8 +68,18 @@ function AccountPLVisual({ refetch })
                 <button onClick={() => setShowAccountActions(false)}>Cancel</button>
             </div> :
                 <>
-                    <p>Open P/L: +34.34 +0.33%</p>
-                    <p>Market Value: $1456.23</p>
+                    {/* <p>Open P/L: +34.34 +0.33%</p> */}
+
+                    {showThresholdInput ?
+                        <div className='accountThresholdInput'>
+                            <input type="number" placeholder={data?.riskThreshold} ref={thresholdInputRef} />
+                            <button className='buttonIcon' onClick={attemptUpdateOfThreshold}><Check color='green' /></button>
+                            <button className='buttonIcon' onClick={() => setShowThresholdInput(false)}><X color='red' /></button>
+                        </div> :
+                        <p onClick={() => setShowThresholdInput(true)}>Portfolio Risk: ${positionRisk?.toFixed(2)} / ${riskTH?.toFixed(2)}</p>
+                    }
+
+
                     <div className='flex'>
                         <button className='buttonIcon' onClick={() => setShowAccountActions(true)}><Landmark color='white' /></button>
                         <button className='buttonIcon' onClick={() => dispatch(setStockDetailState(9))}><NotebookPen color='white' /></button>

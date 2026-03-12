@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addEnterExitToCharting, addHorizontalLine, addLine, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateLine } from '../../features/Charting/chartingElements'
+import { addEnterExitToCharting, addHorizontalLine, addLine, addSupportResistance, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateHorizontalLine, updateLine, updateVolumeNode } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
 import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay } from 'date-fns'
@@ -14,7 +14,7 @@ import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
 import ChartContextMenuContainer from './contextMenus/ChartContextMenuContainer'
 import { ChartingToolEdits, ChartingTools } from '../../Utilities/ChartingTools'
 import { allPossibleClassNames, defaultChartingStyles, lineGroupClassName } from '../../Utilities/GraphStyles'
-import { lineHover, lineNoHover } from '../../Utilities/chartingHoverFunctions'
+import { edgeHover, edgeNoHover, highVolNoHover, lineHover, lineNoHover, lowVolNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates, provideStartAndEndDatesForDateScale } from '../../Utilities/TimeFrames'
@@ -588,8 +588,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !charting) return
-        if (!EnterExitPlan) stockCandleSVG.select('.enterExits').selectAll('.line_group').remove()
-
 
         //free line creation and update
         if (charting.freeLines)
@@ -613,8 +611,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
                     lineGroup.append('circle').attr('class', 'edgeCircle1').attr("cx", (d) => linePixel.point1X).attr("cy", linePixel.point1Y)
                         .attr("r", defaultChartingStyles.freeLineCirclesSize).attr('fill', defaultChartingStyles.freeLineCirclesColor)
+                        .on('mouseenter', function () { edgeHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'freeLines' } })
+                        .on('mouseleave', edgeNoHover).call(dragBehaviorEdge)
+
                     lineGroup.append('circle').attr('class', 'edgeCircle2').attr("cx", linePixel.point2X).attr("cy", linePixel.point2Y)
                         .attr("r", defaultChartingStyles.freeLineCirclesSize).attr('fill', defaultChartingStyles.freeLineCirclesColor)
+                        .on('mouseenter', function () { edgeHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'freeLines' } })
+                        .on('mouseleave', edgeNoHover).call(dragBehaviorEdge)
                 })
             }
             function updateLines(update)
@@ -640,8 +643,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 }
             }
         }
-
-
         if (charting?.linesH)
         {
             stockCandleSVG.select('.linesH').selectAll('.line_group').data(charting.linesH, d => d.id).join(enter => createHLines(enter), update => updateHLines(update), exit => exit.remove())
@@ -654,14 +655,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     lineGroup.append('line').attr('class', 'drawnLine').attr('x1', 0).attr('x2', candleDimensions.width)
                         .attr('y1', pixelPricePosition).attr('y2', pixelPricePosition)
                         .attr('stroke', 'purple').attr('stroke-width', defaultChartingStyles.freeLineStrokeWidth)
-                        .on('mouseover', function ()
-                        {
-                            lineHover(select(this));
-
-                            editChartElementRef.current = { chartingElement: d, group: 'linesH' }
-
-                        })
-                        .on('mouseleave', lineNoHover)
+                        .on('mouseover', function () { lineHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'linesH' } })
+                        .on('mouseleave', lineNoHover).call(dragHorizontalLineBehavior)
                 })
             }
             function updateHLines(update)
@@ -669,13 +664,91 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 update.each(function (d)
                 {
                     let pixelPricePosition = createPriceScale({ priceToPixel: d.priceP1 })
-                    select(this).select('.drawnLine').attr('y1', pixelPricePosition).attr('y2', pixelPricePosition)
+                    select(this).select('.drawnLine').attr('y1', pixelPricePosition).attr('y2', pixelPricePosition).call(dragHorizontalLineBehavior)
+                })
+            }
+        }
+        if (charting?.lowVolumeNodes)
+        {
+            stockCandleSVG.select('.lowVolumeNodes').selectAll('.line_group').data(charting.lowVolumeNodes).join((enter) => createLowVolumeNode(enter), update => updateLowVolumeNode(update))
+            function createLowVolumeNode(enter)
+            {
+                enter.each(function (d)
+                {
+                    const pricePixel = createPriceScale({ priceToPixel: d.price })
+                    select(this).append('line').attr('class', (d, i) => isToday(d.dateCreated) ? `line_group today chartingLowVolNode drawnLine` : `line_group previous chartingLowVolNode drawnLine`)
+                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1)
+                        .attr('stroke', 'purple')
+                        .attr('stroke-width', 5).on('mouseover', function (e, d)
+                        {
+                            lineHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'lowVolumeNodes' }
+
+                        }).on('mouseleave', lowVolNoHover).call(dragHorizontalLineBehavior)
+                })
+            }
+            function updateLowVolumeNode(update)
+            {
+                update.each(function (d, i)
+                {
+                    const pricePixel = createPriceScale({ priceToPixel: d.price })
+                    select(this).attr('y1', pricePixel).attr('y2', pricePixel + 0.1)
+                })
+            }
+        }
+        if (charting?.highVolumeNodes)
+        {
+            stockCandleSVG.select('.highVolumeNodes').selectAll('.line_group').data(charting.highVolumeNodes).join((enter) => createHighVolumeNode(enter), update => updateHighVolumeNode(update))
+            function createHighVolumeNode(enter)
+            {
+                enter.each(function (d)
+                {
+                    const pricePixel = createPriceScale({ priceToPixel: d.price })
+                    select(this).append('line').attr('class', (d, i) => isToday(d.dateCreated) ? `line_group today chartingHighVolNode drawnLine` : `line_group previous chartingHighVolNode drawnLine`)
+                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1).attr('stroke', 'orange')
+                        .attr('stroke-width', 5).on('mouseover', function (e, d) { lineHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'highVolumeNodes' } })
+                        .on('mouseleave', highVolNoHover).call(dragHorizontalLineBehavior)
+                })
+            }
+            function updateHighVolumeNode(update)
+            {
+                update.each(function (d, i)
+                {
+                    const pricePixel = createPriceScale({ priceToPixel: d.price })
+                    select(this).attr('y1', pricePixel).attr('y2', pricePixel + 0.1)
                 })
             }
         }
 
 
-        //enter exit plan creation and update as CHARTING and not tracked enter exit
+        if (charting?.supportResistanceLines)
+        {
+
+            stockCandleSVG.select('.supportResistance').selectAll('.support_Resistance').data(charting.supportResistanceLines)
+                .join((enter) => createSupportResistance(enter), (update) => updateSupportResistance(update))
+
+            function createSupportResistance(enter)
+            {
+                enter.each(function (d)
+                {
+
+                    const p1Pixel1 = createPriceScale({ priceToPixel: d.priceP1 })
+                    const p2Pixel2 = createPriceScale({ priceToPixel: d.priceP2 })
+
+
+                    select(this).append('rect').attr('x', 0).attr('y', p1Pixel1)
+                        .attr('width', candleDimensions.width).attr('height', Math.abs(p1Pixel1 - p2Pixel2))
+                        .attr('fill', 'teal').attr('opacity', 0.50)
+                })
+            }
+            function updateSupportResistance(update)
+            {
+
+            }
+        }
+
+
+        //enter exit plan creation and update as CHARTING and not tracked enter exit 
+        if (!EnterExitPlan) stockCandleSVG.select('.enterExits').selectAll('.line_group').remove()
         if (charting?.enterExitLines && !EnterExitPlan)
         {
             stockCandleSVG.select('.enterExits').selectAll('.line_group').data([charting.enterExitLines]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update))
@@ -688,7 +761,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     const planArray = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
                     const yPositions = planArray.map((price) => yScaleRef.current({ priceToPixel: price }))
 
-                    lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
+                    lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1])
+                        .attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
                     lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
                     lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
                     lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
@@ -731,59 +805,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             }
         }
 
-        if (charting?.lowVolumeNodes)
-        {
-            stockCandleSVG.select('.lowVolumeNodes').selectAll('.line_group').data(charting.lowVolumeNodes).join((enter) => createLowVolumeNode(enter), update => updateLowVolumeNode(update))
-            function createLowVolumeNode(enter)
-            {
-                enter.each(function (d)
-                {
-                    const pricePixel = createPriceScale({ priceToPixel: d.price })
-                    select(this).append('line').attr('class', (d, i) => isToday(d.dateCreated) ? `line_group today chartingLowVolNode` : `line_group previous chartingLowVolNode`)
-                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1)
-                        .attr('stroke', 'blue')
-                        .attr('stroke-width', 5).on('mouseover', function (e, d)
-                        {
-                            editChartElementRef.current = { chartingElement: d, group: 'lowVolumeNodes' }
-
-                        })
-                })
-            }
-            function updateLowVolumeNode(update)
-            {
-                update.each(function (d, i)
-                {
-                    const pricePixel = createPriceScale({ priceToPixel: d.price })
-                    select(this).attr('y1', pricePixel).attr('y2', pricePixel + 0.1)
-                })
-            }
-        }
-        if (charting?.highVolumeNodes)
-        {
-            stockCandleSVG.select('.highVolumeNodes').selectAll('.line_group').data(charting.highVolumeNodes).join((enter) => createHighVolumeNode(enter), update => updateHighVolumeNode(update))
-            function createHighVolumeNode(enter)
-            {
-                enter.each(function (d)
-                {
-                    const pricePixel = createPriceScale({ priceToPixel: d.price })
-                    select(this).append('line').attr('class', (d, i) => isToday(d.dateCreated) ? `line_group today chartingHighVolNode` : `line_group previous chartingHighVolNode`)
-                        .attr('x1', 0).attr('x2', 5000).attr('y1', pricePixel).attr('y2', pricePixel + 0.1).attr('stroke', 'orange')
-                        .attr('stroke-width', 5).on('mouseover', function (e, d)
-                        {
-                            editChartElementRef.current = { chartingElement: d, group: 'highVolumeNodes' }
-
-                        })
-                })
-            }
-            function updateHighVolumeNode(update)
-            {
-                update.each(function (d, i)
-                {
-                    const pricePixel = createPriceScale({ priceToPixel: d.price })
-                    select(this).attr('y1', pricePixel).attr('y2', pricePixel + 0.1)
-                })
-            }
-        }
 
     }, [ticker, excludedPeriods, displayMarketHours, chartId, charting, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
@@ -791,11 +812,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !EnterExitPlan) return
-        // if (!EnterExitPlan)
-        // {
-        //     stockCandleSVG.select('.enterExits').selectAll('.line_group').remove()
-        //     stockCandleSVG.select('.enterExits').select('.twoPercentLine').remove()
-        // }
 
         stockCandleSVG.select('.initialTrack').selectAll('line').remove()
         let trackingLines = stockCandleSVG.select('.initialTrack')
@@ -1170,13 +1186,22 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         {
             if (pixelCapture?.X1) completeCapture.dateP1 = new Date(createDateScale({ pixelToDate: pixelCapture.X1 })).toISOString()
             if (pixelCapture?.X2) completeCapture.dateP2 = new Date(createDateScale({ pixelToDate: pixelCapture.X2 })).toISOString()
-            Object.keys(pixelSet.current).filter(t => t.includes('Y')).map((pixelForPrice, i) => { completeCapture[`priceP${i + 1}`] = createPriceScale({ pixelToPrice: pixelCapture[pixelForPrice] }) })
+
+            Object.keys(pixelSet.current).filter(t => t.includes('Y')).map((pixelForPrice, i) =>
+            {
+                completeCapture[`priceP${i + 1}`] = createPriceScale({ pixelToPrice: pixelCapture[pixelForPrice] })
+            })
+
+
             switch (currentTool)
             {
                 case ChartingTools[1].tool: dispatch(addLine({ line: completeCapture, ticker })); break; //line tool
+                //trendLine tool
                 case ChartingTools[3].tool: dispatch(addHorizontalLine({ lineH: completeCapture, ticker })); break; //Horizontal Line Tool
                 case ChartingTools[4].tool: dispatch(addVolumeNode({ completeCapture, ticker, isHighVolNode: false })); break; //low volume node
                 case ChartingTools[5].tool: dispatch(addVolumeNode({ completeCapture, ticker, isHighVolNode: true })); break; //high volume node
+                case ChartingTools[6].tool: dispatch(addSupportResistance({ completeCapture, ticker, isResistance: true })); break; //major resistance
+                case ChartingTools[7].tool: dispatch(addSupportResistance({ completeCapture, ticker, isResistance: false })); break; //major support
             }
         }
 
@@ -1390,6 +1415,116 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }))
     }
 
+    function dragEdgeLineStarted(e, d)
+    {
+        editChartElementRef.current = { chartingElement: d, group: 'freeLines' }
+        if (select(this).attr('class') === 'edgeCircle1') 
+        {
+            dragPixelCopy.X1 = createDateScale({ dateToPixel: d.dateP1 });
+            dragPixelCopy.Y1 = createPriceScale({ priceToPixel: d.priceP1 })
+        } else
+        {
+            dragPixelCopy.X2 = createDateScale({ dateToPixel: d.dateP2 });
+            dragPixelCopy.Y2 = createPriceScale({ priceToPixel: d.priceP2 })
+        }
+    }
+    function draggedEdgeLine(e, d)
+    {
+        const parent = select(this.parentNode)
+
+        if (select(this).attr('class') === 'edgeCircle1')
+        {
+            dragPixelCopy.X1 = dragPixelCopy.X1 + e.dx;
+            dragPixelCopy.Y1 = dragPixelCopy.Y1 + e.dy;
+            select(this).attr('cx', dragPixelCopy.X1).attr('cy', dragPixelCopy.Y1)
+            parent.select('.drawnLine').attr('x1', dragPixelCopy.X1).attr('y1', dragPixelCopy.Y1)
+        } else
+        {
+            dragPixelCopy.X2 = dragPixelCopy.X2 + e.dx;
+            dragPixelCopy.Y2 = dragPixelCopy.Y2 + e.dy;
+            select(this).attr('cx', dragPixelCopy.X2).attr('cy', dragPixelCopy.Y2)
+            parent.select('.drawnLine').attr('x2', dragPixelCopy.X2).attr('y2', dragPixelCopy.Y2)
+        }
+    }
+    function dragEdgeLineEnd(e, d)
+    {
+        const updatedLine = { ...d }
+        if (select(this).attr('class') === 'edgeCircle1')
+        {
+            updatedLine.dateP1 = createDateScale({ pixelToDate: dragPixelCopy.X1 })
+            updatedLine.priceP1 = createPriceScale({ pixelToPrice: dragPixelCopy.Y1 })
+        } else
+        {
+            updatedLine.dateP2 = createDateScale({ pixelToDate: dragPixelCopy.X2 })
+            updatedLine.priceP2 = createPriceScale({ pixelToPrice: dragPixelCopy.Y2 })
+        }
+        //        dispatch(updateLine(updatedLine))
+
+        dispatch(updateLine({
+            ticker: tickerRef.current, update: {
+                ...updatedLine
+            }
+        }))
+
+
+
+    }
+
+
+    const dragBehaviorEdge = drag().on('start', dragEdgeLineStarted).on('drag', draggedEdgeLine).on('end', dragEdgeLineEnd)
+
+
+    function dragHorizontalLineStart(e, d)
+    {
+        //editChartElementRef.current = { chartingElement: d, group: 'horizontalLines' }
+        switch (editChartElementRef.current.group)
+        {
+            case 'linesH': dragPixelCopy.Y1 = createPriceScale({ priceToPixel: d.priceP1 }); break;
+            case 'highVolumeNodes': dragPixelCopy.Y1 = createPriceScale({ priceToPixel: d.price });
+            case 'lowVolumeNodes': dragPixelCopy.Y1 = createPriceScale({ priceToPixel: d.price });
+        }
+    }
+    function dragHorizontalLine(e, d)
+    {
+        dragPixelCopy.Y1 = dragPixelCopy.Y1 + e.dy;
+        select(this).attr('cy', dragPixelCopy.Y1)
+
+        const parent = select(this.parentNode)
+        parent.select('.drawnLine').attr('y1', dragPixelCopy.Y1).attr('y2', dragPixelCopy.Y1);
+        parent.select('.info').text((d) => `$${createPriceScale({ pixelToPrice: dragPixelCopy.Y1 })}`).attr("y", dragPixelCopy.Y1)
+    }
+    function dragHorizontalLineEnd(e, d)
+    {
+        const updatedHLine = { ...d }
+
+        switch (editChartElementRef.current.group)
+        {
+            case 'linesH':
+                updatedHLine.priceP1 = createPriceScale({ pixelToPrice: dragPixelCopy.Y1 })
+                dispatch(updateHorizontalLine({ ticker: tickerRef.current, update: updatedHLine })); break;
+            case 'highVolumeNodes':
+                updatedHLine.price = createPriceScale({ pixelToPrice: dragPixelCopy.Y1 })
+                dispatch(updateVolumeNode({ ticker: tickerRef.current, update: updatedHLine, isHighVolNode: true }))
+
+                break;
+            case 'lowVolumeNodes':
+                updatedHLine.price = createPriceScale({ pixelToPrice: dragPixelCopy.Y1 })
+                dispatch(updateVolumeNode({ ticker: tickerRef.current, update: updatedHLine, isHighVolNode: false }))
+
+                break;
+
+        }
+    }
+    const dragHorizontalLineBehavior = drag().on('start', dragHorizontalLineStart).on('drag', dragHorizontalLine).on('end', dragHorizontalLineEnd)
+
+
+
+
+
+
+
+
+
 
     const dragEnterExitBehavior = drag().on('start', dragEnterExitLineVertStart).on('drag', dragEnterExitVertLine).on('end', dragEnterExitVertLineEnd)
     function dragEnterExitLineVertStart(e, d)
@@ -1489,6 +1624,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     <g className='keyLevels' />
                     <g className='initialTrack' />
                     <g className='enterExits' />
+                    <g className='supportResistance' />
                     <g className='tickerVal' />
                     <g className='candleVolumeBars' />
                     <g className='lastCandleUpdate' />

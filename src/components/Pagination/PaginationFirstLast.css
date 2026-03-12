@@ -1,10 +1,14 @@
 .paginationFirstLast {
-  display: flex;
-  gap: 0.25rem;
+  width: 250px;
 }
 
 .paginationFirstLast > ul {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
   margin: 0;
+  padding: 0;
 }
 .paginationFirstLast > ul li {
   list-style: none;

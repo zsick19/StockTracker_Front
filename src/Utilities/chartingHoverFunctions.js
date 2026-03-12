@@ -7,10 +7,17 @@ export function lineNoHover(e)
 {
     select(this).transition().attr('stroke-width', 2).attr('stroke', 'black')
 }
-export function edgeHover(e, d)
+export function lowVolNoHover(e)
 {
-    if (e.defaultPrevented) return
-    select(this).transition().delay(250).attr('r', 10)
+    select(this).transition().attr('stroke', 'purple').attr('stroke-width', 5)
+}
+export function highVolNoHover(e)
+{
+    select(this).transition().attr('stroke', 'orange').attr('stroke-width', 5)
+}
+export function edgeHover(selection)
+{
+    selection.transition().attr('r', 10)
 }
 export function edgeNoHover(e, d)
 {

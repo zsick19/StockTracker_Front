@@ -30,6 +30,12 @@ const chartingElementSlice = createSlice({
       state[ticker].linesH.push(lineH)
       state[ticker].chartingAltered = true;
     },
+    updateHorizontalLine: (state, action) =>
+    {
+      let { ticker, update } = action.payload
+      state[ticker].linesH = state[ticker].linesH.map((line) => { if (line.id === update.id) { return update; } else return line })
+      state[ticker].chartingAltered = true
+    },
 
 
     addVolumeNode: (state, action) =>
@@ -53,7 +59,16 @@ const chartingElementSlice = createSlice({
     },
     updateVolumeNode: (state, action) =>
     {
-      console.log(action.payload)
+      let { ticker, update, isHighVolNode } = action.payload
+      if (isHighVolNode)
+      {
+        state[ticker].highVolumeNodes = state[ticker].highVolumeNodes.map((vol) => { if (vol.id === update.id) { return update } else return vol })
+      } else
+      {
+        state[ticker].lowVolumeNodes = state[ticker].lowVolumeNodes.map((vol) => { if (vol.id === update.id) { return update } else return vol })
+      }
+      state[ticker].chartingAltered = true;
+
     },
 
 
@@ -71,7 +86,19 @@ const chartingElementSlice = createSlice({
       state[ticker].chartingAltered = true
     },
 
+    addSupportResistance: (state, action) =>
+    {
+      let { completeCapture, ticker, isResistance } = action.payload
 
+      let supportResistanceNode = { id: state[ticker].supportResistanceLinesId, ...completeCapture, isResistance, dateCreated: new Date().toDateString() };
+      state[ticker].supportResistanceLinesId = state[ticker].supportResistanceLinesId + 1;
+      state[ticker].supportResistanceLines.push(supportResistanceNode)
+      state[ticker].chartingAltered = true;
+    },
+    updateSupportResistance: (state, action) =>
+    {
+
+    },
     updateKeyPrice: (state, action) =>
     {
       state.keyPriceLines = state.keyPriceLines.map((keyPrice) =>
@@ -101,7 +128,11 @@ const chartingElementSlice = createSlice({
     setPreviousCharting: (state, action) =>
     {
 
-      if (action.payload.charting) { state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false } }
+      if (action.payload.charting)
+      {
+        if (action.payload.charting?.supportResistance) state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false }
+        else state[action.payload.tickerSymbol] = { ...action.payload.charting, supportResistanceLines: [], supportResistanceLinesId: 1, chartingAltered: false }
+      }
       else
       {
         state[action.payload.tickerSymbol] = {
@@ -128,8 +159,9 @@ export const {
   addLine,
   updateLine,
   addHorizontalLine,
-
-
+  updateHorizontalLine,
+  addSupportResistance,
+  updateSupportResistance,
 
   addEnterExitToCharting,
   updateEnterExitToCharting,

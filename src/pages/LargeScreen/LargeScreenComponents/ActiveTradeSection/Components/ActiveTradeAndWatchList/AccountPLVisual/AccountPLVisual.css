@@ -26,3 +26,11 @@
   gap: 2rem;
   padding-inline: 1rem;
 }
+
+.accountThresholdInput {
+  display: flex;
+  font-size: small;
+}
+.accountThresholdInput input {
+  width: 50px;
+}

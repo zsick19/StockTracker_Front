@@ -178,9 +178,7 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
     const leftSideText = 100
     const mouseMoveXYOffset = 2
 
-    const svgPriceLineStyles = {
-        enter: { stroke: 'green', text: 'Enter Price', dxText: 20, dyText: 20, dxPrice: 150, dyPrice: 20 }
-    }
+    const svgPriceLineStyles = { enter: { stroke: 'green', text: 'Enter Price', dxText: 20, dyText: 20, dxPrice: 150, dyPrice: 20 } }
 
 
     if (pixelSet.current.firstClick)
@@ -276,496 +274,56 @@ const enterExitTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xSc
 }
 
 
-
-
-
-
-const keyPriceTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, yScale) =>
+const majorSupportResistanceTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, yScale) =>
 {
     const stockSVG = select(svg)
+    const temp = select(svg).select('.temp')
+    const XOffset = 10
+
+    const mouseMoveXYOffset = 2
 
     if (pixelSet.current.firstClick)
     {
         initiateCaptureHideTemp(stockSVG, setCaptureComplete, setEnableZoom)
-        pixelSet.current = { ...pixelSet.current, firstClick: false, secondClick: true }
+        pixelSet.current = { firstClick: false, secondClick: true }
+        temp.append('line').attr('class', `enterLine ${traceClassName}`)
+            .attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY)
+            .attr('stroke', 'teal').attr('stroke-width', 1)
 
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine traceLine1').attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY).attr('stroke', 'white').attr('stroke-width', 1)
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse1(e))
-    } else if (pixelSet.current.secondClick)
+        stockSVG.on('mousemove', (e) => { temp.select('.enterLine').attr('y1', e.offsetY - mouseMoveXYOffset).attr('y2', e.offsetY - mouseMoveXYOffset) })
+
+    } else if (pixelSet.current.secondClick)//capture enter price
     {
-        pixelSet.current = { ...pixelSet.current, Y1: e.offsetY, secondClick: false, thirdClick: true }
+        pixelSet.current = {
+            ...pixelSet.current, X1: e.offsetX, X1Offset: e.offsetX + XOffset,
+            Y1: e.offsetY, secondClick: false, thirdClick: true
+        }
 
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine2').attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
 
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse2(e))
-    } else if (pixelSet.current.thirdClick)
+        temp.select('.enterLine').attr('y1', e.offsetY).attr('y2', e.offsetY)
+
+        temp.append('line').attr('class', `secondZoneLine traceLine`).attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY).attr('stroke', 'teal').attr('stroke-width', 1)
+        stockSVG.on('mousemove', (e) => { temp.select(`.secondZoneLine`).attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2) })
+
+
+
+    } else if (pixelSet.current.thirdClick) //capture enter buffer price
     {
-        pixelSet.current = { ...pixelSet.current, Y2: e.offsetY, thirdClick: false, fourthClick: true }
-        stockSVG.select('.traceLine2').attr('y1', e.offsetY).attr('y2', e.offsetY)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine3').attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 1)
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse3(e))
-    } else if (pixelSet.current.fourthClick)
-    {
-        pixelSet.current = { ...pixelSet.current, Y3: e.offsetY, fourthClick: false, fifthClick: true }
-        stockSVG.select('.traceLine3').attr('y1', e.offsetY).attr('y2', e.offsetY)
-
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine4').attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse4(e))
-    } else
-    {
-        pixelSet.current = { ...pixelSet.current, Y4: e.offsetY, firstClick: true }
-        stockSVG.select('.traceLine4').attr('y1', e.offsetY).attr('y2', e.offsetY)
+        pixelSet.current = { ...pixelSet.current, Y2: e.offsetY }
+        console.log(pixelSet.current)
+        temp.select('.secondZoneLine').attr('y1', e.offsetY).attr('y2', e.offsetY)
         stockSVG.on('mousemove', null)
         setCaptureComplete(true)
     }
 
-
-    const traceHorizontalChannelMouse1 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine1').attr('y1', e.offsetY).attr('y2', e.offsetY)
-    }
-    const traceHorizontalChannelMouse2 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine2').attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-
-    }
-    const traceHorizontalChannelMouse3 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine3').attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-    }
-    const traceHorizontalChannelMouse4 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine4').attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-    }
-}
-
-
-
-export const channelLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, yScale) =>
-{
-    const stockSVG = select(svg)
-    if (pixelSet.current.firstClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X1: e.offsetX, Y1: e.offsetY, firstClick: false, secondClick: true }
-        initiateCaptureHideTemp(stockSVG, setCaptureComplete, setEnableZoom)
-
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine traceLine1')
-            .attr('x1', e.offsetX).attr('y1', e.offsetY).attr('x2', e.offsetX).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 1)
-
-        stockSVG.on('mousemove', (e) => traceTrendMouse(e))
-    } else if (pixelSet.current.secondClick)
-    {
-        let diff = e.offsetY - pixelSet.current.Y1
-        pixelSet.current = { ...pixelSet.current, X2: e.offsetX, Y2: e.offsetY, dy: e.offsetY - pixelSet.current.Y1, secondClick: false, thirdClick: true }
-        stockSVG.select('.traceLine1').attr('x2', e.offsetX).attr('y2', e.offsetY)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine2').attr('x1', pixelSet.current.X1).attr('y1', pixelSet.current.Y1).attr('x2', e.offsetX).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceTrendMouse2(e, diff))
-    } else if (pixelSet.current.thirdClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X3: pixelSet.current.X1, Y3: e.offsetY - pixelSet.current.dy, X4: pixelSet.current.X2, Y4: e.offsetY, thirdClick: false, fourthClick: true }
-        stockSVG.select('.traceLine2').attr('y1', e.offsetY - pixelSet.current.dy).attr('y2', e.offsetY)
-
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine3').attr('x1', pixelSet.current.X1).attr('y1', e.offsetY - pixelSet.current.dy).attr('x2', pixelSet.current.X2).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 1)
-        stockSVG.on('mousemove', (e) => traceTrendMouse3(e, pixelSet.current.dy))
-    } else if (pixelSet.current.fourthClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X5: pixelSet.current.X1, Y5: e.offsetY - pixelSet.current.dy, X6: pixelSet.current.X2, Y6: e.offsetY, fourthClick: false, fifthClick: true }
-        stockSVG.select('.traceLine3').attr('y1', e.offsetY - pixelSet.current.dy).attr('y2', e.offsetY)
-
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine4').attr('x1', pixelSet.current.X1).attr('y1', e.offsetY - pixelSet.current.dy).attr('x2', pixelSet.current.X2).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceTrendMouse4(e, pixelSet.current.dy))
-    } else
-    {
-        pixelSet.current = { ...pixelSet.current, X7: pixelSet.current.X5, Y7: e.offsetY - pixelSet.current.dy, X8: pixelSet.current.X6, Y8: e.offsetY, firstClick: true }
-        stockSVG.select('.traceLine4').attr('y1', e.offsetY - pixelSet.current.dy).attr('y2', e.offsetY)
-        stockSVG.on('mousemove', null)
-        setCaptureComplete(true)
-    }
-
-    const traceTrendMouse = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine1').attr('x2', e.offsetX - 2).attr('y2', e.offsetY - 2)
-    }
-    const traceTrendMouse2 = (e, diff) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine2').attr('y1', e.offsetY - diff - 2).attr('y2', e.offsetY - 2)
-    }
-    const traceTrendMouse3 = (e, diff) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine3').attr('y1', e.offsetY - diff - 2).attr('y2', e.offsetY - 2)
-    }
-    const traceTrendMouse4 = (e, diff) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine4').attr('y1', e.offsetY - diff - 2).attr('y2', e.offsetY - 2)
-    }
-}
-
-export const channelHorizontalLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, yScale) =>
-{
-    const stockSVG = select(svg)
-
-    if (pixelSet.current.firstClick)
-    {
-        initiateCaptureHideTemp(stockSVG, setCaptureComplete, setEnableZoom)
-        pixelSet.current = { ...pixelSet.current, X1: e.offsetX, Y1: e.offsetY, Y2: e.offsetY, firstClick: false, secondClick: true }
-
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine traceLine1').attr('x1', e.offsetX).attr('y1', e.offsetY).attr('x2', e.offsetX).attr('y2', e.offsetY).attr('stroke', 'white').attr('stroke-width', 1)
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse1(e))
-    } else if (pixelSet.current.secondClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X2: e.offsetX, secondClick: false, thirdClick: true }
-        stockSVG.select('.traceLine1').attr('x2', e.offsetX)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine2').attr('x1', pixelSet.current.X1).attr('y1', e.offsetY).attr('x2', e.offsetX).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse2(e))
-    } else if (pixelSet.current.thirdClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X3: pixelSet.current.X1, Y3: e.offsetY, X4: pixelSet.current.X2, Y4: e.offsetY, thirdClick: false, fourthClick: true }
-        stockSVG.select('.traceLine2').attr('y1', e.offsetY).attr('y2', e.offsetY)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine3').attr('x1', pixelSet.current.X1).attr('y1', e.offsetY).attr('x2', pixelSet.current.X2).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 1)
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse3(e))
-    } else if (pixelSet.current.fourthClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X5: pixelSet.current.X1, Y5: e.offsetY, X6: pixelSet.current.X2, Y6: e.offsetY, fourthClick: false, fifthClick: true }
-        stockSVG.select('.traceLine3').attr('y1', e.offsetY).attr('y2', e.offsetY)
-
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine4').attr('x1', pixelSet.current.X1).attr('y1', e.offsetY).attr('x2', pixelSet.current.X2).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse4(e))
-    } else
-    {
-        pixelSet.current = { ...pixelSet.current, X7: pixelSet.current.X5, Y7: e.offsetY, X8: pixelSet.current.X6, Y8: e.offsetY, firstClick: true }
-        stockSVG.select('.traceLine4').attr('y1', e.offsetY).attr('y2', e.offsetY)
-        stockSVG.on('mousemove', null)
-        setCaptureComplete(true)
-    }
-
-
-    const traceHorizontalChannelMouse1 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine1').attr('x2', e.offsetX - 2)
-    }
-    const traceHorizontalChannelMouse2 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine2').attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-
-    }
-    const traceHorizontalChannelMouse3 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine3').attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-    }
-    const traceHorizontalChannelMouse4 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine4').attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-    }
-}
-
-export const wedgeLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, yScale) =>
-{
-    const stockSVG = select(svg)
-    if (pixelSet.current.firstClick)
-    {
-        initiateCaptureHideTemp(stockSVG, setCaptureComplete, setEnableZoom)
-        pixelSet.current = { ...pixelSet.current, X1: e.offsetX, Y1: e.offsetY, firstClick: false, secondClick: true }
-
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine traceLine1').attr('x1', e.offsetX).attr('y1', e.offsetY).attr('x2', e.offsetX).attr('y2', e.offsetY).attr('stroke', 'white').attr('stroke-width', 1)
-        stockSVG.on('mousemove', (e) => traceWedgeLine(e, '.traceLine1'))
-    } else if (pixelSet.current.secondClick)
-    {
-        let diff = e.offsetY - pixelSet.current.Y1
-        pixelSet.current = { ...pixelSet.current, X2: e.offsetX, Y2: e.offsetY, dy: e.offsetY - pixelSet.current.Y1, secondClick: false, thirdClick: true }
-
-        stockSVG.select('.traceLine1').attr('x2', e.offsetX).attr('y2', e.offsetY)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine2').attr('x1', pixelSet.current.X1).attr('y1', pixelSet.current.Y1).attr('x2', e.offsetX).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceMarginWedgeLine(e, '.traceLine2', diff))
-    } else if (pixelSet.current.thirdClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X3: pixelSet.current.X1, Y3: e.offsetY - pixelSet.current.dy, X4: pixelSet.current.X2, Y4: e.offsetY, thirdClick: false, fourthClick: true }
-        stockSVG.select('.traceLine2').attr('y1', e.offsetY - pixelSet.current.dy).attr('y2', e.offsetY)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine3 guideLine').attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceGuideWedgeLine(e, '.guideLine'))
-    } else if (pixelSet.current.fourthClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X5: pixelSet.current.X1, Y5: e.offsetY, fourthClick: false, fifthClick: true }
-        stockSVG.select('.guideLine').attr('x1', pixelSet.current.X1).attr('y1', e.offsetY).attr('stroke', 'white').attr('stroke-width', 1).style('stroke-dasharray', 'none')
-
-        stockSVG.on('mousemove', (e) => traceWedgeLine(e, '.traceLine3'))
-    } else if (pixelSet.current.fifthClick)
-    {
-        let diff2 = e.offsetY - pixelSet.current.Y5
-        pixelSet.current = { ...pixelSet.current, X6: pixelSet.current.X2, Y6: e.offsetY, dy2: diff2, fifthClick: false, sixthClick: true }
-
-        stockSVG.select('.traceLine3').attr('x2', pixelSet.current.X2).attr('y2', e.offsetY)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine4').attr('x1', pixelSet.current.X1).attr('y1', pixelSet.current.Y5).attr('x2', pixelSet.current.X2).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceMarginWedgeLine(e, '.traceLine4', diff2))
-    } else
-    {
-        pixelSet.current = { ...pixelSet.current, X7: pixelSet.current.X1, Y7: e.offsetY - pixelSet.current.dy2, X8: pixelSet.current.X2, Y8: e.offsetY, firstClick: true }
-        stockSVG.select('.traceLine4').attr('y1', e.offsetY - pixelSet.current.dy2).attr('y2', e.offsetY)
-        stockSVG.on('mousemove', null)
-        setCaptureComplete(true)
-    }
-
-    const traceWedgeLine = (e, lineName) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select(lineName).attr('x2', e.offsetX).attr('y2', e.offsetY)
-    }
-    const traceMarginWedgeLine = (e, lineName, diff) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select(lineName).attr('y1', e.offsetY - diff).attr('y2', e.offsetY)
-    }
-    const traceGuideWedgeLine = (e, lineName) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select(lineName).attr('y1', e.offsetY).attr('y2', e.offsetY)
-    }
-}
-
-export const wedgeHorizontalLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, yScale) =>
-{
-    const stockSVG = select(svg)
-    if (pixelSet.current.firstClick)
-    {
-        initiateCaptureHideTemp(stockSVG, setCaptureComplete, setEnableZoom)
-        pixelSet.current = { ...pixelSet.current, firstClick: false, secondClick: true }
-
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine guideLine1').attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-        stockSVG.on('mousemove', (e) => traceHWedgeLine1(e, '.guideLine1'))
-    } else if (pixelSet.current.secondClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X1: e.offsetX, hGuideLine: e.offsetY, secondClick: false, thirdClick: true }
-        stockSVG.select('.guideLine1').attr('y1', e.offsetY).attr('y2', e.offsetY).attr('x1', e.offsetX)
-
-        stockSVG.on('mousemove', (e) => traceHWedgeLine2(e, '.guideLine1'))
-    } else if (pixelSet.current.thirdClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X2: e.offsetX, thirdClick: false, fourthClick: true }
-        stockSVG.select('.guideLine1').attr('x2', e.offsetX)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine guideLine2').attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceHWedgeLine1(e, '.guideLine2'))
-    } else if (pixelSet.current.fourthClick)
-    {
-        pixelSet.current = { ...pixelSet.current, Y1: e.offsetY, Y5: pixelSet.current.hGuideLine - e.offsetY + pixelSet.current.hGuideLine, fourthClick: false, fifthClick: true }
-
-        stockSVG.select('.guideLine2').remove()
-
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine traceLine1').attr('x1', pixelSet.current.X1).attr('y1', e.offsetY).attr('x2', pixelSet.current.X2).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 1)
-
-        let flippedY1 = e.offsetY - pixelSet.current.hGuideLine
-
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine traceLine2').attr('x1', pixelSet.current.X1).attr('y1', pixelSet.current.hGuideLine - flippedY1).attr('x2', pixelSet.current.X2).attr('y2', pixelSet.current.hGuideLine - flippedY1)
-            .attr('stroke', 'white').attr('stroke-width', 1)
-
-        stockSVG.on('mousemove', (e) => traceHWedgeLine3(e, '.traceLine1', '.traceLine2'))
-    } else if (pixelSet.current.fifthClick)
-    {
-        pixelSet.current = { ...pixelSet.current, Y2: e.offsetY, Y6: pixelSet.current.hGuideLine - e.offsetY + pixelSet.current.hGuideLine, fifthClick: false, sixthClick: true }
-
-        stockSVG.select('.traceLine1').attr('y2', e.offsetY)
-        stockSVG.select('.traceLine2').attr('y2', pixelSet.current.hGuideLine - e.offsetY + pixelSet.current.hGuideLine)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine3').attr('x1', pixelSet.current.X1).attr('y1', pixelSet.current.Y1).attr('x2', pixelSet.current.X2).attr('y2', pixelSet.current.Y2)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceHWedgeLine4(e, '.traceLine3'))
-
-    } else if (pixelSet.current.sixthClick)
-    {
-        pixelSet.current = { ...pixelSet.current, Y3: pixelSet.current.Y1 - (pixelSet.current.Y2 - e.offsetY), Y4: e.offsetY, sixthClick: false, seventhClick: true }
-
-        let flippedY1 = e.offsetY - pixelSet.current.hGuideLine
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine traceLine4').attr('x1', pixelSet.current.X1).attr('y1', pixelSet.current.hGuideLine - flippedY1).attr('x2', pixelSet.current.X2).attr('y2', pixelSet.current.hGuideLine - flippedY1)
-            .attr('stroke', 'white').attr('stroke-width', 1).attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceHWedgeLine5(e, '.traceLine4'))
-    } else
-    {
-        pixelSet.current = { ...pixelSet.current, Y7: pixelSet.current.Y5 + (e.offsetY - pixelSet.current.Y6), Y8: e.offsetY, firstClick: true }
-        stockSVG.select('.traceLine4').attr('y1', pixelSet.current.Y7).attr('y2', e.offsetY)
-        stockSVG.on('mousemove', null)
-        setCaptureComplete(true)
-    }
-
-    const traceHWedgeLine1 = (e, lineName) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select(lineName).attr('y1', e.offsetY).attr('y2', e.offsetY)
-    }
-    const traceHWedgeLine2 = (e, lineName) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select(lineName).attr('x2', e.offsetX)
-    }
-    const traceHWedgeLine3 = (e, lineName1, lineName2) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select(lineName2).attr('y2', pixelSet.current.hGuideLine - e.offsetY + pixelSet.current.hGuideLine)
-        stockSVG.select('.temp').select(lineName1).attr('y2', e.offsetY)
-
-    }
-    const traceHWedgeLine4 = (e, lineName1) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select(lineName1).attr('y1', pixelSet.current.Y1 + e.offsetY - pixelSet.current.Y2).attr('y2', e.offsetY)
-    }
-    const traceHWedgeLine5 = (e, lineName1) =>
-    {
-        const stockSVG = select(svg)
-        let diff = e.offsetY - pixelSet.current.Y6
-        stockSVG.select('.temp').select(lineName1).attr('y1', pixelSet.current.Y5 + diff).attr('y2', e.offsetY)
-    }
-
-}
-
-export const triangleLineTrace = (e, setEnableZoom, svg, pixelSet, setCaptureComplete, xScale, yScale) =>
-{
-    const stockSVG = select(svg)
-    if (pixelSet.current.firstClick)
-    {
-        initiateCaptureHideTemp(stockSVG, setCaptureComplete, setEnableZoom)
-        pixelSet.current = { ...pixelSet.current, X1: e.offsetX, Y1: e.offsetY, Y2: e.offsetY, firstClick: false, secondClick: true }
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine1').attr('x1', e.offsetX).attr('y1', e.offsetY).attr('x2', e.offsetX).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 1)
-
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse1(e))
-    } else if (pixelSet.current.secondClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X2: e.offsetX, secondClick: false, thirdClick: true }
-        stockSVG.select('.traceLine1').attr('x2', e.offsetX)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine traceLine2').attr('x1', pixelSet.current.X1).attr('y1', e.offsetY).attr('x2', e.offsetX).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse2(e))
-    } else if (pixelSet.current.thirdClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X3: pixelSet.current.X1, Y3: e.offsetY, X4: pixelSet.current.X2, Y4: e.offsetY, thirdClick: false, fourthClick: true }
-        stockSVG.select('.traceLine2').attr('y1', e.offsetY).attr('y2', e.offsetY)
-
-        stockSVG.select('.temp').append('line')
-            .attr('class', 'traceLine guildLine3').attr('x1', 0).attr('y1', e.offsetY).attr('x2', 5000).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style('stroke-dasharray', ("3,3"))
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse3(e))
-    } else if (pixelSet.current.fourthClick)
-    {
-        pixelSet.current = { ...pixelSet.current, X5: pixelSet.current.X1, Y5: e.offsetY, X6: pixelSet.current.X2, fourthClick: false, fifthClick: true }
-        stockSVG.select('.guildLine3').remove()
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine traceLine3').attr('x1', pixelSet.current.X1).attr('y1', e.offsetY).attr('x2', pixelSet.current.X2).attr('y2', e.offsetY).attr('stroke', 'white')
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse4(e))
-    } else if (pixelSet.current.fifthClick)
-    {
-        pixelSet.current = { ...pixelSet.current, Y6: e.offsetY, fifthClick: false, sixthClick: true }
-        stockSVG.select('.traceLine3').attr('y2', e.offsetY)
-
-        stockSVG.select('.temp').append('line').attr('class', 'traceLine traceLine4').attr('x1', pixelSet.current.X1).attr('y1', pixelSet.current.Y5).attr('x2', pixelSet.current.X2).attr('y2', e.offsetY)
-            .attr('stroke', 'white').attr('stroke-width', 0.25).style("stroke-dasharray", ("3, 3"))
-
-        stockSVG.on('mousemove', (e) => traceHorizontalChannelMouse5(e, pixelSet.current.Y5, pixelSet.current.Y6))
-    } else
-    {
-        pixelSet.current = { ...pixelSet.current, X7: pixelSet.current.X5, Y7: pixelSet.current.Y5 - (pixelSet.current.Y6 - e.offsetY), X8: pixelSet.current.X6, Y8: e.offsetY, firstClick: true }
-        stockSVG.on('mousemove', null)
-        setCaptureComplete(true)
-    }
-
-
-    const traceHorizontalChannelMouse1 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine1').attr('x2', e.offsetX - 2)
-    }
-    const traceHorizontalChannelMouse2 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine2').attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-    }
-    const traceHorizontalChannelMouse3 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.guildLine3').attr('y1', e.offsetY - 2).attr('y2', e.offsetY - 2)
-    }
-    const traceHorizontalChannelMouse4 = (e) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine3').attr('y2', e.offsetY - 2)
-    }
-    const traceHorizontalChannelMouse5 = (e, point5Y, point6Y) =>
-    {
-        const stockSVG = select(svg)
-        stockSVG.select('.temp').select('.traceLine4').attr('y1', point5Y - (point6Y - e.offsetY) - 2).attr('y2', e.offsetY - 2)
-    }
 }
 
 
 
 
-export const toolFunctionExports = [infoTrace, freeLineTrace, trendLineTrace, horizontalLineTrace, horizontalLineTrace, horizontalLineTrace, enterExitTrace]
+
+
+export const toolFunctionExports = [infoTrace, freeLineTrace, trendLineTrace, horizontalLineTrace, horizontalLineTrace, horizontalLineTrace, majorSupportResistanceTrace, majorSupportResistanceTrace, enterExitTrace]
 
 
 

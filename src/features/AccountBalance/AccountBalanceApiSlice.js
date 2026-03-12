@@ -8,11 +8,18 @@ export const AccountBalanceApiSlice = apiSlice.injectEndpoints({
             }),
             providesTags: ['accountBalance']
         }),
+        updateAccountRiskThreshold: builder.mutation({
+            query: (args) => ({
+                url: `/user/account/riskThreshold?risk=${args.risk}`
+            }),
+            invalidatesTags: ['accountBalance']
+        })
     })
 });
 
 export const {
-    useGetUsersAccountBalanceQuery
+    useGetUsersAccountBalanceQuery,
+    useUpdateAccountRiskThresholdMutation
 } = AccountBalanceApiSlice;
 
 

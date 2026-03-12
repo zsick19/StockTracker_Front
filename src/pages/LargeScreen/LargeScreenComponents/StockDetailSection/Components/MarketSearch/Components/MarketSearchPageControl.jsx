@@ -43,7 +43,7 @@ function MarketSearchPageControl({ paginationInfo, setCurrentPage, marketSearchF
         <button onClick={() => saveFilterAndPage()} disabled={isLoading}>
             {showSavedProgressMessage ? 'Progress Saved' : 'Save Page and Filter'}
         </button>
-        <p>Total Results: {paginationInfo?.totalResults || undefined}</p>
+        <p>Results: {paginationInfo?.totalResults || 0}</p>
     </div>
     )
 }

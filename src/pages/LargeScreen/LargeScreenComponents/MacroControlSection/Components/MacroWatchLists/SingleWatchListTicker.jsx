@@ -14,8 +14,6 @@ function SingleWatchListTicker({ tickerId, setPrimaryChartTicker, setSecondaryCh
     return (
         <div className={`${index % 2 == 0 && 'everyOther'} ${item.currentDayPercentGain > 0 ? 'positiveGreenFont' : item.currentDayPercentGain < 0 ? 'negativeRedFont' : 'neutralGrayFont'} LSH-SingleTickerTitle`}        >
 
-            <button onClick={(e) => { e.stopPropagation(); setSecondaryChartTicker(item) }}><ChevronDown size={16} color='white' /></button>
-
             <p title={item?.tickerTitle}
                 onClick={() => setPrimaryChartTicker(item)}
                 onDoubleClick={() => { setPrimaryChartTicker(item); setSecondaryChartTicker(item) }}
@@ -24,7 +22,7 @@ function SingleWatchListTicker({ tickerId, setPrimaryChartTicker, setSecondaryCh
             {
                 dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: item.ticker, chartId: item._id }));
                 dispatch(setStockDetailState(5))
-            }}>${item.mostRecentPrice}</p>
+            }}>${item.mostRecentPrice.toFixed(2)}</p>
             <p>{item.currentDayPercentGain.toFixed(2)}%</p>
             {isDeleteAble && <button onClick={(e) => { e.stopPropagation(); attemptRemoveTickerFromWatchList(item) }}><CircleMinus size={16} color='white' /></button>}
         </div>

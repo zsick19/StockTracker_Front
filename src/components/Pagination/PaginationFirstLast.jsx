@@ -14,9 +14,9 @@ function PaginationFirstLast({ paginationInfo, onPageChange })
     }
 
     return (
-        <nav className='paginationFirstLast'>
+        <div className='paginationFirstLast'>
             {paginationInfo &&
-                <ul className='paginationFirstLast'>
+                <ul >
                     <li className={`page-item`}>
                         <button onClick={() => onPageChange(1)} disabled={!paginationInfo.totalPages > 1}>First</button>
                     </li>
@@ -29,12 +29,12 @@ function PaginationFirstLast({ paginationInfo, onPageChange })
 
                     <li className={`page-item`}>
                         <button className="page-link" onClick={() => onPageChange(paginationInfo.totalPages)} disabled={!paginationInfo.hasNext}>
-                            Last
+                            {Math.ceil(paginationInfo.totalResults / 9)}
                         </button>
                     </li>
                 </ul>
             }
-        </nav>
+        </div>
     )
 }
 

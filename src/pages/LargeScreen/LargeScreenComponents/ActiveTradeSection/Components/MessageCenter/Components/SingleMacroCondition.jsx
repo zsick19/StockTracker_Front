@@ -4,7 +4,7 @@ import { useResizeObserver } from '../../../../../../../hooks/useResizeObserver'
 import { color, scaleLinear, select, selectAll } from 'd3';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 
-function SingleMacroCondition({ macroTicker, zoneData })
+function SingleMacroCondition({ macroTicker, zoneData, setSelectedMacro })
 {
     const { item } = useFetchUsersMacroWatchListQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.tickerState.entities[macroTicker] }), });
 
@@ -17,7 +17,6 @@ function SingleMacroCondition({ macroTicker, zoneData })
     const yScale = useCallback((priceToPixel) =>
     {
         if (!diagramDimensions) return
-        let bufferAmount = (zoneData.high - zoneData.low) * 0.05
         const scale = scaleLinear().domain([zoneData.high, zoneData.low]).range([0, diagramDimensions.height])
         return scale(priceToPixel)
     }, [diagramDimensions, zoneData])
@@ -49,10 +48,11 @@ function SingleMacroCondition({ macroTicker, zoneData })
             .attr('x1', 0).attr('x2', diagramDimensions.width)
             .attr('stroke', 'black').attr('opacity', 0.6)
             .attr('y1', closePixel).attr('y2', closePixel)
-        // keyLevelSelection.append('line')
-        //     .attr('x1', 0).attr('x2', diagramDimensions.width)
-        //     .attr('stroke', 'gray').attr('opacity', 1).attr('stroke-dasharray', '10 10')
-        //     .attr('y1', trendPixel).attr('y2', trendPixel)
+
+        keyLevelSelection.append('line')
+            .attr('x1', 0).attr('x2', diagramDimensions.width)
+            .attr('stroke', 'gray').attr('opacity', 1).attr('stroke-dasharray', '10 10')
+            .attr('y1', trendPixel).attr('y2', trendPixel)
 
     }, [zoneData, diagramDimensions])
     useEffect(() =>
@@ -68,24 +68,18 @@ function SingleMacroCondition({ macroTicker, zoneData })
             .attr('stroke-width', '4px')
             .attr('stroke', 'green')
 
-        let pricePercentOfZone = (item.mostRecentPrice - zoneData.low) / (zoneData.high - zoneData.low)
-
-        if (pricePercentOfZone > 0.6) { setBorderColor('green') }
-        else if (0.6 > pricePercentOfZone && pricePercentOfZone > 0.40) { setBorderColor('blue') }
-        else { setBorderColor('red') }
-
+        if (item.mostRecentPrice > item.dailyOpenPrice) { setBorderColor('green') }
+        else if (item.mostRecentPrice < item.dailyOpenPrice) { setBorderColor('red') }
+        else setBorderColor('blue')
 
     }, [item?.mostRecentPrice, diagramDimensions])
-    const svgBorderStyle = {
-        border: `2px solid ${borderColor}`,
-    }
-    const textStyle = {
-        backgroundColor: borderColor,
-        borderRadius: '5px'
-    }
+
+
+    const svgBorderStyle = { border: `2px solid ${zoneData.trend > zoneData.close ? '#009b1a' : '#5c0000'}` }
+    const textStyle = { backgroundColor: borderColor, borderRadius: '5px' }
 
     return (
-        <div className='singleMacroCondition'>
+        <div className='singleMacroCondition' onClick={() => setSelectedMacro(item.ticker)}>
             <div className='MacroConditionDiagramWrapper' ref={conditionDiagramWrapperRef}>
                 <svg ref={conditionDiagramRef} style={svgBorderStyle}>
                     <defs>

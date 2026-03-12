@@ -102,7 +102,7 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
       {
         let preMarketTime = start.setUTCHours(9, 0, 0, 0)
         timeBreaks.preMarket.push(new Date(preMarketTime))
-        timeBreaks.preMarketEnd.push(new Date(start).setUTCHours(14, 30))
+        timeBreaks.preMarketEnd.push(new Date(start).setUTCHours(13, 30))
         timeBreaks.marketClose.push(new Date(start).setUTCHours(21, 0, 0, 0))
         timeBreaks.afterMarket.push(add(start, { days: 1 }).setUTCHours(1))
       }

@@ -1,4 +1,4 @@
-import { GitCommitHorizontal, icons, PanelTopBottomDashed, PenTool, PiggyBank, Plane, RulerDimensionLine, Siren, TrendingUp, WavesArrowDown, WavesArrowUp } from "lucide-react";
+import { AlignEndHorizontal, AlignStartHorizontal, GitCommitHorizontal, icons, PanelTopBottomDashed, PenTool, PiggyBank, Plane, RulerDimensionLine, Siren, TrendingUp, WavesArrowDown, WavesArrowUp } from "lucide-react";
 
 export const ChartingTools = [
     { tool: 'Trace', icon: <RulerDimensionLine size={20} /> },
@@ -7,6 +7,8 @@ export const ChartingTools = [
     { tool: 'Horizontal Line', icon: <GitCommitHorizontal size={20} /> },
     { tool: 'High Volume Zone', icon: <WavesArrowUp size={20} /> },
     { tool: 'Low Volume Zone', icon: <WavesArrowDown size={20} /> },
+    { tool: 'Major Support', icon: <AlignStartHorizontal size={20} /> },
+    { tool: 'Major Resistance', icon: <AlignEndHorizontal size={20} /> },
     { tool: 'Enter Exit', icon: <PiggyBank size={20} /> },
 ]
 
