@@ -90,14 +90,18 @@ const chartingElementSlice = createSlice({
     {
       let { completeCapture, ticker, isResistance } = action.payload
 
-      let supportResistanceNode = { id: state[ticker].supportResistanceLinesId, ...completeCapture, isResistance, dateCreated: new Date().toDateString() };
+      let topPrice = completeCapture.priceP1 > completeCapture.priceP2 ? completeCapture.priceP1 : completeCapture.priceP2
+      let bottomPrice = completeCapture.priceP1 > completeCapture.priceP2 ? completeCapture.priceP2 : completeCapture.priceP1
+      let supportResistanceNode = { id: state[ticker].supportResistanceLinesId, ...completeCapture, priceP1: topPrice, priceP2: bottomPrice, isResistance, dateCreated: new Date().toDateString() };
       state[ticker].supportResistanceLinesId = state[ticker].supportResistanceLinesId + 1;
       state[ticker].supportResistanceLines.push(supportResistanceNode)
       state[ticker].chartingAltered = true;
     },
     updateSupportResistance: (state, action) =>
     {
-
+      let { ticker, update } = action.payload
+      state[ticker].supportResistanceLines = state[ticker].supportResistanceLines.map((sr) => { if (sr.id === update.id) { return update } else return sr })
+      state[ticker].chartingAltered = true
     },
     updateKeyPrice: (state, action) =>
     {
@@ -121,6 +125,7 @@ const chartingElementSlice = createSlice({
         case "linesH": state[ticker].linesH = state[ticker].linesH.filter((t) => t.id !== chartingElement.id); break;
         case 'highVolumeNodes': state[ticker].highVolumeNodes = state[ticker].highVolumeNodes.filter((t) => t.id !== chartingElement.id); break;
         case 'lowVolumeNodes': state[ticker].lowVolumeNodes = state[ticker].lowVolumeNodes.filter((t) => t.id !== chartingElement.id); break;
+        case 'supportResistance': state[ticker].supportResistanceLines = state[ticker].supportResistanceLines.filter((t) => t.id !== chartingElement.id); break;
         case "enterExit": state[ticker].enterExitLines = undefined; break;
       }
       state[ticker].chartingAltered = true;
@@ -130,13 +135,13 @@ const chartingElementSlice = createSlice({
 
       if (action.payload.charting)
       {
-        if (action.payload.charting?.supportResistance) state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false }
+        if (action.payload.charting?.supportResistanceLines) state[action.payload.tickerSymbol] = { ...action.payload.charting, chartingAltered: false }
         else state[action.payload.tickerSymbol] = { ...action.payload.charting, supportResistanceLines: [], supportResistanceLinesId: 1, chartingAltered: false }
       }
       else
       {
         state[action.payload.tickerSymbol] = {
-
+supportResistanceLines: [], supportResistanceLinesId: 1,
           freeLines: [],
           freeLinesId: 1,
           trendLines: [],

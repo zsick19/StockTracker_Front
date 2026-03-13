@@ -11,7 +11,7 @@ import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } fro
 import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
 import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
 
-function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, interactionController, chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs })
+function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, interactionController, chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs, macroTickerInfo })
 {
     const dispatch = useDispatch()
     const tickerForSearch = ticker?.ticker || ticker
@@ -66,7 +66,8 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
                 candlesToKeepSinceLastQuery={candlesToKeepSinceLastQuery}
                 timeFrame={timeFrame} setTimeFrame={setTimeFrame}
                 isLivePrice={interactionController?.isLivePrice} isInteractive={interactionController?.isInteractive}
-                isZoomAble={interactionController?.isZoomAble} showEMAs={showEMAs} setChartInfoDisplay={setChartInfoDisplay} />
+                isZoomAble={interactionController?.isZoomAble} showEMAs={showEMAs} setChartInfoDisplay={setChartInfoDisplay}
+                macroTickerInfo={macroTickerInfo} />
         </div>
     )
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addEnterExitToCharting, addHorizontalLine, addLine, addSupportResistance, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateHorizontalLine, updateLine, updateVolumeNode } from '../../features/Charting/chartingElements'
+import { addEnterExitToCharting, addHorizontalLine, addLine, addSupportResistance, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateHorizontalLine, updateLine, updateSupportResistance, updateVolumeNode } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
 import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay } from 'date-fns'
@@ -14,7 +14,7 @@ import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
 import ChartContextMenuContainer from './contextMenus/ChartContextMenuContainer'
 import { ChartingToolEdits, ChartingTools } from '../../Utilities/ChartingTools'
 import { allPossibleClassNames, defaultChartingStyles, lineGroupClassName } from '../../Utilities/GraphStyles'
-import { edgeHover, edgeNoHover, highVolNoHover, lineHover, lineNoHover, lowVolNoHover } from '../../Utilities/chartingHoverFunctions'
+import { edgeHover, edgeNoHover, highVolNoHover, lineHover, lineNoHover, lowVolNoHover, srZoneHover, srZoneNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates, provideStartAndEndDatesForDateScale } from '../../Utilities/TimeFrames'
@@ -24,9 +24,10 @@ import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudies
 import { setGraphToSubGraphCrossHair, setNoCurrentCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import './chartStyles.css'
 import { makeSelectGraphHoursByUUID } from '../../features/Charting/GraphMarketHourElement'
+import { useUpdateMacroChartingMutation } from '../../features/WatchList/WatchListStreamingSliceApi'
 
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay,
-    timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, uuid, lastCandleData, showEMAs })
+    timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, uuid, lastCandleData, showEMAs, macroTickerInfo })
 {
 
 
@@ -35,6 +36,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
     async function attemptToUpdateEnterExit() { try { await updateEnterExitPlan({ ticker, chartId }) } catch (error) { console.log(error) } }
 
+    const [updateMacroCharting] = useUpdateMacroChartingMutation()
+    async function attemptToUpdateMacroTicker() { try { if (!macroTickerInfo) return; else await updateMacroCharting({ ticker, id: macroTickerInfo._id }) } catch (error) { console.log(error) } }
+
     //redux charting data selectors
     const selectKeyLevelMemo = useMemo(makeSelectKeyLevelsByTicker, [ticker])
     const KeyLevels = useSelector((state) => selectKeyLevelMemo(state, ticker))
@@ -42,6 +46,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const EnterExitPlan = useSelector(state => selectedEnterExitMemo(state, ticker))
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [ticker])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
+
 
 
     const selectedStudyVisualStateMemo = useMemo(makeSelectGraphStudyByUUID, [])
@@ -626,7 +631,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 update.select('.drawnLine').each(function (d)
                 {
                     linePixel = provideLinePixels(d)
-                    select(this).attr('x1', linePixel.point1X).attr('y1', linePixel.point1Y).attr('x2', linePixel.point2X).attr('y2', linePixel.point2Y)
+                    select(this).attr('x1', linePixel.point1X).attr('y1', linePixel.point1Y).attr('x2', linePixel.point2X)
+                        .attr('y2', linePixel.point2Y)
 
                     const parent = select(this.parentNode)
                     parent.select('.edgeCircle1').attr("cx", linePixel.point1X).attr("cy", linePixel.point1Y)
@@ -719,33 +725,52 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             }
         }
 
-
         if (charting?.supportResistanceLines)
         {
 
-            stockCandleSVG.select('.supportResistance').selectAll('.support_Resistance').data(charting.supportResistanceLines)
+            stockCandleSVG.select('.supportResistance').selectAll('.support_Resistance').data(charting.supportResistanceLines, d => d.id)
                 .join((enter) => createSupportResistance(enter), (update) => updateSupportResistance(update))
 
             function createSupportResistance(enter)
             {
                 enter.each(function (d)
                 {
+                    let topPixel = createPriceScale({ priceToPixel: d.priceP1 })
+                    let bottomPixel = createPriceScale({ priceToPixel: d.priceP2 })
 
-                    const p1Pixel1 = createPriceScale({ priceToPixel: d.priceP1 })
-                    const p2Pixel2 = createPriceScale({ priceToPixel: d.priceP2 })
+                    var supportResistanceGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'support_Resistance today' : 'support_Resistance previous')
+                        .call(dragBottomSupportResistanceBehavior)
 
+                    supportResistanceGroup.append('rect').attr('class', 'supportResistanceShading').attr('x', 0).attr('y', topPixel)
+                        .attr('width', candleDimensions.width).attr('height', Math.abs(topPixel - bottomPixel))
+                        .attr('fill', d => d.isResistance ? 'teal' : 'red').attr('opacity', 0.50)
+                        .on('mouseenter', function () { srZoneHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'supportResistance' } })
+                        .on('mouseleave', srZoneNoHover)
 
-                    select(this).append('rect').attr('x', 0).attr('y', p1Pixel1)
-                        .attr('width', candleDimensions.width).attr('height', Math.abs(p1Pixel1 - p2Pixel2))
-                        .attr('fill', 'teal').attr('opacity', 0.50)
+                    supportResistanceGroup.append('circle').attr('class', 'lowerRS').attr('cx', 75).attr('cy', bottomPixel)
+                        .attr('r', 4).attr('fill', 'red').on('mouseenter', function () { edgeHover(select(this)) })
+                        .on('mouseleave', edgeNoHover)
+
+                    supportResistanceGroup.append('circle').attr('class', 'upperRS').attr('cx', candleDimensions.width - 75).attr('cy', topPixel).attr('r', 3).attr('fill', 'red')
+                        .on('mouseenter', function () { edgeHover(select(this)) })
+                        .on('mouseleave', edgeNoHover)
                 })
             }
             function updateSupportResistance(update)
             {
+                update.each(function (d)
+                {
+                    let topPixel = createPriceScale({ priceToPixel: d.priceP1 })
+                    let bottomPixel = createPriceScale({ priceToPixel: d.priceP2 })
 
+                    const parent = select(this)
+                    parent.call(dragBottomSupportResistanceBehavior)
+                    parent.select('.supportResistanceShading').attr('y', topPixel).attr('height', Math.abs(bottomPixel - topPixel))
+                    parent.select('.lowerRS').attr('cy', bottomPixel)
+                    parent.select('.upperRS').attr('cy', topPixel)
+                })
             }
         }
-
 
         //enter exit plan creation and update as CHARTING and not tracked enter exit 
         if (!EnterExitPlan) stockCandleSVG.select('.enterExits').selectAll('.line_group').remove()
@@ -804,7 +829,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 })
             }
         }
-
 
     }, [ticker, excludedPeriods, displayMarketHours, chartId, charting, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
@@ -1205,6 +1229,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             }
         }
 
+        if (macroTickerInfo) { attemptToUpdateMacroTicker() }
+
         resetTemp()
 
     }, [currentTool, captureComplete])
@@ -1295,6 +1321,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             {
                 e.preventDefault()
                 dispatch(removeChartingElement({ ...editChartElementRef.current, ticker }))
+                if (macroTickerInfo) { attemptToUpdateMacroTicker() }
             }
 
         }
@@ -1413,6 +1440,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 dateP2: xScaleRef.current({ pixelToDate: dragPixelCopy.X2 }), priceP2: yScaleRef.current({ pixelToPrice: dragPixelCopy.Y2 })
             }
         }))
+
+        if (macroTickerInfo) { attemptToUpdateMacroTicker() }
+
     }
 
     function dragEdgeLineStarted(e, d)
@@ -1458,25 +1488,19 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             updatedLine.dateP2 = createDateScale({ pixelToDate: dragPixelCopy.X2 })
             updatedLine.priceP2 = createPriceScale({ pixelToPrice: dragPixelCopy.Y2 })
         }
-        //        dispatch(updateLine(updatedLine))
 
-        dispatch(updateLine({
-            ticker: tickerRef.current, update: {
-                ...updatedLine
-            }
-        }))
+        dispatch(updateLine({ ticker: tickerRef.current, update: { ...updatedLine } }))
 
-
+        if (macroTickerInfo) { attemptToUpdateMacroTicker() }
 
     }
-
-
     const dragBehaviorEdge = drag().on('start', dragEdgeLineStarted).on('drag', draggedEdgeLine).on('end', dragEdgeLineEnd)
+
+
 
 
     function dragHorizontalLineStart(e, d)
     {
-        //editChartElementRef.current = { chartingElement: d, group: 'horizontalLines' }
         switch (editChartElementRef.current.group)
         {
             case 'linesH': dragPixelCopy.Y1 = createPriceScale({ priceToPixel: d.priceP1 }); break;
@@ -1505,20 +1529,85 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             case 'highVolumeNodes':
                 updatedHLine.price = createPriceScale({ pixelToPrice: dragPixelCopy.Y1 })
                 dispatch(updateVolumeNode({ ticker: tickerRef.current, update: updatedHLine, isHighVolNode: true }))
-
                 break;
             case 'lowVolumeNodes':
                 updatedHLine.price = createPriceScale({ pixelToPrice: dragPixelCopy.Y1 })
                 dispatch(updateVolumeNode({ ticker: tickerRef.current, update: updatedHLine, isHighVolNode: false }))
-
                 break;
 
         }
+
+        if (macroTickerInfo) { attemptToUpdateMacroTicker() }
+
     }
     const dragHorizontalLineBehavior = drag().on('start', dragHorizontalLineStart).on('drag', dragHorizontalLine).on('end', dragHorizontalLineEnd)
 
 
 
+    function dragBottomSupportResistanceStart(e, d)
+    {
+        if (e.sourceEvent.target.classList.contains('lowerRS'))
+        {
+            dragPixelCopy.Y1 = createPriceScale({ priceToPixel: d.priceP2 })
+        }
+        else
+        {
+            dragPixelCopy.Y1 = createPriceScale({ priceToPixel: d.priceP1 })
+        }
+
+
+    }
+    function dragBottomSupportResistance(e, d)
+    {
+        dragPixelCopy.Y1 = dragPixelCopy.Y1 + e.dy;
+        if (e.sourceEvent.target.classList.contains('lowerRS'))
+        {
+            let heightDifference = Math.abs(createPriceScale({ priceToPixel: d.priceP1 }) - dragPixelCopy.Y1)
+
+            select(this).select('.lowerRS').attr('cy', dragPixelCopy.Y1)
+            select(this).select('.supportResistanceShading').attr('height', heightDifference)
+        } else if (e.sourceEvent.target.classList.contains('upperRS'))
+        {
+            let heightDifference = Math.abs(dragPixelCopy.Y1 - createPriceScale({ priceToPixel: d.priceP2 }))
+
+            select(this).select('.upperRS').attr('cy', dragPixelCopy.Y1)
+            select(this).select('.supportResistanceShading').attr('y', dragPixelCopy.Y1).attr('height', heightDifference)
+        } else
+        {
+
+            let pixelDifference = createPriceScale({ priceToPixel: d.priceP2 }) - createPriceScale({ priceToPixel: d.priceP1 })
+
+            select(this).select('.lowerRS').attr('cy', dragPixelCopy.Y1 + pixelDifference)
+            select(this).select('.upperRS').attr('cy', dragPixelCopy.Y1)
+            select(this).select('.supportResistanceShading').attr('y', dragPixelCopy.Y1)
+
+        }
+
+
+    }
+    function dragBottomSupportResistanceEnd(e, d)
+    {
+
+        if (e.sourceEvent.target.classList.contains('lowerRS'))
+        {
+            dispatch(updateSupportResistance({ ticker: tickerRef.current, update: { ...d, priceP2: createPriceScale({ pixelToPrice: dragPixelCopy.Y1 }) } }))
+        } else if (e.sourceEvent.target.classList.contains('upperRS'))
+        {
+            dispatch(updateSupportResistance({ ticker: tickerRef.current, update: { ...d, priceP1: createPriceScale({ pixelToPrice: dragPixelCopy.Y1 }) } }))
+        } else
+        {
+            let pixelDifference = createPriceScale({ priceToPixel: d.priceP2 }) - createPriceScale({ priceToPixel: d.priceP1 })
+            let priceOfP2 = createPriceScale({ pixelToPrice: dragPixelCopy.Y1 + pixelDifference })
+
+            dispatch(updateSupportResistance({ ticker: tickerRef.current, update: { ...d, priceP1: createPriceScale({ pixelToPrice: dragPixelCopy.Y1 }), priceP2: priceOfP2 } }))
+
+        }
+
+        if (macroTickerInfo) { attemptToUpdateMacroTicker() }
+
+
+    }
+    const dragBottomSupportResistanceBehavior = drag().on('start', dragBottomSupportResistanceStart).on('drag', dragBottomSupportResistance).on('end', dragBottomSupportResistanceEnd)
 
 
 
@@ -1579,6 +1668,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         {
             dispatch(updateEnterExitToCharting({ updatedEnterExit: update, ticker }))
         }
+
+        if (macroTickerInfo) { attemptToUpdateMacroTicker() }
+
     }
 
     return (

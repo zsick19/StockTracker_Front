@@ -15,6 +15,7 @@ import { Binoculars, ChartCandlestick, Expand, ListChecks, ListTodo, NotebookPen
 import PlanStatusView from './Components/PlanStatusView/PlanStatusView';
 import SyncWithBackendVisual from './Components/SyncVisual/SyncWithBackendVisual';
 import BestPositionSplit from './Components/BestPositionSplit/BestPositionSplit';
+import MacroChartingGraph from './Components/MacroChartingGraph/MacroChartingGraph';
 
 function StockDetailSection()
 {
@@ -49,6 +50,7 @@ function StockDetailSection()
       case 9: return <TradingJournal />
       case 10: return <SyncWithBackendVisual />
       case 14: return <BestPositionSplit />
+      case 15: return <MacroChartingGraph />
     }
   }
 

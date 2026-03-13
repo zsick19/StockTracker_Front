@@ -91,18 +91,43 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
             keepUnusedDataFor: 60 * 60 * 18,
             providesTags: ['dailyMacroZones']
         })
+        , updateMacroCharting: builder.mutation({
+            async queryFn(args, api, extraOptions, baseQuery)
+            {
+                const state = api.getState()
+                let result
+                let updatedMacroChart = state.chartingElement[args.ticker]
+
+                if (!updatedMacroChart) return
+
+                result = await baseQuery({
+                    url: `/chartingData/macro/${args.id}`,
+                    method: 'POST',
+                    body: updatedMacroChart
+                })
+
+                return result.data ? { data: result.data } : { error: result.error }
+            },
+            invalidatesTags: (result, error, args) => [{ type: 'chartingData', id: args.ticker }]
+        }),
+
     }),
+
+
+
+
+
 });
 
 export const {
     useFetchUsersMacroWatchListQuery,
-    useFetchMacroDailyZoneInfoQuery
+    useFetchMacroDailyZoneInfoQuery,
+    useUpdateMacroChartingMutation
 } = WatchListStreamingApiSlice;
 
 
 export const selectMacroTickersAndChartIds = () =>
-    createSelector(
-        WatchListStreamingApiSlice.endpoints.fetchUsersMacroWatchList.select(),
+    createSelector(WatchListStreamingApiSlice.endpoints.fetchUsersMacroWatchList.select(),
         (result) =>
         {
             let macroTickerToIds = {}
@@ -110,3 +135,21 @@ export const selectMacroTickersAndChartIds = () =>
             return macroTickerToIds
         }
     )
+
+const selectMacroResults = WatchListStreamingApiSlice.endpoints.fetchUsersMacroWatchList.select()
+
+const selectMacroData = createSelector(selectMacroResults, (macroResults) => macroResults.data.tickerState)
+
+export const { selectMacroById } = singleTickerAdapter.getSelectors(state => selectMacroData(state) ?? undefined)
+
+export const isTickerMacro = () => createSelector(
+    [selectMacroResults, (state, ticker) => ticker],
+    (stream, ticker) =>
+    {
+        console.log(singleTickerAdapter.getSelectors(state => stream.data(state)))
+        // if (stream.data.tickerState)
+        //     console.log(stream.data)
+        return stream
+    }
+)
+

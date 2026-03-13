@@ -17,11 +17,20 @@ export function highVolNoHover(e)
 }
 export function edgeHover(selection)
 {
-    selection.transition().attr('r', 10)
+    selection.transition().attr('r', 50)
 }
 export function edgeNoHover(e, d)
 {
     select(this).transition().attr('r', 4)
+}
+
+export function srZoneHover(selection)
+{
+    selection.transition().attr('opacity', 0.75)
+}
+export function srZoneNoHover(e)
+{
+    select(this).transition().attr('opacity', 0.5)
 }
 
 
