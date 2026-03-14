@@ -167,7 +167,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     }, [timeFrame])
     const visualBreaksPeriods = useMemo(() =>
     {
-
         if (timeFrame.intraDay && timeFrame.duration > 3)
         {
             return getBreaksBetweenDates(subDays(new Date(), 10), addDays(new Date(), 10), 'days')
@@ -724,7 +723,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 })
             }
         }
-
         if (charting?.supportResistanceLines)
         {
 
@@ -738,7 +736,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     let topPixel = createPriceScale({ priceToPixel: d.priceP1 })
                     let bottomPixel = createPriceScale({ priceToPixel: d.priceP2 })
 
-                    var supportResistanceGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'support_Resistance today' : 'support_Resistance previous')
+                    var supportResistanceGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'support_Resistance line_group today' : 'support_Resistance line_group previous')
                         .call(dragBottomSupportResistanceBehavior)
 
                     supportResistanceGroup.append('rect').attr('class', 'supportResistanceShading').attr('x', 0).attr('y', topPixel)
@@ -969,17 +967,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             stockCandleSVG.select('.keyLevels').selectAll('.lowerDailyEM').data([{ iVolLowerDailyEm, dailyLowerEm }]).join(
                 enter =>
                 {
-                    enter.append('rect').attr('class', 'lowerDailyEM').attr('x', (d, i) => start).attr('width', 5000).attr('fill', 'green').attr('opacity', 0.25)
+                    enter.append('rect').attr('class', 'lowerDailyEM line_group').attr('x', (d, i) => start).attr('width', 5000).attr('fill', 'green').attr('opacity', 0.25)
                         .attr('y', (d) => dailyLowerEm).attr('height', d => iVolLowerDailyEm - dailyLowerEm)
 
-                    enter.append('rect').attr('class', 'upperDailyEM').attr('x', (d, i) => start).attr('width', 5000).attr('fill', 'red').attr('opacity', 0.25)
+                    enter.append('rect').attr('class', 'upperDailyEM line_group').attr('x', (d, i) => start).attr('width', 5000).attr('fill', 'red').attr('opacity', 0.25)
                         .attr('y', (d) => iVolUpperDailyEm).attr('height', d => dailyUpperEm - iVolUpperDailyEm)
 
-                    enter.append('text').attr('class', 'keyLevelSubText').text(`iVol Upper Daily - ${KeyLevels.dailyEM.iVolDailyEMUpper}`).attr('x', candleDimensions.width - textOffSetFromRight).attr('y', iVolUpperDailyEm)
-                    enter.append('text').attr('class', 'keyLevelSubText').text(`Upper Daily - ${KeyLevels.dailyEM.dailyEMUpper}`).attr('x', candleDimensions.width - textOffSetFromRight).attr('y', dailyUpperEm + 10)
+                    enter.append('text').attr('class', 'keyLevelSubText line_group').text(`iVol Upper Daily - ${KeyLevels.dailyEM.iVolDailyEMUpper}`).attr('x', candleDimensions.width - textOffSetFromRight).attr('y', iVolUpperDailyEm)
+                    enter.append('text').attr('class', 'keyLevelSubText line_group').text(`Upper Daily - ${KeyLevels.dailyEM.dailyEMUpper}`).attr('x', candleDimensions.width - textOffSetFromRight).attr('y', dailyUpperEm + 10)
 
-                    enter.append('text').attr('class', 'keyLevelSubText').text(`Lower Daily - ${KeyLevels.dailyEM.dailyEMLower}`).attr('x', candleDimensions.width - textOffSetFromRight).attr('y', dailyLowerEm)
-                    enter.append('text').attr('class', 'keyLevelSubText').text(`iVol Lower Daily - ${KeyLevels.dailyEM.iVolDailyEMLower}`).attr('x', candleDimensions.width - textOffSetFromRight).attr('y', iVolLowerDailyEm + 10)
+                    enter.append('text').attr('class', 'keyLevelSubText line_group').text(`Lower Daily - ${KeyLevels.dailyEM.dailyEMLower}`).attr('x', candleDimensions.width - textOffSetFromRight).attr('y', dailyLowerEm)
+                    enter.append('text').attr('class', 'keyLevelSubText line_group').text(`iVol Lower Daily - ${KeyLevels.dailyEM.iVolDailyEMLower}`).attr('x', candleDimensions.width - textOffSetFromRight).attr('y', iVolLowerDailyEm + 10)
                 }
             )
 
@@ -991,12 +989,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             let dollarWeeklyLower = KeyLevels.weeklyEM.weeklyClose - KeyLevels.weeklyEM.sigma
 
             let weeklyUpper = createPriceScale({ priceToPixel: dollarWeeklyUpper })
-            stockCandleSVG.select('.keyLevels').append('line').attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', weeklyUpper).attr('y2', weeklyUpper).attr('stroke', 'orange').attr('stroke-width', '4px')
-            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text(`Upper Weekly - ${dollarWeeklyUpper.toFixed(2)}`).attr("x", candleDimensions.width - textOffSetFromRight).attr("y", weeklyUpper)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', weeklyUpper).attr('y2', weeklyUpper).attr('stroke', 'orange').attr('stroke-width', '4px')
+            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText line_group').text(`Upper Weekly - ${dollarWeeklyUpper.toFixed(2)}`).attr("x", candleDimensions.width - textOffSetFromRight).attr("y", weeklyUpper)
 
             let weeklyLower = createPriceScale({ priceToPixel: dollarWeeklyLower })
-            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'orange').attr('stroke-width', '4px').attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', weeklyLower).attr('y2', weeklyLower)
-            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text(`Lower Weekly - ${dollarWeeklyLower.toFixed(2)}`).attr("x", candleDimensions.width - textOffSetFromRight).attr("y", weeklyLower + 10)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('stroke', 'orange').attr('stroke-width', '4px').attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', weeklyLower).attr('y2', weeklyLower)
+            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText line_group').text(`Lower Weekly - ${dollarWeeklyLower.toFixed(2)}`).attr("x", candleDimensions.width - textOffSetFromRight).attr("y", weeklyLower + 10)
 
         } else if (KeyLevels.weeklyEM)
         {
@@ -1009,9 +1007,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     let endPixel = createDateScale({ dateToPixel: addDays(weekStart, 5) })
 
                     let weeklyUpper = createPriceScale({ priceToPixel: d.upper })
-                    stockCandleSVG.select('.keyLevels').append('line').attr('x1', startPixel).attr('x2', endPixel).attr('y1', weeklyUpper).attr('y2', weeklyUpper).attr('stroke', 'orange').attr('stroke-width', '2px')
+                    stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('x1', startPixel).attr('x2', endPixel).attr('y1', weeklyUpper).attr('y2', weeklyUpper).attr('stroke', 'orange').attr('stroke-width', '2px')
                     let weeklyLower = createPriceScale({ priceToPixel: d.lower })
-                    stockCandleSVG.select('.keyLevels').append('line').attr('x1', startPixel).attr('x2', endPixel).attr('y1', weeklyLower).attr('y2', weeklyLower).attr('stroke', 'orange').attr('stroke-width', '2px')
+                    stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('x1', startPixel).attr('x2', endPixel).attr('y1', weeklyLower).attr('y2', weeklyLower).attr('stroke', 'orange').attr('stroke-width', '2px')
                 })
             })
         }
@@ -1022,8 +1020,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             let endPixel = createDateScale({ dateToPixel: endOfMonth(new Date()) })
             let monthlyUpper = createPriceScale({ priceToPixel: KeyLevels.monthlyEM.monthUpperEM })
             let monthlyLower = createPriceScale({ priceToPixel: KeyLevels.monthlyEM.monthLowerEM })
-            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyUpper).attr('y2', monthlyUpper)
-            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyLower).attr('y2', monthlyLower)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyUpper).attr('y2', monthlyUpper)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyLower).attr('y2', monthlyLower)
 
             stockCandleSVG.select('.keyLevels').selectAll('.previousWeeklyEMMoves').data(KeyLevels.monthlyEM.previousMonthlyEM).join(enter =>
             {
@@ -1033,8 +1031,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     let endPixel = createDateScale({ dateToPixel: endOfMonth(d.startDate) })
                     let monthlyUpper = createPriceScale({ priceToPixel: d.upper })
                     let monthlyLower = createPriceScale({ priceToPixel: d.lower })
-                    stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyUpper).attr('y2', monthlyUpper)
-                    stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyLower).attr('y2', monthlyLower)
+                    stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyUpper).attr('y2', monthlyUpper)
+                    stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('stroke', 'red').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', monthlyLower).attr('y2', monthlyLower)
                 })
             })
         }
@@ -1046,8 +1044,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             let quarterlyUpper = createPriceScale({ priceToPixel: KeyLevels.quarterlyEM.quarterlyUpper })
             let quarterlyLower = createPriceScale({ priceToPixel: KeyLevels.quarterlyEM.quarterlyLower })
 
-            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyLower).attr('y2', quarterlyLower)
-            stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyUpper).attr('y2', quarterlyUpper)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyLower).attr('y2', quarterlyLower)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyUpper).attr('y2', quarterlyUpper)
 
             stockCandleSVG.select('.keyLevels').selectAll('.previousQuarterlyEMMoves').data(KeyLevels.quarterlyEM.previousQuarterlyEM).join(enter =>
             {
@@ -1057,8 +1055,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     let endPixel = createDateScale({ dateToPixel: endOfQuarter(d.startDate) })
                     let quarterlyUpper = createPriceScale({ priceToPixel: d.upper })
                     let quarterlyLower = createPriceScale({ priceToPixel: d.lower })
-                    stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyUpper).attr('y2', quarterlyUpper)
-                    stockCandleSVG.select('.keyLevels').append('line').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyLower).attr('y2', quarterlyLower)
+                    stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyUpper).attr('y2', quarterlyUpper)
+                    stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', '2px').attr('x1', startPixel).attr('x2', endPixel).attr('y1', quarterlyLower).attr('y2', quarterlyLower)
                 })
             })
         }
@@ -1066,13 +1064,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (KeyLevels.gammaFlip)
         {
             let gammaPrice = createPriceScale({ priceToPixel: KeyLevels.gammaFlip })
-            stockCandleSVG.select('.keyLevels').append('line')
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group')
                 .attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('y1', gammaPrice).attr('y2', gammaPrice)
                 .attr('stroke', 'yellow')
                 .attr('stroke-width', '1px')
                 .attr('stroke-dasharray', '5 5')
-            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text('GammaFlip').attr("x", candleDimensions.width - 75).attr("y", gammaPrice)
+            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText line_group').text('GammaFlip').attr("x", candleDimensions.width - 75).attr("y", gammaPrice)
         }
 
         if (KeyLevels.standardDeviation && timeFrame.intraDay)
@@ -1085,17 +1083,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
             stockCandleSVG.select('.keyLevels').append('line').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'black').attr('stroke-width', '1px').attr('y1', close).attr('y2', close)
 
-            stockCandleSVG.select('.keyLevels').append('line').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'gray').attr('stroke-width', '1px').attr('y1', oneSigmaLower).attr('y2', oneSigmaLower)
-            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text('1SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", oneSigmaLower)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'gray').attr('stroke-width', '1px').attr('y1', oneSigmaLower).attr('y2', oneSigmaLower)
+            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText line_group').text('1SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", oneSigmaLower)
 
-            stockCandleSVG.select('.keyLevels').append('line').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'gray').attr('stroke-width', '1px').attr('y1', oneSigmaUpper).attr('y2', oneSigmaUpper)
-            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text('1SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", oneSigmaUpper)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'gray').attr('stroke-width', '1px').attr('y1', oneSigmaUpper).attr('y2', oneSigmaUpper)
+            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText line_group').text('1SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", oneSigmaUpper)
 
-            stockCandleSVG.select('.keyLevels').append('line').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'gray').attr('stroke-width', '1px').attr('y1', twoSigmaLower).attr('y2', twoSigmaLower)
-            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text('2SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", twoSigmaLower)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'gray').attr('stroke-width', '1px').attr('y1', twoSigmaLower).attr('y2', twoSigmaLower)
+            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText line_group').text('2SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", twoSigmaLower)
 
-            stockCandleSVG.select('.keyLevels').append('line').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'gray').attr('stroke-width', '1px').attr('y1', twoSigmaUpper).attr('y2', twoSigmaUpper)
-            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText').text('2SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", twoSigmaUpper)
+            stockCandleSVG.select('.keyLevels').append('line').attr('class', 'line_group').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'gray').attr('stroke-width', '1px').attr('y1', twoSigmaUpper).attr('y2', twoSigmaUpper)
+            stockCandleSVG.select('.keyLevels').append('text').attr('class', 'keyLevelSubText line_group').text('2SD').attr("x", candleDimensions.width - textOffSetFromRight / 2).attr("y", twoSigmaUpper)
         }
 
         if (KeyLevels.oneDayToExpire && timeFrame.intraDay)
@@ -1105,7 +1103,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 enter.each(function (d, i)
                 {
                     let dtePixel = createPriceScale({ priceToPixel: d })
-                    enter.append('line').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'purple').attr('stroke-width', '1px').attr('stroke-dasharray', '5 2 5').attr('y1', dtePixel).attr('y2', dtePixel)
+                    enter.append('line').attr('class', 'line_group').attr('x1', 0).attr('x2', candleDimensions.width).attr('stroke', 'purple').attr('stroke-width', '1px').attr('stroke-dasharray', '5 2 5').attr('y1', dtePixel).attr('y2', dtePixel)
                 })
             })
         }
@@ -1119,29 +1117,29 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             let closePixel = createPriceScale({ priceToPixel: KeyLevels.dailyZone.close })
             let trendPixel = createPriceScale({ priceToPixel: KeyLevels.dailyZone.trend })
 
-            keyLevelSelection.append('line')
+            keyLevelSelection.append('line').attr('class', 'line_group')
                 .attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('stroke', 'yellow').attr('stroke-dasharray', '10 10')
                 .attr('y1', lowPixel).attr('y2', lowPixel).attr('opacity', 0.5)
 
-            keyLevelSelection.append('rect').attr('x', 0).attr('width', 5000).attr('fill', "url(#zoneBearish)").attr('opacity', 0.15)
+            keyLevelSelection.append('rect').attr('class', 'line_group').attr('x', 0).attr('width', 5000).attr('fill', "url(#zoneBearish)").attr('opacity', 0.15)
                 .attr('y', (d) => midPixel).attr('height', d => lowPixel - midPixel)
-            keyLevelSelection.append('rect').attr('x', 0).attr('width', 5000).attr('fill', 'url(#zoneBullish)').attr('opacity', 0.15)
+            keyLevelSelection.append('rect').attr('class', 'line_group').attr('x', 0).attr('width', 5000).attr('fill', 'url(#zoneBullish)').attr('opacity', 0.15)
                 .attr('y', (d) => highPixel).attr('height', d => midPixel - highPixel)
 
-            keyLevelSelection.append('line')
+            keyLevelSelection.append('line').attr('class', 'line_group')
                 .attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('stroke', 'blue').attr('stroke-dasharray', '10 10')
                 .attr('y1', midPixel).attr('y2', midPixel)
-            keyLevelSelection.append('line')
+            keyLevelSelection.append('line').attr('class', 'line_group')
                 .attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('stroke', 'red').attr('stroke-dasharray', '10 10').attr('opacity', 0.5)
                 .attr('y1', highPixel).attr('y2', highPixel)
-            keyLevelSelection.append('line')
+            keyLevelSelection.append('line').attr('class', 'line_group')
                 .attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('stroke', 'black').attr('opacity', 1)
                 .attr('y1', closePixel).attr('y2', closePixel)
-            keyLevelSelection.append('line')
+            keyLevelSelection.append('line').attr('class', 'line_group')
                 .attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('stroke', 'black').attr('opacity', 1).attr('stroke-dasharray', '10 10')
                 .attr('y1', trendPixel).attr('y2', trendPixel)
@@ -1257,33 +1255,59 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (graphElementVisibility.showAll && !graphElementVisibility.showOnlyEnterExit)
         {
             graphElementVisibility.anyFreeLines ?
-                toggleAnyVisible(allPossibleClassNames[0], graphElementVisibility.freeLines, graphElementVisibility.previousFreeLines) :
+                toggleAnyVisible(allPossibleClassNames[0], graphElementVisibility.previousFreeLines) :
                 toggleSelectToHidden(allPossibleClassNames[0])
 
+            graphElementVisibility.anyLinesH ?
+                toggleAnyVisible(allPossibleClassNames[1], graphElementVisibility.previousLinesH) :
+                toggleSelectToHidden(allPossibleClassNames[1])
 
-            // graphElementVisibility.anyTrendLines ? toggleAnyVisible(allPossibleClassNames[2], graphElementVisibility.trendLines, graphElementVisibility.previousTrendLines) : toggleSelectToHidden(allPossibleClassNames[2])
+            graphElementVisibility.anyTrendLines ?
+                toggleAnyVisible(allPossibleClassNames[2], graphElementVisibility.previousTrendLines) :
+                toggleSelectToHidden(allPossibleClassNames[2])
+
+            graphElementVisibility.anySupportResistance ?
+                toggleAnyVisible(allPossibleClassNames[3], graphElementVisibility.previousSupportResistance) :
+                toggleSelectToHidden(allPossibleClassNames[3])
+
+            graphElementVisibility.anyKeyLevels ?
+                toggleAnyVisible(allPossibleClassNames[4], graphElementVisibility.previousKeyLevels) :
+                toggleSelectToHidden(allPossibleClassNames[4])
+
+            graphElementVisibility.anyVolumeNodes ?
+                toggleAnyVisible(allPossibleClassNames[5], graphElementVisibility.previousVolumeNodes) :
+                toggleSelectToHidden(allPossibleClassNames[5])
+
+            graphElementVisibility.anyVolumeNodes ?
+                toggleAnyVisible(allPossibleClassNames[6], graphElementVisibility.previousVolumeNodes) :
+                toggleSelectToHidden(allPossibleClassNames[6])
 
             graphElementVisibility.anyEnterExits ?
-                toggleAnyVisible(allPossibleClassNames[6], graphElementVisibility.enterExits, graphElementVisibility.previousEnterExits) :
-                toggleSelectToHidden(allPossibleClassNames[6])
+                toggleAnyVisible(allPossibleClassNames[7], graphElementVisibility.previousEnterExits) :
+                toggleSelectToHidden(allPossibleClassNames[7])
 
         }
         else if (graphElementVisibility.showOnlyEnterExit)
         {
-            toggleAnyVisible(allPossibleClassNames[6], graphElementVisibility.enterExits, graphElementVisibility.previousEnterExits)
-            toggleSelectToHidden(allPossibleClassNames[0])
+            toggleAnyVisible(allPossibleClassNames[7], graphElementVisibility.previousEnterExits)
+            allPossibleClassNames.map((singleClass, i) => { if (singleClass !== '.enterExits') toggleSelectToHidden(singleClass) })
         }
         else { allPossibleClassNames.map((singleClass, i) => { toggleSelectToHidden(singleClass) }) }
+
 
         if (graphElementVisibility.enterExitText)
         { stockCandleSVG.select('.enterExits').selectAll('text').attr('visibility', 'visible') }
         else { stockCandleSVG.select('.enterExits').selectAll('text').attr('visibility', 'hidden') }
 
-        function toggleAnyVisible(className, showCurrentSpecific, showPreviousSpecific)
+
+
+
+        function toggleAnyVisible(className, showPreviousSpecific)
         {
-            stockCandleSVG.select(className).selectAll(lineGroupClassName).attr('visibility', () => { if (graphElementVisibility.showAnyCurrent) return showCurrentSpecific ? 'visible' : 'hidden'; else return 'hidden' })
-            stockCandleSVG.select(className).selectAll('.previous').attr('visibility', () => { if (graphElementVisibility.showAnyPrevious) return showPreviousSpecific ? 'visible' : 'hidden'; else return 'hidden' })
+            stockCandleSVG.select(className).selectAll(lineGroupClassName).attr('visibility', () => 'visible')
+            stockCandleSVG.select(className).selectAll('.previous').attr('visibility', () => { showPreviousSpecific ? 'visible' : 'hidden' })
         }
+
         function toggleSelectToHidden(className)
         {
             stockCandleSVG.select(className).selectAll(lineGroupClassName).attr('visibility', 'hidden')

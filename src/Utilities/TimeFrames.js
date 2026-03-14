@@ -44,7 +44,7 @@ export function generateTradingHours(timeFrame, displayMarketHours)
     } else if (!isSaturday(currentDate) && !isSunday(currentDate))
     {
       const marketCloseTime = new Date(currentDate);
-      marketCloseTime.setUTCHours(1, 0, 0, 0);
+      marketCloseTime.setUTCHours(0, 0, 0, 0);
       const nextDayMarketOpenTime = add(marketCloseTime, { hours: 8 })
       timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
     }
@@ -100,11 +100,11 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
     {
       if (!isSaturday(start) && !isSunday(start))
       {
-        let preMarketTime = start.setUTCHours(9, 0, 0, 0)
+        let preMarketTime = start.setUTCHours(8, 0, 0, 0)
         timeBreaks.preMarket.push(new Date(preMarketTime))
         timeBreaks.preMarketEnd.push(new Date(start).setUTCHours(13, 30))
         timeBreaks.marketClose.push(new Date(start).setUTCHours(21, 0, 0, 0))
-        timeBreaks.afterMarket.push(add(start, { days: 1 }).setUTCHours(1))
+        timeBreaks.afterMarket.push(add(start, { days: 1 }).setUTCHours(2))
       }
       start = addDays(start, 1)
 
