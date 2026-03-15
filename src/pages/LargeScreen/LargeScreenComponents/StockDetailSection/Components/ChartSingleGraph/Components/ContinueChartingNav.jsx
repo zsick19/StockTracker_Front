@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import React, { useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setConfirmedUnChartedData } from '../../../../../../../features/SelectedStocks/PreviousNextStockSlice'
 import { useGetUsersConfirmedSummaryQuery } from '../../../../../../../features/MarketSearch/ConfirmedStatusSliceApi'
@@ -47,6 +47,34 @@ function ContinueChartingNav({ ticker, currentUnChartedTicker, setShowUnchartedL
         }
     }
 
+    const hasRun = useRef(false)
+    const savedHandler = useRef()
+    useEffect(() =>
+    {
+        savedHandler.current = handleNavigatingToNextUnChartedStock
+    })
+
+    useEffect(() =>
+    {
+        if (hasRun.current) return;
+
+        document.addEventListener('keydown', (e) => navigateToNextChartFromKeyPress(e))
+        hasRun.current = true
+
+        function navigateToNextChartFromKeyPress(e)
+        {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+
+            if (e.key === 'g' && currentUnChartedTicker.next) { savedHandler.current(true) }
+        }
+
+        return (() =>
+        {
+            document.removeEventListener('keydown', navigateToNextChartFromKeyPress)
+
+        })
+
+    }, [ticker])
 
 
 

@@ -605,23 +605,22 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 {
                     linePixel = provideLinePixels(d)
                     const lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
+                        .call(dragFreeLineBehavior)
 
                     lineGroup.append('line').attr('class', 'drawnLine').attr('x1', linePixel.point1X).attr('y1', linePixel.point1Y).attr('x2', linePixel.point2X).attr('y2', linePixel.point2Y)
                         .attr('stroke', defaultChartingStyles.freeLine).attr('stroke-linecap', 'round').attr('stroke-width', defaultChartingStyles.freeLineStrokeWidth)
                         .on('mouseenter', function () { lineHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'freeLines' } })
                         .on('mouseleave', lineNoHover)
-                        .call(dragBehavior)
-
 
                     lineGroup.append('circle').attr('class', 'edgeCircle1').attr("cx", (d) => linePixel.point1X).attr("cy", linePixel.point1Y)
                         .attr("r", defaultChartingStyles.freeLineCirclesSize).attr('fill', defaultChartingStyles.freeLineCirclesColor)
                         .on('mouseenter', function () { edgeHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'freeLines' } })
-                        .on('mouseleave', edgeNoHover).call(dragBehaviorEdge)
+                        .on('mouseleave', edgeNoHover)
 
                     lineGroup.append('circle').attr('class', 'edgeCircle2').attr("cx", linePixel.point2X).attr("cy", linePixel.point2Y)
                         .attr("r", defaultChartingStyles.freeLineCirclesSize).attr('fill', defaultChartingStyles.freeLineCirclesColor)
                         .on('mouseenter', function () { edgeHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'freeLines' } })
-                        .on('mouseleave', edgeNoHover).call(dragBehaviorEdge)
+                        .on('mouseleave', edgeNoHover)
                 })
             }
             function updateLines(update)
@@ -631,7 +630,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 {
                     linePixel = provideLinePixels(d)
                     select(this).attr('x1', linePixel.point1X).attr('y1', linePixel.point1Y).attr('x2', linePixel.point2X)
-                        .attr('y2', linePixel.point2Y)
+                        .attr('y2', linePixel.point2Y).call(dragFreeLineBehavior)
 
                     const parent = select(this.parentNode)
                     parent.select('.edgeCircle1').attr("cx", linePixel.point1X).attr("cy", linePixel.point1Y)
@@ -1438,87 +1437,133 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         Object.keys(dragPixelCopy).filter(t => t.includes('Y')).map((price, i) => { dragPixelCopy[`Y${i + 1}`] = dragPixelCopy[`Y${i + 1}`] + e.dy })
     }
 
-
-    const dragBehavior = drag().on('start', dragWholeLineStarted).on('drag', draggedWholeLine).on('end', dragWholeLineEnded)
+    const initialLineDragSelection = useRef()
+    const dragFreeLineBehavior = drag().on('start', dragWholeLineStarted).on('drag', draggedWholeLine).on('end', dragWholeLineEnded)
     function dragWholeLineStarted(e, d)
     {
-        genX1X2PixelSet(d)
         editChartElementRef.current = { chartingElement: d, group: 'freeLines' }
-        select(this).attr('stroke', 'blue').attr('stroke-width', 3)
-    }
-    function draggedWholeLine(e, d)
-    {
-        genX1X2PixelChange(e, d)
-        const parent = select(this.parentNode)
-        select(this).attr('x1', dragPixelCopy.X1).attr('y1', dragPixelCopy.Y1).attr('x2', dragPixelCopy.X2).attr('y2', dragPixelCopy.Y2)
-        parent.select('.edgeCircle1').attr('cx', dragPixelCopy.X1).attr('cy', dragPixelCopy.Y1);
-        parent.select('.edgeCircle2').attr('cx', dragPixelCopy.X2).attr('cy', dragPixelCopy.Y2)
-    }
-    function dragWholeLineEnded(e, d)
-    {
-        select(this).attr('stroke', 'black')
-
-        dispatch(updateLine({
-            ticker: tickerRef.current, update: {
-                ...d, dateP1: xScaleRef.current({ pixelToDate: dragPixelCopy.X1 }), priceP1: yScaleRef.current({ pixelToPrice: dragPixelCopy.Y1 }),
-                dateP2: xScaleRef.current({ pixelToDate: dragPixelCopy.X2 }), priceP2: yScaleRef.current({ pixelToPrice: dragPixelCopy.Y2 })
-            }
-        }))
-
-        if (macroTickerInfo) { attemptToUpdateMacroTicker() }
-
-    }
-
-    function dragEdgeLineStarted(e, d)
-    {
-        editChartElementRef.current = { chartingElement: d, group: 'freeLines' }
-        if (select(this).attr('class') === 'edgeCircle1') 
+        if (e.sourceEvent.target.classList.contains('drawnLine'))
         {
+            genX1X2PixelSet(d)
+            initialLineDragSelection.current = 'drawnLine'
+            select(this).select('.drawnLine').attr('stroke', 'blue').attr('stroke-width', 15)
+        } else if (e.sourceEvent.target.classList.contains('edgeCircle1'))
+        {
+            initialLineDragSelection.current = 'edgeCircle1'
             dragPixelCopy.X1 = createDateScale({ dateToPixel: d.dateP1 });
             dragPixelCopy.Y1 = createPriceScale({ priceToPixel: d.priceP1 })
-        } else
+        } else if (e.sourceEvent.target.classList.contains('edgeCircle2'))
         {
+            initialLineDragSelection.current = 'edgeCircle2'
             dragPixelCopy.X2 = createDateScale({ dateToPixel: d.dateP2 });
             dragPixelCopy.Y2 = createPriceScale({ priceToPixel: d.priceP2 })
         }
     }
-    function draggedEdgeLine(e, d)
+    function draggedWholeLine(e, d)
     {
-        const parent = select(this.parentNode)
-
-        if (select(this).attr('class') === 'edgeCircle1')
+        const parent = select(this)
+        if (initialLineDragSelection.current === 'drawnLine')
+        {
+            genX1X2PixelChange(e, d)
+            parent.select('.drawnLine').attr('x1', dragPixelCopy.X1).attr('y1', dragPixelCopy.Y1)
+                .attr('x2', dragPixelCopy.X2).attr('y2', dragPixelCopy.Y2)
+            parent.select('.edgeCircle1').attr('cx', dragPixelCopy.X1).attr('cy', dragPixelCopy.Y1);
+            parent.select('.edgeCircle2').attr('cx', dragPixelCopy.X2).attr('cy', dragPixelCopy.Y2)
+        } else if (initialLineDragSelection.current === 'edgeCircle1')
         {
             dragPixelCopy.X1 = dragPixelCopy.X1 + e.dx;
             dragPixelCopy.Y1 = dragPixelCopy.Y1 + e.dy;
-            select(this).attr('cx', dragPixelCopy.X1).attr('cy', dragPixelCopy.Y1)
+            parent.select('.edgeCircle1').attr('cx', dragPixelCopy.X1).attr('cy', dragPixelCopy.Y1)
             parent.select('.drawnLine').attr('x1', dragPixelCopy.X1).attr('y1', dragPixelCopy.Y1)
-        } else
+        } else if (initialLineDragSelection.current === 'edgeCircle2')
         {
             dragPixelCopy.X2 = dragPixelCopy.X2 + e.dx;
             dragPixelCopy.Y2 = dragPixelCopy.Y2 + e.dy;
-            select(this).attr('cx', dragPixelCopy.X2).attr('cy', dragPixelCopy.Y2)
+            parent.select('.edgeCircle2').attr('cx', dragPixelCopy.X2).attr('cy', dragPixelCopy.Y2)
             parent.select('.drawnLine').attr('x2', dragPixelCopy.X2).attr('y2', dragPixelCopy.Y2)
         }
     }
-    function dragEdgeLineEnd(e, d)
+    function dragWholeLineEnded(e, d)
     {
-        const updatedLine = { ...d }
-        if (select(this).attr('class') === 'edgeCircle1')
+
+        if (initialLineDragSelection.current === 'drawnLine')
         {
+            select(this).select('.drawnLine').attr('stroke', 'black')
+            dispatch(updateLine({
+                ticker: tickerRef.current, update: {
+                    ...d, dateP1: xScaleRef.current({ pixelToDate: dragPixelCopy.X1 }), priceP1: yScaleRef.current({ pixelToPrice: dragPixelCopy.Y1 }),
+                    dateP2: xScaleRef.current({ pixelToDate: dragPixelCopy.X2 }), priceP2: yScaleRef.current({ pixelToPrice: dragPixelCopy.Y2 })
+                }
+            }))
+        } else if (initialLineDragSelection.current === 'edgeCircle1')
+        {
+            const updatedLine = { ...d }
             updatedLine.dateP1 = createDateScale({ pixelToDate: dragPixelCopy.X1 })
             updatedLine.priceP1 = createPriceScale({ pixelToPrice: dragPixelCopy.Y1 })
-        } else
+            dispatch(updateLine({ ticker: tickerRef.current, update: { ...updatedLine } }))
+
+        } else if (initialLineDragSelection.current === 'edgeCircle2')
         {
+            const updatedLine = { ...d }
             updatedLine.dateP2 = createDateScale({ pixelToDate: dragPixelCopy.X2 })
             updatedLine.priceP2 = createPriceScale({ pixelToPrice: dragPixelCopy.Y2 })
+
+            dispatch(updateLine({ ticker: tickerRef.current, update: { ...updatedLine } }))
+
         }
-
-        dispatch(updateLine({ ticker: tickerRef.current, update: { ...updatedLine } }))
-
         if (macroTickerInfo) { attemptToUpdateMacroTicker() }
-
     }
-    const dragBehaviorEdge = drag().on('start', dragEdgeLineStarted).on('drag', draggedEdgeLine).on('end', dragEdgeLineEnd)
+
+    // function dragEdgeLineStarted(e, d)
+    // {
+    //     editChartElementRef.current = { chartingElement: d, group: 'freeLines' }
+    //     if (select(this).attr('class') === 'edgeCircle1') 
+    //     {
+    //         dragPixelCopy.X1 = createDateScale({ dateToPixel: d.dateP1 });
+    //         dragPixelCopy.Y1 = createPriceScale({ priceToPixel: d.priceP1 })
+    //     } else
+    //     {
+    //         dragPixelCopy.X2 = createDateScale({ dateToPixel: d.dateP2 });
+    //         dragPixelCopy.Y2 = createPriceScale({ priceToPixel: d.priceP2 })
+    //     }
+    // }
+    // function draggedEdgeLine(e, d)
+    // {
+    //     const parent = select(this.parentNode)
+
+    //     if (select(this).attr('class') === 'edgeCircle1')
+    //     {
+    //         dragPixelCopy.X1 = dragPixelCopy.X1 + e.dx;
+    //         dragPixelCopy.Y1 = dragPixelCopy.Y1 + e.dy;
+    //         select(this).attr('cx', dragPixelCopy.X1).attr('cy', dragPixelCopy.Y1)
+    //         parent.select('.drawnLine').attr('x1', dragPixelCopy.X1).attr('y1', dragPixelCopy.Y1)
+    //     } else
+    //     {
+    //         dragPixelCopy.X2 = dragPixelCopy.X2 + e.dx;
+    //         dragPixelCopy.Y2 = dragPixelCopy.Y2 + e.dy;
+    //         select(this).attr('cx', dragPixelCopy.X2).attr('cy', dragPixelCopy.Y2)
+    //         parent.select('.drawnLine').attr('x2', dragPixelCopy.X2).attr('y2', dragPixelCopy.Y2)
+    //     }
+    // }
+    // function dragEdgeLineEnd(e, d)
+    // {
+    //     const updatedLine = { ...d }
+    //     if (select(this).attr('class') === 'edgeCircle1')
+    //     {
+    //         updatedLine.dateP1 = createDateScale({ pixelToDate: dragPixelCopy.X1 })
+    //         updatedLine.priceP1 = createPriceScale({ pixelToPrice: dragPixelCopy.Y1 })
+    //     } else
+    //     {
+    //         updatedLine.dateP2 = createDateScale({ pixelToDate: dragPixelCopy.X2 })
+    //         updatedLine.priceP2 = createPriceScale({ pixelToPrice: dragPixelCopy.Y2 })
+    //     }
+
+    //     dispatch(updateLine({ ticker: tickerRef.current, update: { ...updatedLine } }))
+
+    //     if (macroTickerInfo) { attemptToUpdateMacroTicker() }
+
+    // }
+    // const dragBehaviorEdge = drag().on('start', dragEdgeLineStarted).on('drag', draggedEdgeLine).on('end', dragEdgeLineEnd)
 
 
 

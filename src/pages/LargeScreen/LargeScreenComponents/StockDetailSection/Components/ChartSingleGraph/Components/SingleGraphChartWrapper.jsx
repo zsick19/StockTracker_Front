@@ -45,12 +45,11 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
 
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame, liveFeed: false, info: true, provideNews: true })
 
-    const interactionController = { isLivePrice: false, isInteractive: true, isZoomAble: true }
     let actualGraph
     if (isSuccess && data.candleData.length > 0)
     {
         actualGraph = <ChartWithChartingWrapper ticker={ticker}
-            interactionController={interactionController} candleData={data}
+            interactionController={{ isLivePrice: false, isInteractive: true, isZoomAble: true }} candleData={data}
             chartId={chartId} timeFrame={timeFrame} setTimeFrame={setTimeFrame}
             uuid={uuid} setChartInfoDisplay={setChartInfoDisplay} />
 
@@ -151,6 +150,36 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
         }
     }
 
+    useEffect(() =>
+    {
+        document.addEventListener('keydown', (e) => changeToolFromKeyPress(e))
+
+        function changeToolFromKeyPress(e)
+        {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+            e.preventDefault()
+            switch (e.key)
+            {
+                case 'a': dispatch(setTool(ChartingTools[0].tool)); break;
+                case 's': dispatch(setTool(ChartingTools[1].tool)); break;
+                case 'd': dispatch(setTool(ChartingTools[3].tool)); break;
+                case 'f': dispatch(setTool(ChartingTools[8].tool)); break;
+                case 'z': dispatch(setTool(ChartingTools[4].tool)); break;
+                case 'x': dispatch(setTool(ChartingTools[5].tool)); break;
+                case 'c': dispatch(setTool(ChartingTools[6].tool)); break;
+                case 'v': dispatch(setTool(ChartingTools[7].tool)); break;
+                case 't':
+                    if ((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered)
+                    { attemptInitiatingPlanTracking(); } break;
+                case 'b':
+                    if (chartId && chartingAltered.altered)
+                    { attemptSavingCharting(); } break;
+            }
+        }
+
+        return (() => { document.removeEventListener('keydown', changeToolFromKeyPress) })
+
+    }, [])
 
     return (
         <div id='LHS-SingleGraphForChartingWrapper'>
@@ -211,7 +240,8 @@ function SingleGraphChartWrapper({ ticker, subCharts, timeFrame, setTimeFrame, c
 
 
                 {/* <button title='Initiate Tracking' disabled={isEnterExitLoading} onClick={() => attemptInitiatingPlanTracking()}  ><Binoculars className='blinkingRed' size={20} /></button> */}
-                {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) && <button title='Initiate Tracking' disabled={isEnterExitLoading} onClick={() => attemptInitiatingPlanTracking()} ><Binoculars className='blinkingRed' size={20} color={isEnterExitLoading ? 'gray' : 'red'} /></button>}
+                {((chartingAltered.hasPlanCharted && !enterExitAltered) || enterExitAltered) && <button title='Initiate Tracking'
+                    disabled={isEnterExitLoading} onClick={() => attemptInitiatingPlanTracking()} ><Binoculars className='blinkingRed' size={20} color={isEnterExitLoading ? 'gray' : 'red'} /></button>}
             </div>
         </div>
     )

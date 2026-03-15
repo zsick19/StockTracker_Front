@@ -11,14 +11,18 @@ import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } fro
 import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
 import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
 
-function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, interactionController, chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs, macroTickerInfo })
+function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, interactionController,
+    chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs, macroTickerInfo })
 {
     const dispatch = useDispatch()
     const tickerForSearch = ticker?.ticker || ticker
     const chartIdForSearch = ticker?._id || chartId
 
 
-    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ tickerSymbol: ticker?.ticker || ticker, chartId: ticker?._id || chartId })
+    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({
+        tickerSymbol: ticker?.ticker || ticker,
+        chartId: ticker?._id || chartId
+    })
 
     useEffect(() =>
     {
@@ -51,9 +55,6 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
             dispatch(setEnterExitCharting(chartingData))
             dispatch(setKeyLevelsCharting(chartingData))
             dispatch(setPreviousCharting(chartingData))
-        } else if (isError)
-        {
-            console.log(error);
         }
 
     }, [chartingData])

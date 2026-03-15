@@ -90,9 +90,16 @@ function ConfirmedStatus()
     {
         if (directSearch.current.value === '') setTableFilters(prev => ({ ...prev, tickerSearch: undefined }))
     }
+
     function handlePickUpFromLastUncharted()
     {
-        if (pickUpUncharted) { dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: pickUpUncharted.ticker, chartingId: pickUpUncharted._id })) }
+        if (pickUpUncharted)
+        {
+            dispatch(setSingleChartTickerTimeFrameAndChartingId({
+                ticker: pickUpUncharted.ticker,
+                chartId: pickUpUncharted.chartId
+            }))
+        }
         dispatch(setStockDetailState(5))
     }
 

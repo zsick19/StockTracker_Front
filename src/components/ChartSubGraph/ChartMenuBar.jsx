@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import TimeFrameDropDown from '../ChartMenuDropDowns/TimeFrameDropDown'
 import StudySelectPopover from '../ChartMenuDropDowns/StudySelectPopover'
@@ -13,7 +13,7 @@ import ChartVisibilityDropDown from '../ChartMenuDropDowns/ChartVisibilityDropDo
 import DateFocusDropDown from '../ChartMenuDropDowns/DateFocusDropDown'
 import ChartOverlayDropDown from '../ChartMenuDropDowns/ChartOverlayDropDown'
 
-function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts, uuid })
+function ChartMenuBar({ ticker, keyBoardTimeFrameControl, setTimeFrame, timeFrame, subCharts, setSubCharts, uuid })
 {
     const dispatch = useDispatch()
     const [showTimeFrameSelect, setShowTimeFrameSelect] = useState(false)
@@ -48,6 +48,32 @@ function ChartMenuBar({ ticker, setTimeFrame, timeFrame, subCharts, setSubCharts
     {
         setSubCharts(subChartSubmission.sort((a, b) => a.localeCompare(b)))
     }
+
+    useEffect(() =>
+    {
+        if (keyBoardTimeFrameControl) { document.addEventListener('keydown', (e) => changeTimeFrameFromKeyPress(e)) }
+
+        function changeTimeFrameFromKeyPress(e)
+        {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+            e.preventDefault()
+            switch (e.key)
+            {
+                case 'q': setTimeFrame(defaultTimeFrames.threeDayOneMin); break;
+                case 'w': setTimeFrame(defaultTimeFrames.threeDayFifteenMin); break;
+                case 'e': setTimeFrame(defaultTimeFrames.dailyHalfYear); break;
+                case 'r': setTimeFrame(defaultTimeFrames.dailyOneYear)
+            }
+        }
+
+        return (() =>
+        {
+            document.removeEventListener('keydown', changeTimeFrameFromKeyPress)
+        })
+
+    }, [keyBoardTimeFrameControl])
+
+
 
     return <div className="ChartMenuBarContainer">
 

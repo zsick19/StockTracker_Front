@@ -35,6 +35,7 @@ function ChartSingleGraph()
     {
         if (nextDirection)
         {
+
             if (currentUnChartedTicker.current.ticker === selectedTicker.ticker)
             {
                 if (currentUnChartedTicker.next)
@@ -73,7 +74,7 @@ function ChartSingleGraph()
 
     return (
         <div id='LHS-SingleGraphForCharting'>
-            <ChartMenuBar ticker={selectedTicker.ticker} setTimeFrame={setTimeFrame} timeFrame={timeFrame} uuid={uuid} subCharts={subCharts} setSubCharts={setSubCharts} />
+            <ChartMenuBar ticker={selectedTicker.ticker} keyBoardTimeFrameControl={true} setTimeFrame={setTimeFrame} timeFrame={timeFrame} uuid={uuid} subCharts={subCharts} setSubCharts={setSubCharts} />
 
             {selectedTicker ?
                 <SingleGraphChartWrapper subCharts={subCharts} ticker={selectedTicker.ticker} chartId={selectedTicker.chartId} timeFrame={timeFrame} setTimeFrame={setTimeFrame} setChartInfoDisplay={setChartInfoDisplay} uuid={uuid} /> :
