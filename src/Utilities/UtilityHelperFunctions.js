@@ -71,3 +71,22 @@ export function processZoneString(inputString)
 
 
 }
+
+
+export function processStandardDailyExpectedMoves(inputString)
+{
+
+  const sections = inputString.split('\n');
+  let sample = sections.map(section => section.split(','))
+  return sample.map((t) =>
+  {
+    let sigma = Math.abs(((parseFloat(t[2]) - parseFloat(t[1])) / 2).toFixed(2))
+    return {
+      ticker: t[0],
+      iVolUpper: parseFloat(t[1]),
+      iVolLower: parseFloat(t[2]),
+      priorClose: parseFloat((parseFloat(t[1]) - (sigma)).toFixed(2)),
+      sigma
+    }
+  })
+}

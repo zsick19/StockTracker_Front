@@ -1,17 +1,19 @@
 import { min, max } from "d3"
 
-export const calculateEMADataPoints = (candleData, period) =>
+export const calculateEMADataPoints = (candleData, period, lastCandleData) =>
 {
     let emaArray = []
     let results = []
     var k = 2 / (period + 1);
     emaArray = [candleData[0].ClosePrice];
     for (var i = 1; i < candleData.length; i++) { emaArray.push(candleData[i].ClosePrice * k + emaArray[i - 1] * (1 - k)); }
-    let emaLength = emaArray.length
-    for (var i = 0; i < emaLength - 1; i++)
+
+    for (var i = 0; i < emaArray.length; i++) { results.push({ date: candleData[i].Timestamp, value: emaArray[i] }); }
+
+    if (lastCandleData)
     {
-        if (i > emaLength - 50) results.push({ date: candleData[i].Timestamp, value: emaArray[i] })
-        else if (i % 5 === 0) results.push({ date: candleData[i].Timestamp, value: emaArray[i] });
+        let emaValue = lastCandleData.ClosePrice * k + (emaArray.at(-1) * (1 - k))
+        results.push({ date: lastCandleData.Timestamp, value: emaValue })
     }
 
     return results
@@ -265,25 +267,25 @@ export function calculateCorrelation(dataA, dataB, window = 20)
         result.push({ x: dataA[i - 1].Timestamp, y: corr.toFixed(2) });
     }
     return result;
-}
 
-function calculatePearson(a, b)
-{
-    const n = a.length;
-    const meanA = a.reduce((s, v) => s + v) / n;
-    const meanB = b.reduce((s, v) => s + v) / n;
-    let num = 0, denA = 0, denB = 0;
-    for (let i = 0; i < n; i++)
+
+    function calculatePearson(a, b)
     {
-        const dA = a[i] - meanA, dB = b[i] - meanB;
-        num += dA * dB;
-        denA += dA ** 2;
-        denB += dB ** 2;
+        const n = a.length;
+        const meanA = a.reduce((s, v) => s + v) / n;
+        const meanB = b.reduce((s, v) => s + v) / n;
+        let num = 0, denA = 0, denB = 0;
+        for (let i = 0; i < n; i++)
+        {
+            const dA = a[i] - meanA, dB = b[i] - meanB;
+            num += dA * dB;
+            denA += dA ** 2;
+            denB += dB ** 2;
+        }
+        return num / Math.sqrt(denA * denB) || 0;
     }
-    return num / Math.sqrt(denA * denB) || 0;
+
 }
-
-
 
 
 export function calculateStochastic(chartingData, timeBlock = 14)
@@ -389,6 +391,32 @@ export function stochasticCalc(candleData, kPeriod = 14, dPeriod = 3)
 
     return stochasticValues.slice(2);
 }
+
+
+export function calculateStockStandardDeviation(prices)
+{
+    if (!prices || prices.length === 0) return 0;
+
+    // 1. Calculate the mean (average price)
+    const n = prices.length;
+    const mean = prices.reduce((sum, price) => sum + price, 0) / n;
+
+    // 2. Calculate the sum of squared differences from the mean
+    const squaredDifferencesSum = prices.reduce((sum, price) =>
+    {
+        const diff = price - mean;
+        return sum + (diff * diff);
+    }, 0);
+
+    // 3. Calculate variance (average of squared differences)
+    // Use (n - 1) for sample standard deviation or (n) for population
+    const variance = squaredDifferencesSum / n;
+
+    // 4. Return the square root of the variance
+    return Math.sqrt(variance);
+}
+
+
 
 
 

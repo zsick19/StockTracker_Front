@@ -22,7 +22,7 @@ function MacroChartingGraph()
         switch (macroChartInfoDisplay)
         {
             case 0:
-                return (<div className='macroInfoDisplay'>
+                return (<div>
                     General Info Goes here
                 </div>)
                 break;
@@ -51,8 +51,9 @@ function MacroChartingGraph()
                     /> : <div>No chart selected</div>}
             </div>
 
-
-            {provideMacroChartInfoDisplay()}
+            <div className='macroInfoDisplay'>
+                {provideMacroChartInfoDisplay()}
+            </div>
 
 
         </div>

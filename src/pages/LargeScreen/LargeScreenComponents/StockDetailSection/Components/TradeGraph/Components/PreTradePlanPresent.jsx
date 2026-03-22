@@ -99,8 +99,8 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
         if (tradeRecordDetails.purchasePrice > (selectedStock.plan.mostRecentPrice * 1.2) || tradeRecordDetails.purchasePrice < (selectedStock.plan.mostRecentPrice * 0.8)) return
         else setShowConfirmTradeValues(true)
     }
-
-
+    
+    
     return (
         <>
             {serverTradeResponse ? <TradeRecordedVisual serverTradeResponse={serverTradeResponse} /> :

@@ -22,6 +22,7 @@
 }
 
 .PreTradePositionSplitContainer > div {
+  max-height: 550px;
   display: flex;
   flex-direction: column;
   text-align: center;

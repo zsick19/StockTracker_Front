@@ -30,16 +30,18 @@ const selectedStockSlice = createSlice({
         {
             return [
                 { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.threeDayOneMin, trade: action.payload?.trade, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
-                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyMonth, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
+                { ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyHalfYear, chartId: action.payload?.chartId, tickerSector: action.payload?.tickerSector },
                 { ticker: action.payload.sectorTickerSymbol, timeFrame: defaultTimeFrames.threeDayOneMin, chartId: action.payload?.sectorChartId, tickerSector: action.payload?.tickerSector },
-                { ticker: action.payload.sectorTickerSymbol, timeFrame: defaultTimeFrames.dailyMonth, chartId: action.payload?.sectorChartId, tickerSector: action.payload?.tickerSector },
+                { ticker: action.payload.sectorTickerSymbol, timeFrame: defaultTimeFrames.dailyQuarter, chartId: action.payload?.sectorChartId, tickerSector: action.payload?.tickerSector },
             ]
         },
         setSingleChartTickerTimeFrameAndChartingId: (state, action) =>
         {
 
-            return [{ ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear, 
-                chartId: action.payload.chartId, tickerSector: action.payload?.tickerSector }]
+            return [{
+                ticker: action.payload.ticker, timeFrame: defaultTimeFrames.dailyOneYear,
+                chartId: action.payload.chartId, tickerSector: action.payload?.tickerSector
+            }]
         },
         setSingleChartTickerTimeFrameChartIdPlanIdForTrade: (state, action) =>
         {
