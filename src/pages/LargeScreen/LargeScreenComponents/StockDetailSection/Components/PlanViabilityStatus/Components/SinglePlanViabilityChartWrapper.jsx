@@ -29,7 +29,7 @@ function SinglePlanViabilityChartWrapper({ id, watchList, candleData, selectedPl
                 {candleData &&
                     <ChartWithoutPlanFetchChartingWrapper ticker={id} uuid={uuid} candleData={{ candleData: candleData }}
                         interactionController={{ isLivePrice: false, isInteractive: false, isZoomAble: true }}
-                        chartId={plan._id} timeFrame={defaultTimeFrames.threeDayOneMin}
+                        chartId={plan._id} timeFrame={defaultTimeFrames.dailyMonth}
                         planData={{ ...plan.plan, initialTrackingPrice: plan.initialTrackingPrice }} mostRecentPrice={plan.mostRecentPrice} />
                 }
             </div>

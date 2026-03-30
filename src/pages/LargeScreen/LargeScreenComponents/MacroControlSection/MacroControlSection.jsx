@@ -103,7 +103,7 @@ function MacroControlSection()
         <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} incomingTF={defaultTimeFrames.threeDayOneMin} />
 
         {showMacroKeyLevelDisplay === 0 ?
-          <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyQuarter} /> :
+          <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyHalfYear} /> :
           showMacroKeyLevelDisplay === 1 ?
             <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
             <ZonesInputForm setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} />

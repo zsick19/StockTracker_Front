@@ -1,5 +1,6 @@
 import './ActiveTradeSection.css'
 import ActiveTradeAndWatchList from './Components/ActiveTradeAndWatchList/ActiveTradeAndWatchList';
+import MessageNewsCenter from './Components/ActiveTradeAndWatchList/MessageNewsCenter/MessageNewsCenter';
 import MessageCenterContainer from './Components/MessageCenter/MessageCenterContainer';
 import NewsCenterContainer from './Components/NewsCenter/NewsCenterContainer';
 
@@ -11,6 +12,8 @@ function ActiveTradeSection()
       <NewsCenterContainer />
       <MessageCenterContainer />
     </div>
+
+    {/* <MessageNewsCenter /> */}
 
     <ActiveTradeAndWatchList />
   </section>;

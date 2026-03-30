@@ -22,7 +22,7 @@ function SingleWatchListTicker({ tickerId, setPrimaryChartTicker, setSecondaryCh
             {
                 dispatch(setSingleChartTickerTimeFrameAndChartingId({ ticker: item.ticker, chartId: item._id }));
                 dispatch(setStockDetailState(15))
-            }}>${item.mostRecentPrice.toFixed(2)}</p>
+            }}>${item.mostRecentPrice?.toFixed(2)}</p>
             <p>{item.currentDayPercentGain.toFixed(2)}%</p>
             {isDeleteAble && <button onClick={(e) => { e.stopPropagation(); attemptRemoveTickerFromWatchList(item) }}><CircleMinus size={16} color='white' /></button>}
         </div>

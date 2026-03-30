@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   padding-inline: 1rem;
-  justify-content: space-between;
+  justify-content: space-around;
 }
 
 #LHS-AccountPLVisual p {

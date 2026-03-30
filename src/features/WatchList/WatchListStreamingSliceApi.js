@@ -142,6 +142,8 @@ const selectMacroData = createSelector(selectMacroResults, (macroResults) => mac
 
 export const { selectMacroById } = singleTickerAdapter.getSelectors(state => selectMacroData(state) ?? undefined)
 
+
+
 export const isTickerMacro = () => createSelector(
     [selectMacroResults, (state, ticker) => ticker],
     (stream, ticker) =>

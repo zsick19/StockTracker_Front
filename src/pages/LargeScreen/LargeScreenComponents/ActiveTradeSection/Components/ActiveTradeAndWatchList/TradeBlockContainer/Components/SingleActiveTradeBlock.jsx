@@ -11,6 +11,7 @@ import { selectMacroTickersAndChartIds } from '../../../../../../../../features/
 import MiniGraphChartWrapper from './MiniGraphChartWrapper'
 import { sectorToTicker } from '../../../../../../../../Utilities/SectorsAndIndustries'
 import CashOutMessage from './CashOutMessage'
+import MiniFiveMinChart from '../../../../../StockDetailSection/Components/TinyPreWatch/Components/MiniFiveMinChart'
 
 function SingleActiveTradeBlock({ id })
 {
@@ -51,15 +52,19 @@ function SingleActiveTradeBlock({ id })
         dispatch(setSingleChartToTickerTimeFrameTradeId({ tickerSymbol: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
     }
 
-    async function liquidateFullPosition()
+
+    async function liquidateFullPosition(priceFromCashOutMessage)
     {
-        let price = parseFloat(liquidatePrice.current.value)
+
+        let price
+        if (priceFromCashOutMessage) { price = priceFromCashOutMessage }
+        else parseFloat(liquidatePrice.current.value)
 
         if (!price || price > (activeTrade.mostRecentPrice * 1.2) || price < (activeTrade.mostRecentPrice * 0.8)) return
 
         try
         {
-            let results = await alterTradeRecord({
+            await alterTradeRecord({
                 action: 'closeAll',
                 tickerSymbol: activeTrade.tickerSymbol,
                 tradeId: activeTrade._id,
@@ -75,8 +80,11 @@ function SingleActiveTradeBlock({ id })
 
 
     return (<>
-        {totalMove < -50 ?
-            <CashOutMessage activeTrade={activeTrade} /> : showMiniGraph ? <MiniGraphChartWrapper setShowMiniGraph={setShowMiniGraph} activeTrade={activeTrade} /> :
+        {false ?
+            // {totalMove < -50 ?
+            <CashOutMessage activeTrade={activeTrade} liquidateFullPosition={liquidateFullPosition} /> :
+
+            showMiniGraph ? <MiniGraphChartWrapper setShowMiniGraph={setShowMiniGraph} activeTrade={activeTrade} /> :
                 <div className={`LSH-ActiveTradeBlock ${activeTrade.classVisual}`}>
                     <div className='VerticalPlanDiagrams'>
                         <VerticalPlanDiagram idealPrices={activeTrade.tradingPlanPrices} currentPrice={activeTrade.mostRecentPrice} />
@@ -89,7 +97,7 @@ function SingleActiveTradeBlock({ id })
                             <div className='PriceTickerInfo'>
                                 <h2 onClick={() => { setShowTradeOptions(prev => !prev); }}>{activeTrade.tickerSymbol}</h2>
                                 <div className='PriceMovementPerTrade' onClick={() => handleStockToTradeChart()}>
-                                    <h2 className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>${activeTrade.mostRecentPrice.toFixed(2)}</h2>
+                                    <h2 className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>${activeTrade.mostRecentPrice.toFixed(activeTrade.mostRecentPrice > 1 ? 2 : 4)}</h2>
                                     {activeTrade.priceDirection === 'negativeDirection' && < ChevronDown size={18} color='red' />}
                                     {activeTrade.priceDirection === 'positiveDirection' && <ChevronUp size={18} color='green' />}
                                 </div>
@@ -192,8 +200,8 @@ function SingleActiveTradeBlock({ id })
                                     <p>{activeTrade.availableShares}</p>
                                 </div>
                                 <div onClick={() => setShowPositionInfo(2)}>
-                                    <p>Market Value</p>
-                                    <p>${(activeTrade.availableShares * activeTrade.mostRecentPrice).toFixed(2)}</p>
+                                    <MiniFiveMinChart candleData={activeTrade.dailyCandles}
+                                        direction={activeTrade.mostRecentPrice > activeTrade.openPrice} openPrice={activeTrade.openPrice} stopLossPrice={activeTrade.tradingPlanPrices[0]} />
                                 </div>
                             </div> :
                             showPositionInfo === 1 ?

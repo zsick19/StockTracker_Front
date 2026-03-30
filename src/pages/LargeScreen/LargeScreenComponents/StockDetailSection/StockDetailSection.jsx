@@ -11,11 +11,12 @@ import ConfirmedStatus from './Components/ConfirmedStatus/ConfirmedStatus';
 import EnterExitTradeGraph from './Components/TradeGraph/EnterExitTradeGraph';
 import TradingJournal from './Components/TradingJournal/TradingJournal';
 import PreWatchMany from './Components/PrewatchMany/PrewatchMany';
-import { Binoculars, ChartCandlestick, Expand, ListChecks, ListTodo, NotebookPen, PencilRuler, PiggyBank, SpellCheck } from 'lucide-react';
+import { Binoculars, ChartCandlestick, ClockArrowUp, Expand, ListChecks, ListTodo, NotebookPen, PencilRuler, PiggyBank, SpellCheck } from 'lucide-react';
 import PlanStatusView from './Components/PlanStatusView/PlanStatusView';
 import SyncWithBackendVisual from './Components/SyncVisual/SyncWithBackendVisual';
 import BestPositionSplit from './Components/BestPositionSplit/BestPositionSplit';
 import MacroChartingGraph from './Components/MacroChartingGraph/MacroChartingGraph';
+import TinyPreWatch from './Components/TinyPreWatch/TinyPreWatch';
 
 function StockDetailSection()
 {
@@ -41,8 +42,8 @@ function StockDetailSection()
       case 3: return <ConfirmedStatus />
       case 4: return <PlanViabilityStatus />
       case 5: return <ChartSingleGraph />
-      case 6: return <PreWatchMany watchList={0} />
-      case 11: return <PreWatchMany watchList={1} />
+      case 6: return <PreWatchMany watchList={1} />
+      case 11: return <PreWatchMany watchList={0} />
       case 12: return <PreWatchMany watchList={2} />
       case 13: return <PreWatchMany watchList={3} />
       case 7: return <PlanStatusView />
@@ -51,6 +52,7 @@ function StockDetailSection()
       case 10: return <SyncWithBackendVisual />
       case 14: return <BestPositionSplit />
       case 15: return <MacroChartingGraph />
+      case 16: return <TinyPreWatch />
     }
   }
 
@@ -59,6 +61,7 @@ function StockDetailSection()
   return (
     <section id="StockDetailSection">
       <nav>
+        <button onClick={() => dispatch(setStockDetailState(16))}><ClockArrowUp color='yellow' /><p>5 Min Watch</p></button>
         <button onClick={() => dispatch(setStockDetailState(1))}><Binoculars color='green' /><p>Market Search</p></button>
         <button onClick={() => dispatch(setStockDetailState(2))}><ListTodo color='green' /><p>Double Check</p></button>
         <button onClick={() => dispatch(setStockDetailState(3))}><ListChecks color='pink' /><p>Confirmed</p></button>
@@ -67,7 +70,6 @@ function StockDetailSection()
         <button onClick={() => dispatch(setStockDetailState(7))}><PiggyBank color='pink' /><p>Plans</p></button>
         <button onClick={() => dispatch(setStockDetailState(14))}><ChartCandlestick color='yellow' /><p>Best Positions</p></button>
         <button onClick={() => dispatch(setStockDetailState(9))}><NotebookPen color='green' /><p>Trading Journal</p></button>
-        <button onClick={() => dispatch(setStockDetailState(0))}><Expand color='yellow' /><p>Four Graph</p></button>
       </nav>
       {provideDetailContent()}
     </section>

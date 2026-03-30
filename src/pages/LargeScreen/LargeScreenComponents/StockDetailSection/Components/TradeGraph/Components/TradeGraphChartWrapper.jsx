@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
 import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
@@ -14,7 +14,7 @@ import { selectCurrentTool } from '../../../../../../../features/Charting/Charti
 import { selectChartEditMode, setChartEditMode } from '../../../../../../../features/Charting/EditChartSelection'
 import CorrelationSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/CorrelationSubChart'
 
-function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, showEMAs, subCharts })
+function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, showEMAs, subCharts, setSubCharts })
 {
 
     const dispatch = useDispatch()
@@ -25,13 +25,10 @@ function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, 
     let chartContent
     if (isSuccess && data.candleData.length > 0)
     {
-        chartContent =
-
-            <ChartWithChartingWrapper ticker={selectedStock.tickerSymbol} candleData={data}
-                interactionController={{ isLivePrice: true, isInteractive: true, isZoomAble: true }}
-                candlesToKeepSinceLastQuery={data.candlesToKeepSinceLastQuery} chartId={selectedStock.chartId}
-                timeFrame={timeFrame} setTimeFrame={setTimeFrame} uuid={uuid} lastCandleData={data.mostRecentTickerCandle} showEMAs={showEMAs} />
-
+        chartContent = <ChartWithChartingWrapper ticker={selectedStock.tickerSymbol} candleData={data}
+            interactionController={{ isLivePrice: true, isInteractive: true, isZoomAble: true }}
+            candlesToKeepSinceLastQuery={data.candlesToKeepSinceLastQuery} chartId={selectedStock.chartId}
+            timeFrame={timeFrame} setTimeFrame={setTimeFrame} uuid={uuid} lastCandleData={data.mostRecentTickerCandle} showEMAs={showEMAs} />
 
     } else if (isSuccess) { chartContent = <div>No Data To Display for this ticker</div> }
     else if (isLoading) { chartContent = <GraphLoadingSpinner /> }
@@ -52,6 +49,10 @@ function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, 
         })
     }
 
+    useEffect(() =>
+    {
+        if (isSuccess) setSubCharts(['rsi'])
+    }, [data])
 
     return (
         <div id='LHS-TradeChartWrapper'>

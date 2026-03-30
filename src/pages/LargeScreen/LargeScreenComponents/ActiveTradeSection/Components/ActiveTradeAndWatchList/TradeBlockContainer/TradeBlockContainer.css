@@ -40,6 +40,15 @@
   border: 1px solid white;
   width: 100%;
 }
+.LSH-CashOutMessage {
+  background-color: rgba(0, 0, 0, 0.521);
+  height: 275px;
+  border-radius: 10px;
+  padding: 1rem;
+
+  border: 1px solid white;
+  width: 100%;
+}
 
 .VerticalPlanDiagrams {
   display: flex;
@@ -192,4 +201,8 @@
 .TradeBlockMiniChart svg {
   height: 100%;
   width: 100%;
+}
+
+.TinyTradeChart {
+  height: 100%;
 }

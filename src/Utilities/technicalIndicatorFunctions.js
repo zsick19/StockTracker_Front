@@ -70,6 +70,162 @@ export function rsiCalc(chartingData, period = 14)
     return rsiValues.slice(period);
 }
 
+export function calculateCurrentRSI(chartingData, lastCandleData, period = 14)
+{
+    if (chartingData.length <= period) return null;
+
+    // Extract closing prices
+    const prices = chartingData.map(c => c.ClosePrice);
+    prices.push(lastCandleData.ClosePrice)
+    let gains = 0;
+    let losses = 0;
+
+    // 1. Initial Average: First 'period' intervals
+    for (let i = 1; i <= period; i++)
+    {
+        const diff = prices[i] - prices[i - 1];
+        if (diff >= 0) gains += diff;
+        else losses -= diff;
+    }
+
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+
+    // 2. Wilder's Smoothing: Remaining intervals up to the latest
+    for (let i = period + 1; i < prices.length; i++)
+    {
+        const diff = prices[i] - prices[i - 1];
+        const currentGain = diff >= 0 ? diff : 0;
+        const currentLoss = diff < 0 ? -diff : 0;
+
+        avgGain = (avgGain * (period - 1) + currentGain) / period;
+        avgLoss = (avgLoss * (period - 1) + currentLoss) / period;
+    }
+
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+}
+
+/**
+ * Calculates traditional cumulative VWAP from Alpaca bar data.
+ * @param {Array} bars - Array of Alpaca bar objects { t, vw, v, ... }
+ * @returns {Array} - The bars array with an added 'cumulativeVwap' property
+ */
+export function calculateTraditionalVWAP(bars, mostRecentBar)
+{
+    let cumulativeDollarVolume = 0;
+    let cumulativeVolume = 0;
+    let lastDate = null;
+
+    let result = []
+    return bars.map(bar =>
+    {
+        const currentDate = new Date(bar.Timestamp).toDateString();
+
+        // Reset cumulative totals if it's a new trading day
+        if (lastDate !== null && currentDate !== lastDate)
+        {
+            cumulativeDollarVolume = 0;
+            cumulativeVolume = 0;
+        }
+        lastDate = currentDate;
+
+        // Standard formula: (Bar VWAP * Bar Volume)
+        // Alpaca's 'vw' is the pre-calculated typical price/avg for that bar
+        const barDollarVolume = bar.VWAP * bar.Volume;
+
+        cumulativeDollarVolume += barDollarVolume;
+        cumulativeVolume += bar.Volume;
+
+        // Add traditional VWAP value to the bar object
+        result.push({
+            Timestamp: bar.Timestamp,
+            traditionalVWAP: cumulativeVolume > 0 ? (cumulativeDollarVolume / cumulativeVolume) : bar.VWAP
+        });
+
+        if (mostRecentBar)
+        {
+            const currentDate = new Date(mostRecentBar.Timestamp).toDateString();
+
+            // Reset cumulative totals if it's a new trading day
+            if (lastDate !== null && currentDate !== lastDate)
+            {
+                cumulativeDollarVolume = 0;
+                cumulativeVolume = 0;
+            }
+            lastDate = currentDate;
+
+            // Standard formula: (Bar VWAP * Bar Volume)
+            // Alpaca's 'vw' is the pre-calculated typical price/avg for that bar
+            const barDollarVolume = mostRecentBar.VWAP * mostRecentBar.Volume;
+
+            cumulativeDollarVolume += barDollarVolume;
+            cumulativeVolume += bar.Volume;
+
+            // Add traditional VWAP value to the bar object
+            result.push({
+                Timestamp: mostRecentBar.Timestamp,
+                traditionalVWAP: cumulativeVolume > 0 ? (cumulativeDollarVolume / cumulativeVolume) : mostRecentBar.VWAP
+            });
+        }
+        return result
+    });
+}
+
+
+/**
+ * Generates Anchored VWAP values starting from a specific date.
+ * @param {string|Date} anchorDate - The date to start the VWAP calculation.
+ * @param {Array} candles - Array of candlestick objects.
+ * @returns {Array} - The candles with an added 'avwap' property.
+ */
+export function calculateAnchoredVWAP(anchorDate, candles)
+{
+    const anchorTime = new Date(anchorDate).getTime();
+    let cumulativePV = 0;
+    let cumulativeVolume = 0;
+    let started = false;
+
+    return candles.map(candle =>
+    {
+        const currentTime = new Date(candle.Timestamp).getTime();
+
+        // Start accumulating once we reach or pass the anchor date
+        if (!started && currentTime >= anchorTime) { started = true; }
+
+        if (started)
+        {
+            // 1. Calculate Typical Price: (H + L + C) / 3
+            const typicalPrice = (candle.HighPrice + candle.LowPrice + candle.ClosePrice) / 3;
+
+            // 2. Accumulate Price * Volume
+            cumulativePV += typicalPrice * candle.Volume;
+
+            // 3. Accumulate Total Volume
+            cumulativeVolume += candle.Volume;
+
+            // 4. Result = Cumulative PV / Cumulative Volume
+            return {
+                Timestamp:candle.Timestamp,
+                avwap: cumulativeVolume !== 0 ? (cumulativePV / cumulativeVolume) : null
+            };
+        }
+
+        // Return candle without AVWAP if before the anchor date
+        return { ...candle, avwap: null };
+    });
+}
+
+
+
+
+
+
+
+
+
+
 export function MACDCalc(chartingData, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9)
 {
     const prices = chartingData.map(d => d.ClosePrice)

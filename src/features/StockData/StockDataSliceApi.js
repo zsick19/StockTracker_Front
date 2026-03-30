@@ -22,7 +22,6 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
           response.mostRecentTickerCandle.ClosePrice = response.mostRecentPrice.Price
           response.mostRecentTickerCandle.Timestamp = response.mostRecentTickerCandle.Timestamp
 
-          response.candlesToKeepSinceLastQuery = []
           response.mostRecentPrice = response.mostRecentPrice.Price
         }
         return response
@@ -62,7 +61,6 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
                 {
                   let copyOfClosingCandle = draft.mostRecentTickerCandle
                   draft.candleData.push(draft.mostRecentTickerCandle)
-                  // draft.candlesToKeepSinceLastQuery.push(draft.mostRecentTickerCandle)
                   if (data.Price >= copyOfClosingCandle.ClosePrice) 
                   {
                     draft.mostRecentTickerCandle = {
@@ -139,17 +137,102 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
           body: { tickerGroup: nextBatch }
         }
       },
+      keepUnusedDataFor: 15,
+      transformResponse: (response, meta, args) =>
+      {
+        let results = response.map((ticker) =>
+        {
+
+          ticker.mostRecentTickerCandle = ticker.candleData.pop()
+
+          ticker.mostRecentTickerCandle.ClosePrice = ticker.mostRecentPrice
+          // ticker.mostRecentTickerCandle.Timestamp = ticker.mostRecentTickerCandle.Timestamp
+
+          // ticker.mostRecentPrice = ticker.mostRecentPrice
+          return ticker
+        })
+
+        return results
+      },
+      async onCacheEntryAdded(args, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
+      {
+        const userId = getState().auth.userId
+        const ws = getWebSocket(userId, `TickerGroupPreWatch`)
+
+        const incomingTradeListener = (data) =>
+        {
+          updateCachedData((draft) =>
+          {
+
+            for (const page of draft.pages)
+            {
+              const itemIndex = page.findIndex(item => item.ticker === data.tickerSymbol)
+              if (itemIndex != -1)
+              {
+                page[itemIndex].mostRecentPrice = data.tradePrice
+                let itemMostRecentCandle = page[itemIndex].mostRecentTickerCandle
+
+                if (itemMostRecentCandle.OpenPrice < data.tradePrice)
+                {
+                  //if price is greater than open//compare high...if greater than high--->set close and high to be price
+                  //if less than high set close to be price
+                  if (data.Price > itemMostRecentCandle.HighPrice) { itemMostRecentCandle.HighPrice = data.tradePrice }
+                } else 
+                {
+                  //if price is less than open//compare low...if less than low-->set close and low to be price
+                  // //if greater than low set close to be price
+                  if (data.Price < itemMostRecentCandle.LowPrice) { itemMostRecentCandle.LowPrice = data.tradePrice }
+                }
+
+                itemMostRecentCandle.ClosePrice = data.tradePrice
+
+                page[itemIndex].mostRecentTickerCandle = itemMostRecentCandle
+                break;
+              }
+            }
+          })
+        }
+
+        const connectionId = short.generate()
+        try
+        {
+          await cacheDataLoaded
+          subscribe('enterExitWatchListPrice', incomingTradeListener, 'tickerGroupPreWatch', undefined, connectionId)
+        } catch (error)
+        {
+          await cacheEntryRemoved
+          unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'tickerGroupPreWatch', undefined, connectionId)
+        }
+
+        await cacheEntryRemoved
+        unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'tickerGroupPreWatch', undefined, connectionId)
+
+      },
+      providesTags: (result, error, args) => [{ type: 'preWatchGroup' }]
     }),
     getStockAverageTrueRange: builder.query({
       query: (args) => ({
         url: `/stockData/atr/${args.ticker}`
       }),
       keepUnusedDataFor: 28800 //8 hours
+    }),
+    getWatchListFiveMinCharts: builder.query({
+      query: (args) =>
+      {
+        if (args.tickers.length === 0) return
+        else return ({
+          url: `/stockData/watchlist?minIncrement=${args.minIncrement}`,
+          method: "POST",
+          body: args.tickers
+        })
+      }
     })
   }),
 });
 
 export const { useGetStockDataUsingTimeFrameQuery,
   useGetGroupedBy12StockDataInfiniteQuery,
-  useGetStockAverageTrueRangeQuery
+  useGetStockAverageTrueRangeQuery,
+  useGetWatchListFiveMinChartsQuery
+
 } = StockDataApiSlice;

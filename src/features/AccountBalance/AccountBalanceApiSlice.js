@@ -10,7 +10,7 @@ export const AccountBalanceApiSlice = apiSlice.injectEndpoints({
         }),
         updateAccountRiskThreshold: builder.mutation({
             query: (args) => ({
-                url: `/user/account/riskThreshold?risk=${args.risk}`
+                url: `/user/account/riskThreshold?risk=${args.risk}&maxLossDollar=${args.maxLossDollar}&maxLossPercent=${args.maxLossPercent}&deposit=${args.deposit}`
             }),
             invalidatesTags: ['accountBalance']
         })

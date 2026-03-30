@@ -21,7 +21,8 @@ function EnterExitTradeGraph()
     const dispatch = useDispatch()
 
     const selectedStock = useSelector(selectTradeChartStock)
-    const [timeFrame, setTimeFrame] = useState(selectedStock?.timeFrame || defaultTimeFrames.threeDayOneMin)
+
+    const [timeFrame, setTimeFrame] = useState(defaultTimeFrames.dailyHalfYear)
     const uuid = useMemo(() => short.generate(), [])
 
     useEffect(() =>
@@ -55,14 +56,16 @@ function EnterExitTradeGraph()
             {showSupportingTickers ? <FourWayGraphWrapper selectedStock={selectedStock} /> :
                 <>
                     <ChartMenuBar ticker={selectedStock?.tickerSymbol} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} timeFrame={timeFrame} uuid={uuid} setShowEMAs={setShowEMAs} />
-                    {selectedStock ? <TradeGraphChartWrapper selectedStock={selectedStock} subCharts={subCharts} uuid={uuid} timeFrame={timeFrame} setTimeFrame={setTimeFrame} showEMAs={showEMAs} /> : <div></div>}
+                    {selectedStock ?
+                        <TradeGraphChartWrapper selectedStock={selectedStock} subCharts={subCharts} setSubCharts={setSubCharts}
+                            uuid={uuid} timeFrame={timeFrame} setTimeFrame={setTimeFrame} showEMAs={showEMAs} /> : <div></div>}
                 </>
             }
 
             <div id='LHS-PlanPresentBeforeTrade'>
                 {selectedStock?.planId ?
-                    selectedStock?.trade ? 
-                    <TradePresent selectedStock={selectedStock} setShowSupportingTickers={setShowSupportingTickers} /> :
+                    selectedStock?.trade ?
+                        <TradePresent selectedStock={selectedStock} setShowSupportingTickers={setShowSupportingTickers} /> :
                         <PreTradePlanPresent selectedStock={selectedStock} setShowSupportingTickers={setShowSupportingTickers} />
                     : <div>
                         <p>No plan set for this ticker</p>

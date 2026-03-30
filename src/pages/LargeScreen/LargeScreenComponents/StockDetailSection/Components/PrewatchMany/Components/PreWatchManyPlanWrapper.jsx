@@ -19,11 +19,10 @@ function PreWatchManyPlanWrapper({ ids, watchList })
     };
 
 
-
     return (
         <div onScroll={handleScroll} id='PreWatchManyChartsWrapper' className='hide-scrollbar'>
             {totalIdsPreWatch > 0 ? <>
-                {candleStockData.map(item => <SinglePreWatchChartWrapper id={item.ticker} watchList={watchList} candleData={item.candleData} />)}
+                {candleStockData.map(item => <SinglePreWatchChartWrapper id={item.ticker} watchList={watchList} candleData={item.candleData} lastCandleData={item.mostRecentTickerCandle} mostRecentPrice={item.mostRecentPrice} />)}
                 {isFetchingNextPage && <div>Loading more...</div>}
             </>
                 : <div>Currently No Plans</div>}

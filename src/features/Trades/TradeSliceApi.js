@@ -15,6 +15,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             }),
             transformResponse: (response) =>
             {
+
                 let tradeResponse = response.activeTrades.map((trade) =>
                 {
                     trade.id = trade.tickerSymbol
@@ -22,7 +23,8 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     trade.previousClose = response.previousClose[trade.tickerSymbol]
 
 
-
+                    trade.dailyCandles = response.dailyCandles[trade.tickerSymbol]
+                    trade.openPrice = response.openPrice[trade.tickerSymbol]
 
                     trade.percentOfGain = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * 100)
                     trade.gainPerShare = trade.mostRecentPrice - trade.averagePurchasePrice

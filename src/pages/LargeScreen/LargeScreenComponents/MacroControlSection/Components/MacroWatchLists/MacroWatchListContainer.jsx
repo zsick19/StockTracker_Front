@@ -20,7 +20,7 @@ function MacroWatchListContainer({ setPrimaryChartTicker, setSecondaryChartTicke
     }
 
     return (
-        <div id='LSH-MacroWatchListContainer'>
+        <div id='LSH-MacroWatchListContainer' className='hide-scrollbar'>
             {watchListVisual}
         </div>
     )

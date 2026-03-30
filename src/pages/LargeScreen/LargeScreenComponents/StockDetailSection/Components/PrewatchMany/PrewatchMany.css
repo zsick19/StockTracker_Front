@@ -1,16 +1,23 @@
+#PreWatchMany {
+  text-align: center;
+  background-color: rgb(13, 18, 66);
+  padding-inline: 1rem;
+  border-radius: 10px;
+}
 #PreWatchManyChartsWrapper {
   display: grid;
   height: 1050px;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   overflow-y: scroll;
-  gap: 1rem;
+
+  gap: 2rem;
   padding-bottom: 1rem;
 }
 
 .SinglePreWatchChartBlock {
   height: 300px;
-  background-color: rgb(15, 15, 95);
+  background-color: rgb(47, 47, 173);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -33,7 +40,7 @@
 
 .PreWatchChartBlockTitle {
   font-size: var(--fs-100);
-  height: 2rem;
+  height: 2.5rem;
   display: flex;
   padding-inline: 0.5rem;
   align-items: center;

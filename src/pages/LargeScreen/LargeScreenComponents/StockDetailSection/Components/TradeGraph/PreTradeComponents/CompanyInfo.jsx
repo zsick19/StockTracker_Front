@@ -1,38 +1,49 @@
 import React, { useState } from 'react'
+import { useGetUsersAccountBalanceQuery } from '../../../../../../../features/AccountBalance/AccountBalanceApiSlice'
 
 function CompanyInfo({ selectedStock, setShowSupportingTickers })
 {
-
-    const [maxLossPercent, setMaxLossPercent] = useState(2.5)
-    const [maxLossAmountPerTrade, setMaxLossAmountPerTrade] = useState(50)
+    const { data, isLoading, isSuccess, isError, error } = useGetUsersAccountBalanceQuery()
 
     return (
         <div id='CompanyInformation'>
-            <div className='flex'>
-                <label>Max Loss Percent:</label >
-                <input type="number" min={1} max={5} step={0.5} onChange={(e) => setMaxLossPercent(parseFloat(e.target.value))} value={maxLossPercent} />
-            </div>
-            <div className='flex'>
-                <label>Max Loss Amount:</label >
-                <input type="number" min={0} onChange={(e) => setMaxLossAmountPerTrade(parseFloat(e.target.value))} value={maxLossAmountPerTrade} />
-            </div>
+            {(isSuccess && selectedStock) ?
+                selectedStock?.currentRiskVReward.risk >= data.maxLossPerTradePercent ?
+                    <div className='flex'>
+                        <div>
+                            <h2>Wait For A Better Price</h2>
+                            <p>Plan risk of {selectedStock.currentRiskVReward.risk.toFixed(2)}% exceeds max risk of {data.maxLossPerTradePercent}%.</p>
+                        </div>
+                        <div>
+                            <h2>{(data.maxLossPerTradeDollar / (selectedStock.mostRecentPrice * (selectedStock.currentRiskVReward.risk / 100))).toFixed()} Shares</h2>
+                            <p>
+                                To cap losses to only ${data.maxLossPerTradeDollar} at current risk</p>
+                            <p>Absolute Stoploss: ${(selectedStock.mostRecentPrice - (selectedStock.mostRecentPrice * (data.maxLossPerTradePercent / 100))).toFixed(2)}</p>
+                        </div>
+                    </div> :
 
+                    <div className='flex'>
+                        <div>
+                            <h2>Entry Looks Good</h2>
+                            <p>Plan risk of {selectedStock?.currentRiskVReward.risk.toFixed(2)}% is lower than max loss risk of {data.maxLossPerTradePercent}%.</p>
+                        </div>
 
+                        <div>
+                            <h2>{(data.maxLossPerTradeDollar / (selectedStock?.mostRecentPrice * (data.maxLossPerTradePercent / 100))).toFixed()} Shares</h2>
+                            <p>Using Max Loss of ${data.maxLossPerTradeDollar}</p>
+                            <p>Absolute Stoploss: ${(selectedStock?.mostRecentPrice - (selectedStock?.mostRecentPrice * (data.maxLossPerTradePercent / 100))).toFixed(2)}</p>
+                        </div>
+                        <br />
+                        <div>
+                            <h2>{(data.maxLossPerTradeDollar / (selectedStock?.mostRecentPrice * (selectedStock?.currentRiskVReward.risk / 100))).toFixed()} Shares</h2>
+                            <p>Using Trading Plan Exit</p>
+                        </div>
 
-            {selectedStock.currentRiskVReward.risk > maxLossPercent ?
-                <div>
-                    <p>Wait for price to come down for a better Trade.</p>
-                    <p>Current priced risk of {selectedStock.currentRiskVReward.risk.toFixed(2)}% exceeds max risk per trade of {maxLossPercent}%.</p>
-                    <p>To cap losses to only $50 use a position size of: {(maxLossAmountPerTrade / (selectedStock.mostRecentPrice * selectedStock.currentRiskVReward.risk / 100)).toFixed()}</p>
-                </div> :
-                <p>
-                    <p>Following the trading plan</p>
-                    <p>Current priced risk of {selectedStock.currentRiskVReward.risk.toFixed(2)}% is lower than the max loss risk of {maxLossPercent}%.</p>
-                    <p>Suggested Position Size at Max Loss Per Trade Percent: {(maxLossAmountPerTrade / (selectedStock.mostRecentPrice * (maxLossPercent / 100))).toFixed()} </p>
-                    <p>Suggest Position Size if following Risk Exit: {(maxLossAmountPerTrade / (selectedStock.mostRecentPrice * selectedStock.currentRiskVReward.risk / 100)).toFixed()}</p>
-                </p>
+                    </div>
+                : <div>
+                    <button>Reload Max Loss Info</button>
+                </div>
             }
-
 
 
 

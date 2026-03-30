@@ -6,10 +6,12 @@ import './TradePriceVisualAlert.css'
 
 import ActiveTradeListWrapper from './Components/ListView/ActiveTradeListWrapper'
 import AccountPLVisual from '../AccountPLVisual/AccountPLVisual'
+import { isWeekend } from 'date-fns'
 
 function CurrentTradePositionContainer()
 {
-    const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery(undefined, { pollingInterval: 60 * 60 * 60 * 4 })
+    let isWeekendPollingInterval = isWeekend(new Date()) ? 300000 : 0
+    const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery(undefined, { pollingInterval: isWeekendPollingInterval })
 
     let tradeDisplayContent
     if (isSuccess && activeTrades.ids.length > 10) { tradeDisplayContent = <ActiveTradeListWrapper ids={activeTrades.ids} /> }

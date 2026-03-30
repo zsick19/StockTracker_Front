@@ -1,14 +1,26 @@
-import React from 'react'
+import React, { useRef } from 'react'
 
-function CashOutMessage({ activeTrade })
+function CashOutMessage({ activeTrade, liquidateFullPosition })
 {
-    console.log(activeTrade)
+    const liquidateCashOutPrice = useRef()
+
+    function handleCashOut()
+    {
+        let price = parseFloat(liquidateCashOutPrice.current.value)
+        if (price) liquidateFullPosition(price)
+    }
 
     return (
-        <div className='LSH-ActiveTradeBlock'>
-            <h2>{activeTrade.tickerSymbol}</h2>
-            cash out
-            They All Can't be Winners
+        <div className='LSH-CashOutMessage'>
+            <div>
+
+                <h2>{activeTrade.tickerSymbol}</h2>
+                <input type="number" placeholder={activeTrade.mostRecentPrice} ref={liquidateCashOutPrice} />
+                <button onClick={() => handleCashOut()}>Cash Out</button>
+
+                They All Can't be Winners
+            </div>
+
         </div>
     )
 }

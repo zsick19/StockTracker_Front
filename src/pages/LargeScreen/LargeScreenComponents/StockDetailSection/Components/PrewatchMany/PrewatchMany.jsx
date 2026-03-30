@@ -7,14 +7,15 @@ function PreWatchMany({ watchList })
 {
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetUsersEnterExitPlanQuery()
 
+
     let planDisplayContent
     if (isSuccess)
     {
         let watchListIds
         switch (watchList)
         {
-            case 0: watchListIds = data.stopLossHit.ids; break;
-            case 1: watchListIds = data.enterBufferHit.ids; break;
+            case 0: watchListIds = data.enterBufferHit.ids; break;
+            case 1: watchListIds = data.stopLossHit.ids; break;
             case 2: watchListIds = data.plannedTickers.ids; break;
             case 3: watchListIds = data.highImportance.ids; break;
         }
@@ -28,8 +29,8 @@ function PreWatchMany({ watchList })
             let watchListIds
             switch (watchList)
             {
-                case 0: watchListIds = data.stopLossHit.ids; break;
-                case 1: watchListIds = data.enterBufferHit.ids; break;
+                case 0: watchListIds = data.enterBufferHit.ids; break;
+                case 1: watchListIds = data.stopLossHit.ids; break;
                 case 2: watchListIds = data.plannedTickers.ids; break;
                 case 3: watchListIds = data.highImportance.ids; break;
             }
@@ -37,10 +38,13 @@ function PreWatchMany({ watchList })
         }
     }, [watchList])
 
-    
+
     return (
-        <div id='PrewatchMany'>
-            {watchList === 0 ? <h1>StopLoss Hit Pre-Watch</h1> : watchList === 1 ? <h1>Buffer Hit Pre-Watch</h1> : watchList === 2 ? <h1>Planned Stocks Pre-Watch</h1> : <h1>High Importance</h1>}
+        <div id='PreWatchMany'>
+            {watchList === 0 ? <h1>Enter Buffer Pre-Watch</h1> :
+                watchList === 1 ? <h1>StopLoss Pre-Watch</h1> :
+                    watchList === 2 ? <h1>Planned Stocks Pre-Watch</h1> :
+                        <h1>High Importance</h1>}
             {planDisplayContent}
         </div>
     )

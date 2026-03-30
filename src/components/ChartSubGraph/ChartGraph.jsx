@@ -19,7 +19,7 @@ import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/En
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
 import { generateTradingHours, getBreaksBetweenDates, provideStartAndEndDatesForDateScale } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
-import { calculateEMADataPoints, calculateVolumeProfile, calculateVWAP } from '../../Utilities/technicalIndicatorFunctions'
+import { calculateEMADataPoints, calculateTraditionalVWAP, calculateVolumeProfile, calculateVWAP } from '../../Utilities/technicalIndicatorFunctions'
 import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudiesVisualElement'
 import { setGraphToSubGraphCrossHair, setNoCurrentCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import './chartStyles.css'
@@ -29,8 +29,6 @@ import { useUpdateMacroChartingMutation } from '../../features/WatchList/WatchLi
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay,
     timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, uuid, lastCandleData, showEMAs, macroTickerInfo })
 {
-
-
     const dispatch = useDispatch()
 
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
@@ -122,10 +120,14 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //indicator line data
     const vwapData = useMemo(() =>
     {
-        if (studyVisualController?.ema || showEMAs) return calculateVWAP(candleData)
+        if (studyVisualController?.vwap) return calculateTraditionalVWAP(candleData)
         else return undefined
-    }, [showEMAs, candleData])
-    const VWAPLine = line().x(d => createDateScale({ dateToPixel: d.Timestamp })).y(d => createPriceScale({ priceToPixel: d.vwap })).curve(curveBasis)
+    }, [studyVisualController, candleData])
+
+
+
+
+    const VWAPLine = line().x(d => createDateScale({ dateToPixel: d.Timestamp })).y(d => createPriceScale({ priceToPixel: d.traditionalVWAP })).curve(curveBasis)
 
     const ema9Values = useMemo(() => calculateEMADataPoints(candleData, 9, lastCandleData), [candleData])
     const ema50Values = useMemo(() => calculateEMADataPoints(candleData, 50, lastCandleData), [candleData])
@@ -399,7 +401,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //plot most recent candle data and live price
     useEffect(() =>
     {
+
         if (preDimensionsAndCandleCheck() || !lastCandleData) return
+
 
         let centerTextOnPriceLinePixel = 4
         let centerRectOnPriceLinePixel = 15
@@ -449,7 +453,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             })
 
         }
-    }, [lastCandleData, excludedPeriods, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+
+    }, [lastCandleData, mostRecentPrice, excludedPeriods, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
 
 
@@ -738,7 +743,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     let bottomPixel = createPriceScale({ priceToPixel: d.priceP2 })
 
                     var supportResistanceGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'support_Resistance line_group today' : 'support_Resistance line_group previous')
-                        .call(dragBottomSupportResistanceBehavior)
+                    if (isInteractive) { supportResistanceGroup.call(dragBottomSupportResistanceBehavior) }
 
                     supportResistanceGroup.append('rect').attr('class', 'supportResistanceShading').attr('x', 0).attr('y', topPixel)
                         .attr('width', candleDimensions.width).attr('height', Math.abs(topPixel - bottomPixel))
@@ -763,7 +768,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     let bottomPixel = createPriceScale({ priceToPixel: d.priceP2 })
 
                     const parent = select(this)
-                    parent.call(dragBottomSupportResistanceBehavior)
+                    if (isInteractive) { parent.call(dragBottomSupportResistanceBehavior) }
                     parent.select('.supportResistanceShading').attr('y', topPixel).attr('height', Math.abs(bottomPixel - topPixel))
                     parent.select('.lowerRS').attr('cy', bottomPixel)
                     parent.select('.upperRS').attr('cy', topPixel)
@@ -989,7 +994,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
         if (KeyLevels.weeklyEM && timeFrame.intraDay)
         {
-            if (ticker === 'SPY') console.log(KeyLevels.weeklyEM)
             let dollarWeeklyUpper = KeyLevels.weeklyEM.weeklyClose + KeyLevels.weeklyEM.sigma
             let dollarWeeklyLower = KeyLevels.weeklyEM.weeklyClose - KeyLevels.weeklyEM.sigma
 
@@ -1150,7 +1154,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 .attr('y1', trendPixel).attr('y2', trendPixel)
         }
 
-    }, [ticker, KeyLevels, candleData, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+    }, [ticker, KeyLevels, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
 

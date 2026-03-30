@@ -10,6 +10,10 @@ export const enterBufferHitAdapter = createEntityAdapter({ sortComparer: (a, b) 
 export const stopLossHitAdapter = createEntityAdapter({ sortComparer: (a, b) => b.percentFromEnter - a.percentFromEnter })
 export const highImportanceAdapter = createEntityAdapter({})
 
+export const fiveMinPlanAdapter = createEntityAdapter({})
+
+
+
 export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getUsersEnterExitPlan: builder.query({
@@ -30,7 +34,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         const target = new Date()
         target.setHours(9, 30, 0, 0)
 
-
         responseData.plans.forEach((enterExit) =>
         {
           let stockTradeData = responseData.mostRecentPrice[listOfTickers.indexOf(enterExit.tickerSymbol)]
@@ -39,11 +42,10 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
           enterExit.mostRecentPrice = stockTradeData.LatestTrade.Price
           enterExit.changeFromYesterdayClose = enterExit.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
           enterExit.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
-          enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 :
-            ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
-
+          enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
           enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
           enterExit.trackingDays = differenceInBusinessDays(today, new Date(enterExit.dateAdded))
+          enterExit.todayOpenPrice = stockTradeData.DailyBar.OpenPrice
 
           enterExit.currentRiskVReward = {
             risk: ((enterExit.mostRecentPrice - enterExit.plan.stopLossPrice) * 100 / enterExit.mostRecentPrice),
@@ -56,7 +58,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             enterExit.with1000DollarsIdealGain = (enterExit.plan.exitPrice - enterExit.plan.enterPrice) * sharesToBuyWith1000DollarsIdeal
           }
 
-
           let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / enterExit.mostRecentPrice)
           enterExit.with1000DollarsCurrentGain = (enterExit.plan.exitPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
           enterExit.with1000DollarsCurrentRisk = (enterExit.plan.stopLossPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
@@ -64,10 +65,7 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
 
 
-          function getInsertionIndexLinear(arr, num)
-          {
-            for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3;
-          }
+          function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
 
           let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
           enterExit.priceVsPlanUponFetch = priceVsPlan
@@ -77,10 +75,8 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
 
 
-          if (enterExit?.highImportance)
-          {
-            highImportanceResponse.push(enterExit)
-          } else
+          if (enterExit?.highImportance) { highImportanceResponse.push(enterExit) }
+          else
           {
             switch (priceVsPlan)
             {
@@ -288,11 +284,27 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         return result.data ? { data: result.data } : { error: result.error }
       },
       invalidatesTags: (result, error, args) => ['userData', 'chartingData', 'enterExitPlans', 'confirmedSummary']
+    }),
+    getTinyEnterExit5MinCharts: builder.query({
+      query: () => ({
+        url: `/user/enterExitPlans/tiny`,
+        validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+      }),
+      transformResponse: responseData =>
+      {
+        return fiveMinPlanAdapter.setAll(fiveMinPlanAdapter.getInitialState(), responseData)
+      }
     })
+
   })
 });
 
-export const { useGetUsersEnterExitPlanQuery, useToggleEnterExitPlanImportantMutation, useUpdateEnterExitPlanMutation, useRemoveSingleEnterExitPlanMutation, useRemoveGroupedEnterExitPlanMutation } = EnterExitPlanApiSlice;
+export const { useGetUsersEnterExitPlanQuery,
+  useToggleEnterExitPlanImportantMutation,
+  useUpdateEnterExitPlanMutation,
+  useRemoveSingleEnterExitPlanMutation,
+  useRemoveGroupedEnterExitPlanMutation,
+  useGetTinyEnterExit5MinChartsQuery } = EnterExitPlanApiSlice;
 
 
 export const highImportanceSelectors = highImportanceAdapter.getSelectors()
@@ -300,6 +312,11 @@ export const enterExitPlannedSelectors = enterExitAdapter.getSelectors()
 export const enterBufferSelectors = enterBufferHitAdapter.getSelectors()
 export const stopLossHitSelectors = stopLossHitAdapter.getSelectors()
 
+
+
+const selectFiveMinResult = EnterExitPlanApiSlice.endpoints.getTinyEnterExit5MinCharts.select()
+const selectFiveMinData = createSelector(selectFiveMinResult, (fiveMinResult) => fiveMinResult.data)
+export const fiveMinSelectors = fiveMinPlanAdapter.getSelectors((state) => selectFiveMinData(state))
 
 export const selectAllPlansAndCombined = createSelector([(res) => res.data],
   (data) =>

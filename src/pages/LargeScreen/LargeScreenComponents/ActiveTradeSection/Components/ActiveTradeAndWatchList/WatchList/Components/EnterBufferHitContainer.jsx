@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Grip, RefreshCcwDot, SpellCheck } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
-import SinglePlannedTickerDisplay from './SinglePlannedTickerDisplay'
 import SingleHighImportanceTickerDisplay from './SingleHighImportanceTickerDisplay'
 
 function EnterBufferHitContainer({ enterBufferHitIds, refetch })
