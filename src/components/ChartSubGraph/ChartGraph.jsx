@@ -27,7 +27,7 @@ import { makeSelectGraphHoursByUUID } from '../../features/Charting/GraphMarketH
 import { useUpdateMacroChartingMutation } from '../../features/WatchList/WatchListStreamingSliceApi'
 
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay,
-    timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, uuid, lastCandleData, showEMAs, macroTickerInfo })
+    timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, uuid, lastCandleData, showEMAs, macroTickerInfo, EMNumbers })
 {
     const dispatch = useDispatch()
 
@@ -390,6 +390,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 candle.select('.openClose').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
             })
         }
+
 
     }, [candleData, minPrice, maxPrice, excludedPeriods, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
@@ -1154,6 +1155,34 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 .attr('y1', trendPixel).attr('y2', trendPixel)
         }
 
+
+        if (EMNumbers)
+        {
+            stockCandleSVG.select('.EMNumbers').selectAll('.line_group').data(EMNumbers).join(enter => createHLines(enter), update => updateHLines(update), exit => exit.remove())
+            function createHLines(enter)
+            {
+                enter.each(function (d)
+                {
+                    const lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
+
+                    let pixelPricePosition = createPriceScale({ priceToPixel: d.priceP1 })
+                    lineGroup.append('line').attr('class', 'drawnLine').attr('x1', 0).attr('x2', candleDimensions.width)
+                        .attr('y1', pixelPricePosition).attr('y2', pixelPricePosition)
+                        .attr('stroke', 'purple').attr('stroke-width', defaultChartingStyles.freeLineStrokeWidth)
+                        .on('mouseover', function () { lineHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'linesH' } })
+                        .on('mouseleave', lineNoHover).call(dragHorizontalLineBehavior)
+                })
+            }
+            function updateHLines(update)
+            {
+                update.each(function (d)
+                {
+                    let pixelPricePosition = createPriceScale({ priceToPixel: d.priceP1 })
+                    select(this).select('.drawnLine').attr('y1', pixelPricePosition).attr('y2', pixelPricePosition).call(dragHorizontalLineBehavior)
+                })
+            }
+        }
+
     }, [ticker, KeyLevels, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
@@ -1739,6 +1768,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     <g className='freeLines' />
                     <g className='linesH' />
                     <g className='trendLines' />
+                    <g className='EMNumbers' />
 
                     <g className='currentPrice' />
                 </svg>

@@ -1,19 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useFetchUsersMacroWatchListQuery } from '../../../../../../../features/WatchList/WatchListStreamingSliceApi';
-import { useResizeObserver } from '../../../../../../../hooks/useResizeObserver';
-import { color, scaleLinear, select, selectAll } from 'd3';
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
-function SingleMacroCondition({ macroTicker, zoneData, setSelectedMacro })
+import { useFetchUsersMacroWatchListQuery } from '../../../../../../../../../features/WatchList/WatchListStreamingSliceApi'
+import { useResizeObserver } from '../../../../../../../../../hooks/useResizeObserver'
+import { color, scaleLinear, select, selectAll } from 'd3';
+import MacroZoneDiagram from './MacroZoneDiagram';
+import { TrendingDown, TrendingUp } from 'lucide-react';
+import MiniFiveMinChart from '../../../../../../StockDetailSection/Components/TinyPreWatch/Components/MiniFiveMinChart';
+
+function SingleMacroZone({ macroTicker, zoneData, candleData, setSelectedMacro })
 {
-    const { item } = useFetchUsersMacroWatchListQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.tickerState.entities[macroTicker] }), });
+    const { item } = useFetchUsersMacroWatchListQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.tickerState.entities[macroTicker] }) })
+
 
     const conditionDiagramRef = useRef()
     const conditionDiagramWrapperRef = useRef()
     const diagramDimensions = useResizeObserver(conditionDiagramWrapperRef)
     const diagramSVG = select(conditionDiagramRef.current)
     const [borderColor, setBorderColor] = useState('#000000')
-
     const yScale = useCallback((priceToPixel) =>
     {
         if (!diagramDimensions) return
@@ -41,7 +44,8 @@ function SingleMacroCondition({ macroTicker, zoneData, setSelectedMacro })
 
         keyLevelSelection.append('line')
             .attr('x1', 0).attr('x2', diagramDimensions.width)
-            .attr('stroke', 'gray').attr('y1', midPixel).attr('y2', midPixel)
+            .attr('stroke', 'gray')
+            .attr('y1', midPixel).attr('y2', midPixel)
 
         keyLevelSelection.append('line')
             .attr('x1', 0).attr('x2', diagramDimensions.width)
@@ -73,33 +77,23 @@ function SingleMacroCondition({ macroTicker, zoneData, setSelectedMacro })
 
     }, [item?.mostRecentPrice, diagramDimensions])
 
-
-    const svgBorderStyle = { border: `2px solid ${zoneData.trend > zoneData.close ? '#009b1a' : '#5c0000'}` }
-    const textStyle = { backgroundColor: borderColor, borderRadius: '5px' }
-
     return (
-        <div className='singleMacroCondition' onClick={() => setSelectedMacro(item.ticker)}>
-            <div className='MacroConditionDiagramWrapper' ref={conditionDiagramWrapperRef}>
-                <svg ref={conditionDiagramRef} style={svgBorderStyle}>
-                    <defs>
-                        <linearGradient id="zoneBearish" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="yellow" stop-opacity="1" />
-                            <stop offset="80%" stop-color="yellow" stop-opacity=".75" />
-                            <stop offset="100%" stop-color="red" stop-opacity="1" />
-                        </linearGradient>
-                        <linearGradient id="zoneBullish" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="blue" stop-opacity="1" />
-                            <stop offset="90%" stop-color="yellow" stop-opacity="1" />
-                            <stop offset="100%" stop-color="yellow" stop-opacity="1" />
-                        </linearGradient>
-                    </defs>
-                    <g className='zonePoints' />
-                    <g className='price' />
-                </svg>
+        <div className='SingleMacroZone'>
+            <MacroZoneDiagram zoneData={zoneData} item={item} />
+            <div className='MacroZoneTickerPriceDetail'>
+                <h3>{zoneData.trend > zoneData.close ? <TrendingUp color='green' size={12} /> : <TrendingDown color='red' size={12} />} {macroTicker}</h3>
+                <p className={`${item.mostRecentPrice > item.dailyOpenPrice ? 'upDayPrice' : 'downDayPrice'} macroPrice`}>{item?.mostRecentPrice.toFixed(2)}</p>
+
+                <div className={`${item.mostRecentPrice > item.dailyOpenPrice ? 'upDayDetails' : 'downDayDetails'} macroPriceZoneDetails`}>
+                    <p>${(item.mostRecentPrice - item.dailyOpenPrice).toFixed(2)}</p>
+                    <p>{item.currentDayPercentGain.toFixed(2)}%</p>
+                </div>
+
+                <MiniFiveMinChart candleData={candleData} openPrice={item.dailyOpenPrice} direction={item.mostRecentPrice > item.dailyOpenPrice} />
             </div>
-            <p style={textStyle}>{item.ticker} {zoneData.trend > zoneData.close ? <TrendingUp size={12} /> : <TrendingDown size={12} />}</p>
+
         </div>
     )
 }
 
-export default SingleMacroCondition
+export default SingleMacroZone

@@ -1,11 +1,10 @@
 import React from 'react'
-import { useGetUsersActiveTradesQuery } from '../../../../../../../../features/Trades/TradeSliceApi'
 import SingleActiveTradeBlock from './SingleActiveTradeBlock'
 
-function ActiveTradeBlockWrapper({ ids })
+function ActiveTradeBlockWrapper({ ids, refetch })
 {
     return (
-        <div id='LSH-ActiveTradeBlockWrapper' className='hide-scrollbar'>
+        <div id='LSH-ActiveTradeBlockWrapper' className='hide-scrollbar' onDoubleClick={refetch}>
             {ids.map((activeTradeId) => <SingleActiveTradeBlock id={activeTradeId} key={`activeTrade${activeTradeId}`} />)}
         </div>
     )

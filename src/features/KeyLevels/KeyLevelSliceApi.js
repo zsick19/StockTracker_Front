@@ -61,6 +61,13 @@ export const KeyLevelsApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ['dailyMacroZones']
         }),
+        takeInDailyExpectedMovesForAlerts: builder.mutation({
+            query: (args) => ({
+                url: `/chartingData/keyLevels/dailyEMAlerts`,
+                method: 'POST',
+                body: { expectedMoves: args.expectedMovesForAlerts }
+            })
+        })
 
     }),
 });
@@ -73,5 +80,6 @@ export const {
     useTakeInDailyExpectedMovesMutation,
     useTakeInWeeklyExpectedMovesMutation,
     useTakeInMonthlyExpectedMovesMutation,
-    useTakeInQuarterlyExpectedMovesMutation
+    useTakeInQuarterlyExpectedMovesMutation,
+    useTakeInDailyExpectedMovesForAlertsMutation
 } = KeyLevelsApiSlice;

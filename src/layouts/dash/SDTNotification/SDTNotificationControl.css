@@ -1,0 +1,44 @@
+#notificationControl {
+  position: relative;
+  height: 4vh;
+  align-content: center;
+  width: 400px;
+  background-color: gray;
+  padding-inline: 1rem;
+}
+
+.popUpSTDNotification {
+  width: 100%;
+  display: flex;
+}
+
+.sdtDropDown {
+  position: absolute;
+  top: 4vh;
+  left: 0;
+  background-color: blue;
+  z-index: 100;
+  width: 400px;
+  padding-inline: 1rem;
+  padding-top: 0.5rem;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.singleSTDDropDown {
+  display: grid;
+  font-size: small;
+  align-items: center;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: 5px;
+}
+
+.UpperSTD {
+  background-color: red;
+}
+
+.LowerSTD {
+  background-color: green;
+}

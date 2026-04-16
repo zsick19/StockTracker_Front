@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePopulateMacroTickersMutation, useResetUserMutation } from "../../features/test/testApiSlice";
 import { ChessKing, ChessQueen } from "lucide-react";
+import { useSelector } from "react-redux";
+import { selectStandardDeviationState } from "../../features/STDs/StockDetailControlSlice";
+import SDTNotificationControl from "./SDTNotification/SDTNotificationControl";
 
 function DashNav()
 {
@@ -38,8 +41,11 @@ function DashNav()
   }
 
   const [showSectorAbbr, setShowSectorAbbr] = useState(false)
-
   const [centerInformationDisplay, setShowCenterInformationDisplay] = useState(0)
+
+
+
+
   return (
     <nav id="DashNav">
       {width > 1500 && !location.pathname.includes("/dash/largeScreen") && (
@@ -84,6 +90,8 @@ function DashNav()
 
       {/* <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button> */}
       {/* <button onClick={() => attemptResettingUser()}>Dev Reset User</button> */}
+
+      <SDTNotificationControl />
       <div className="flex">
         <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(1)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessKing color="green" /></button>
         <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(2)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessQueen color="green" /></button>

@@ -4,6 +4,7 @@ import GeneralMessages from './Components/GeneralMessages'
 import PriceMessages from './Components/PriceMessages'
 import FlashAlert from './Components/FlashAlert'
 import MacroConditions from './Components/MacroConditions'
+import JournalRecord from '../ActiveTradeAndWatchList/SubMessageNewsComponents/JournalRecord/JournalRecord'
 
 function MessageCenterContainer()
 {
@@ -17,6 +18,7 @@ function MessageCenterContainer()
             case 'general': return <GeneralMessages />
             case 'price': return <PriceMessages />
             case 'macroConditions': return <MacroConditions />
+            case 'journal': return <JournalRecord />
         }
     }
 

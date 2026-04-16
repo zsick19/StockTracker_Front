@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useAlterTradeRecordMutation } from '../../../../../../../features/Trades/TradeSliceApi'
 import { useDispatch } from 'react-redux'
 import TradeSuccessCompleted from './TradeSuccessCompleted'
-import { AlertCircle, Banknote, CirclePlus, CircleX, Coins, HandCoins, Plane } from 'lucide-react'
+import { AlertCircle, Plane } from 'lucide-react'
 import CurrentTradeStats from '../TradePresentComponents/CurrentTradeStats'
 import '../TradePresentComponents/TradePresentStyles.css'
 import TradePlan from '../TradePresentComponents/TradePlan'
@@ -25,8 +25,10 @@ function TradePresent({ selectedStock })
             let results
             if (action === 'closeAll')
             {
-                results = await alterTradeRecord({ action, tickerSymbol: selectedStock.tickerSymbol, tradeId: selectedStock.trade._id, 
-                    tradePrice: alterTradeDetails.tradePrice, positionSizeOfAlter: selectedStock.trade.availableShares })
+                results = await alterTradeRecord({
+                    action, tickerSymbol: selectedStock.tickerSymbol, tradeId: selectedStock.trade._id,
+                    tradePrice: alterTradeDetails.tradePrice, positionSizeOfAlter: selectedStock.trade.availableShares
+                })
             } else
             {
                 results = await alterTradeRecord({ action, tickerSymbol: selectedStock.tickerSymbol, tradeId: selectedStock.trade._id, ...alterTradeDetails })

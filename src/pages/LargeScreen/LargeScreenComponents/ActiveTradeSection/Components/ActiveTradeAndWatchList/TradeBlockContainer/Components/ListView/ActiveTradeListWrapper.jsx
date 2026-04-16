@@ -3,7 +3,7 @@ import '../../TradeListStyles.css'
 import SingleActiveTradeList from './SingleActiveTradeList'
 import SelectedTradeListBlock from './SelectedTradeListBlock'
 
-function ActiveTradeListWrapper({ ids })
+function ActiveTradeListWrapper({ ids,refetch })
 {
     const [selectedId, setSelectedId] = useState([ids[0]])
 

@@ -90,3 +90,17 @@ export function processStandardDailyExpectedMoves(inputString)
     }
   })
 }
+
+export function processStandardDailyForAlerts(inputString)
+{
+  const sections = inputString.split('\n')
+  let sample = sections.map(section => section.split(','))
+  return sample.map((t) =>
+  {
+    return {
+      ticker: t[0],
+      dailyEM: [parseFloat(t[4]), parseFloat(t[2]), parseFloat(t[1]), parseFloat(t[3])]
+    }
+  })
+
+}

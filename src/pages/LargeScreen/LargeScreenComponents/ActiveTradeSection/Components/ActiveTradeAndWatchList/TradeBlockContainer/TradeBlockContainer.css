@@ -11,9 +11,7 @@
 }
 
 #LSH-ActiveTradeContainer {
-  display: grid;
-  grid-template-rows: 1fr 750px;
-  gap: 0.5rem;
+  max-height: 815px;
 }
 
 #LSH-ActiveTradeBlockWrapper {
@@ -23,7 +21,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   padding: 1rem;
-  height: 750px;
+  height: 100%;
   border-radius: 10px;
   border: 1px solid white;
   align-content: start;

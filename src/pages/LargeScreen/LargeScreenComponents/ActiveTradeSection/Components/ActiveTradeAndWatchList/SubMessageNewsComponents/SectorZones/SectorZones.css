@@ -1,0 +1,65 @@
+#SectorZones {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: 1fr 1fr;
+  gap: 1rem;
+}
+
+.SingleMacroZone {
+  background-color: rgb(38, 38, 43);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  padding: 0.75rem;
+  gap: 0.5rem;
+}
+
+.MacroZoneConditionDiagramWrapper {
+  height: 115px;
+  width: 30px;
+  overflow: hidden;
+  background-color: rgb(39, 39, 39);
+}
+
+.MacroConditionDiagramWrapper svg {
+  height: 100%;
+  width: 100%;
+}
+
+.MacroZoneTickerPriceDetail {
+  font-size: var(--fs-200);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: end;
+}
+.MacroZoneTickerPriceDetail p {
+  padding-inline: 0.25rem;
+}
+
+.macroPrice {
+  width: 100%;
+  text-align: end;
+  border-radius: 5px;
+}
+.upDayPrice {
+  background-color: green;
+}
+.downDayPrice {
+  background-color: red;
+}
+
+.macroPriceZoneDetails {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.upDayDetails p {
+  color: green;
+}
+.downDayDetails p {
+  color: red;
+}

@@ -5,7 +5,6 @@ function SingleSelectedMacroCondition({ selectedMacro, setSelectedMacro, zoneDat
 {
     const { item } = useFetchUsersMacroWatchListQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.tickerState.entities[selectedMacro] }), });
 
-    console.log(zoneData)
 
     return (
         <div>

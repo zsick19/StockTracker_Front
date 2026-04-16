@@ -8,12 +8,12 @@ function ActiveTradeSection()
 {
   return <section id="LSH-ActiveTradeSection">
 
-    <div id='NewsAndMessageSection'>
+    {/* <div id='NewsAndMessageSection'>
       <NewsCenterContainer />
       <MessageCenterContainer />
-    </div>
+    </div> */}
 
-    {/* <MessageNewsCenter /> */}
+    <MessageNewsCenter />
 
     <ActiveTradeAndWatchList />
   </section>;

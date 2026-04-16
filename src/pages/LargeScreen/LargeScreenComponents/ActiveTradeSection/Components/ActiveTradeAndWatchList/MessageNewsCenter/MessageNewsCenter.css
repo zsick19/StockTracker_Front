@@ -1,16 +1,13 @@
 #MessageNewsCenterSection {
-  background-color: gray;
   display: grid;
-  grid-template-columns: 20px 1fr;
-  padding: 0.5rem;
+  grid-template-rows: 15px 1fr;
   border-radius: 10px;
-}
-#SpreadOfSectors {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
   gap: 1rem;
-  overflow-y: scroll;
 }
-#SpreadOfSectors div {
-  background-color: blue;
+
+#MessageNewsCenterSection > div:last-of-type {
+  padding: 0.5rem;
+  background-color: rgb(170, 170, 172);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }

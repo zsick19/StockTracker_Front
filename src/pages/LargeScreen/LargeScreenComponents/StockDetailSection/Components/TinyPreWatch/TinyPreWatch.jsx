@@ -20,13 +20,7 @@ function TinyPreWatch()
     else if (isLoading) { tinyPreWatchContent = <div>Loading</div> }
     else if (isError) { tinyPreWatchContent = <div>Error</div> }
 
-    const [rotateOnFetch, setRotateOnFetch] = useState(false)
-    function refetchAndRotate()
-    {
-        setRotateOnFetch(true)
-        refetch()
-        setTimeout(() => { setRotateOnFetch(false) }, [1000])
-    }
+
 
     useEffect(() => { if (isEnterExitSuccess) { setWatchListsIds(enterExitData[watchListSelection].ids) } else { setWatchListsIds([]) } }, [watchListSelection])
 
@@ -39,10 +33,9 @@ function TinyPreWatch()
                     <button onClick={() => setWatchListSelection('stopLossHit')} className={watchListSelection === 'stopLossHit' ? 'selectedWatchListButton' : 'watchListButton'}>Stop Loss</button>
                     <button onClick={() => setWatchListSelection('enterBufferHit')} className={watchListSelection === 'enterBufferHit' ? 'selectedWatchListButton' : 'watchListButton'}>Enter Buffer</button>
                     <button onClick={() => setWatchListSelection('plannedTickers')} className={watchListSelection === 'plannedTickers' ? 'selectedWatchListButton' : 'watchListButton'}>Planned Tickers</button>
-                    <button onClick={refetchAndRotate} className={`buttonIcon ${rotateOnFetch ? 'rotateOnFetch' : 'hoverRotateOnFetch'}`}><RotateCcw color='white' /></button>
                 </div>
 
-                <div id='LHS-TinySinglePreWatchContainer' className='hide-scrollbar'>
+                <div id='LHS-TinySinglePreWatchContainer' className='hide-scrollbar' onDoubleClick={refetch}>
                     {tinyPreWatchContent}
                 </div>
             </div>

@@ -1,6 +1,6 @@
 #LSH-ActiveTradeSection {
   display: grid;
-  grid-template-rows: 30% 1fr;
+  grid-template-rows: 1fr 815px;
   gap: 1rem;
 }
 

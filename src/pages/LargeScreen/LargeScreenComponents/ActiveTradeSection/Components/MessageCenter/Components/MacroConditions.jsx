@@ -2,12 +2,11 @@ import React, { useState } from 'react'
 import { useFetchMacroDailyZoneInfoQuery, useFetchUsersMacroWatchListQuery } from '../../../../../../../features/WatchList/WatchListStreamingSliceApi'
 import { allSectorTickers } from '../../../../../../../Utilities/SectorsAndIndustries'
 import SingleMacroCondition from './SingleMacroCondition'
-import '../MacroConditionsStyles.css'
 import SingleSelectedMacroCondition from './SingleSelectedMacroCondition'
 
 function MacroConditions()
 {
-    const { data, isSuccess, isLoading, isError, error, refetch } = useFetchMacroDailyZoneInfoQuery()
+    const { data, isSuccess, isLoading, isError, error, refetch } = useFetchMacroDailyZoneInfoQuery(undefined, { pollingInterval: 30000 })
     const [selectedMacro, setSelectedMacro] = useState(undefined)
 
     let sectorContent

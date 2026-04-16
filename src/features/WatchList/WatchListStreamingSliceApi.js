@@ -79,16 +79,6 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
             query: () => ({
                 url: '/user/watchlist/dailyMacroZones'
             }),
-            transformResponse: (response) =>
-            {
-                let values = {}
-                response.forEach((zone) =>
-                {
-                    values[zone.tickerSymbol] = zone.dailyZone
-                })
-                return values
-            },
-            keepUnusedDataFor: 60 * 60 * 18,
             providesTags: ['dailyMacroZones']
         })
         , updateMacroCharting: builder.mutation({

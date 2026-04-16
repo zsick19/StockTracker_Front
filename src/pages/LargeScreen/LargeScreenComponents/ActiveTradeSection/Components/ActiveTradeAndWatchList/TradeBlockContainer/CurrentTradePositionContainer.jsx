@@ -14,15 +14,15 @@ function CurrentTradePositionContainer()
     const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery(undefined, { pollingInterval: isWeekendPollingInterval })
 
     let tradeDisplayContent
-    if (isSuccess && activeTrades.ids.length > 10) { tradeDisplayContent = <ActiveTradeListWrapper ids={activeTrades.ids} /> }
-    else if (isSuccess && activeTrades.ids.length > 0) { tradeDisplayContent = <ActiveTradeBlockWrapper ids={activeTrades.ids} /> }
+    if (isSuccess && activeTrades.ids.length > 10) { tradeDisplayContent = <ActiveTradeListWrapper ids={activeTrades.ids} refetch={refetch} /> }
+    else if (isSuccess && activeTrades.ids.length > 0) { tradeDisplayContent = <ActiveTradeBlockWrapper ids={activeTrades.ids} refetch={refetch} /> }
     else if (isSuccess) { tradeDisplayContent = <div className='LSH-ActiveTradesMessage'><h2>Currently No Active Trades</h2></div> }
     else if (isLoading) { tradeDisplayContent = <div className='LSH-ActiveTradeMessage'><h2>Loading Current Trades...</h2></div> }
     else if (isError) { tradeDisplayContent = <div><h2>Error Fetching Trades</h2><button onClick={() => refetch()}>Retry</button></div> }
 
     return (
         <div id='LSH-ActiveTradeContainer'>
-            <AccountPLVisual refetch={refetch} />
+            {/* <AccountPLVisual refetch={refetch} /> */}
             {tradeDisplayContent}
         </div>
     )

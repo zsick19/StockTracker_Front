@@ -1,8 +1,15 @@
 import io from 'socket.io-client'
+// import { store } from '../store';
+import { addSTDDaily } from '../../features/STDs/StockDetailControlSlice';
 
 // Create a singleton to manage the single WebSocket connection
 let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [], 'macroWatchListUpdate': [], 'singleLiveChart': [], }
 let ws;
+let store;
+export const injectStore = (_store) =>
+{
+    store = _store
+}
 
 export const setupWebSocket = () =>
 {
@@ -16,6 +23,8 @@ export const setupWebSocket = () =>
             ws.onAny((eventName, payload) =>
             {
                 if (eventName in listeners) { listeners[eventName].map((fnSource, i) => { fnSource.fn(payload) }) }
+                if (eventName === 'coreSTDHit' && store) { store.dispatch(addSTDDaily(payload)) }
+
             })
 
             ws.on('disconnect', () =>

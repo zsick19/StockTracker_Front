@@ -18,6 +18,9 @@ import graphHoverZoomReducers from '../features/Charting/GraphHoverZoomElement'
 import graphStudiesVisualControlReducers from '../features/Charting/GraphStudiesVisualElement'
 import graphToSubGraphCrossHairsReducers from '../features/Charting/GraphToSubGraphCrossHairElement'
 import graphMarketHoursReducers from '../features/Charting/GraphMarketHourElement'
+import messageNewsDetailControlReducers from '../features/SelectedStocks/MessageNewsDetailControl'
+import standardDeviationControlReducers from '../features/STDs/StockDetailControlSlice'
+import { injectStore } from "./api/ws";
 
 export const store = configureStore({
   reducer: {
@@ -36,8 +39,11 @@ export const store = configureStore({
     graphStudyVisual: graphStudiesVisualControlReducers,
     graphToSubGraphCrossHairs: graphToSubGraphCrossHairsReducers,
     graphHoursControl: graphMarketHoursReducers,
+    messageNewsDetailControl: messageNewsDetailControlReducers,
+    standardDeviationControl: standardDeviationControlReducers,
     auth: authReducer,
     test: testReducer,
+
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware),
@@ -46,3 +52,4 @@ export const store = configureStore({
 
 export const RootState = store.getState();
 setupListeners(store.dispatch);
+injectStore(store)
