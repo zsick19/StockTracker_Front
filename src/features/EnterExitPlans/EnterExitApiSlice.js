@@ -112,6 +112,8 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             else if (draft.stopLossHit.ids.includes(data.tickerSymbol)) { entityToUpdate = draft.stopLossHit.entities[data.tickerSymbol] }
             else { entityToUpdate = draft.plannedTickers.entities[data.tickerSymbol] }
 
+
+
             if (entityToUpdate)
             {
               entityToUpdate.mostRecentPrice = data.tradePrice
@@ -134,8 +136,8 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
                 return 3;
               }
               let priceVsPlan = getInsertionIndexLinear([entityToUpdate.plan.stopLossPrice, entityToUpdate.plan.enterPrice, entityToUpdate.plan.enterBufferPrice], data.tradePrice)
-              if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch) entityToUpdate.listChange = true
-
+              if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch)
+                entityToUpdate.listChange = true
 
 
 

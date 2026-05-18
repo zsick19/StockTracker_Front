@@ -53,6 +53,11 @@ export const authApiSlice = apiSlice.injectEndpoints({
                 method: 'POST',
                 body: { ...userInfo }
             })
+        }),
+        refreshStreamTickers: builder.mutation({
+            query: () => ({
+                url: '/user/streamRefresh',
+            })
         })
     })
 })
@@ -61,5 +66,6 @@ export const {
     useLoginMutation,
     useSendLogoutMutation,
     useRefreshMutation,
-    useRegisterNewUserMutation
+    useRegisterNewUserMutation,
+    useRefreshStreamTickersMutation
 } = authApiSlice

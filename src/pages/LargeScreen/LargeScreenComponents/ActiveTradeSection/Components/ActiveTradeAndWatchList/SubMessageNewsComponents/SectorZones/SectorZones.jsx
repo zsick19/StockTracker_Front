@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useFetchMacroDailyZoneInfoQuery } from '../../../../../../../../features/WatchList/WatchListStreamingSliceApi'
-import SingleMacroCondition from '../../../MessageCenter/Components/SingleMacroCondition'
+// import SingleMacroCondition from '../../../MessageCenter/Components/SingleMacroCondition'
 import { allSectorTickers } from '../../../../../../../../Utilities/SectorsAndIndustries'
 import SingleMacroZone from './Components/SingleMacroZone'
 import './SectorZones.css'

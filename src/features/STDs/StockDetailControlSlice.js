@@ -4,15 +4,7 @@ import * as short from 'short-uuid'
 const standardDeviationSlice = createSlice({
     name: "standardDeviationControl",
     initialState: {
-        std1Daily: [{
-            id: 'qy5jeci2g28wQL2u1eWcLu',
-            Symbol: 'XLC',
-            Price: 117.82,
-            std: 'daily1Std',
-            direction: 'Upper',
-            EM: [114.06, 115.31, 117.81, 119.06],
-            timeStamp: '2026-04-15T19:09:56.991Z'
-        }],
+        std1Daily: [],
         std2Daily: [],
         selectedDeviation: undefined
     },

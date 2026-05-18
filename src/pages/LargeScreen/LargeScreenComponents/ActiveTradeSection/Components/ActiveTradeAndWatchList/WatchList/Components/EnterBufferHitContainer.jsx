@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import SingleHighImportanceTickerDisplay from './SingleHighImportanceTickerDisplay'
 
-function EnterBufferHitContainer({ enterBufferHitIds, refetch })
+function EnterBufferHitContainer({ enterBufferHitIds, handleSwitchingWatchList, refetch })
 {
     const dispatch = useDispatch()
     const [rotateOnFetch, setRotateOnFetch] = useState(false)
@@ -25,7 +25,7 @@ function EnterBufferHitContainer({ enterBufferHitIds, refetch })
     return (
         <div>
             <div className='flex'>
-                <p>Enter Buffer</p>
+                <p onClick={() => handleSwitchingWatchList()}>Enter Buffer</p>
                 <div className='flex'>
                     <button onClick={refetchAndRotate} className={`buttonIcon ${rotateOnFetch ? 'rotateOnFetch' : 'hoverRotateOnFetch'}`}><RefreshCcwDot size={20} color='white' /></button>
                     <button className='iconButton' onClick={() => dispatch(setStockDetailState(4))}><SpellCheck size={20} color='white' /></button>

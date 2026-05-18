@@ -151,3 +151,35 @@ export function provideStartAndEndDatesForDateScale(timeFrame, focusDates)
 
   return { startDate, futureForwardEndDate }
 }
+
+/**
+ * Filters Alpaca bars to include only those within Regular Trading Hours (RTH).
+ * Standard US RTH: 09:30 - 16:00 ET
+ * @param {Array} bars - Array of bar objects from Alpaca getBarsV2
+ * @returns {Array} - Filtered array of bars
+ */
+export function filterRegularMarketHours(bars)
+{
+  return bars.filter(bar =>
+  {
+    // Alpaca timestamps are typically ISO strings in UTC
+    const date = new Date(bar.Timestamp);
+
+    // Convert to New York time parts
+    const nyTime = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false
+    }).formatToParts(date);
+
+    const hour = parseInt(nyTime.find(p => p.type === 'hour').value);
+    const minute = parseInt(nyTime.find(p => p.type === 'minute').value);
+
+    // Check if within 09:30 and 16:00 (exclusive of 16:00 for the closing bell candle)
+    const isAfterOpen = (hour > 9) || (hour === 9 && minute >= 30);
+    const isBeforeClose = (hour < 16);
+
+    return isAfterOpen && isBeforeClose;
+  });
+}

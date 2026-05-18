@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePopulateMacroTickersMutation, useResetUserMutation } from "../../features/test/testApiSlice";
-import { ChessKing, ChessQueen } from "lucide-react";
+import { Check, ChessKing, ChessQueen } from "lucide-react";
 import { useSelector } from "react-redux";
 import { selectStandardDeviationState } from "../../features/STDs/StockDetailControlSlice";
 import SDTNotificationControl from "./SDTNotification/SDTNotificationControl";
+import { useRefreshStreamTickersMutation } from "../../features/auth/authApiSlice";
 
 function DashNav()
 {
@@ -42,7 +43,6 @@ function DashNav()
 
   const [showSectorAbbr, setShowSectorAbbr] = useState(false)
   const [centerInformationDisplay, setShowCenterInformationDisplay] = useState(0)
-
 
 
 
@@ -84,12 +84,12 @@ function DashNav()
           <p>KRP: Oil & Gas ETF</p>
           <p>XCP: BioTech ETF</p>
           <p>XRT: Retail ETF</p>
-        </div> : <div>
-          <input type="text" id="centerSearch" placeholder="Tracker Search" />
-        </div>}
+        </div> : <div><input type="text" id="centerSearch" placeholder="Tracker Search" /></div>}
 
       {/* <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button> */}
       {/* <button onClick={() => attemptResettingUser()}>Dev Reset User</button> */}
+
+
 
       <SDTNotificationControl />
       <div className="flex">

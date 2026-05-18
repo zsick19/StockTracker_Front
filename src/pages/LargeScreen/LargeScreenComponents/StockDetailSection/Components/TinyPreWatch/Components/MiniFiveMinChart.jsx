@@ -43,8 +43,8 @@ function MiniFiveMinChart({ candleData, openPrice, enterPrice, stopLossPrice, di
             startOfTradingDay = previousFriday(startOfTradingDay)
             endOfTradingDay = previousFriday(endOfTradingDay)
         }
-        startOfTradingDay.setHours(7, 30)
-        endOfTradingDay.setHours(14, 0)
+        startOfTradingDay.setHours(9, 30)
+        endOfTradingDay.setHours(16, 0)
 
         let xDateScale = scaleTime().domain([startOfTradingDay, endOfTradingDay]).range([0, candleDimensions.width])
 

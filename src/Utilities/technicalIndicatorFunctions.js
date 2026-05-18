@@ -119,7 +119,7 @@ export function calculateTraditionalVWAP(bars, mostRecentBar)
     let lastDate = null;
 
     let result = []
-    return bars.map(bar =>
+    bars.forEach(bar =>
     {
         const currentDate = new Date(bar.Timestamp).toDateString();
 
@@ -169,8 +169,9 @@ export function calculateTraditionalVWAP(bars, mostRecentBar)
                 traditionalVWAP: cumulativeVolume > 0 ? (cumulativeDollarVolume / cumulativeVolume) : mostRecentBar.VWAP
             });
         }
-        return result
     });
+
+    return result
 }
 
 
@@ -207,7 +208,7 @@ export function calculateAnchoredVWAP(anchorDate, candles)
 
             // 4. Result = Cumulative PV / Cumulative Volume
             return {
-                Timestamp:candle.Timestamp,
+                Timestamp: candle.Timestamp,
                 avwap: cumulativeVolume !== 0 ? (cumulativePV / cumulativeVolume) : null
             };
         }

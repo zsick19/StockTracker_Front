@@ -6,7 +6,7 @@ import { setSelectedStockAndTimelineFourSplit, setSingleChartTickerTimeFrameAndC
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import HorizontalPlanDiagram from './PlanPricingDiagram/HorizontalPlanDiagram'
 
-function SinglePlannedTickerDisplay({ id, watchList, sectorHighlight })
+function SinglePlannedTickerDisplay({ id, watchList })
 {
     const dispatch = useDispatch()
     const [showDiagram, setShowDiagram] = useState(false)
@@ -67,7 +67,7 @@ function SinglePlannedTickerDisplay({ id, watchList, sectorHighlight })
 
     return (
         <>
-            {(sectorHighlight === 'all' || sectorHighlight === plan.sector) &&
+            {
                 (showDiagram ?
                     <div className='SingleTickerDiagram' onClick={() => setShowPlanNumbers(prev => !prev)} onMouseLeave={() => setShowDiagram(false)}>
                         {showPlanNumbers ? <>

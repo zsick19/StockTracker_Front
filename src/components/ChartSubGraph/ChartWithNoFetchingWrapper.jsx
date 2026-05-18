@@ -16,7 +16,6 @@ function ChartWithNoFetchWrapper({ ticker, candleData, interactionController, ch
     {
         if (uuid)
         {
-
             dispatch(setInitialGraphControl({ uuid }))
             dispatch(setInitialGraphStudyControl({ uuid }))
             dispatch(setInitialGraphToSubGraphCrossHair({ uuid }))

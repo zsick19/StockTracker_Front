@@ -31,7 +31,6 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
         }
     }
 
-
     function handleFourWaySplit()
     {
         dispatch(setSelectedStockAndTimelineFourSplit({ ticker: plan.tickerSymbol, chartId: plan._id }))

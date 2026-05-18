@@ -5,7 +5,7 @@ import { setStockDetailState } from '../../../../../../../../features/SelectedSt
 import SinglePlannedTickerDisplay from './SinglePlannedTickerDisplay'
 import SingleHighImportanceTickerDisplay from './SingleHighImportanceTickerDisplay'
 
-function StopLossHitContainer({ stopLossHitIds })
+function StopLossHitContainer({ stopLossHitIds, handleSwitchingWatchList })
 {
     const dispatch = useDispatch()
     const [sectorHighlight, setSectorHighlight] = useState('all')
@@ -15,7 +15,7 @@ function StopLossHitContainer({ stopLossHitIds })
     return (
         <div id='LSH-PreWatchStopLosHit'>
             <div>
-                <p>Stop Loss Hit</p>
+                <p onClick={() => handleSwitchingWatchList()}>Stop Loss Hit</p>
                 <button className='iconButton' onClick={() => dispatch(setStockDetailState(6))}><Grip size={20} color='white' /></button>
             </div>
 

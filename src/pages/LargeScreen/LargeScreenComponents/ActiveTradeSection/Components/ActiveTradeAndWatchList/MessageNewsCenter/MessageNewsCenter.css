@@ -1,8 +1,6 @@
 #MessageNewsCenterSection {
   display: grid;
-  grid-template-rows: 15px 1fr;
-  border-radius: 10px;
-  gap: 1rem;
+  grid-template-rows: 30px 1fr;
 }
 
 #MessageNewsCenterSection > div:last-of-type {

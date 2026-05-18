@@ -29,6 +29,7 @@ import { useUpdateMacroChartingMutation } from '../../features/WatchList/WatchLi
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay,
     timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, uuid, lastCandleData, showEMAs, macroTickerInfo, EMNumbers })
 {
+
     const dispatch = useDispatch()
 
     const [updateEnterExitPlan] = useUpdateEnterExitPlanMutation()
@@ -353,21 +354,23 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
     }, [candleDimensions, excludedPeriods, displayMarketHours, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
-    //plot stock candles
+    //plot stock candles and scale axis
+    useEffect(() => { stockCandleSVG.select('.x-axis').selectAll('*').remove() }, [timeFrame])
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck()) return
 
         let xAxis
-        const yAxis = axisLeft(createPriceScale())
-
         if (timeFrame.intraDay && timeFrame.duration > 3) { xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date())) }
         else if (timeFrame.intraDay && timeFrame.duration <= 3) { xAxis = axisBottom(createDateScale()) }
         else { xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date())) }
+        stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
 
+
+        const yAxis = axisLeft(createPriceScale())
         priceScaleSVG.select('.y-axis').style('transform', `translateX(${priceDimensions.width - 1}px)`).call(yAxis)
-        try { stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis) }
-        catch (error) { console.log(error) }
+
+
 
         stockCandleSVG.select('.tickerVal').selectAll('.candle').data(candleData, d => d.Timestamp).join(enter => createCandles(enter), update => updateCandles(update))
         function createCandles(enter)
@@ -597,7 +600,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //plot user charting  
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !charting) return
+        if (preDimensionsAndCandleCheck()) return
+        if (!EnterExitPlan) stockCandleSVG.select('.enterExits').selectAll('.line_group').remove()
+        if (!charting)
+        {
+            stockCandleSVG.select('.freeLines').selectAll('.line_group').remove()
+            stockCandleSVG.select('.linesH').selectAll('.line_group').remove()
+            stockCandleSVG.select('.lowVolumeNodes').selectAll('.line_group').remove()
+            stockCandleSVG.select('.highVolumeNodes').selectAll('.line_group').remove()
+            stockCandleSVG.select('.supportResistance').selectAll('.support_Resistance').remove()
+            return
+        }
 
         //free line creation and update
         if (charting.freeLines)
@@ -1155,38 +1168,35 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 .attr('y1', trendPixel).attr('y2', trendPixel)
         }
 
-
-        if (EMNumbers)
-        {
-            stockCandleSVG.select('.EMNumbers').selectAll('.line_group').data(EMNumbers).join(enter => createHLines(enter), update => updateHLines(update), exit => exit.remove())
-            function createHLines(enter)
-            {
-                enter.each(function (d)
-                {
-                    const lineGroup = select(this).append('g').attr('class', (d) => isToday(d.dateCreated) ? 'line_group today' : 'line_group previous')
-
-                    let pixelPricePosition = createPriceScale({ priceToPixel: d.priceP1 })
-                    lineGroup.append('line').attr('class', 'drawnLine').attr('x1', 0).attr('x2', candleDimensions.width)
-                        .attr('y1', pixelPricePosition).attr('y2', pixelPricePosition)
-                        .attr('stroke', 'purple').attr('stroke-width', defaultChartingStyles.freeLineStrokeWidth)
-                        .on('mouseover', function () { lineHover(select(this)); editChartElementRef.current = { chartingElement: d, group: 'linesH' } })
-                        .on('mouseleave', lineNoHover).call(dragHorizontalLineBehavior)
-                })
-            }
-            function updateHLines(update)
-            {
-                update.each(function (d)
-                {
-                    let pixelPricePosition = createPriceScale({ priceToPixel: d.priceP1 })
-                    select(this).select('.drawnLine').attr('y1', pixelPricePosition).attr('y2', pixelPricePosition).call(dragHorizontalLineBehavior)
-                })
-            }
-        }
-
     }, [ticker, KeyLevels, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
+    //plot EM lines
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck() || !EMNumbers) return
+
+        stockCandleSVG.select('.EMNumbers').selectAll('.drawnLine').data(EMNumbers).join(enter => createHLines(enter), update => updateHLines(update), exit => exit.remove())
+        function createHLines(enter)
+        {
+            enter.each(function (d)
+            {
+                let pixelPricePosition = createPriceScale({ priceToPixel: d })
+                select(this).append('line').attr('class', 'drawnLine').attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', pixelPricePosition).attr('y2', pixelPricePosition)
+                    .attr('stroke', 'purple').attr('stroke-width', defaultChartingStyles.freeLineStrokeWidth)
+            })
+        }
+        function updateHLines(update)
+        {
+            update.each(function (d)
+            {
+                let pixelPricePosition = createPriceScale({ priceToPixel: d })
+                select(this).attr('y1', pixelPricePosition).attr('y2', pixelPricePosition)
+            })
+        }
 
 
+    }, [ticker, EMNumbers, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
 
