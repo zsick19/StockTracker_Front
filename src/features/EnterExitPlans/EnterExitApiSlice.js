@@ -62,7 +62,16 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
           enterExit.with1000DollarsCurrentGain = (enterExit.plan.exitPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
           enterExit.with1000DollarsCurrentRisk = (enterExit.plan.stopLossPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
 
-
+          if (!enterExit?.checkOffCriteria)
+            enterExit.checkOffCriteria = {
+              vpCheck: false,
+              rsiCheck: false,
+              macdCheck: false,
+              stochasticCheck: false,
+              vortexCheck: false,
+              volCheck: false,
+              emaCheck: false
+            }
 
 
           function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
@@ -138,9 +147,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
               let priceVsPlan = getInsertionIndexLinear([entityToUpdate.plan.stopLossPrice, entityToUpdate.plan.enterPrice, entityToUpdate.plan.enterBufferPrice], data.tradePrice)
               if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch)
                 entityToUpdate.listChange = true
-
-
-
             }
           })
         }
@@ -296,8 +302,41 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
       {
         return fiveMinPlanAdapter.setAll(fiveMinPlanAdapter.getInitialState(), responseData)
       }
-    })
+    }),
+    updateEnterExitCheckOffCriteria: builder.mutation({
+      query: (args) => ({
+        url: `/enterExitPlan/criteriaCheckoff/${args.planId}?${args.criteria}=${args.criteriaValue}`
+      }),
+      async onQueryStarted(args, { dispatch, queryFulfilled, getState })
+      {
+        try
+        {
+          const { data } = await queryFulfilled;
+          console.log(data)
+          dispatch(
+            EnterExitPlanApiSlice.util.updateQueryData('getUsersEnterExitPlan', undefined, (draft) =>
+            {
+              let entityToUpdate
+              if (draft.highImportance.ids.includes(data.ticker)) { entityToUpdate = draft.highImportance.entities[data.ticker] }
+              else if (draft.enterBufferHit.ids.includes(data.ticker)) { entityToUpdate = draft.enterBufferHit.entities[data.ticker] }
+              else if (draft.stopLossHit.ids.includes(data.ticker)) { entityToUpdate = draft.stopLossHit.entities[data.ticker] }
+              else { entityToUpdate = draft.plannedTickers.entities[data.ticker] }
 
+
+
+              if (entityToUpdate)
+              {
+                entityToUpdate.checkOffCriteria = { ...entityToUpdate.checkOffCriteria, ...data.criteria }
+              }
+            }
+            ))
+
+        } catch (error)
+        {
+          console.log(error)
+        }
+      }
+    })
   })
 });
 
@@ -306,6 +345,7 @@ export const { useGetUsersEnterExitPlanQuery,
   useUpdateEnterExitPlanMutation,
   useRemoveSingleEnterExitPlanMutation,
   useRemoveGroupedEnterExitPlanMutation,
+  useUpdateEnterExitCheckOffCriteriaMutation,
   useGetTinyEnterExit5MinChartsQuery } = EnterExitPlanApiSlice;
 
 
@@ -319,6 +359,11 @@ export const stopLossHitSelectors = stopLossHitAdapter.getSelectors()
 const selectFiveMinResult = EnterExitPlanApiSlice.endpoints.getTinyEnterExit5MinCharts.select()
 const selectFiveMinData = createSelector(selectFiveMinResult, (fiveMinResult) => fiveMinResult.data)
 export const fiveMinSelectors = fiveMinPlanAdapter.getSelectors((state) => selectFiveMinData(state))
+
+
+
+
+
 
 export const selectAllPlansAndCombined = createSelector([(res) => res.data],
   (data) =>

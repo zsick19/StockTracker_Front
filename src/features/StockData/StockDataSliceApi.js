@@ -210,6 +210,13 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
       },
       providesTags: (result, error, args) => [{ type: 'preWatchGroup' }]
     }),
+    getAllMacroStocksData: builder.query({
+      query: (args) => ({
+        url: '/stockData/tickerGroup/rrg',
+        method: "POST",
+        body: { timeFrame: args.timeFrame, tickerGroup: args.tickers, compareTicker: args.compareTicker },
+      })
+    }),
     getStockAverageTrueRange: builder.query({
       query: (args) => ({
         url: `/stockData/atr/${args.ticker}`
@@ -233,6 +240,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
 export const { useGetStockDataUsingTimeFrameQuery,
   useGetGroupedBy12StockDataInfiniteQuery,
   useGetStockAverageTrueRangeQuery,
-  useGetWatchListFiveMinChartsQuery
+  useGetWatchListFiveMinChartsQuery,
+  useGetAllMacroStocksDataQuery
 
 } = StockDataApiSlice;

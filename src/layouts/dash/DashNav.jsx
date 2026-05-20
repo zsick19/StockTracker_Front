@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { selectStandardDeviationState } from "../../features/STDs/StockDetailControlSlice";
 import SDTNotificationControl from "./SDTNotification/SDTNotificationControl";
 import { useRefreshStreamTickersMutation } from "../../features/auth/authApiSlice";
+import PriceAlertNotification from "./PriceAlertNotification/PriceAlertNotification";
 
 function DashNav()
 {
@@ -89,7 +90,7 @@ function DashNav()
       {/* <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button> */}
       {/* <button onClick={() => attemptResettingUser()}>Dev Reset User</button> */}
 
-
+      <PriceAlertNotification />
 
       <SDTNotificationControl />
       <div className="flex">

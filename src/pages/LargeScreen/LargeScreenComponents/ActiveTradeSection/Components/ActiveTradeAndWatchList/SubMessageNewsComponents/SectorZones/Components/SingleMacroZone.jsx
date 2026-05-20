@@ -79,9 +79,12 @@ function SingleMacroZone({ macroTicker, zoneData, candleData, setSelectedMacro }
 
     return (
         <div className='SingleMacroZone'>
-            <MacroZoneDiagram zoneData={zoneData} item={item} />
+            {zoneData && <MacroZoneDiagram zoneData={zoneData} item={item} />}
             <div className='MacroZoneTickerPriceDetail'>
-                <h3>{zoneData.trend > zoneData.close ? <TrendingUp color='green' size={12} /> : <TrendingDown color='red' size={12} />} {macroTicker}</h3>
+                <h3>
+                    {zoneData && (zoneData.trend > zoneData.close ? <TrendingUp color='green' size={12} /> : <TrendingDown color='red' size={12} />)}
+                    {macroTicker}
+                </h3>
                 <p className={`${item.mostRecentPrice > item.dailyOpenPrice ? 'upDayPrice' : 'downDayPrice'} macroPrice`}>{item?.mostRecentPrice.toFixed(2)}</p>
 
                 <div className={`${item.mostRecentPrice > item.dailyOpenPrice ? 'upDayDetails' : 'downDayDetails'} macroPriceZoneDetails`}>

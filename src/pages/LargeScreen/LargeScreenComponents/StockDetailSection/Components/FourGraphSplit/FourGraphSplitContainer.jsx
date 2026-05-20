@@ -10,7 +10,6 @@ function FourGraphSplitContainer()
     const dispatch = useDispatch()
     const tickers = useSelector(selectAllFourStocks)
     useEffect(() => { if (tickers.length < 4) { dispatch(setSelectedStockAndTimelineFourSplit({ ticker: tickers[0].ticker })) } }, [])
-
     return (
         <div id='LSH-FourGraphSplit'>
             {tickers.map((tickerWithTimeFrame, index) => <FourWaySpitGraphContainer selectedStock={tickerWithTimeFrame} index={index} />)}

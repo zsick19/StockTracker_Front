@@ -11,7 +11,8 @@ import { isWeekend } from 'date-fns'
 function CurrentTradePositionContainer()
 {
     let isWeekendPollingInterval = isWeekend(new Date()) ? 300000 : 0
-    const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery(undefined, { pollingInterval: isWeekendPollingInterval })
+    const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery(undefined,
+        { pollingInterval: isWeekendPollingInterval })
 
     let tradeDisplayContent
     if (isSuccess && activeTrades.ids.length > 10) { tradeDisplayContent = <ActiveTradeListWrapper ids={activeTrades.ids} refetch={refetch} /> }

@@ -23,16 +23,26 @@ export const averageVolumeOptions = [
 
 export const sectorColors = {
     'Healthcare': 'crimson',
+    'XLV': 'crimson',
     'Consumer Staples': 'darkorange',
+    'XLP': 'darkorange',
     'Industrials': 'gold',
+    'XLI': 'gold',
     'Communication Services': 'lawngreen',
+    'XLC': 'lawngreen',
     "Utilities": 'teal',
+    "XLU": 'teal',
     "Technology": 'deepskyblue',
-    "Financials": 'royalblue',
+    "XLK": 'deepskyblue',
+    "XLF": 'royalblue',
     "Materials": 'indigo',
+    "XLB": 'indigo',
     "Energy": 'deeppink',
+    "XLE": 'deeppink',
     "Consumer Discretionary": 'saddlebrown',
-    "Real Estate": 'slategray'
+    "XLY": 'saddlebrown',
+    "Real Estate": 'slategray',
+    "XLRE": 'slategray'
 }
 export const sectorToTicker = {
     'Healthcare': 'XLV',

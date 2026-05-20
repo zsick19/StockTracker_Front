@@ -41,14 +41,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //redux charting data selectors
     const selectKeyLevelMemo = useMemo(makeSelectKeyLevelsByTicker, [ticker])
     const KeyLevels = useSelector((state) => selectKeyLevelMemo(state, ticker))
+    
     const selectedEnterExitMemo = useMemo(makeSelectEnterExitByTicker, [ticker])
     const EnterExitPlan = useSelector(state => selectedEnterExitMemo(state, ticker))
     const selectedChartingMemo = useMemo(makeSelectChartingByTicker, [ticker])
     const charting = useSelector(state => selectedChartingMemo(state, ticker))
 
-
-
-    const selectedStudyVisualStateMemo = useMemo(makeSelectGraphStudyByUUID, [])
+      const selectedStudyVisualStateMemo = useMemo(makeSelectGraphStudyByUUID, [])
     const studyVisualController = useSelector((state) => selectedStudyVisualStateMemo(state, uuid))
 
     const selectDisplayMarketHoursMemo = useMemo(makeSelectGraphHoursByUUID, [])
@@ -364,7 +363,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (timeFrame.intraDay && timeFrame.duration > 3) { xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date())) }
         else if (timeFrame.intraDay && timeFrame.duration <= 3) { xAxis = axisBottom(createDateScale()) }
         else { xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date())) }
-        stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
+        stockCandleSVG.select('.x-axis')
+        .style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
 
 
         const yAxis = axisLeft(createPriceScale())
@@ -379,7 +379,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             {
                 var tickerGroups = select(this).append('g').attr('class', 'candle')
                 tickerGroups.append('line').attr('class', 'lowHigh').attr('stroke', 'black').attr('stroke-width', 1).attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
-                tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+                tickerGroups.append('line').attr('class', 'openClose')
+                    .attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
                 tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
             })
         }

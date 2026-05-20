@@ -6,7 +6,7 @@ import { isWeekend, previousFriday } from 'date-fns'
 function MiniFiveMinChart({ candleData, openPrice, enterPrice, stopLossPrice, direction })
 {
 
-    if (!candleData) return
+    if (!candleData) return <div className='blankMiniFiveMin'></div>
     const preDimensionsAndCandleCheck = () => { return !candleDimensions }
     const candleSVG = useRef()
     const candleSVGWrapper = useRef(null)
@@ -29,7 +29,7 @@ function MiniFiveMinChart({ candleData, openPrice, enterPrice, stopLossPrice, di
 
 
     //indicator line data
-    const closingCandleData = useMemo(() => { candleData.map((candle) => candle.ClosePrice) }, [candleData])
+    // const closingCandleData = useMemo(() => { candleData.map((candle) => candle.ClosePrice) }, [candleData])
 
 
     const createDateScale = useCallback((dateToPixel) =>
@@ -65,7 +65,7 @@ function MiniFiveMinChart({ candleData, openPrice, enterPrice, stopLossPrice, di
     }, [candleData, candleDimensions])
 
 
-    const VWAPLine = line().x(d => createDateScale(d.Timestamp)).y(d => createPriceScale(d.ClosePrice)).curve(curveLinear)
+    const fiveMinLine = line().x(d => createDateScale(d.Timestamp)).y(d => createPriceScale(d.ClosePrice)).curve(curveLinear)
 
     useEffect(() =>
     {
@@ -90,16 +90,17 @@ function MiniFiveMinChart({ candleData, openPrice, enterPrice, stopLossPrice, di
 
             stockCandleSVG.select('.stopLossLine').attr('x1', 0).attr('x2', 100).attr('y1', stopLossPixel).attr('y2', stopLossPixel)
                 .attr('stroke', 'red').attr('stroke-width', '1px').attr('stroke-dasharray', '3 3')
-
         }
 
-        stockCandleSVG.select('.fiveMinLine').selectAll('.five').data([candleData], d => d.Timestamp).join(enter =>
-            enter.append('path').attr('class', 'five').attr('stroke', 'white').attr('fill', 'none').attr('stroke-width', '1px')
-                .attr('d', d => VWAPLine(d)).attr('stroke', direction ? 'green' : 'red'),
-            update => update.attr('d', d => VWAPLine(d)).attr('stroke', direction ? 'green' : 'red')
-        )
 
-    }, [closingCandleData, candleDimensions, candleData, direction])
+        stockCandleSVG.select('.fiveMinLine').select('.five').attr('stroke', 'white').attr('fill', 'none').attr('stroke-width', '1px')
+            .attr('d', () => fiveMinLine(candleData)).attr('stroke', direction ? 'green' : 'red')
+
+
+
+
+
+    }, [candleDimensions, candleData, direction])
 
 
 
@@ -110,7 +111,9 @@ function MiniFiveMinChart({ candleData, openPrice, enterPrice, stopLossPrice, di
                 <line className='openLine' />
                 <line className='enterLine' />
                 <line className='stopLossLine' />
-                <g className='fiveMinLine' />
+                <g className='fiveMinLine' >
+                    <path className='five' />
+                </g>
             </svg>
 
         </div>

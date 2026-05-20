@@ -3,14 +3,15 @@ import { useResizeObserver } from '../../../hooks/useResizeObserver'
 import { useSelector } from 'react-redux'
 import { makeSelectZoomStateByUUID } from '../../../features/Charting/GraphHoverZoomElement'
 import { makeSelectGraphCrossHairsByUUID } from '../../../features/Charting/GraphToSubGraphCrossHairElement'
-import { generateTradingHours, provideStartAndEndDatesForDateScale } from '../../../Utilities/TimeFrames'
-import { addDays, isSaturday, isSunday, sub, subDays, subMonths } from 'date-fns'
+import { generateTradingHours, getBreaksBetweenDates, provideStartAndEndDatesForDateScale } from '../../../Utilities/TimeFrames'
+import { addDays, addYears, isSaturday, isSunday, sub, subDays, subMonths } from 'date-fns'
 import { discontinuityRange, discontinuitySkipUtcWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
-import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select, selectAll, timeDay, timeMonths, zoomIdentity } from 'd3'
+import { axisBottom, axisLeft, curveBasis, extent, line, scaleLinear, scaleTime, select, selectAll, timeDay, timeMonths, zoomIdentity } from 'd3'
 import { calculateVortex } from '../../../Utilities/technicalIndicatorFunctions'
 import { makeSelectGraphHoursByUUID } from '../../../features/Charting/GraphMarketHourElement'
+import { pixelBuffer } from '../GraphChartConstants'
 
-function VortexSubChart({ candleData, uuid, timeFrame })
+function VortexSubChart({ candleData, uuid, timeFrame, hideTimeLine })
 {
 
     let periodBlock = 14
@@ -21,7 +22,10 @@ function VortexSubChart({ candleData, uuid, timeFrame })
     const yScaleDimensions = useResizeObserver(YSVG)
     const chartDimensions = useResizeObserver(XSVG)
     const preDimensionsAndCandleCheck = () => { return (!chartDimensions) }
-    const vortexData = useMemo(() => calculateVortex(candleData, 14), [candleData])
+    const vortexData2 = useMemo(() => calculateVortex(candleData, 14), [candleData])
+
+
+
 
     const selectedChartZoomStateMemo = useMemo(makeSelectZoomStateByUUID, [])
     const chartZoomState = useSelector(state => selectedChartZoomStateMemo(state, uuid))
@@ -32,10 +36,46 @@ function VortexSubChart({ candleData, uuid, timeFrame })
     const selectDisplayMarketHoursMemo = useMemo(makeSelectGraphHoursByUUID, [])
     const displayMarketHours = useSelector((state) => selectDisplayMarketHoursMemo(state, uuid))
 
+
+
     const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame, displayMarketHours?.showOnlyIntraDay) }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
+    const dateBetweenStartAndFinishInterval = useMemo(() =>
+    {
+        if (timeFrame.intraDay) { return eachDayOfInterval({ start: subDays(new Date(), 30), end: addDays(new Date(), 30) }) }
+        else return undefined
+    }, [timeFrame])
+    const visualBreaksPeriods = useMemo(() =>
+    {
+
+        if (timeFrame.intraDay && timeFrame.duration > 3)
+        {
+            return getBreaksBetweenDates(subDays(new Date(), 10), addDays(new Date(), 10), 'days')
+        } else if (timeFrame.intraDay && timeFrame.duration <= 3)
+        {
+            return getBreaksBetweenDates(subDays(new Date(), 10), addDays(new Date(), 4), 'marketOpen')
+        } else
+        {
+            return getBreaksBetweenDates(new Date(2024, 1, 1), addYears(new Date(), 1), 'months')
+        }
+
+    }, [timeFrame])
 
 
-    const yPixelBufferBottom = 20
+
+
+    const vortexExtremes = useMemo(() => extent([].concat(
+        vortexData2.map(d => d.viMinus),
+        vortexData2.map(d => d.viPlus)
+
+    ))
+        , [vortexData2])
+
+
+
+
+    const yPixelBufferBottom = hideTimeLine ? 0 : 20
+    const yPixelBufferTop = hideTimeLine ? 5 : 10
+
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
@@ -65,15 +105,13 @@ function VortexSubChart({ candleData, uuid, timeFrame })
 
     }, [candleData, chartZoomState?.x, chartDimensions])
 
-    // const yPixelBufferBottom = 20
     const createYScale = useCallback(({ vortexToPixel = undefined, pixelToVortex = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
 
-        const yPixelBufferTop = 10
 
         const yScale = scaleLinear()
-            .domain([0, 1.6])
+            .domain([vortexExtremes[0], vortexExtremes[1]])
             .range([chartDimensions.height - yPixelBufferBottom, yPixelBufferTop])
 
         if (pixelToVortex !== undefined) return Math.round(yScale.invert(pixelToVortex) * 100) / 100
@@ -84,7 +122,8 @@ function VortexSubChart({ candleData, uuid, timeFrame })
 
     }, [candleData, chartDimensions])
 
-    const VILine = line().x(d => createDateScale({ dateToPixel: d.date })).y(d => createYScale({ vortexToPixel: d.value })).curve(curveBasis)
+    const VIPlusLine = line().x(d => createDateScale({ dateToPixel: d.date })).y(d => createYScale({ vortexToPixel: d.viPlus })).curve(curveBasis)
+    const VIMinusLine = line().x(d => createDateScale({ dateToPixel: d.date })).y(d => createYScale({ vortexToPixel: d.viMinus })).curve(curveBasis)
 
 
 
@@ -95,50 +134,150 @@ function VortexSubChart({ candleData, uuid, timeFrame })
         const svg = select(XSVG.current)
         const yScaleSVG = select(YSVG.current)
 
-        let xAxis
         const yAxis = axisLeft(createYScale())
+        yScaleSVG.select('.y-axis').style('transform', `translateX(${yScaleDimensions.width - 1}px)`).call(yAxis)
 
-        if (timeFrame.intraDay && timeFrame.duration > 3)
+        if (!hideTimeLine)
         {
-            xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date()))
-        } else if (timeFrame.intraDay && timeFrame.duration <= 3)
-        {
-            xAxis = axisBottom(createDateScale())
-        } else
-        {
-            xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date()))
+
+            let xAxis
+            if (timeFrame.intraDay && timeFrame.duration > 3)
+            {
+                xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date()))
+            } else if (timeFrame.intraDay && timeFrame.duration <= 3)
+            {
+                xAxis = axisBottom(createDateScale())
+            } else
+            {
+                xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date()))
+            }
+            svg.select('.x-axis').style('transform', `translateY(${chartDimensions.height - yPixelBufferBottom}px)`).call(xAxis)
         }
 
-        yScaleSVG.select('.y-axis').style('transform', `translateX(${yScaleDimensions.width - 1}px)`).call(yAxis)
-        svg.select('.x-axis').style('transform', `translateY(${chartDimensions.height - yPixelBufferBottom}px)`).call(xAxis)
 
         const vortex = svg.select('.vortex')
-        vortex.selectAll('.vortexLinePlus').data([vortexData.vortexIndicatorPlus]).join((enter) => createVortexPlus(enter), update => updateVortexPlus(update))
+        vortex.selectAll('.vortexLinePlus').data([vortexData2]).join((enter) => createVortexPlus(enter), update => updateVortexPlus(update))
 
         function createVortexPlus(enter)
         {
-            enter.append('path').attr('class', 'vortexLinePlus').attr('d', d => VILine(d)).attr('stroke', 'orange').attr('fill', 'none')
+            enter.append('path').attr('class', 'vortexLinePlus').attr('d', d => VIPlusLine(d)).attr('stroke', 'orange').attr('fill', 'none')
         }
         function updateVortexPlus(update)
         {
-            vortex.select('.vortexLinePlus').attr('d', d => VILine(d))
+            vortex.select('.vortexLinePlus').attr('d', d => VIPlusLine(d))
         }
 
-        vortex.selectAll('.vortexLineMinus').data([vortexData.vortexIndicatorMinus]).join((enter) => createVortexMinus(enter), update => updateVortexMinus(update))
+        vortex.selectAll('.vortexLineMinus').data([vortexData2]).join((enter) => createVortexMinus(enter), update => updateVortexMinus(update))
         function createVortexMinus(enter)
         {
-            enter.append('path').attr('class', 'vortexLineMinus').attr('d', d => VILine(d)).attr('stroke', 'blue').attr('fill', 'none')
+            enter.append('path').attr('class', 'vortexLineMinus').attr('d', d => VIMinusLine(d)).attr('stroke', 'blue').attr('fill', 'none')
         }
         function updateVortexMinus(update)
         {
-            vortex.select('.vortexLineMinus').attr('d', d => VILine(d))
+            vortex.select('.vortexLineMinus').attr('d', d => VIMinusLine(d))
         }
 
 
 
 
 
-    }, [candleData, chartZoomState.x, chartDimensions])
+    }, [candleData, chartZoomState?.x, chartDimensions])
+
+
+    //draw visual time breaks
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+
+        let dateVisualSelect = select(XSVG.current).select('.visualDateBreaks')
+        if (timeFrame.intraDay && !displayMarketHours.showOnlyIntraDay)
+        {
+            dateVisualSelect.selectAll('.visualBreak').remove()
+            dateVisualSelect.selectAll('.dayBreakLine').remove()
+            dateVisualSelect.selectAll('.preMarketVisualBreak').data([...visualBreaksPeriods.preMarket]).join(enter => createMarketOpenVisualBreaks(enter), update => updateMarketOpenVisualBreaks(update))
+            function createMarketOpenVisualBreaks(enter)
+            {
+                enter.each(function (d, i)
+                {
+                    let start = createDateScale({ dateToPixel: d })
+                    let marketClose = createDateScale({ dateToPixel: visualBreaksPeriods.marketClose[i] })
+                    var visualBreakGroups = select(this).append('g').attr('class', 'preMarketVisualBreak')
+
+                    visualBreakGroups.append('rect').attr('class', 'preMarket')
+                        .attr('x', (d, i) => start).attr('y', -pixelBuffer.yDirectionPixelBuffer)
+                        .attr('width', (d) => createDateScale({ dateToPixel: visualBreaksPeriods.preMarketEnd[i] }) - start)
+                        .attr('height', chartDimensions.height)
+
+
+                    visualBreakGroups.append('rect').attr('class', 'afterMarket')
+                        .attr('x', (d, i) => marketClose).attr('y', -pixelBuffer.yDirectionPixelBuffer)
+                        .attr('width', (d) => createDateScale({ dateToPixel: visualBreaksPeriods.afterMarket[i] }) - marketClose)
+                        .attr('height', chartDimensions.height)
+                })
+            }
+            function updateMarketOpenVisualBreaks(update)
+            {
+                update.each(function (d, i)
+                {
+                    let start = createDateScale({ dateToPixel: d })
+                    let marketClose = createDateScale({ dateToPixel: visualBreaksPeriods.marketClose[i] })
+
+                    const visualBreakGroups = select(this)
+                    visualBreakGroups.select('.preMarket').attr('x', createDateScale({ dateToPixel: d })).attr('y', -pixelBuffer.yDirectionPixelBuffer).attr('width', (d) => createDateScale({ dateToPixel: visualBreaksPeriods.preMarketEnd[i] }) - start)
+                    visualBreakGroups.select('.afterMarket').attr('x', marketClose).attr('y', -pixelBuffer.yDirectionPixelBuffer)
+                        .attr('width', (d) => createDateScale({ dateToPixel: visualBreaksPeriods.afterMarket[i] }) - marketClose)
+                })
+            }
+        }
+        else if (timeFrame.intraDay && displayMarketHours.showOnlyIntraDay)
+        {
+            dateVisualSelect.selectAll('.visualBreak').remove()
+            dateVisualSelect.selectAll('.preMarketVisualBreak').remove()
+
+            dateVisualSelect.selectAll('.dayBreakLine').data(dateBetweenStartAndFinishInterval).join(enter => createDayLineBreaks(enter), update => updateDayLineBreaks(update))
+            function createDayLineBreaks(enter)
+            {
+                enter.each(function (d, i)
+                {
+                    let dateX = createDateScale({ dateToPixel: d })
+                    dateVisualSelect.append('line').attr('class', 'dayBreakLine')
+                        .attr('x1', dateX).attr('x2', dateX).attr('y1', 0).attr('y2', chartDimensions.height - pixelBuffer.yDirectionPixelBuffer)
+                        .attr('stroke', 'blue').attr('stroke-width', '1px')
+                })
+            }
+            function updateDayLineBreaks(update)
+            {
+                update.each(function (d, i)
+                {
+                    let updateDateX = createDateScale({ dateToPixel: d })
+                    select(this).attr('x1', updateDateX).attr('x2', updateDateX)
+                })
+            }
+        }
+        else if (!timeDay.intraDay)
+        {
+            dateVisualSelect.selectAll('.dayBreakLine').remove()
+            dateVisualSelect.selectAll('.preMarketVisualBreak').remove()
+            dateVisualSelect.selectAll('.visualBreak').remove()
+            let pixelDates = visualBreaksPeriods.months.map((d) => createDateScale({ dateToPixel: d }))
+            dateVisualSelect.selectAll('.visualBreak').data(visualBreaksPeriods.months).join(enter => createVisualBreaks(enter))
+            function createVisualBreaks(enter)
+            {
+                enter.append('rect').attr('class', (d, i) => { return i % 2 !== 0 ? 'monthOdd visualBreak' : 'monthEven visualBreak' })
+                    .attr('x', (d, i) => createDateScale({ dateToPixel: d })).attr('y', hideTimeLine ? 5 : -pixelBuffer.yDirectionPixelBuffer)
+                    .attr('width', (d, i) => { return pixelDates[i + 1] - createDateScale({ dateToPixel: d }) })
+                    .attr('height', chartDimensions.height)
+            }
+        }
+
+    }, [chartDimensions, excludedPeriods, chartZoomState?.x, chartZoomState?.y, timeFrame])
+
+
+
+
+
+
+
 
     //draw crosshair 
     useEffect(() =>
@@ -146,7 +285,7 @@ function VortexSubChart({ candleData, uuid, timeFrame })
         if (preDimensionsAndCandleCheck()) return
         const svg = select(XSVG.current)
 
-        if (currentCrossHairX.x)
+        if (currentCrossHairX?.x)
         {
             svg.select('.crossHair').select('.yTrace').attr('x1', currentCrossHairX.x).attr('x2', currentCrossHairX.x)
                 .attr('y1', 0).attr('y2', chartDimensions.height).attr('stroke', 'black').attr('stroke-width', '1px')
@@ -156,8 +295,6 @@ function VortexSubChart({ candleData, uuid, timeFrame })
             svg.select('.crossHair').select('.yTrace').attr('visibility', 'hidden')
         }
     }, [currentCrossHairX])
-
-
 
 
 
@@ -175,6 +312,8 @@ function VortexSubChart({ candleData, uuid, timeFrame })
                 <div ref={XSVGWrapper} className='subChartXAxis' >
                     <svg ref={XSVG} >
                         <g className='x-axis' />
+                        <g className='visualDateBreaks' />
+
                         <g className='crossHair'>
                             <line className='yTrace' />
                         </g>

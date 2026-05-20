@@ -17,6 +17,7 @@ import SyncWithBackendVisual from './Components/SyncVisual/SyncWithBackendVisual
 import BestPositionSplit from './Components/BestPositionSplit/BestPositionSplit';
 import MacroChartingGraph from './Components/MacroChartingGraph/MacroChartingGraph';
 import TinyPreWatch from './Components/TinyPreWatch/TinyPreWatch';
+import RRGChart from './Components/RRGChart/RRGChart';
 
 function StockDetailSection()
 {
@@ -53,6 +54,7 @@ function StockDetailSection()
       case 14: return <BestPositionSplit />
       case 15: return <MacroChartingGraph />
       case 16: return <TinyPreWatch />
+      case 17: return <RRGChart />
     }
   }
 
@@ -61,7 +63,7 @@ function StockDetailSection()
   return (
     <section id="StockDetailSection">
       <nav>
-        <button onClick={() => dispatch(setStockDetailState(16))}><ClockArrowUp color='yellow' /><p>5 Min Watch</p></button>
+        <button onClick={() => dispatch(setStockDetailState(16))}><ClockArrowUp color='yellow' /><p>PreChecks</p></button>
         <button onClick={() => dispatch(setStockDetailState(1))}><Binoculars color='green' /><p>Market Search</p></button>
         <button onClick={() => dispatch(setStockDetailState(2))}><ListTodo color='green' /><p>Double Check</p></button>
         <button onClick={() => dispatch(setStockDetailState(3))}><ListChecks color='pink' /><p>Confirmed</p></button>

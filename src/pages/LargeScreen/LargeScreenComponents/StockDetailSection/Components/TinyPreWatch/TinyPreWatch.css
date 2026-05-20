@@ -1,146 +1,53 @@
 #LHS-TinyPreWatch {
   height: 100%;
   display: grid;
-  grid-template-rows: 1fr 800px;
+  grid-template-columns: 300px 1fr;
   gap: 1rem;
 }
 
-#MacroTinyPreWatchSection {
-  display: grid;
-  grid-template-columns: 1fr 150px;
-  border-radius: 10px;
-  border: 1px solid rgb(255, 255, 255);
-}
-
-#SingleSelectedTinyMacro {
-}
-
-#MacroTinyTickerContainer {
-  background-color: rgba(128, 128, 128, 0.5);
-  padding: 1rem;
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-}
-#MacroTinyTickerContainer > div {
-  max-height: 275px;
-  overflow-y: scroll;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-content: start;
-  gap: 1rem;
-}
-
-#MacroTinyWatchListSelect {
-  background-color: rgba(68, 68, 68, 0.5);
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-  padding: 1rem;
-}
-#MacroTinyWatchListSelect div {
+#LHS-TinyPreAsList {
+  background-color: rgb(43, 45, 46);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  height: 275px;
-  overflow-y: scroll;
-}
-#MacroTinyWatchListSelect button {
-  font-size: var(--fs-100);
 }
 
-.SingleMacroTiny {
+.LHS-TinyListHeader {
   display: flex;
-  width: 100%;
-  background-color: rgb(57, 57, 59);
-  align-items: center;
-  padding: 0.5rem;
-  border-radius: 5px;
-  max-height: 100px;
-  border: solid white 2px;
-  justify-content: space-between;
 }
-
-.SingleMacroTinyPriceDisplay {
-  width: 75px;
-}
-.SingleMacroTinyPriceDisplay > h3 {
-  text-align: end;
-  padding-right: 0.25rem;
-  border-radius: 5px;
-}
-
-.SingleMacroTinyPriceDisplay > div {
-  display: flex;
-  justify-content: space-between;
-}
-
-.SingleMacroTiny p {
-  font-size: var(--fs-100);
-}
-
-#LHS-PreWatchPlanSection {
-  height: 800px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 #LHS-TinySinglePreWatchContainer {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-content: start;
-  gap: 1rem;
-  background-color: rgba(68, 68, 68, 0.5);
-  border: 1px solid rgb(224, 224, 224);
+  background-color: rgb(37, 87, 112);
+  margin-top: 0.5rem;
   flex: 1;
-  padding: 1rem;
-  border-radius: 10px;
+  height: 1075px;
   overflow-y: scroll;
-}
-
-#LHS-PreWatchPlanSection > div:first-of-type {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  align-items: center;
-  gap: 1rem;
-}
-#LHS-PreWatchPlanSection > div:first-of-type button {
-  color: white;
-  border-radius: 5px;
-}
-
-.selectedWatchListButton {
-  background-color: rgba(173, 173, 173, 0.5);
-  border: 1px solid white;
-}
-
-.watchListButton {
-  background-color: rgba(68, 68, 68, 0.5);
-  border: 1px solid rgb(224, 224, 224);
+  padding-inline: 0.25rem;
 }
 
 .singleTinyPreWatch {
   font-size: var(--fs-100);
   display: grid;
-  grid-template-columns: 1fr 100px 100px;
-
+  grid-template-columns: 50px 1fr 1fr;
   gap: 1rem;
-  background-color: rgb(51, 52, 54);
-  border: 1px solid white;
+  background-color: rgb(68, 71, 78);
+  margin-bottom: 0.25rem;
+
   align-items: center;
-  height: 70px;
-  padding: 0.25rem;
   padding-inline: 0.75rem;
+  padding-top: 0.1rem;
   border-radius: 5px;
 }
 
+.blankMiniFiveMin,
 .MiniFiveMinChartWrapper {
-  height: 40px;
-  /* background-color: rgba(61, 61, 61, 0.507); */
-  width: 100px;
+  height: 35px;
+  background-color: rgb(0, 0, 0);
+  width: 75px;
+  border-radius: 5px;
 }
+
 .MiniFiveMinChartWrapper svg {
-  height: 40px;
-  width: 100px;
+  height: 35px;
+  width: 75px;
 }
 
 .openLine {
@@ -175,4 +82,134 @@
 }
 .positiveDay p {
   color: green;
+}
+
+#ExpandedTinyPreWatch {
+  display: grid;
+  grid-template-rows: 65% 25% 1fr;
+  gap: 1rem;
+}
+
+.DailyChartWithChecks {
+  display: flex;
+}
+
+#ExpandedDailyChartWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+#ExpandedDailyChartWrapper > .ChartGraphWrapper {
+  flex: 1;
+  margin-bottom: 5px;
+}
+
+#ExpandedSubChartWithSpace {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ExpandedChartHeader {
+  display: flex;
+  background-color: rgb(37, 53, 80);
+  padding-inline: 1rem;
+  align-content: center;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ExpandedSecondSet {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.PreWatchChecks {
+  font-size: var(--fs-100);
+  border: none;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0px;
+}
+
+.FiveMinExpandedChartWrapper {
+  background-color: gray;
+  display: flex;
+  flex-direction: column;
+}
+
+#ExpandedDailyChartWrapper .SubChartContainer,
+#ExpandedDailyChartWrapper .subChartWithVerticalTitle,
+#ExpandedDailyChartWrapper .subChartXAxis svg {
+  height: 70px;
+}
+
+#ExpandedDailyChartWrapper .SubChartContainer {
+  font-size: var(--fs-100);
+}
+
+.ExpandedPlanInfo {
+  display: grid;
+  grid-template-columns: 30px 1fr 30px;
+  border-radius: 5px;
+  background-color: gray;
+}
+
+.ExpandedPlanInfo > div:last-of-type,
+.ExpandedPlanInfo > div:first-of-type {
+  display: flex;
+  flex-direction: column;
+  padding-block: 0.5rem;
+}
+.ExpandedPlanInfo > div:nth-of-type(2) {
+  background-color: rgb(59, 59, 63);
+  padding: 0.5rem;
+  font-size: small;
+}
+
+.priceAlertPanel {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+}
+
+#createPriceAlert > form {
+}
+
+#createPriceAlert > form input {
+  width: 75px;
+}
+
+.hidden-button {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* 2. Style the label as the default button state */
+.visual-button {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: #46494d;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+/* 3. Style the label for the hover state */
+.visual-button:hover {
+  background-color: #0056b3;
+}
+
+/* 4. Style the label when the hidden button is clicked/checked */
+.hidden-button:checked + .visual-button {
+  background-color: #28a745;
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
 }

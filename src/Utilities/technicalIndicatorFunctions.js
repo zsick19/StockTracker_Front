@@ -251,7 +251,7 @@ export function MACDCalc(chartingData, fastPeriod = 12, slowPeriod = 26, signalP
         Timestamp: item.Timestamp,
         macd: macdLine[i],
         signal: signalLine[i],
-        histogram: macdLine[i] - signalLine[i]
+        histogram: signalLine[i] - macdLine[i]
     }))
 }
 
@@ -260,14 +260,19 @@ export function calculateYAxisRange(macdData, paddingPercent = 0.15)
     let globalMax = 0;
     let globalMin = 0;
 
+    let histogramMax = 0
+    let histogramMin = 0
+
     macdData.forEach(item =>
     {
         // Check all three components to find the true extremes
-        const localMax = Math.max(item.macd, item.signal, item.histogram);
-        const localMin = Math.min(item.macd, item.signal, item.histogram);
+        const localMax = Math.max(item.macd, item.signal);
+        const localMin = Math.min(item.macd, item.signal);
 
         if (localMax > globalMax) globalMax = localMax;
         if (localMin < globalMin) globalMin = localMin;
+        if (item.histogram > histogramMax) histogramMax = item.histogram
+        else if (item.histogram < histogramMin) histogramMin = item.histogram
     });
 
     // Find the absolute furthest point from zero to keep chart symmetrical
@@ -279,6 +284,7 @@ export function calculateYAxisRange(macdData, paddingPercent = 0.15)
     return {
         min: -paddedLimit, // Negative limit for the bottom
         max: paddedLimit,  // Positive limit for the top
+        histogramExtremes: [histogramMin, histogramMax],
         suggestedTicks: [-paddedLimit, 0, paddedLimit]
     };
 }
@@ -319,45 +325,77 @@ export function calculateVWAP(data, resetDaily = true)
 }
 
 
-export function calculateVortex(chartingData, timeBlock = 14)
+
+
+export function calculateVortex(candles, period = 14)
 {
-    let trueRange = []
-    let VMPlus = []
-    let VMMinus = []
-    for (let i = 1; i < chartingData.length - 1; i++)
+    if (candles.length <= period) return [];
+
+    let vortexValues = [];
+
+    // 1. Calculate daily movements (VM+, VM-) and True Range (TR)
+    let dailyMetrics = [];
+    for (let i = 1; i < candles.length; i++)
     {
-        let currentHighMinusCurrentLow1 = chartingData[i].HighPrice - chartingData[i].LowPrice
-        let currentHighMinusPreviousClose2 = Math.abs(chartingData[i].HighPrice - chartingData[i - 1].ClosePrice)
-        let currentLowMinusPreviousClose3 = Math.abs(chartingData[i].LowPrice - chartingData[i - 1].ClosePrice)
+        const current = candles[i];
+        const previous = candles[i - 1];
 
-        let largest = Math.max(currentHighMinusCurrentLow1, currentHighMinusPreviousClose2, currentLowMinusPreviousClose3)
+        // Absolute vertical movement between extreme points
+        const vmPlus = Math.abs(current.HighPrice - previous.LowPrice);
+        const vmMinus = Math.abs(current.LowPrice - previous.HighPrice);
 
-        trueRange.push(largest)
-        VMPlus.push(chartingData[i].HighPrice - chartingData[i - 1].LowPrice)
-        VMMinus.push(chartingData[i].LowPrice - chartingData[i - 1].HighPrice)
+        // True Range calculation
+        const tr1 = current.HighPrice - current.LowPrice;
+        const tr2 = Math.abs(current.HighPrice - previous.ClosePrice);
+        const tr3 = Math.abs(current.LowPrice - previous.ClosePrice);
+        const trueRange = Math.max(tr1, tr2, tr3);
 
+        dailyMetrics.push({
+            date: current.Timestamp,
+            vmPlus,
+            vmMinus,
+            trueRange
+        });
     }
 
-    let vortexIndicatorPlus = []
-    let vortexIndicatorMinus = []
-
-    for (let i = 0; i < VMPlus.length; i++)
+    // 2. Rolling sum over the lookback period
+    for (let i = period - 1; i < dailyMetrics.length; i++)
     {
-        let slicedTR = trueRange.slice(i, i + timeBlock)
-        let slicedVMPlus = VMPlus.slice(i, i + timeBlock)
-        let slicedVMMinus = VMMinus.slice(i, i + timeBlock)
+        const window = dailyMetrics.slice(i - period + 1, i + 1);
 
-        let summedTR = slicedTR.reduce((partialSum, a) => partialSum + a, 0)
-        let plus = slicedVMPlus.reduce((partialSum, a) => partialSum + a, 0) / summedTR
-        let minus = slicedVMMinus.reduce((partialSum, a) => partialSum + a, 0) / summedTR
+        const sumVmPlus = window.reduce((sum, item) => sum + item.vmPlus, 0);
+        const sumVmMinus = window.reduce((sum, item) => sum + item.vmMinus, 0);
+        const sumTR = window.reduce((sum, item) => sum + item.trueRange, 0);
 
-        vortexIndicatorPlus.push({ date: chartingData[i].Timestamp, value: plus })
-        vortexIndicatorMinus.push({ date: chartingData[i].Timestamp, value: Math.abs(minus) })
+        // Prevent division by zero if the asset is completely flat
+        if (sumTR === 0)
+        {
+            vortexValues.push({ date: dailyMetrics[i].date, viPlus: 1.0, viMinus: 1.0 });
+            continue;
+        }
+
+        // Calculate final +VI and -VI ratios
+        const viPlus = sumVmPlus / sumTR;
+        const viMinus = sumVmMinus / sumTR;
+
+        vortexValues.push({
+            date: dailyMetrics[i].date,
+            viPlus: parseFloat(viPlus.toFixed(4)),
+            viMinus: parseFloat(viMinus.toFixed(4))
+        });
     }
-    //does the i get adjusted at all for the shift 
 
-    return { vortexIndicatorPlus, vortexIndicatorMinus }
+    return vortexValues;
 }
+
+
+
+
+
+
+
+
+
 
 
 export function calculateVolumeProfile(data, binsCount = 50)
@@ -504,6 +542,57 @@ export function calculateStochastic(chartingData, timeBlock = 14)
 
     return { percentK: percentKResults, percentD: percentDResults }
 }
+
+
+export function calculateStochastic2(candles, periodK = 14, periodD = 3)
+{
+    if (candles.length < periodK) return [];
+
+    let stochValues = [];
+
+    // 1. Calculate raw %K for each possible window
+    for (let i = periodK - 1; i < candles.length; i++)
+    {
+        const window = candles.slice(i - periodK + 1, i + 1);
+
+        const lows = window.map(c => c.LowPrice);
+        const highs = window.map(c => c.HighPrice);
+
+        const currentClose = candles[i].ClosePrice;
+        const lowestLow = Math.min(...lows);
+        const highestHigh = Math.max(...highs);
+
+        // Prevent division by zero if high equals low
+        const denominator = highestHigh - lowestLow;
+        const rawK = denominator === 0 ? 50 : ((currentClose - lowestLow) / denominator) * 100;
+
+        stochValues.push({
+            date: candles[i].Timestamp,
+            rawK: rawK
+        });
+    }
+
+    // 2. Calculate Simple Moving Average (%D) of %K
+    for (let i = periodD - 1; i < stochValues.length; i++)
+    {
+        const windowK = stochValues.slice(i - periodD + 1, i + 1);
+        const sumK = windowK.reduce((sum, item) => sum + item.rawK, 0);
+        const smoothD = sumK / periodD;
+
+        stochValues[i].k = stochValues[i].rawK; // Fast %K
+        stochValues[i].d = smoothD;             // Fast %D (Slow %K)
+    }
+
+    // Clean up temporary rawK property from final output
+    return stochValues
+        .filter(item => item.d !== undefined)
+        .map(({ date, k, d }) => ({ date, k, d }));
+}
+
+
+
+
+
 export function stochasticCalc(candleData, kPeriod = 14, dPeriod = 3)
 {
     const stochasticValues = [];

@@ -1,6 +1,7 @@
 import io from 'socket.io-client'
 // import { store } from '../store';
 import { addSTDDaily } from '../../features/STDs/StockDetailControlSlice';
+import { addPriceAlert } from '../../features/PriceAlerts/PriceAlertControlSlice';
 
 // Create a singleton to manage the single WebSocket connection
 let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [], 'macroWatchListUpdate': [], 'singleLiveChart': [], }
@@ -24,7 +25,7 @@ export const setupWebSocket = () =>
             {
                 if (eventName in listeners) { listeners[eventName].map((fnSource, i) => { fnSource.fn(payload) }) }
                 if (eventName === 'coreSTDHit' && store) { store.dispatch(addSTDDaily(payload)) }
-
+                if (eventName === 'priceAlert' && store) { store.dispatch(addPriceAlert(payload)) }
             })
 
             ws.on('disconnect', () =>

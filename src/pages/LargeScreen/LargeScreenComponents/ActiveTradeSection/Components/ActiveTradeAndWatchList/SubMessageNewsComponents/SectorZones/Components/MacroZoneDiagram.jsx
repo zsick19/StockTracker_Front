@@ -4,6 +4,7 @@ import { useResizeObserver } from '../../../../../../../../../hooks/useResizeObs
 
 function MacroZoneDiagram({ zoneData, item })
 {
+    
     const conditionDiagramRef = useRef()
     const conditionDiagramWrapperRef = useRef()
     const diagramDimensions = useResizeObserver(conditionDiagramWrapperRef)

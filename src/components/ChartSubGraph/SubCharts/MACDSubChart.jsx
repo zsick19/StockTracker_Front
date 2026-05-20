@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useResizeObserver } from '../../../hooks/useResizeObserver'
 import { calculateYAxisRange, MACDCalc, rsiCalc } from '../../../Utilities/technicalIndicatorFunctions'
 import { addDays, addYears, eachDayOfInterval, isSaturday, isSunday, sub, subDays, subMonths } from 'date-fns'
-import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select, selectAll, svg, timeDay, timeMonths, zoomIdentity } from 'd3'
+import { axisBottom, axisLeft, curveBasis, line, scaleLinear, scaleTime, select, selectAll, svg, timeDay, timeMonths, zoom, zoomIdentity, zoomTransform } from 'd3'
 import { discontinuityRange, discontinuitySkipUtcWeekends, discontinuitySkipWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
 import { makeSelectZoomStateByUUID } from '../../../features/Charting/GraphHoverZoomElement'
 import { useSelector } from 'react-redux'
@@ -11,7 +11,7 @@ import { makeSelectGraphCrossHairsByUUID } from '../../../features/Charting/Grap
 import { makeSelectGraphHoursByUUID } from '../../../features/Charting/GraphMarketHourElement'
 import { pixelBuffer } from '../GraphChartConstants'
 
-function MACDSubChart({ candleData, uuid, timeFrame })
+function MACDSubChart({ candleData, uuid, timeFrame, hideTimeLine })
 {
     const YSVGWrapper = useRef()
     const YSVG = useRef()
@@ -21,7 +21,9 @@ function MACDSubChart({ candleData, uuid, timeFrame })
     const chartDimensions = useResizeObserver(XSVG)
     const preDimensionsAndCandleCheck = () => { return (!chartDimensions) }
     const MACDData = useMemo(() => MACDCalc(candleData), [candleData])
-    const MACDRange = useMemo(() => calculateYAxisRange(MACDData.slice(MACDData.length - 250)), [MACDData])
+
+    const MACDRange = useMemo(() => calculateYAxisRange(MACDData.slice(MACDData.length - 50)), [MACDData])
+
 
 
     const selectedChartZoomStateMemo = useMemo(makeSelectZoomStateByUUID, [])
@@ -36,6 +38,8 @@ function MACDSubChart({ candleData, uuid, timeFrame })
     const displayMarketHours = useSelector((state) => selectDisplayMarketHoursMemo(state, uuid))
 
     const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame, displayMarketHours?.showOnlyIntraDay) }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
+
+    const [yZoomState, setYZoomState] = useState(undefined)
 
 
     const dateBetweenStartAndFinishInterval = useMemo(() =>
@@ -88,21 +92,61 @@ function MACDSubChart({ candleData, uuid, timeFrame })
 
     }, [candleData, excludedPeriods, chartZoomState?.x, chartDimensions])
 
-    const yPixelBufferBottom = 20
+
+    const yPixelBufferBottom = hideTimeLine ? 0 : 20
+    const yPixelBufferTop = hideTimeLine ? 5 : 10
     const createYScale = useCallback(({ MACDToPixel = undefined, pixelToMACD = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
 
-        const yPixelBufferTop = 10
 
         const yScale = scaleLinear().domain([MACDRange.min, MACDRange.max]).range([chartDimensions.height - yPixelBufferBottom, yPixelBufferTop])
+
+        if (yZoomState)
+        {
+            const zoomValues = zoomIdentity.translate(yZoomState.x, yZoomState.y).scale(yZoomState.k)
+            const newZoomState = zoomValues.rescaleX(yScale)
+            yScale.domain(newZoomState.domain())
+        }
+
+
 
         if (pixelToMACD !== undefined) return Math.round(yScale.invert(pixelToMACD) * 100) / 100
         if (MACDToPixel !== undefined) return yScale(MACDToPixel)
 
         else return yScale
 
-    }, [candleData, chartDimensions])
+    }, [candleData, yZoomState, chartDimensions])
+
+    const createHistogramYScale = useCallback(({ histogramToPixel = undefined, pixelToHistogram = undefined } = {}) =>
+    {
+        if (preDimensionsAndCandleCheck() || !MACDRange) return
+        const yScale = scaleLinear().domain([MACDRange.histogramExtremes[0], MACDRange.histogramExtremes[1]])
+            .range([-10, 10])
+
+        if (yZoomState)
+        {
+            const zoomValues = zoomIdentity.translate(yZoomState.x, yZoomState.y).scale(yZoomState.k)
+            const newZoomState = zoomValues.rescaleX(yScale)
+            yScale.domain(newZoomState.domain())
+        }
+
+
+
+        if (pixelToHistogram !== undefined) return Math.round(yScale.invert(pixelToHistogram) * 100) / 100
+        if (histogramToPixel !== undefined) return yScale(histogramToPixel)
+        else return yScale
+
+    }, [MACDRange, candleData, chartDimensions])
+
+
+
+
+
+
+
+
+
 
     const macdLine = line().x((d, i) => createDateScale({ dateToPixel: d.Timestamp })).y(d => createYScale({ MACDToPixel: d.macd })).curve(curveBasis)
     const signalLine = line().x((d, i) => createDateScale({ dateToPixel: d.Timestamp })).y(d => createYScale({ MACDToPixel: d.signal })).curve(curveBasis)
@@ -115,22 +159,26 @@ function MACDSubChart({ candleData, uuid, timeFrame })
 
         const yScaleSVG = select(YSVG.current)
 
-        let xAxis
-        const yAxis = axisLeft(createYScale())
+        if (!hideTimeLine)
+        {
+            let xAxis
+            if (timeFrame.intraDay && timeFrame.duration > 3)
+            {
+                xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date()))
+            } else if (timeFrame.intraDay && timeFrame.duration <= 3)
+            {
+                xAxis = axisBottom(createDateScale())
+            } else
+            {
+                xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date()))
+            }
+            svg.select('.x-axis').style('transform', `translateY(${chartDimensions.height - yPixelBufferBottom}px)`).call(xAxis)
 
-        if (timeFrame.intraDay && timeFrame.duration > 3)
-        {
-            xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date()))
-        } else if (timeFrame.intraDay && timeFrame.duration <= 3)
-        {
-            xAxis = axisBottom(createDateScale())
-        } else
-        {
-            xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date()))
         }
 
-        //yScaleSVG.select('.y-axis').style('transform', `translateX(${yScaleDimensions.width - 1}px)`).call(yAxis)
-        svg.select('.x-axis').style('transform', `translateY(${chartDimensions.height - yPixelBufferBottom}px)`).call(xAxis)
+        const yAxis = axisLeft(createYScale())
+        yScaleSVG.select('.y-axis').style('transform', `translateX(${yScaleDimensions.width - 1}px)`).call(yAxis)
+
 
 
         svg.select('.macdLine').selectAll('.lineGroup').data([MACDData]).join((enter) => createMACDLine(enter), (update) => updateMACDLine(update))
@@ -148,8 +196,31 @@ function MACDSubChart({ candleData, uuid, timeFrame })
             group.select('.signal').attr('d', signalLine(MACDData))
         }
 
+        svg.select('.histogramLine').selectAll('.histogramBar').data(MACDData).join((enter) => createMACDHisBar(enter), update => updateMACDHisBar(update))
+        function createMACDHisBar(enter)
+        {
+            let centerPixel = createYScale({ MACDToPixel: 0 })
 
-    }, [candleData, excludedPeriods, chartZoomState?.x, chartDimensions])
+            enter.each((d, i) =>
+            {
+                enter.append('line').attr('class', 'histogramBar').attr('stroke-width', 2)
+                    .attr('stroke', (d, i) => { return d.histogram > 0 ? 'red' : 'green' })
+                    .attr('y1', 0).attr('y2', createHistogramYScale({ histogramToPixel: d.histogram }))
+                    .attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},${centerPixel})` })
+            })
+        }
+
+        function updateMACDHisBar(update)
+        {
+            let centerPixel = createYScale({ MACDToPixel: 0 })
+
+            update.each(function (d, i)
+            {
+                select(this).attr('y2', createHistogramYScale({ histogramToPixel: d.histogram }))
+                    .attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},${centerPixel})` })
+            })
+        }
+    }, [candleData, yZoomState, excludedPeriods, chartZoomState?.x, chartDimensions])
 
     //draw visual time breaks
     useEffect(() =>
@@ -230,7 +301,7 @@ function MACDSubChart({ candleData, uuid, timeFrame })
             function createVisualBreaks(enter)
             {
                 enter.append('rect').attr('class', (d, i) => { return i % 2 !== 0 ? 'monthOdd visualBreak' : 'monthEven visualBreak' })
-                    .attr('x', (d, i) => createDateScale({ dateToPixel: d })).attr('y', -pixelBuffer.yDirectionPixelBuffer)
+                    .attr('x', (d, i) => createDateScale({ dateToPixel: d })).attr('y', hideTimeLine ? 5 : -pixelBuffer.yDirectionPixelBuffer)
                     .attr('width', (d, i) => { return pixelDates[i + 1] - createDateScale({ dateToPixel: d }) })
                     .attr('height', chartDimensions.height)
             }
@@ -244,7 +315,7 @@ function MACDSubChart({ candleData, uuid, timeFrame })
         if (preDimensionsAndCandleCheck()) return
         const svg = select(XSVG.current)
 
-        if (currentCrossHairX.x)
+        if (currentCrossHairX?.x)
         {
             svg.select('.crossHair').select('.yTrace').attr('x1', currentCrossHairX.x).attr('x2', currentCrossHairX.x)
                 .attr('y1', 0).attr('y2', chartDimensions.height).attr('stroke', 'black').attr('stroke-width', '1px')
@@ -254,6 +325,24 @@ function MACDSubChart({ candleData, uuid, timeFrame })
             svg.select('.crossHair').select('.yTrace').attr('visibility', 'hidden')
         }
     }, [currentCrossHairX])
+
+    //zoomYBehavior
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+        const yScaleSVG = select(YSVG.current)
+        const zoomBehavior = zoom().on('zoom', () =>
+        {
+            const zoomState = zoomTransform(yScaleSVG.node())
+            setYZoomState({ x: zoomState.x, y: zoomState.y, k: zoomState.k })
+        })
+
+        yScaleSVG.call(zoomBehavior)
+
+
+
+    }, [candleData, chartZoomState, yScaleDimensions, timeFrame])
+
 
 
     return (
@@ -270,14 +359,15 @@ function MACDSubChart({ candleData, uuid, timeFrame })
                     <svg ref={XSVG} >
                         <g className='x-axis' />
                         <g className='visualDateBreaks' />
+                        <g className='histogramLine' />
                         <g className='crossHair'>
                             <line className='yTrace' />
                         </g>
                         <g className='macdLine' />
                         <g className='zeroLine'>
-                            <line className='zeroLine' x1={-10000} x2={10000} y1={createYScale({ MACDToPixel: 0 })} y2={createYScale({ MACDToPixel: 0 })} stroke='black' strokeWidth={'0.5px'} />
+                            <line className='zeroLine' x1={-10000} x2={10000}
+                                y1={createYScale({ MACDToPixel: 0 })} y2={createYScale({ MACDToPixel: 0 })} stroke='black' strokeWidth={'0.5px'} />
                         </g>
-                        <g className='histogramLine' />
                     </svg>
                 </div>
             </div>

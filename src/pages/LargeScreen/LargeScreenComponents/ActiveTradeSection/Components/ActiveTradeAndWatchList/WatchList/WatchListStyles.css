@@ -1,10 +1,5 @@
-#LSH-PreTradeWatchAsList {
-  height: 815px;
-  display: grid;
-  grid-template-rows: 1fr 500px;
-}
-
 #LSH-PreTradeWatchAsList > div {
+  height: 815px;
   background-color: rgb(36, 36, 36);
   border-radius: 8px;
   display: flex;
@@ -26,13 +21,13 @@
 
 #LSH-PreTradeWatchAsList > div > div:last-child {
   height: 100%;
-  max-height: 460px;
+  max-height: 815px;
   overflow-y: scroll;
   font-size: var(--fs-100);
 }
 
 #LSH-PreWatchPlanList:last-child {
-  height: 180px;
+  height: 815px;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
 }

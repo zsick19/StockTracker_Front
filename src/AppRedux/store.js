@@ -20,6 +20,7 @@ import graphToSubGraphCrossHairsReducers from '../features/Charting/GraphToSubGr
 import graphMarketHoursReducers from '../features/Charting/GraphMarketHourElement'
 import messageNewsDetailControlReducers from '../features/SelectedStocks/MessageNewsDetailControl'
 import standardDeviationControlReducers from '../features/STDs/StockDetailControlSlice'
+import priceAlertControlReducers from '../features/PriceAlerts/PriceAlertControlSlice'
 import { injectStore } from "./api/ws";
 
 export const store = configureStore({
@@ -41,6 +42,7 @@ export const store = configureStore({
     graphHoursControl: graphMarketHoursReducers,
     messageNewsDetailControl: messageNewsDetailControlReducers,
     standardDeviationControl: standardDeviationControlReducers,
+    priceAlertControl: priceAlertControlReducers,
     auth: authReducer,
     test: testReducer,
 

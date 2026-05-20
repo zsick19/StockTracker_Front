@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import './QuickSearch.css'
-import QuickSearchChartWrapper from './Components/QuickSearchChartWrapper'
+import QuickSearchChartWrapper from './Components/QSChartWrapper'
 import { defaultTimeFrames } from '../../../../../../../../Utilities/TimeFrames'
 
 function QuickSearch()
