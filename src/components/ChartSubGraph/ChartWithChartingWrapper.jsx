@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import ChartGraph from './ChartGraph'
 import { useGetChartingDataQuery } from '../../features/Charting/ChartingSliceApi'
 import { useDispatch } from 'react-redux'
@@ -10,6 +10,8 @@ import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../featu
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
 import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
+import { calculateVolumeEfficiency } from '../../Utilities/technicalIndicatorFunctions'
+import { filterRegularMarketHours } from '../../Utilities/TimeFrames'
 
 function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, interactionController,
     chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs, macroTickerInfo })
@@ -18,11 +20,14 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
     const tickerForSearch = ticker?.ticker || ticker
     const chartIdForSearch = ticker?._id || chartId
 
+    // const removedPrePostMarketData = useMemo(() =>
+    // {
+    //     let filter = filterRegularMarketHours(candleData.candleData)
+    //     if (filter.length > 0) return calculateVolumeEfficiency(filter)
+    //     else return calculateVolumeEfficiency(candleData.candleData)
+    // }, [candleData])
 
-    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({
-        tickerSymbol: ticker?.ticker || ticker,
-        chartId: ticker?._id || chartId
-    })
+    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ tickerSymbol: ticker?.ticker || ticker, chartId: ticker?._id || chartId })
 
     useEffect(() =>
     {

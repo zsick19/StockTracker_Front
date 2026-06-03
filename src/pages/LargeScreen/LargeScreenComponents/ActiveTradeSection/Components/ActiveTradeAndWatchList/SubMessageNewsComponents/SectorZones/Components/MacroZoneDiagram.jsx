@@ -4,7 +4,7 @@ import { useResizeObserver } from '../../../../../../../../../hooks/useResizeObs
 
 function MacroZoneDiagram({ zoneData, item })
 {
-    
+
     const conditionDiagramRef = useRef()
     const conditionDiagramWrapperRef = useRef()
     const diagramDimensions = useResizeObserver(conditionDiagramWrapperRef)
@@ -12,7 +12,7 @@ function MacroZoneDiagram({ zoneData, item })
 
     const yScale = useCallback((priceToPixel) =>
     {
-        if (!diagramDimensions) return
+        if (!diagramDimensions || !zoneData) return
         const scale = scaleLinear().domain([zoneData.high, zoneData.low]).range([0, diagramDimensions.height])
         return scale(priceToPixel)
     }, [diagramDimensions, zoneData])
@@ -20,7 +20,7 @@ function MacroZoneDiagram({ zoneData, item })
 
     useEffect(() =>
     {
-        if (!diagramDimensions) return
+        if (!diagramDimensions || !zoneData) return
 
         let lowPixel = yScale(zoneData.low)
         let midPixel = yScale(zoneData.mid)
@@ -51,7 +51,7 @@ function MacroZoneDiagram({ zoneData, item })
     }, [zoneData, diagramDimensions])
     useEffect(() =>
     {
-        if (!diagramDimensions) return
+        if (!diagramDimensions || !zoneData) return
 
         diagramSVG.select('.price').selectAll('line').remove()
         diagramSVG.select('.price').append('line')

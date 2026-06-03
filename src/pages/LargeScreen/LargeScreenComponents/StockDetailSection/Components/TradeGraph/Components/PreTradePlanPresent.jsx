@@ -7,7 +7,7 @@ import PreTradePlanExamine from '../PreTradeComponents/PreTradePlanExamine'
 import { AlertCircle, Banknote, Coins, HandCoins, Plane } from 'lucide-react'
 import CompanyInfo from '../PreTradeComponents/CompanyInfo'
 import '../PreTradeComponents/PreTradeStyles.css'
-import { enterBufferSelectors, enterExitPlannedSelectors, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { useGetStockAverageTrueRangeQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
 import TradeRecordedVisual from './TradeRecordedVisual'
 
@@ -35,7 +35,7 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
         if (isSuccess)
         {
             atrAtPurchase = parseFloat(data.currentATR.toFixed(2))
-            daysToCover = Math.ceil((plan.plan.exitPrice - tradeRecordDetails.purchasePrice) / data.currentATR)
+            daysToCover = Math.ceil((planPricing.exitPrice - tradeRecordDetails.purchasePrice) / data.currentATR)
         }
 
         try
@@ -99,8 +99,8 @@ function PreTradePlanPresent({ selectedStock, setShowSupportingTickers })
         if (tradeRecordDetails.purchasePrice > (selectedStock.plan.mostRecentPrice * 1.2) || tradeRecordDetails.purchasePrice < (selectedStock.plan.mostRecentPrice * 0.8)) return
         else setShowConfirmTradeValues(true)
     }
-    
-    
+
+
     return (
         <>
             {serverTradeResponse ? <TradeRecordedVisual serverTradeResponse={serverTradeResponse} /> :

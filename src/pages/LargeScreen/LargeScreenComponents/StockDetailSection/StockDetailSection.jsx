@@ -18,6 +18,9 @@ import BestPositionSplit from './Components/BestPositionSplit/BestPositionSplit'
 import MacroChartingGraph from './Components/MacroChartingGraph/MacroChartingGraph';
 import TinyPreWatch from './Components/TinyPreWatch/TinyPreWatch';
 import RRGChart from './Components/RRGChart/RRGChart';
+import ActiveTradeWatchMany from './Components/ActiveTradeWatchMany/ActiveTradeWatchMany';
+import SectorPlanView from './Components/SectorPlanView/SectorPlanView';
+import FinalPreTradeCheck from './Components/FinalPreTradeCheck/FinalPreTradeCheck';
 
 function StockDetailSection()
 {
@@ -32,7 +35,7 @@ function StockDetailSection()
 
   function provideDetailContent()
   {
-    switch (currentStockDetail)
+    switch (currentStockDetail.detailSelected)
     {
       case 0: return <FourGraphSplitContainer />
       case 1: return <MarketSearch currentMarketSearchPage={currentMarketSearchPage}
@@ -55,6 +58,9 @@ function StockDetailSection()
       case 15: return <MacroChartingGraph />
       case 16: return <TinyPreWatch />
       case 17: return <RRGChart />
+      case 18: return <ActiveTradeWatchMany />
+      case 19: return <SectorPlanView />
+      case 20: return <FinalPreTradeCheck />
     }
   }
 

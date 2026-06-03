@@ -10,6 +10,8 @@ export const defaultTimeFrames = {
   threeDayOneHour: { increment: "1", unitOfIncrement: "H", duration: 3, unitOfDuration: "D", intraDay: true },
   fourHourOneYear: { increment: "4", unitOfIncrement: "H", duration: 1, unitOfDuration: "Y", intraDay: true },
 
+  oneDayOneMin: { increment: "1", unitOfIncrement: "M", duration: 1, unitOfDuration: "D", intraDay: true },
+
   dailyOneYear: { increment: "1", unitOfIncrement: "D", duration: 1, unitOfDuration: "Y", intraDay: false },
   dailyQuarter: { increment: "1", unitOfIncrement: "D", duration: 90, unitOfDuration: "D", intraDay: false },
   dailyMonth: { increment: "1", unitOfIncrement: "D", duration: 30, unitOfDuration: "D", intraDay: false },

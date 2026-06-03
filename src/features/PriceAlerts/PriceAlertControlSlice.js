@@ -5,11 +5,25 @@ const priceAlertSlice = createSlice({
     name: "priceAlertControl",
     initialState: {
         priceBelowAlert: [],
+        priceBelowQuickAlert: [],
         priceAboveAlert: [],
     },
     reducers: {
         addPriceAlert: (state, action) =>
         {
+
+            let alreadyInQuickAdd = false
+            state.priceBelowQuickAlert = state.priceBelowQuickAlert.map(t => 
+            {
+                if (t.Symbol === action.payload.Symbol)
+                {
+                    alreadyInQuickAdd = true
+                    return action.payload
+                } else return t
+            })
+            if (!alreadyInQuickAdd) state.priceBelowQuickAlert.push(action.payload)
+
+
             let foundAndReplaced = true
             state.priceBelowAlert = state.priceBelowAlert.map((t, i) =>
             {
@@ -26,6 +40,10 @@ const priceAlertSlice = createSlice({
             // if (indexOfTickerAlreadyPresent !== -1) { state.std1Daily.splice(indexOfTickerAlreadyPresent, 1) }
             // state.std1Daily.push({ id: short.generate(), ...action.payload })
         },
+        removeQuickAlert: (state, action) =>
+        {
+            state.priceBelowQuickAlert = state.priceBelowQuickAlert.filter(t => t.timeStamp !== action.payload.timeStamp)
+        },
         clearPriceAlert: (state, action) =>
         {
             state.std1Daily = state.std1Daily.filter(t => t.id !== action.payload)
@@ -36,10 +54,12 @@ const priceAlertSlice = createSlice({
 
 export const {
     addPriceAlert,
+    removeQuickAlert
 } = priceAlertSlice.actions;
 
 export default priceAlertSlice.reducer;
 
-export const selectPriceAlertState = (state) => state.priceAlertControl
+export const selectPriceAlertState = (state) => state.priceAlertControl.priceBelowAlert
+export const selectQuickAlertBelowState = (state) => state.priceAlertControl.priceBelowQuickAlert
 // export const dailySingleDeviationCount = (state) => state.standardDeviationControl.std1Daily.count
 // export const provideSelectedDeviation = (state) => state.standardDeviationControl.selectedDeviation

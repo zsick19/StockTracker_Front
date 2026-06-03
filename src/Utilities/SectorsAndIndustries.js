@@ -55,7 +55,18 @@ export const sectorToTicker = {
     "Materials": 'XLB',
     "Energy": 'XLE',
     "Consumer Discretionary": 'XLY',
-    "Real Estate": 'XLRE'
+    "Real Estate": 'XLRE',
+    'XLV': 'Healthcare',
+    'XLP': 'Consumer Staples',
+    'XLI': 'Industrials',
+    'XLC': 'Communication Services',
+    'XLU': "Utilities",
+    'XLK': "Technology",
+    'XLF': "Financials",
+    'XLB': "Materials",
+    'XLE': "Energy",
+    'XLY': "Consumer Discretionary",
+    'XLRE': "Real Estate"
 }
 
 export const allSectorTickers = ['XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE']

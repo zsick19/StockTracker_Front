@@ -35,8 +35,8 @@ function PlanViabilityStatus()
         handleUpdateToggle={handleUpdateToggle} />;
       case 2: return <PlanGraphWrapper ids={data.plannedTickers.ids} watchList={planListToDisplay} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
         handleUpdateToggle={handleUpdateToggle} />;
-      case 3: return <HighImportancePlanWrapper ids={data.highImportance.ids} watchList={planListToDisplay} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
-        handleUpdateToggle={handleUpdateToggle} />
+      // case 3: return <HighImportancePlanWrapper ids={data.highImportance.ids} watchList={planListToDisplay} selectedPlansForRemoval={selectedPlansForRemoval} handleRemovalToggle={handleRemovalToggle} selectedPlansForUpdate={selectedPlansForUpdate}
+      //   handleUpdateToggle={handleUpdateToggle} />
     }
   }
 

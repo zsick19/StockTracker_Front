@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useResizeObserver } from '../../../hooks/useResizeObserver'
 import { rsiCalc } from '../../../Utilities/technicalIndicatorFunctions'
-import { addDays, addYears, isSaturday, isSunday, sub, subDays, subMonths } from 'date-fns'
+import { addDays, addYears, eachDayOfInterval, isSaturday, isSunday, sub, subDays, subMonths } from 'date-fns'
 import { axisBottom, axisLeft, curveBasis, curveLinear, extent, line, max, scaleLinear, scaleTime, select, selectAll, timeDay, timeMonths, zoom, zoomIdentity, zoomTransform } from 'd3'
 import { discontinuityRange, discontinuitySkipUtcWeekends, discontinuitySkipWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
 import { makeSelectZoomStateByUUID } from '../../../features/Charting/GraphHoverZoomElement'

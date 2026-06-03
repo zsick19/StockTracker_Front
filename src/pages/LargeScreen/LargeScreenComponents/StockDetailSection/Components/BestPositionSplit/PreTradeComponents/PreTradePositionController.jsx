@@ -29,7 +29,7 @@ function PreTradePositionController({ whatPreTradeToDisplay, dataForVisual, setW
             <select className='PreTradePositionList' onChange={(e) => setWhatPreTradesToDisplay(e.target.value)}>
                 <option value="allPositionVisuals">All Plans</option>
                 <option value="enterBufferPositionVisuals">Enter Buffer</option>
-                <option value="highImportancePositionVisuals">High Importance</option>
+                <option value="highImportancePositionVisuals" disabled>High Importance</option>
                 <option value="stopLossPositionVisuals">Stop Loss Hit</option>
                 <option value="plannedPositionVisuals">Other Planned</option>
             </select>

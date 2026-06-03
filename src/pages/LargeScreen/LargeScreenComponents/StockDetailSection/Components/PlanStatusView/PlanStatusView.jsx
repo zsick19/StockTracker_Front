@@ -36,7 +36,7 @@ function PlanStatusView()
       case 0: results = combinedData.stopLossHit; break
       case 1: results = combinedData.enterBuffer; break;
       case 2: results = combinedData.allOtherPlans; break;
-      case 3: results = combinedData.highImportance; break;
+      // case 3: results = combinedData.highImportance; break;
       case 4: results = combinedData.combined; break;
     }
 
@@ -161,7 +161,7 @@ function PlanStatusView()
         <fieldset onChange={(e) => setPlanFilters(prev => ({ ...prev, [e.target.name]: parseInt(e.target.value) }))}>
           <input type="radio" name="groupForDisplay" id="allPlansGroup" className='hiddenRadioInput' value={4} defaultChecked />
           <label htmlFor="allPlansGroup" className='clickableLabel'>All Plans</label>
-          <input type="radio" name="groupForDisplay" id="highImportance" className='hiddenRadioInput' value={3} />
+          <input type="radio" name="groupForDisplay" id="highImportance" className='hiddenRadioInput' value={3} disabled />
           <label htmlFor="highImportance" className='clickableLabel'>High Importance</label>
           <input type="radio" name="groupForDisplay" id="otherPlansGroup" className='hiddenRadioInput' value={2} />
           <label htmlFor="otherPlansGroup" className='clickableLabel'>Above Enter Buffer</label>

@@ -104,3 +104,24 @@ export function processStandardDailyForAlerts(inputString)
   })
 
 }
+
+export function filterEasternMarketHours(candles)
+{
+  return candles.filter(candle =>
+  {
+    // Convert UTC timestamp to a New York time string (format: HH:MM)
+    const nyTimeString = new Date(candle.Timestamp).toLocaleTimeString('en-US', {
+      timeZone: 'America/New_York',
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Split the localized string into numbers
+    const [hours, minutes] = nyTimeString.split(':').map(Number);
+    const totalMinutes = (hours * 60) + minutes;
+
+    // 9:30 AM = 570 minutes | 4:00 PM = 960 minutes
+    return totalMinutes >= 570 && totalMinutes <= 960;
+  });
+}

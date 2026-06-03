@@ -1,0 +1,55 @@
+#ActiveTradeWatchMany {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(30, 30, 32);
+  height: 100%;
+}
+
+.TradeWatchManyLegend {
+  display: flex;
+  font-size: var(--fs-100);
+  justify-content: space-around;
+  height: 2rem;
+}
+#tradeWithGraphContainer {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 1rem;
+  overflow-y: scroll;
+  max-height: 1100px;
+}
+
+.SingleTradeWithGraphWrapper {
+  background-color: rgb(80, 80, 83);
+  height: 350px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 5px;
+}
+.SingleTradeWithGraphWrapper > div:first-of-type {
+  padding-inline: 0.5rem;
+}
+
+.SingleTradeWithGraphWrapper > div:nth-of-type(2) {
+  flex: 1;
+}
+.SingleTradeWithGraphWrapper > div:last-of-type {
+  height: 75px;
+}
+.justMACDSubChart {
+  padding-left: 50px;
+  background-color: rgb(40, 40, 43);
+}
+
+.justMACDSubChart svg {
+  height: 75px;
+}
+
+.TradeActionInfo {
+  padding: 0.5rem;
+  font-size: var(--fs-100);
+  display: flex;
+  justify-content: space-around;
+}

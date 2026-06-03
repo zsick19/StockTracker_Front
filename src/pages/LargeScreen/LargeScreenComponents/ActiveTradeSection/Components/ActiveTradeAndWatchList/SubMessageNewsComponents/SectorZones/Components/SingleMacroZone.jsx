@@ -6,11 +6,12 @@ import { color, scaleLinear, select, selectAll } from 'd3';
 import MacroZoneDiagram from './MacroZoneDiagram';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import MiniFiveMinChart from '../../../../../../StockDetailSection/Components/TinyPreWatch/Components/MiniFiveMinChart';
+import { useDispatch } from 'react-redux';
+import { setStockDetailStateWithTicker } from '../../../../../../../../../features/SelectedStocks/StockDetailControlSlice';
 
 function SingleMacroZone({ macroTicker, zoneData, candleData, setSelectedMacro })
 {
     const { item } = useFetchUsersMacroWatchListQuery(undefined, { selectFromResult: ({ data }) => ({ item: data?.tickerState.entities[macroTicker] }) })
-
 
     const conditionDiagramRef = useRef()
     const conditionDiagramWrapperRef = useRef()
@@ -76,10 +77,10 @@ function SingleMacroZone({ macroTicker, zoneData, candleData, setSelectedMacro }
         else setBorderColor('blue')
 
     }, [item?.mostRecentPrice, diagramDimensions])
-
+    const dispatch = useDispatch()
     return (
-        <div className='SingleMacroZone'>
-            {zoneData && <MacroZoneDiagram zoneData={zoneData} item={item} />}
+        <div className='SingleMacroZone' onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 19, ticker: macroTicker }))}>
+            <MacroZoneDiagram zoneData={zoneData} item={item} />
             <div className='MacroZoneTickerPriceDetail'>
                 <h3>
                     {zoneData && (zoneData.trend > zoneData.close ? <TrendingUp color='green' size={12} /> : <TrendingDown color='red' size={12} />)}

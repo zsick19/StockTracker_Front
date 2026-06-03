@@ -79,7 +79,7 @@ function TradePresent({ selectedStock })
     return (
         <>
             {
-                tradeServerResponse.status === 'tradeCompleted' ?
+                tradeServerResponse?.status === 'tradeCompleted' ?
                     <TradeSuccessCompleted completedTrade={tradeServerResponse.trade} /> :
 
                     <div id='TradeDetailAndBuySellOptions'>

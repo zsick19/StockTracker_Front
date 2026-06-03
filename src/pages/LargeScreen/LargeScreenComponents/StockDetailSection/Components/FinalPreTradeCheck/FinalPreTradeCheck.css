@@ -1,0 +1,8 @@
+#VolDistChart {
+  width: 500px;
+  height: 500px;
+}
+#VolDistChart > svg {
+  width: 100%;
+  height: 100%;
+}

@@ -1,0 +1,18 @@
+#ExpandedPlanInfo {
+  display: grid;
+  grid-template-rows: 1rem 20px 1fr;
+  align-items: center;
+}
+#ExpandedPlanInfo > div:first-of-type {
+  display: flex;
+  justify-content: space-between;
+}
+
+.PlanInfoButtonControl {
+  display: flex;
+  justify-content: space-between;
+}
+.ExpandedPlanPricing {
+  display: flex;
+  justify-content: space-between;
+}

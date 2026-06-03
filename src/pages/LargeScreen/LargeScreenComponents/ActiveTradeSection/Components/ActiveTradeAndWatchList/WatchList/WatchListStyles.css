@@ -7,7 +7,9 @@
 }
 
 /* Title Block */
-#LSH-PreTradeWatchAsList > div > div:first-child {
+.watchListWithSectorSelect > div:first-of-type {
+  background-color: green;
+  /* width: 300px; */
   font-size: var(--fs-300);
   height: 2rem;
   background-color: rgb(101, 111, 131);
@@ -103,9 +105,7 @@
 }
 
 .WatchListSectorSelect {
-  position: absolute;
   top: 2rem;
-  width: 100%;
   display: flex;
   gap: 1rem;
   padding-inline: 1rem;
@@ -116,4 +116,62 @@
   color: white;
   border: none;
   background-color: rgb(11, 11, 71);
+}
+
+.SinglePreChecked {
+  padding: 5px;
+  display: grid;
+  grid-template-rows: 1rem 50px 1rem;
+  gap: 2px;
+  align-items: center;
+}
+
+.SinglePreCheckTicker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.TwoDayGraphSector {
+  display: flex;
+  text-align: center;
+  align-content: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 50px;
+}
+
+.TwoDayGraphSector > div {
+  display: flex;
+}
+
+.TwoDayGraphSector > div:last-of-type {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.TwoDayGraphSector div:first-child > div:first-child {
+  border-right: 1px solid rgb(112, 112, 112);
+}
+
+.TwoDayGraphSector div {
+  width: 100%;
+  height: 50px;
+  border-radius: 0px;
+}
+.TwoDayGraphSector .MiniFiveMinChartWrapper svg {
+  width: 100px;
+  height: 50px;
+  border-radius: 0px;
+}
+
+.SinglePreChecked .MiniFiveMinChartWrapper {
+  /* border: 1px solid white; */
+}
+.greenText {
+  color: green;
+}
+.redText {
+  color: red;
 }

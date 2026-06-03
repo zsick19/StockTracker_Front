@@ -50,10 +50,39 @@ export const PriceAlertApiSlice = apiSlice.injectEndpoints({
                 }
             }
         }),
+        removePriceAlert: builder.mutation({
+            query: (args) => ({
+                url: `/alerts/${args.ticker}/${args.chartId}/${args.alertId}`,
+                method: 'DELETE'
+            }),
+            async onQueryStarted(arg, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data } = await queryFulfilled
+
+                    dispatch(EnterExitPlanApiSlice.util.updateQueryData('getUsersEnterExitPlan', undefined, (draft) =>
+                    {
+                        let entityToUpdate
+                        if (draft.highImportance.ids.includes(data.ticker)) { entityToUpdate = draft.highImportance.entities[data.ticker] }
+                        else if (draft.enterBufferHit.ids.includes(data.ticker)) { entityToUpdate = draft.enterBufferHit.entities[data.ticker] }
+                        else if (draft.stopLossHit.ids.includes(data.ticker)) { entityToUpdate = draft.stopLossHit.entities[data.ticker] }
+                        else { entityToUpdate = draft.plannedTickers.entities[data.ticker] }
+
+                        if (entityToUpdate) { entityToUpdate.priceAlerts = entityToUpdate.priceAlerts.filter(t => t._id !== data._id) }
+                    }
+                    ))
+                } catch (error)
+                {
+                    console.log(error)
+                }
+            }
+        }),
     }),
 });
 
 export const {
     useGetUserPriceAlertsQuery,
-    useCreatePriceAlertMutation
+    useCreatePriceAlertMutation,
+    useRemovePriceAlertMutation
 } = PriceAlertApiSlice;

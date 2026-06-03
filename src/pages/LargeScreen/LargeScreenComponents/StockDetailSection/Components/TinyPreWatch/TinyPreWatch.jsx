@@ -2,27 +2,28 @@ import React, { useEffect, useState } from 'react'
 import { useGetTinyEnterExit5MinChartsQuery, useGetUsersEnterExitPlanQuery } from '../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import SingleTinyPreWatch from './Components/SingleTinyPreWatch'
 import './TinyPreWatch.css'
-// import MacroTinyPreWatch from './Components/MacroTinyPrewatch'
 import { isWeekend } from 'date-fns'
-import { RotateCcw } from 'lucide-react'
+import { CircleArrowLeft, CircleArrowRight, RefreshCcw, RotateCcw } from 'lucide-react'
 import ExpandedPreWatch from './Components/ExpandedPreWatch'
-import PreWatchContainer from './Components/PreWatchContainer'
+import './PlanInfoDisplay.css'
 
 function TinyPreWatch()
 {
-    let isWeekendPollingInterval = isWeekend(new Date()) ? 300000 : 0
-    const { data, isSuccess, isLoading, isError, error } = useGetTinyEnterExit5MinChartsQuery(undefined, { pollingInterval: isWeekendPollingInterval })
-    const { data: enterExitData, isSuccess: isEnterExitSuccess, refetch } = useGetUsersEnterExitPlanQuery()
+    let isWeekendPollingInterval = isWeekend(new Date()) ? 0 : 300000
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetTinyEnterExit5MinChartsQuery(undefined,
+        { pollingInterval: isWeekendPollingInterval })
+    const { data: enterExitData, isSuccess: isEnterExitSuccess, refetch: refetchPlans } = useGetUsersEnterExitPlanQuery(undefined,
+        { pollingInterval: isWeekendPollingInterval })
+
 
     const [selectedTickerIndex, setSelectedTickerIndex] = useState(-1)
     const [watchListSelection, setWatchListSelection] = useState('enterBufferHit')
     const [watchListIds, setWatchListsIds] = useState([])
 
     let tinyPreWatchContent
-    if (isSuccess) { tinyPreWatchContent = <PreWatchContainer preWatchIds={watchListIds} watchListSelection={watchListSelection} setSelectedTickerIndex={setSelectedTickerIndex} /> }
+    if (isSuccess) { tinyPreWatchContent = watchListIds.map((id, i) => <SingleTinyPreWatch key={`${id}tiny`} id={id} index={i} setSelectedTickerIndex={setSelectedTickerIndex} />) }
     else if (isLoading) { tinyPreWatchContent = <div>Loading</div> }
     else if (isError) { tinyPreWatchContent = <div>Error</div> }
-
 
 
     useEffect(() =>
@@ -30,14 +31,22 @@ function TinyPreWatch()
         if (isEnterExitSuccess && isSuccess)
         {
             setWatchListsIds(enterExitData[watchListSelection].ids)
-            setSelectedTickerIndex(0)
+            tinyPreWatchContent = watchListIds.map((id, i) => <SingleTinyPreWatch key={`${id}tiny`} id={id} index={i} setSelectedTickerIndex={setSelectedTickerIndex} />)
         } else
         {
             setWatchListsIds([])
             setSelectedTickerIndex(-1)
+            tinyPreWatchContent = []
         }
 
-    }, [watchListSelection, isEnterExitSuccess, isSuccess])
+    }, [watchListSelection, enterExitData, data])
+
+    useEffect(() =>
+    {
+        if (isEnterExitSuccess && isSuccess) { setSelectedTickerIndex(0) }
+        else { setSelectedTickerIndex(-1) }
+
+    }, [watchListSelection])
 
     function handleWatchListChange()
     {
@@ -51,17 +60,20 @@ function TinyPreWatch()
     }
     return (
         <div id='LHS-TinyPreWatch'>
-            <div id='LHS-TinyPreAsList'>
+            <div id='LHS-TinyPreAsList' onDoubleClick={() => { refetchPlans(); refetch() }}>
                 <div className='LHS-TinyListHeader'>
                     <p onClick={handleWatchListChange}>{watchListSelection === 'enterBufferHit' ? 'Enter Buffer' : 'Stop Loss'}</p>
-                    <button onClick={refetch}>R</button>
-                    <button onClick={() => handlePlanNav(false)}>Prev</button>
-                    <button onClick={() => handlePlanNav(true)}>Next</button>
+                    <button className='buttonIcon' onClick={() => handlePlanNav(false)}><CircleArrowLeft color='white' /></button>
+                    <button className='buttonIcon' onClick={() => handlePlanNav(true)}><CircleArrowRight color='white' /></button>
                 </div>
+
                 <div id='LHS-TinySinglePreWatchContainer' className='hide-scrollbar'>
+
                     {tinyPreWatchContent}
                 </div>
+
             </div>
+
             {(selectedTickerIndex >= 0 && isSuccess) ?
                 <ExpandedPreWatch id={watchListIds[selectedTickerIndex]} watchList={watchListSelection} />
                 :

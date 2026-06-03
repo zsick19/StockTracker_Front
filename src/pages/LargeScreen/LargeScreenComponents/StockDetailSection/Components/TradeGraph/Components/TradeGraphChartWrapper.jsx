@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useGetStockDataUsingTimeFrameQuery } from '../../../../../../../features/StockData/StockDataSliceApi'
 import ChartWithChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
 import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner'
@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentTool } from '../../../../../../../features/Charting/ChartingTool'
 import { selectChartEditMode, setChartEditMode } from '../../../../../../../features/Charting/EditChartSelection'
 import CorrelationSubChart from '../../../../../../../components/ChartSubGraph/SubCharts/CorrelationSubChart'
+import { calculateVolumeEfficiency } from '../../../../../../../Utilities/technicalIndicatorFunctions'
 
 function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, showEMAs, subCharts, setSubCharts })
 {
@@ -21,6 +22,8 @@ function TradeGraphChartWrapper({ selectedStock, uuid, timeFrame, setTimeFrame, 
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: selectedStock.tickerSymbol, timeFrame: timeFrame, liveFeed: true, info: true })
     const currentTool = useSelector(selectCurrentTool)
     const editMode = useSelector(selectChartEditMode)
+
+
 
     let chartContent
     if (isSuccess && data.candleData.length > 0)

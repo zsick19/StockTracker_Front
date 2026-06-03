@@ -9,14 +9,14 @@ const enterExitGraphElementsSlice = createSlice({
         setEnterExitCharting: (state, action) =>
         {
             let chartingData = action.payload
-
             if (action.payload?.plannedId)
             {
                 state[chartingData.tickerSymbol] = {
                     ...chartingData.plannedId.plan,
                     initialTrackingPrice: chartingData.plannedId?.initialTrackingPrice || undefined,
                     tradeEnterDate: chartingData.plannedId?.tradeEnterDate || undefined,
-                    id: chartingData.plannedId._id, enterExitPlanAltered: false
+                    id: chartingData.plannedId._id, enterExitPlanAltered: false,
+                    dailyTickerValues: chartingData.plannedId?.dailyTickerValues || undefined
                 }
             }
             else { state[chartingData.tickerSymbol] = undefined }
@@ -31,6 +31,7 @@ const enterExitGraphElementsSlice = createSlice({
         },
         setEnterExitChartingFromPlan: (state, action) =>
         {
+            console.log(action.payload)
             if (action.payload.plan?.length)
             {
                 let planArray = action.payload.plan

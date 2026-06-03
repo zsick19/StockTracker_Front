@@ -118,6 +118,23 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
         }
       }
     }),
+    getStockDataUsingStartDateAndTimeFrame: builder.query({
+      query: (args) => ({
+        url: `/stockData/date/${args.ticker}`,
+        method: "POST",
+        body: { timeFrame: args.timeFrame, start: args?.start, end: args?.end },
+      }), transformResponse: (response, meta, args) =>
+      {
+
+        // if (!args.liveFeed) response.nonLivePrice = response.mostRecentPrice.Price
+        // else
+        // {
+        //   response.mostRecentTickerCandle = response.candleData.at(-1)
+        //   response.mostRecentPrice = response.mostRecentPrice.Price
+        // }
+        return response
+      },
+    }),
     getGroupedBy12StockData: builder.infiniteQuery({
       infiniteQueryOptions: {
         initialPageParam: 0,
@@ -238,6 +255,7 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
 });
 
 export const { useGetStockDataUsingTimeFrameQuery,
+  useGetStockDataUsingStartDateAndTimeFrameQuery,
   useGetGroupedBy12StockDataInfiniteQuery,
   useGetStockAverageTrueRangeQuery,
   useGetWatchListFiveMinChartsQuery,

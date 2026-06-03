@@ -1,0 +1,21 @@
+#SectorPlanView {
+  display: grid;
+  grid-template-rows: 30% 20% 1fr;
+  height: 100%;
+  gap: 1rem;
+}
+#sectorDailyFiveLeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr 225px;
+  gap: 0.5rem;
+}
+
+#sectorLeaderBoard > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  font-size: var(--fs-200);
+}
+
+#sectorLeaderBoard > div:first-of-type {
+  justify-items: center;
+}

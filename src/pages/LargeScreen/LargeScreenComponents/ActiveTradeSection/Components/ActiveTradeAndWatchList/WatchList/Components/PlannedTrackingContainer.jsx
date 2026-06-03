@@ -9,7 +9,6 @@ function PlannedTrackingContainer({ enterExitPlansIds, handleSwitchingWatchList 
 {
     const dispatch = useDispatch()
 
-
     return (
         <div >
 

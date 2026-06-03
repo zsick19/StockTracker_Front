@@ -62,6 +62,8 @@ function DashNav()
 
 
       <p>Stock Tracker</p>
+      <SDTNotificationControl />
+
       {centerInformationDisplay === 1 ? <div className="flex">
 
         <p>XLRE: Real Estate</p>
@@ -92,11 +94,12 @@ function DashNav()
 
       <PriceAlertNotification />
 
-      <SDTNotificationControl />
       <div className="flex">
+        <button onClick={() => window.location.reload()}>Refresh Page</button>
         <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(1)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessKing color="green" /></button>
         <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(2)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessQueen color="green" /></button>
       </div>
+
     </nav>
   );
 }

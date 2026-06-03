@@ -10,7 +10,7 @@ import { isWeekend } from 'date-fns'
 
 function CurrentTradePositionContainer()
 {
-    let isWeekendPollingInterval = isWeekend(new Date()) ? 300000 : 0
+    let isWeekendPollingInterval = isWeekend(new Date()) ? 30000 : 0
     const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery(undefined,
         { pollingInterval: isWeekendPollingInterval })
 

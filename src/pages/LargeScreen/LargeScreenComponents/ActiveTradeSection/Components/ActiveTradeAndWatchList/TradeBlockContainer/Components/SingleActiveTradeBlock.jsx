@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react'
 import { activeTradeSelectors, useAlterTradeRecordMutation, useGetUsersActiveTradesQuery } from '../../../../../../../../features/Trades/TradeSliceApi'
-import { setSelectedStockAndTimelineFourSplit, setSelectedStockAndTimelineFourSplitWithSector, setSingleChartToTickerTimeFrameTradeId } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
+import { setSelectedStockAndTimelineFourSplit, setSelectedStockAndTimelineFourSplitWithSector, setSingleChartTickerTimeFrameAndChartingId, setSingleChartTickerTimeFrameChartIdPlanIdForTrade, setSingleChartToTickerTimeFrameTradeId } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { ChevronDown, ChevronUp, CopySlash, Expand, X } from 'lucide-react'
@@ -77,7 +77,14 @@ function SingleActiveTradeBlock({ id })
         }
 
     }
-
+    function handleFinalPreCheckView()
+    {
+        dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({
+            ticker: activeTrade.tickerSymbol, tickerSector: activeTrade.sector,
+            chartId: activeTrade._id, planId: activeTrade._id, plan: activeTrade
+        }))
+        dispatch(setStockDetailState(20))
+    }
 
     return (<>
         {false ?
@@ -96,7 +103,7 @@ function SingleActiveTradeBlock({ id })
 
                             <div className='PriceTickerInfo'>
                                 <h2 onClick={() => { setShowTradeOptions(prev => !prev); }}>{activeTrade.tickerSymbol}</h2>
-                                <div className='PriceMovementPerTrade' onClick={() => handleStockToTradeChart()}>
+                                <div className='PriceMovementPerTrade' onClick={() => handleStockToTradeChart()} onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); handleFinalPreCheckView() }}>
                                     <h2 className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>${activeTrade.mostRecentPrice.toFixed(activeTrade.mostRecentPrice > 1 ? 2 : 4)}</h2>
                                     {activeTrade.priceDirection === 'negativeDirection' && < ChevronDown size={18} color='red' />}
                                     {activeTrade.priceDirection === 'positiveDirection' && <ChevronUp size={18} color='green' />}
@@ -196,8 +203,8 @@ function SingleActiveTradeBlock({ id })
                         {showPositionInfo === 0 ?
                             <div className='TradeBlockBottom'>
                                 <div onClick={() => setShowPositionInfo(1)}>
-                                    <p>Position Size</p>
-                                    <p>{activeTrade.availableShares}</p>
+                                    <p>ATR</p>
+                                    <p>${(activeTrade.mostRecentPrice - activeTrade.previousClose).toFixed(2)} vs ${activeTrade?.atr}</p>
                                 </div>
                                 <div onClick={() => setShowPositionInfo(2)}>
                                     <MiniFiveMinChart candleData={activeTrade.dailyCandles}
@@ -207,8 +214,8 @@ function SingleActiveTradeBlock({ id })
                             showPositionInfo === 1 ?
                                 <div className='TradeBlockBottom' onClick={() => setShowPositionInfo(0)}>
                                     <div >
-                                        <p>ATR</p>
-                                        <p>${(activeTrade.mostRecentPrice - activeTrade.previousClose).toFixed(2)} vs ${activeTrade?.atrAtPurchase}</p>
+                                        <p>Position Size</p>
+                                        <p>{activeTrade.availableShares}</p>
                                     </div>
                                     <div>
                                         <p>Hold Days</p>

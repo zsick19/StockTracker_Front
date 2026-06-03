@@ -8,7 +8,8 @@ import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../featu
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
 
-function ChartWithNoFetchWrapper({ ticker, candleData, interactionController, chartId, timeFrame, mostRecentPrice, EMNumbers, uuid, lastCandleData })
+function ChartWithNoFetchWrapper({ ticker, dailyCalculatedValues, candleData, interactionController, chartId,
+    timeFrame, mostRecentPrice, EMNumbers, uuid, lastCandleData, showEMAs, tradingPlanPrices, liveActionTimeFrame })
 {
     const dispatch = useDispatch()
 
@@ -45,7 +46,11 @@ function ChartWithNoFetchWrapper({ ticker, candleData, interactionController, ch
                 isInteractive={interactionController?.isInteractive}
                 isZoomAble={interactionController.isZoomAble}
                 uuid={uuid}
+                showEMAs={showEMAs}
                 EMNumbers={EMNumbers}
+                dailyCalculatedValues={dailyCalculatedValues}
+                tradingPlanPrices={tradingPlanPrices}
+                liveActionTimeFrame={liveActionTimeFrame}
             />
         </div>)
 }

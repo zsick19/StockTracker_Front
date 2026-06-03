@@ -20,6 +20,7 @@ const chartingVisibilitySlice = createSlice({
                 anyLinesH: true, linesH: true, previousLinesH: true,
                 anyVolumeNodes: true, volNodes: true, previousVolNodes: true,
                 anySupportResistance: true, supportResistance: true, previousSupportResistance: true,
+                anyDailyCalculatedValues: true, dailyCalculatedValues: true, previousDailyCalculatedValues: true,
 
 
                 showAnyPrevious: true, showAnyCurrent: true,

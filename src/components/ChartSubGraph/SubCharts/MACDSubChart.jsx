@@ -122,7 +122,7 @@ function MACDSubChart({ candleData, uuid, timeFrame, hideTimeLine })
     {
         if (preDimensionsAndCandleCheck() || !MACDRange) return
         const yScale = scaleLinear().domain([MACDRange.histogramExtremes[0], MACDRange.histogramExtremes[1]])
-            .range([-10, 10])
+            .range([20, chartDimensions.height - 20])
 
         if (yZoomState)
         {
@@ -138,8 +138,6 @@ function MACDSubChart({ candleData, uuid, timeFrame, hideTimeLine })
         else return yScale
 
     }, [MACDRange, candleData, chartDimensions])
-
-
 
 
 
@@ -196,30 +194,38 @@ function MACDSubChart({ candleData, uuid, timeFrame, hideTimeLine })
             group.select('.signal').attr('d', signalLine(MACDData))
         }
 
-        svg.select('.histogramLine').selectAll('.histogramBar').data(MACDData).join((enter) => createMACDHisBar(enter), update => updateMACDHisBar(update))
-        function createMACDHisBar(enter)
-        {
-            let centerPixel = createYScale({ MACDToPixel: 0 })
 
-            enter.each((d, i) =>
+        const barWidth = Math.max(1, (chartDimensions.width) / MACDData.length);
+
+        function generateHistogramPath(data)
+        {
+            let pathString = "";
+            for (let i = 0; i < data.length; i++)
             {
-                enter.append('line').attr('class', 'histogramBar').attr('stroke-width', 2)
-                    .attr('stroke', (d, i) => { return d.histogram > 0 ? 'red' : 'green' })
-                    .attr('y1', 0).attr('y2', createHistogramYScale({ histogramToPixel: d.histogram }))
-                    .attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},${centerPixel})` })
-            })
+                const d = data[i];
+                const x = createDateScale({ dateToPixel: d.Timestamp }) - (barWidth / 2);
+                const y = createHistogramYScale({ histogramToPixel: d.histogram });
+                let yZero = createYScale({ MACDToPixel: 0 })
+                pathString += `M${x},${yZero} L${x},${y} L${x + barWidth},${y} L${x + barWidth},${yZero} Z `;
+            }
+            return pathString;
         }
 
-        function updateMACDHisBar(update)
-        {
-            let centerPixel = createYScale({ MACDToPixel: 0 })
+        const positiveData = MACDData.filter(d => d.histogram >= 0);
+        svg.select('.histogramLine').selectAll('.hist-pos')
+            .data([positiveData])
+            .join(enter => enter.append("path").attr("class", "hist-pos"), update => update, exit => exit.remove())
+            .attr("d", generateHistogramPath)
+            .attr("fill", "#075f0e");
 
-            update.each(function (d, i)
-            {
-                select(this).attr('y2', createHistogramYScale({ histogramToPixel: d.histogram }))
-                    .attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},${centerPixel})` })
-            })
-        }
+        const negativeData = MACDData.filter(d => d.histogram < 0);
+        svg.select('.histogramLine').selectAll('.hist-neg')
+            .data([negativeData])
+            .join(enter => enter.append("path").attr("class", "hist-neg"), update => update, exit => exit.remove())
+            .attr("d", generateHistogramPath)
+            .attr("fill", "#b80b08");
+
+
     }, [candleData, yZoomState, excludedPeriods, chartZoomState?.x, chartDimensions])
 
     //draw visual time breaks

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { enterBufferSelectors, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery, useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { enterBufferSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery, useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { AlertCircle, Trash2, X } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setSelectedStockAndTimelineFourSplit, setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
@@ -8,7 +8,7 @@ import HorizontalPlanDiagram from './PlanPricingDiagram/HorizontalPlanDiagram'
 import { useGetStockAverageTrueRangeQuery } from '../../../../../../../../features/StockData/StockDataSliceApi'
 import ATRRequest from './ATRRequest'
 
-function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
+function SingleHighImportanceTickerDisplay({ plan, sectorHighlight })
 {
     const dispatch = useDispatch()
     const [toggleEnterExitPlanImportant, { isLoading }] = useToggleEnterExitPlanImportantMutation()
@@ -20,16 +20,10 @@ function SingleHighImportanceTickerDisplay({ id, watchList, sectorHighlight })
     const [showIdealRiskVReward, setShowIdealRiskVReward] = useState(false)
     const [show1000Dollars, setShow1000Dollars] = useState(false)
 
-    const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
-    function provideSelector(data)
-    {
-        switch (watchList)
-        {
-            case 0: return enterBufferSelectors.selectById(data.enterBufferHit, id)
-            case 1: return stopLossHitSelectors.selectById(data.stopLossHit, id)
-            default: return highImportanceSelectors.selectById(data.highImportance, id)
-        }
-    }
+
+
+
+
 
     function handleFourWaySplit()
     {

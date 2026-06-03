@@ -1,0 +1,10 @@
+#NavPriceAlert {
+  font-size: var(--fs-100);
+}
+
+#PriceAlertDropDown {
+  position: absolute;
+  height: 100px;
+  background-color: rgb(105, 20, 20);
+  top: 4vh;
+}

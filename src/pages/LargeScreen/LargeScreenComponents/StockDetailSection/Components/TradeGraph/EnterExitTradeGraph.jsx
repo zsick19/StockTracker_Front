@@ -21,8 +21,7 @@ function EnterExitTradeGraph()
     const dispatch = useDispatch()
 
     const selectedStock = useSelector(selectTradeChartStock)
-
-    const [timeFrame, setTimeFrame] = useState(defaultTimeFrames.dailyHalfYear)
+    const [timeFrame, setTimeFrame] = useState(defaultTimeFrames.threeDayFiveMin)
     const uuid = useMemo(() => short.generate(), [])
 
     useEffect(() =>
@@ -53,7 +52,8 @@ function EnterExitTradeGraph()
 
     return (
         <div id='LHS-TradeRecord'>
-            {showSupportingTickers ? <FourWayGraphWrapper selectedStock={selectedStock} /> :
+            {showSupportingTickers ?
+                <FourWayGraphWrapper selectedStock={selectedStock} /> :
                 <>
                     <ChartMenuBar ticker={selectedStock?.tickerSymbol} setTimeFrame={setTimeFrame} subCharts={subCharts} setSubCharts={setSubCharts} timeFrame={timeFrame} uuid={uuid} setShowEMAs={setShowEMAs} />
                     {selectedStock ?

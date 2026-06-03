@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { enterBufferSelectors, enterExitPlannedSelectors, highImportanceAdapter, highImportanceSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import ChartWithoutPlanFetchChartingWrapper from '../../../../../../../components/ChartSubGraph/ChartWithoutPlanFetchChartingWrapper'
 import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import { useDispatch } from 'react-redux'
@@ -18,7 +18,7 @@ function SinglePreWatchChartWrapper({ id, watchList, candleData, lastCandleData,
             case 0: return enterBufferSelectors.selectById(data.enterBufferHit, id)
             case 1: return stopLossHitSelectors.selectById(data.stopLossHit, id)
             case 2: return enterExitPlannedSelectors.selectById(data.plannedTickers, id)
-            case 3: return highImportanceSelectors.selectById(data.highImportance, id)
+
         }
     }
 

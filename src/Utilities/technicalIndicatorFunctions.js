@@ -255,6 +255,104 @@ export function MACDCalc(chartingData, fastPeriod = 12, slowPeriod = 26, signalP
     }))
 }
 
+
+export function calculateMACDOptimized(candles, fastLength = 12, slowLength = 26, signalLength = 9)
+{
+    const len = candles.length;
+    const minRequired = slowLength + signalLength - 1;
+    if (len < minRequired) return [];
+
+    const result = new Array(len - minRequired + 1);
+    const kFast = 2 / (fastLength + 1);
+    const kSlow = 2 / (slowLength + 1);
+    const kSignal = 2 / (signalLength + 1);
+
+    // 1. Compute baseline SMA for Fast and Slow EMAs
+    let fastEma = 0;
+    let slowEma = 0;
+    for (let i = 0; i < slowLength; i++)
+    {
+        const close = candles[i].ClosePrice;
+        if (i < fastLength) fastEma += close;
+        slowEma += close;
+    }
+    fastEma /= fastLength;
+    slowEma /= slowLength;
+
+    // 2. Pre-fill MACD buffer to establish the initial Signal SMA
+    // Size needed to get the first valid Signal point is exactly signalLength
+    const macdBuffer = new Array(signalLength);
+    macdBuffer[0] = fastEma - slowEma; // FIXED: Changed from macdBuffer = ...
+    let signalEma = macdBuffer[0];
+
+    let bufIdx = 1;
+    for (let i = slowLength; i < minRequired; i++)
+    {
+        const close = candles[i].ClosePrice;
+        fastEma = (close * kFast) + (fastEma * (1 - kFast));
+        slowEma = (close * kSlow) + (slowEma * (1 - kSlow));
+
+        const macd = fastEma - slowEma;
+        macdBuffer[bufIdx++] = macd;
+        signalEma += macd;
+    }
+    signalEma /= signalLength; // Initial Signal SMA
+
+    // 3. Single-pass loop for remaining data (outputting directly to results)
+    let outIdx = 0;
+
+    // Record the very first fully formed MACD point
+    const firstMacd = macdBuffer[signalLength - 1];
+    result[outIdx++] = {
+        Timestamp: candles[minRequired - 1].Timestamp,
+        macd: firstMacd,
+        signal: signalEma,
+        histogram: firstMacd - signalEma
+    };
+
+    for (let i = minRequired; i < len; i++)
+    {
+        const close = candles[i].ClosePrice;
+
+        // Inline EMA streaming calculations
+        fastEma = (close * kFast) + (fastEma * (1 - kFast));
+        slowEma = (close * kSlow) + (slowEma * (1 - kSlow));
+
+        const macd = fastEma - slowEma;
+        signalEma = (macd * kSignal) + (signalEma * (1 - kSignal));
+
+        result[outIdx++] = {
+            Timestamp: candles[i].Timestamp,
+            macd: macd,
+            signal: signalEma,
+            histogram: macd - signalEma
+        };
+    }
+
+    return result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export function calculateYAxisRange(macdData, paddingPercent = 0.15)
 {
     let globalMax = 0;
@@ -711,4 +809,423 @@ export function calculateATR(candles, period = 14)
     }
 
     return atr;
+}
+
+
+
+
+/** 
+* Evaluates 5-minute intraday candles to calculate Volume Efficiency and highlight Churn. 
+* @param {Array} candles - Array of objects containing OpenPrice, ClosePrice, HighPrice, LowPrice, Volume,Timestamp 
+* @param {number} lookback - The window size to calculate average volume and efficiency baselines (default: 20 candles)
+* @returns {Array} The enriched candle data array with efficiency metrics and visual classification tags 
+*/
+export function calculateVolumeEfficiency(candles, lookback = 20)
+{
+    if (!candles || candles.length < lookback) { throw new Error(`Insufficient data. Need at least ${lookback} candles.`); }
+    return candles.map((candle, index, array) =>
+    {
+        // 1. Core Component: Absolute price movement (Spread)
+
+        const priceSpread = Math.abs(candle.ClosePrice - candle.OpenPrice);
+        const volume = candle.Volume; // Prevent division by zero on flat / illiquid candles 
+        const rawEfficiency = volume === 0 ? 0 : priceSpread / volume; // Initialize output object with structural metadata
+
+
+
+        const enrichedCandle = {
+            ...candle,
+            rawEfficiency: rawEfficiency,
+            priceSpread: priceSpread,
+            isInstitutionalHour: false,
+            classification: "CLEAN_MOVE", // Default category 
+            visualColor: candle.ClosePrice > candle.OpenPrice ? "green" : "red" // Neon Green/Red 
+        };
+        // // 2. IdentifyTime of Day(Checking if candle falls in the final 60 minutes) 
+        const date = new Date(candle.Timestamp);
+        const nyTimeStr = date.toLocaleString('en-US', { timeZone: "America/New_York" })
+        const nyDate = new Date(nyTimeStr)
+        const hours = nyDate.getHours();
+        const minutes = nyDate.getMinutes();
+
+        let volumeMultiplier = 2
+        if (hours === 9 || (hours === 10 && minutes <= 30)) { volumeMultiplier = 4 }
+        if (hours === 15 || (hours === 16 && minutes === 0)) { enrichedCandle.isInstitutionalHour = true; }
+        //We need a trailing window baseline to calculate if a spike or churn is statistically significant 
+        if (index < lookback) return enrichedCandle; // Skip normalization for early candles without enough history        
+
+        // 3. Slice trailing lookback window for comparative context
+        const window = array.slice(index - lookback, index);
+        const avgVolume = window.reduce((sum, c) => sum + c.Volume, 0) / lookback;
+        const avgSpread = window.reduce((sum, c) => sum + Math.abs(c.ClosePrice - c.OpenPrice), 0) / lookback; // 4. Determine Dynamic Thresholds 
+        const isVolumeSpike = volume > (avgVolume * volumeMultiplier); // 2x baseline volume
+        const isCompressedSpread = priceSpread < (avgSpread * 0.5); // Spread is under half the average // 
+
+        // 5. Visual Trend Classification Matrix 
+        if (isVolumeSpike && isCompressedSpread)
+        { // High Effort + No Result =Institutional Churn Node 
+            enrichedCandle.classification = "CHURN_NODE";
+            enrichedCandle.visualColor = hours === 9 ? '#00FFFF' : "#FFFF00"; // Bright Neon Yellow 
+        } else if (!isVolumeSpike && priceSpread > avgSpread)
+        {
+            // Low Effort + Clean Result = Low resistance continuation 
+            enrichedCandle.classification = "EFFICIENT_DRIVE";
+            enrichedCandle.visualColor = candle.ClosePrice > candle.OpenPrice ? "green" : "red"; // Neon Green/Red 
+        }
+        return enrichedCandle;
+
+    });
+}
+
+
+/**
+ * Processes multiple days of 5-minute candles to map out the historical 
+ * volume distribution and identify institutional volume clustering.
+ * 
+ * @param {Array} candles - Array of objects: { Timestamp (UTC string), Volume, ... }
+ * @returns {Array} An array of time buckets (09:30 to 16:00) with localized NY time and volume percentages
+ */
+export function calculateIntradayVolumeDistribution(candles)
+{
+    if (!candles || candles.length === 0) return [];
+
+    // 1. Group raw data into 5-minute time slots (e.g., "09:35", "15:45")
+    const timeSlots = {};
+    const dailyTotals = {};
+
+    candles.forEach(candle =>
+    {
+        // Convert UTC timestamp to New York Market Time
+        const dateObj = new Date(candle.Timestamp);
+        const nyString = dateObj.toLocaleString("en-US", { timeZone: "America/New_York" });
+        const nyDate = new Date(nyString);
+
+        // Isolate the trading date and the specific 5-minute clock time
+        const dateKey = nyDate.toISOString().split('T')[0];
+        const hours = String(nyDate.getHours()).padStart(2, '0');
+        const minutes = String(nyDate.getMinutes()).padStart(2, '0');
+        const timeKey = `${hours}:${minutes}`;
+
+        // Exclude pre-market and after-hours data points
+        if (timeKey < "09:30" || timeKey > "16:00") return;
+
+        // Accumulate volume for this specific time slot across history
+        if (!timeSlots[timeKey]) { timeSlots[timeKey] = { totalVolume: 0, sampleCount: 0 }; }
+        timeSlots[timeKey].totalVolume += candle.Volume;
+        timeSlots[timeKey].sampleCount += 1;
+
+        // Keep track of the total volume per day for normalization calculations
+        if (!dailyTotals[dateKey]) dailyTotals[dateKey] = 0;
+        dailyTotals[dateKey] += candle.Volume;
+    });
+
+    // 2. Compute the average absolute volume for each 5-minute interval
+    const profile = Object.keys(timeSlots).map(time =>
+    {
+        const bucket = timeSlots[time];
+        return {
+            timeLabel: time,
+            averageVolume: Math.round(bucket.totalVolume / bucket.sampleCount),
+            distributionPercentage: 0 // Will be calculated in the next step
+        };
+    });
+
+    // Sort chronologically from market open (09:30) to market close (16:00)
+    profile.sort((a, b) => a.timeLabel.localeCompare(b.timeLabel));
+
+    // 3. Normalize: Convert absolute averages into a total share of the daily volume pie
+    const totalProfileVolume = profile.reduce((sum, bucket) => sum + bucket.averageVolume, 0);
+
+    return profile.map(bucket =>
+    {
+        // Percentage of the regular trading day's volume that flows through this exact 5 minutes
+        const pct = (bucket.averageVolume / totalProfileVolume) * 100;
+
+        // 4. Attach UI visual triggers directly to the data payload
+        let sessionZone = "MID_DAY";
+        let dashboardColor = "#444444"; // Matte gray for low-impact midday chop
+
+        if (bucket.timeLabel <= "10:30")
+        {
+            sessionZone = "MORNING_STRIKE";
+            dashboardColor = "#00FFFF"; // Cyan block marker
+        } else if (bucket.timeLabel >= "15:00")
+        {
+            sessionZone = "CLOSING_STRIKE";
+            dashboardColor = "#FFFF00"; // Yellow block marker
+        }
+
+        return {
+            time: bucket.timeLabel,
+            avgVolume: bucket.averageVolume,
+            volumeSharePercent: parseFloat(pct.toFixed(3)),
+            sessionZone: sessionZone,
+            visualAnchorColor: dashboardColor
+        };
+    });
+}
+
+/**
+ * Processes multiple days of 5-minute candles to calculate the historical probability
+ * of the daily high or daily low printing during specific 5-minute intervals.
+ * 
+ * @param {Array} candles - Array of objects: { Timestamp (UTC string), HighPrice, LowPrice, ... }
+ * @returns {Array} An array of time buckets (09:30 to 16:00) with localized NY time and high/low print probabilities
+ */
+export function calculateHighLowTimeDistribution(candles)
+{
+    if (!candles || candles.length === 0) return [];
+
+    // 1. Group candles by trading day (New York Time)
+    const daysData = {};
+
+    candles.forEach(candle =>
+    {
+        const dateObj = new Date(candle.Timestamp);
+        const nyString = dateObj.toLocaleString("en-US", { timeZone: "America/New_York" });
+        const nyDate = new Date(nyString);
+
+        const dateKey = nyString.split(',')[0]; // Isolate date string: e.g., "6/2/2026"
+        const hours = String(nyDate.getHours()).padStart(2, '0');
+        const minutes = String(nyDate.getMinutes()).padStart(2, '0');
+        const timeKey = `${hours}:${minutes}`;
+
+        // Exclude pre-market and after-hours data points
+        if (timeKey < "09:30" || timeKey > "16:00") return;
+
+        if (!daysData[dateKey])
+        {
+            daysData[dateKey] = [];
+        }
+
+        daysData[dateKey].push({
+            time: timeKey,
+            high: candle.HighPrice,
+            low: candle.LowPrice
+        });
+    });
+
+    // 2. Track tally of hits for each 5-minute slot across history
+    const timeBucketStats = {};
+    let totalValidDays = 0;
+
+    // Initialize all possible regular session time keys to ensure smooth rendering
+    for (let h = 9; h <= 16; h++)
+    {
+        const startM = (h === 9) ? 30 : 0;
+        const endM = (h === 16) ? 0 : 55;
+        for (let m = startM; m <= endM; m += 5)
+        {
+            const timeKey = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            timeBucketStats[timeKey] = { highCount: 0, lowCount: 0 };
+        }
+    }
+
+    // 3. Scan day by day to isolate the exact time of the daily high and daily low
+    Object.keys(daysData).forEach(dateKey =>
+    {
+        const dayCandles = daysData[dateKey];
+        if (dayCandles.length === 0) return;
+
+        totalValidDays++;
+
+        let dailyHigh = -Infinity;
+        let dailyLow = Infinity;
+        let timeOfHigh = "";
+        let timeOfLow = "";
+
+        // Find the absolute highest high and lowest low for this trading day
+        dayCandles.forEach(candle =>
+        {
+            if (candle.high > dailyHigh)
+            {
+                dailyHigh = candle.high;
+                timeOfHigh = candle.time;
+            }
+            if (candle.low < dailyLow)
+            {
+                dailyLow = candle.low;
+                timeOfLow = candle.time;
+            }
+        });
+
+        // Increment the counts for the specific time slots that caught the extreme pivots
+        if (timeBucketStats[timeOfHigh]) timeBucketStats[timeOfHigh].highCount++;
+        if (timeBucketStats[timeOfLow]) timeBucketStats[timeOfLow].lowCount++;
+    });
+
+    // 4. Normalize absolute tallies into raw percentage probabilities
+    const resultProfile = Object.keys(timeBucketStats).map(timeKey =>
+    {
+        const stats = timeBucketStats[timeKey];
+
+        // Combined probability that EITHER the high or low of the day forms in this 5 minutes
+        const highProb = (stats.highCount / totalValidDays) * 100;
+        const lowProb = (stats.lowCount / totalValidDays) * 100;
+        const combinedProb = highProb + lowProb;
+
+        // Visual categorization matching the "Traffic Light" dashboard layout
+        let sessionZone = "MID_DAY";
+        let visualAnchorColor = "#333333"; // Matte gray background for low-prob zones
+
+        if (timeKey <= "10:30" || timeKey >= "15:00")
+        {
+            sessionZone = "STRIKE_ZONE";
+            visualAnchorColor = "#FF3366"; // Vibrant crimson for high probability time bands
+        }
+
+        return {
+            time: timeKey,
+            highPrintProbability: parseFloat(highProb.toFixed(2)),
+            lowPrintProbability: parseFloat(lowProb.toFixed(2)),
+            combinedProbability: parseFloat(combinedProb.toFixed(2)),
+            sessionZone: sessionZone,
+            visualAnchorColor: visualAnchorColor
+        };
+    });
+
+    // Return chronologically sorted data array ready for D3 component rendering
+    return resultProfile.sort((a, b) => a.time.localeCompare(b.time));
+}
+
+
+
+/**
+ * Calculates the exact historical percentage of days where the daily high and daily low
+ * were established during the Morning, Midday, or Closing sessions (New York Market Time).
+ * 
+ * @param {Array} candles - Array of 5-minute candle objects: { Timestamp, HighPrice, LowPrice, ... }
+ * @returns {Object} Comprehensive session statistics ready for visual dashboard rendering
+ */
+export function calculateExtendedSessionProbabilities(candles)
+{
+    if (!candles || candles.length === 0)
+    {
+        return { totalDaysAnalyzed: 0, stats: null };
+    }
+
+    // 1. Group the 5-minute candles by day (using New York market time strings)
+    const daysData = {};
+
+    candles.forEach(candle =>
+    {
+        const dateObj = new Date(candle.Timestamp);
+        // Safely convert UTC to New York Market time
+        const nyString = dateObj.toLocaleString("en-US", { timeZone: "America/New_York" });
+
+        // Extract distinct date and clock time
+        const [datePart, timePart] = nyString.split(", ");
+        const [rawTime, ampm] = timePart.split(" ");
+        let [hours, minutes] = rawTime.split(":");
+
+        // Normalize to a clean 24-hour HH:MM format for strict string comparison
+        let hourNum = parseInt(hours);
+        if (ampm === "PM" && hourNum !== 12) hourNum += 12;
+        if (ampm === "AM" && hourNum === 12) hourNum = 0;
+        const timeKey = `${String(hourNum).padStart(2, "0")}:${minutes.padStart(2, "0")}`;
+
+        // Filter out pre-market and after-hours data points
+        if (timeKey < "09:30" || timeKey > "16:00") return;
+
+        if (!daysData[datePart])
+        {
+            daysData[datePart] = [];
+        }
+
+        daysData[datePart].push({
+            time: timeKey,
+            high: candle.HighPrice,
+            low: candle.LowPrice
+        });
+    });
+
+    // 2. Initialize our historical session counter variables
+    let totalDays = 0;
+
+    let morningHighs = 0;   // 09:30 - 10:30 AM
+    let morningLows = 0;
+
+    let closingHighs = 0;   // 15:00 - 16:00 PM (3:00 - 4:00 PM)
+    let closingLows = 0;
+
+    let middayHighs = 0;    // 10:31 AM - 14:59 PM (The middle chop zone)
+    let middayLows = 0;
+
+    // 3. Process each trading day individually
+    Object.keys(daysData).forEach(dateKey =>
+    {
+        const dayCandles = daysData[dateKey];
+        if (dayCandles.length === 0) return;
+
+        totalDays++;
+
+        let dailyHigh = -Infinity;
+        let dailyLow = Infinity;
+        let timeOfHigh = "";
+        let timeOfLow = "";
+
+        // Track down the exact 5-minute coordinate of the daily extremes
+        dayCandles.forEach(candle =>
+        {
+            if (candle.high > dailyHigh)
+            {
+                dailyHigh = candle.high;
+                timeOfHigh = candle.time;
+            }
+            if (candle.low < dailyLow)
+            {
+                dailyLow = candle.low;
+                timeOfLow = candle.time;
+            }
+        });
+
+        // Evaluate the HIGH time slot matrix
+        if (timeOfHigh >= "09:30" && timeOfHigh <= "10:30")
+        {
+            morningHighs++;
+        } else if (timeOfHigh >= "15:00" && timeOfHigh <= "16:00")
+        {
+            closingHighs++;
+        } else
+        {
+            middayHighs++;
+        }
+
+        // Evaluate the LOW time slot matrix
+        if (timeOfLow >= "09:30" && timeOfLow <= "10:30")
+        {
+            morningLows++;
+        } else if (timeOfLow >= "15:00" && timeOfLow <= "16:00")
+        {
+            closingLows++;
+        } else
+        {
+            middayLows++;
+        }
+    });
+
+    if (totalDays === 0) return { totalDaysAnalyzed: 0, stats: null };
+
+    // Helper utility to convert raw numbers safely into rounded percentages
+    const toPercent = (count) => parseFloat(((count / totalDays) * 100).toFixed(2));
+
+    // 4. package up the statistical coordinates
+    return {
+        totalDaysAnalyzed: totalDays,
+        morningSession: {
+            timeFrame: "09:30 AM - 10:30 AM ET",
+            highPrintedPercent: toPercent(morningHighs),
+            lowPrintedPercent: toPercent(morningLows)
+        },
+        middaySession: {
+            timeFrame: "10:31 AM - 02:59 PM ET",
+            highPrintedPercent: toPercent(middayHighs),
+            lowPrintedPercent: toPercent(middayLows)
+        },
+        closingSession: {
+            timeFrame: "03:00 PM - 04:00 PM ET",
+            highPrintedPercent: toPercent(closingHighs),
+            lowPrintedPercent: toPercent(closingLows)
+        }
+    };
 }
