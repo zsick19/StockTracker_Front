@@ -3,21 +3,21 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addEnterExitToCharting, addHorizontalLine, addLine, addSupportResistance, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateHorizontalLine, updateLine, updateSupportResistance, updateVolumeNode } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay, addHours, addMinutes } from 'date-fns'
-import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis } from 'd3'
+import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay, addHours, addMinutes, differenceInBusinessDays } from 'date-fns'
+import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis, timeFormat } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { makeSelectKeyLevelsByTicker } from '../../features/KeyLevels/KeyLevelGraphElements'
-import { defineEnterExitPlan, makeSelectEnterExitByTicker } from '../../features/EnterExitPlans/EnterExitGraphElement'
+import { defineEnterExitPlan, defineInstitutionalPrice, defineRelevantHighLow, makeSelectEnterExitByTicker, removeRelevantHighLowInstitution } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { selectCurrentTool } from '../../features/Charting/ChartingTool'
 import { makeSelectGraphVisibilityByUUID } from '../../features/Charting/ChartingVisibility'
-import { toolFunctionExports } from '../../Utilities/graphChartingFunctions'
+import { preTradeFunctionExports, toolFunctionExports } from '../../Utilities/graphChartingFunctions'
 import ChartContextMenuContainer from './contextMenus/ChartContextMenuContainer'
-import { ChartingToolEdits, ChartingTools } from '../../Utilities/ChartingTools'
+import { ChartingToolEdits, ChartingTools, PreTradeTools } from '../../Utilities/ChartingTools'
 import { allPossibleClassNames, defaultChartingStyles, lineGroupClassName } from '../../Utilities/GraphStyles'
 import { edgeHover, edgeNoHover, highVolNoHover, lineHover, lineNoHover, lowVolNoHover, srZoneHover, srZoneNoHover } from '../../Utilities/chartingHoverFunctions'
 import { useUpdateEnterExitPlanMutation } from '../../features/EnterExitPlans/EnterExitApiSlice'
 import { selectChartEditMode } from '../../features/Charting/EditChartSelection'
-import { generateTradingHours, getBreaksBetweenDates, provideStartAndEndDatesForDateScale } from '../../Utilities/TimeFrames'
+import { generateIntraDayTickMarks, generateTradingHours, getBreaksBetweenDates, provideStartAndEndDatesForDateScale } from '../../Utilities/TimeFrames'
 import { makeSelectZoomStateByUUID, setXZoomState, setYZoomState } from '../../features/Charting/GraphHoverZoomElement'
 import { calculateEMADataPoints, calculateTraditionalVWAP, calculateVolumeProfile, calculateVWAP } from '../../Utilities/technicalIndicatorFunctions'
 import { makeSelectGraphStudyByUUID } from '../../features/Charting/GraphStudiesVisualElement'
@@ -26,7 +26,7 @@ import './chartStyles.css'
 import { makeSelectGraphHoursByUUID } from '../../features/Charting/GraphMarketHourElement'
 import { useUpdateMacroChartingMutation } from '../../features/WatchList/WatchListStreamingSliceApi'
 
-function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay,
+function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay, morningMetrics,
     timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, uuid, lastCandleData, showEMAs, macroTickerInfo, EMNumbers,
     tradingPlanPrices, dailyCalculatedValues, liveActionTimeFrame })
 {
@@ -55,7 +55,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const displayMarketHours = useSelector((state) => selectDisplayMarketHoursMemo(state, uuid))
 
     const editMode = useSelector(selectChartEditMode)
-
 
 
 
@@ -93,6 +92,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const [enableZoom, setEnableZoom] = useState(true)
 
 
+    const openTime = new Date()
+    openTime.setHours(9, 30)
     //chart scale creation
     const minPrice = useMemo(() =>
     {
@@ -100,6 +101,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         {
             if (timeFrame.unitOfIncrement === 'D' && KeyLevels?.quarterlyEM?.quarterlyLower) { return KeyLevels.monthlyEM.monthLowerEM }
             else if (timeFrame.unitOfIncrement === 'M' && KeyLevels?.weeklyEM?.previousWeeklyEM) return KeyLevels.weeklyEM.previousWeeklyEM.at(-1).lower
+        } else if ((liveActionTimeFrame && morningMetrics && (new Date() > openTime)))
+        {
+            let basePriceOpen = dailyCalculatedValues?.TodayOpenPrice ? dailyCalculatedValues.TodayOpenPrice : lastCandleData.ClosePrice
+            return basePriceOpen - (basePriceOpen * (morningMetrics.downSide.averageInitialDropStretch / 100))
         }
         else return min(candleData, d => d.LowPrice)
     }, [candleData, KeyLevels?.monthlyEM, timeFrame.unitOfIncrement])
@@ -110,6 +115,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
             if (timeFrame.unitOfIncrement === 'D' && KeyLevels?.quarterlyEM?.quarterlyUpper) { return KeyLevels.monthlyEM.monthUpperEM }
             else if (timeFrame.unitOfIncrement === 'M' && KeyLevels?.weeklyEM?.previousWeeklyEM) return KeyLevels.weeklyEM.previousWeeklyEM.at(-1).upper
+        } else if ((liveActionTimeFrame && morningMetrics && (new Date() > openTime)))
+        {
+            let basePriceOpen = dailyCalculatedValues?.TodayOpenPrice ? dailyCalculatedValues.TodayOpenPrice : lastCandleData.ClosePrice
+            return basePriceOpen + (basePriceOpen * (morningMetrics.upSide.averageInitialRallyStretch / 100))
         }
         else return max(candleData, d => d.HighPrice)
     }, [candleData, KeyLevels?.monthlyEM, timeFrame.unitOfIncrement])
@@ -181,10 +190,14 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             return getBreaksBetweenDates(new Date(2024, 1, 1), addYears(new Date(), 1), 'months')
         }
     }, [timeFrame])
-    const excludedPeriods = useMemo(() => { if (timeFrame.intraDay) return generateTradingHours(timeFrame, displayMarketHours?.showOnlyIntraDay) }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
-
-
-
+    const excludedPeriods = useMemo(() =>
+    {
+        if (timeFrame.intraDay) { return generateTradingHours(timeFrame, displayMarketHours?.showOnlyIntraDay) }
+    }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
+    const intraDayTickMarks = useMemo(() =>
+    {
+        if (timeFrame.intraDay) return generateIntraDayTickMarks(timeFrame, displayMarketHours?.showOnlyIntraDay)
+    }, [timeFrame, displayMarketHours?.showOnlyIntraDay])
 
 
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
@@ -196,8 +209,18 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (liveActionTimeFrame)
         {
             let start = new Date()
+            let firstHour = new Date()
+            firstHour.setHours(10, 35)
+            let end
+            if (new Date() > firstHour)
+            {
+                end = addMinutes(new Date(), 15)
+            } else
+            {
+                end = firstHour
+            }
             start.setHours(9, 25)
-            let end = addMinutes(new Date(), 15)
+
             xDateScale = scaleTime().domain([start, end]).range([0, candleDimensions.width])
         } else if (timeFrame.intraDay)
         {
@@ -231,10 +254,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const createPriceScale = useCallback(({ priceToPixel = undefined, pixelToPrice = undefined } = {}) =>
     {
         if (preDimensionsAndCandleCheck()) return
+
         const yScale = scaleLinear()
-            .domain([minPrice - pixelBuffer.yPriceBuffer, maxPrice + pixelBuffer.yPriceBuffer])
+            .domain([minPrice * 0.95, maxPrice * 1.05])
             .range([candleDimensions.height - pixelBuffer.yDirectionPixelBuffer, 0])
             .interpolate(function (a, b) { const c = b - a; return function (t) { return +(a + t * c).toFixed(2); }; })
+
 
         if (chartZoomState?.y)
         {
@@ -370,11 +395,18 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         {
 
             let xAxis
-            if (timeFrame.intraDay && timeFrame.duration > 3) { xAxis = axisBottom(createDateScale()).tickValues(timeDay.range(subDays(new Date(), 10), new Date())) }
-            else if (timeFrame.intraDay && timeFrame.duration <= 3) { xAxis = axisBottom(createDateScale()) }
+            if (timeFrame.intraDay && displayMarketHours?.showOnlyIntraDay)
+            {
+                xAxis = axisBottom(createDateScale()).tickValues(intraDayTickMarks).tickFormat(timeFormat("%-m/%-d"));
+            }
+            else if (timeFrame.intraDay)
+            {
+                xAxis = axisBottom(createDateScale()).tickValues(intraDayTickMarks)
+                    .tickFormat((d, i) => { return new Date(d).getHours() === 4 ? timeFormat("%-m/%-d")(d) : timeFormat("%-I:%M %p")(d) });
+            }
             else { xAxis = axisBottom(createDateScale()).tickValues(timeMonths(subMonths(new Date(), 12), new Date())) }
-            stockCandleSVG.select('.x-axis')
-                .style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
+
+            stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
         }
 
 
@@ -382,8 +414,127 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         priceScaleSVG.select('.y-axis').style('transform', `translateX(${priceDimensions.width - 1}px)`).call(yAxis)
 
 
+        if (timeFrame.intraDay)
+        {
+            let [minDate, maxDate] = createDateScale().domain()
+            const candleDataLength = candleData.length
+            const barWidth = Math.max(1, (candleDimensions.width) / candleDataLength)
+            let bullishBodies = ''
+            let bearishBodies = ''
+            let candleWicks = ''
+            let churnCandles = []
 
-        stockCandleSVG.select('.tickerVal').selectAll('.candle').data(candleData, d => d.Timestamp).join(enter => createCandles(enter), update => updateCandles(update))
+            if (maxDate < minDate)
+            {
+                let copyDate = maxDate
+                maxDate = minDate
+                minDate = copyDate
+            }
+
+
+            for (let i = 0; i < candleDataLength; i++)
+            {
+                const timeStampDate = new Date(candleData[i].Timestamp)
+                if (timeStampDate < minDate || timeStampDate > maxDate) { continue; }
+                const d = candleData[i]
+
+                const x = createDateScale({ dateToPixel: d.Timestamp })
+                const xCenter = x + barWidth / 2
+                const yHigh = createPriceScale({ priceToPixel: d.HighPrice })
+                const yLow = createPriceScale({ priceToPixel: d.LowPrice })
+                const yOpen = createPriceScale({ priceToPixel: d.OpenPrice })
+                const yClose = createPriceScale({ priceToPixel: d.ClosePrice })
+
+                const yTop = Math.min(yOpen, yClose)
+                const yBottom = Math.max(yOpen, yClose)
+
+
+                // Wick string: Move to top of high wick, line down to low wick
+                const wickPath = `M${xCenter},${yHigh}V${yLow}`;
+                const bodyPath = `M${xCenter},${yTop}V${yBottom}`;
+
+                if ((d?.visualColor === '#FFFF00' || d?.visualColor === '#00FFFF') && differenceInBusinessDays(new Date(), d.Timestamp) < 8) { churnCandles.push(d) }
+                else
+                {
+                    if (d.ClosePrice >= d.OpenPrice)
+                    { bullishBodies += bodyPath }
+                    else { bearishBodies += bodyPath }
+                    candleWicks += wickPath
+                }
+
+            }
+
+            stockCandleSVG.select('.tickerVal').selectAll('.candlePath').remove()
+            const candleGroup = stockCandleSVG.select('.tickerVal').append('g').attr('class', 'candlePath')
+
+            candleGroup.append('path').attr('d', candleWicks).attr('stroke', '#000000')
+            candleGroup.append('path').attr('d', bullishBodies).attr('stroke', '#10641b').attr('stroke-width', 2);
+            candleGroup.append('path').attr('d', bearishBodies).attr('stroke', '#d40400').attr('stroke-width', 2);
+
+            stockCandleSVG.select('.tickerVal').selectAll('.candle').data(churnCandles)
+                .join(enter => createChurnCandles(enter), update => updateChurnCandles(update))
+
+            function createChurnCandles(enter)
+            {
+                enter.each(function (d, i)
+                {
+                    let xPosition = createDateScale({ dateToPixel: d.Timestamp })
+                    var tickerGroups = select(this).append('g').attr('class', 'candle')
+                    tickerGroups.append('line').attr('class', 'lowHigh').attr('stroke', 'black').attr('stroke-width', 1)
+                        .attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice }))
+                        .attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
+                        .attr('x1', xPosition)
+                        .attr('x2', xPosition)
+
+                    tickerGroups.append('line').attr('class', 'openClose')
+                        .attr('stroke', (d, i) =>
+                        {
+                            if (d?.visualColor) return d.visualColor
+                            else return d.OpenPrice < d.ClosePrice ? 'green' : 'red'
+                        }).attr('stroke-width', 2)
+                        .attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice }))
+                        .attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+                        .attr('x1', xPosition)
+                        .attr('x2', xPosition)
+
+
+                    tickerGroups.append('line').attr('class', 'priceH')
+                        .attr('stroke', 'yellow').attr('stroke-width', 0.5)
+                        .attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice }))
+                        .attr('y2', (d) => createPriceScale({ priceToPixel: d.ClosePrice }))
+                        .attr('opacity', 0.5).attr('x1', 0).attr('x2', candleDimensions.width)
+
+
+                })
+            }
+            function updateChurnCandles(update)
+            {
+                update.each(function (d, i)
+                {
+                    const candle = select(this)
+                    let xPosition = createDateScale({ dateToPixel: d.Timestamp })
+
+                    candle.select('.lowHigh')
+                        .attr('y1', (d) => createPriceScale({ priceToPixel: d.LowPrice }))
+                        .attr('y2', (d) => createPriceScale({ priceToPixel: d.HighPrice }))
+                        .attr('x1', xPosition)
+                        .attr('x2', xPosition)
+                    candle.select('.openClose').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice }))
+                        .attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+                        .attr('x1', xPosition)
+                        .attr('x2', xPosition)
+
+                    candle.select('.priceH').attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice }))
+                        .attr('y2', (d) => createPriceScale({ priceToPixel: d.ClosePrice }))
+                })
+            }
+
+        } else
+        {
+
+            stockCandleSVG.select('.tickerVal').selectAll('.candle').data(candleData, d => d.Timestamp).join(enter => createCandles(enter), update => updateCandles(update))
+        }
+
         function createCandles(enter)
         {
             enter.each(function (d, i)
@@ -395,7 +546,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     {
                         if (d?.visualColor) return d.visualColor
                         else return d.OpenPrice < d.ClosePrice ? 'green' : 'red'
-                    }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
+                    }).attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice }))
+                    .attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
                 tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
             })
         }
@@ -411,8 +563,52 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
 
 
+
     }, [candleData, minPrice, maxPrice, excludedPeriods, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
+
+
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck() || !lastCandleData || !dailyCalculatedValues || !morningMetrics) return
+        const morningOpenLines = stockCandleSVG.select('.morningOpen')
+        morningOpenLines.selectAll('.line_group').remove()
+
+        const upSideTime = new Date()
+        upSideTime.setHours(morningMetrics.upSide.averageTimeToPeak.hour, morningMetrics.upSide.averageTimeToPeak.minute)
+        const downSideTime = new Date()
+        downSideTime.setHours(morningMetrics.downSide.averageTimeToBottom.hour, morningMetrics.downSide.averageTimeToBottom.minute)
+
+        const firstHour = new Date()
+        firstHour.setHours(10, 30)
+
+        let basePriceOpen
+        if ((new Date() > openTime) && dailyCalculatedValues.TodayOpenPrice) { basePriceOpen = dailyCalculatedValues.TodayOpenPrice }
+        else { basePriceOpen = lastCandleData.ClosePrice }
+        let upsidePercentVsOpen = basePriceOpen + (basePriceOpen * (morningMetrics.upSide.averageInitialRallyStretch / 100))
+        let downSidePercentVsOpen = basePriceOpen - (basePriceOpen * (morningMetrics.downSide.averageInitialDropStretch / 100))
+
+        const pixelUpSide = createPriceScale({ priceToPixel: upsidePercentVsOpen })
+        const pixelDownSide = createPriceScale({ priceToPixel: downSidePercentVsOpen })
+
+        const pixelUpTime = createDateScale({ dateToPixel: upSideTime })
+        const pixelDownTime = createDateScale({ dateToPixel: downSideTime })
+        const pixelFirstHour = createDateScale({ dateToPixel: firstHour })
+
+        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'cyan').attr('stroke-width', 1)
+            .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelUpSide).attr('y2', pixelUpSide).attr('opacity', 0.5)
+        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'orange').attr('stroke-width', 1)
+            .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelDownSide).attr('y2', pixelDownSide).attr('opacity', 0.5)
+        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'cyan').attr('stroke-width', 1)
+            .attr('x1', pixelUpTime).attr('x2', pixelUpTime).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'orange').attr('stroke-width', 1)
+            .attr('x1', pixelDownTime).attr('x2', pixelDownTime).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', 1)
+            .attr('x1', pixelFirstHour).attr('x2', pixelFirstHour).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+
+
+
+    }, [mostRecentPrice, excludedPeriods, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
 
 
@@ -423,7 +619,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     {
 
         if (preDimensionsAndCandleCheck() || !lastCandleData) return
-
 
         let centerTextOnPriceLinePixel = 4
         let centerRectOnPriceLinePixel = 15
@@ -1004,43 +1199,43 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (preDimensionsAndCandleCheck()) return
         stockCandleSVG.select('.initialTrack').selectAll('line').remove()
 
-        if (tradingPlanPrices)
-        {
-            stockCandleSVG.select('.enterExits').selectAll('.line_group').data([tradingPlanPrices]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update), (remove) => removeEnterExit(remove))
-            function createEnterExit(enter)
-            {
-                var lineGroup = enter.append('g').attr('class', 'line_group')
+        // if (tradingPlanPrices)
+        // {
+        //     stockCandleSVG.select('.enterExits').selectAll('.line_group').data([tradingPlanPrices]).join((enter) => createEnterExit(enter), (update) => updateEnterExit(update), (remove) => removeEnterExit(remove))
+        //     function createEnterExit(enter)
+        //     {
+        //         var lineGroup = enter.append('g').attr('class', 'line_group')
 
-                const yPositions = tradingPlanPrices.map((price) => yScaleRef.current({ priceToPixel: price }))
+        //         const yPositions = tradingPlanPrices.map((price) => yScaleRef.current({ priceToPixel: price }))
 
-                lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
-                lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
-                lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
-                lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
-            }
+        //         lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
+        //         lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
+        //         lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
+        //         lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
+        //     }
 
-            function updateEnterExit(update)
-            {
-                const yPositions = tradingPlanPrices.map((price) => createPriceScale({ priceToPixel: price }))
-                update.select('.stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1])
-                update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2])
-                update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
-                update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5])
+        //     function updateEnterExit(update)
+        //     {
+        //         const yPositions = tradingPlanPrices.map((price) => createPriceScale({ priceToPixel: price }))
+        //         update.select('.stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1])
+        //         update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2])
+        //         update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
+        //         update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5])
 
 
-            }
-            function removeEnterExit(remove)
-            {
-                remove.each(function (d)
-                {
-                    stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
-                })
-            }
-        } else if (EnterExitPlan)
+        //     }
+        //     function removeEnterExit(remove)
+        //     {
+        //         remove.each(function (d)
+        //         {
+        //             stockCandleSVG.select('.enterExit').selectAll('.line_group').remove()
+        //         })
+        //     }
+        // } else
+        if (EnterExitPlan)
         {
             stockCandleSVG.select('.initialTrack').selectAll('line').remove()
             let trackingLines = stockCandleSVG.select('.initialTrack')
-
 
 
             if (EnterExitPlan?.tradeEnterDate)
@@ -1071,7 +1266,101 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
             }
 
+            if (EnterExitPlan?.relevantHighs)
+            {
+                stockCandleSVG.select('.relevantHigh').selectAll('.line_group').data(EnterExitPlan.relevantHighs).join(enter => createHLines(enter), update => updateHLines(update), exit => exit.remove())
+                function createHLines(enter)
+                {
+                    enter.each(function (d)
+                    {
+                        const lineGroup = select(this).append('g').attr('class', 'line_group')
+                        let pixelPricePosition = createPriceScale({ priceToPixel: d.price })
+                        lineGroup.append('line').attr('class', 'drawnLine').attr('x1', 0).attr('x2', candleDimensions.width)
+                            .attr('y1', pixelPricePosition).attr('y2', pixelPricePosition).attr('stroke-dasharray', '5 2 5')
+                            .attr('stroke', 'green').attr('stroke-width', 1)
+                            .on('mouseenter', function ()
+                            {
+                                lineHover(select(this));
+                                editChartElementRef.current = { chartingElement: d, group: 'relevantHigh' }
+                            })
+                            .on('mouseleave', function () { select(this).attr('stroke', 'red').attr('stroke-width', 1) })
+                            .call(dragHorizontalLineBehavior)
+                    })
+                }
+                function updateHLines(update)
+                {
+                    update.each(function (d)
+                    {
+                        let pixelPricePosition = createPriceScale({ priceToPixel: d.price })
+                        select(this).select('.drawnLine').attr('y1', pixelPricePosition).attr('y2', pixelPricePosition).call(dragHorizontalLineBehavior)
+                    })
+                }
+            }
+            if (EnterExitPlan?.relevantLows)
+            {
+                stockCandleSVG.select('.relevantLow').selectAll('.line_group').data(EnterExitPlan.relevantLows).join(enter => createHLines(enter), update => updateHLines(update), exit => exit.remove())
+                function createHLines(enter)
+                {
+                    enter.each(function (d)
+                    {
+                        const lineGroup = select(this).append('g').attr('class', 'line_group')
+                        let pixelPricePosition = createPriceScale({ priceToPixel: d.price })
+                        lineGroup.append('line').attr('class', 'drawnLine').attr('x1', 0).attr('x2', candleDimensions.width)
+                            .attr('y1', pixelPricePosition).attr('y2', pixelPricePosition).attr('stroke-dasharray', '5 2 5')
+                            .attr('stroke', 'red').attr('stroke-width', 1)
+                            .on('mouseenter', function ()
+                            {
+                                lineHover(select(this));
+                                editChartElementRef.current = { chartingElement: d, group: 'relevantLow' }
+                            })
+                            .on('mouseleave', function () { select(this).attr('stroke', 'red').attr('stroke-width', 1) })
+                            .call(dragHorizontalLineBehavior)
+                    })
+                }
+                function updateHLines(update)
+                {
+                    update.each(function (d)
+                    {
+                        let pixelPricePosition = createPriceScale({ priceToPixel: d.price })
+                        select(this).select('.drawnLine').attr('y1', pixelPricePosition).attr('y2', pixelPricePosition).call(dragHorizontalLineBehavior)
+                    })
+                }
+            }
+            if (EnterExitPlan?.institutionalPricePoints)
+            {
 
+                stockCandleSVG.select('.relevantInstitutional').selectAll('.line_group').data(EnterExitPlan.institutionalPricePoints).join(enter => createHLines(enter), update => updateHLines(update), exit => exit.remove())
+                function createHLines(enter)
+                {
+                    enter.each(function (d)
+                    {
+                        const lineGroup = select(this).append('g').attr('class', 'line_group')
+                        let pixelPricePosition = createPriceScale({ priceToPixel: d.price })
+                        lineGroup.append('line').attr('class', 'drawnLine').attr('x1', 0).attr('x2', candleDimensions.width)
+                            .attr('y1', pixelPricePosition).attr('y2', pixelPricePosition).attr('stroke-dasharray', '5 2 5')
+                            .attr('stroke', 'purple').attr('stroke-width', 1)
+                            .on('mouseenter', function ()
+                            {
+                                lineHover(select(this));
+                                editChartElementRef.current = { chartingElement: d, group: 'institutional' }
+                            })
+                            .on('mouseleave', function ()
+                            {
+                                select(this).attr('stroke', 'purple').attr('stroke-width', 1)
+                            })
+                            .call(dragHorizontalLineBehavior)
+                    })
+                }
+                function updateHLines(update)
+                {
+                    update.each(function (d)
+                    {
+                        let pixelPricePosition = createPriceScale({ priceToPixel: d.price })
+                        select(this).select('.drawnLine').attr('y1', pixelPricePosition).attr('y2', pixelPricePosition)
+                            .call(dragHorizontalLineBehavior)
+                    })
+                }
+            }
 
 
 
@@ -1405,6 +1694,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
 
         let toolingFunction = toolFunctionExports[ChartingTools.findIndex(t => t.tool === currentTool)]
+        toolingFunction = preTradeFunctionExports[PreTradeTools.findIndex(t => t.tool === currentTool)]
         stockCandleSVG.on('click', (e) => toolingFunction(e, setEnableZoom, candleSVG.current, pixelSet, setCaptureComplete, createDateScale, createPriceScale))
     }, [currentTool, candleDimensions, candleData, chartZoomState?.x, chartZoomState?.y,])
 
@@ -1435,7 +1725,21 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 attemptToUpdateEnterExit()
             } else { dispatch(addEnterExitToCharting({ ticker, enterExit: completeCapture })) }
 
-        } else if (pixelCapture?.X1)
+        } else if ((currentTool === 'Relevant High' || currentTool === 'Relevant Low') && pixelCapture?.X1)
+        {
+            completeCapture.dateHit = new Date(createDateScale({ pixelToDate: pixelCapture.X1 })).toISOString()
+            completeCapture.price = createPriceScale({ pixelToPrice: pixelCapture.Y1 })
+            dispatch(defineRelevantHighLow({ isHigh: currentTool === 'Relevant High', ticker, relevant: { ...completeCapture } }))
+            attemptToUpdateEnterExit()
+        }
+        else if (currentTool === 'Institutional Price' && pixelCapture?.X1)
+        {
+            completeCapture.dateHit = new Date(createDateScale({ pixelToDate: pixelCapture.X1 })).toISOString()
+            completeCapture.price = createPriceScale({ pixelToPrice: pixelCapture.Y1 })
+            dispatch(defineInstitutionalPrice({ ticker, institutional: { ...completeCapture } }))
+            attemptToUpdateEnterExit()
+        }
+        else if (pixelCapture?.X1)
         {
             if (pixelCapture?.X1) completeCapture.dateP1 = new Date(createDateScale({ pixelToDate: pixelCapture.X1 })).toISOString()
             if (pixelCapture?.X2) completeCapture.dateP2 = new Date(createDateScale({ pixelToDate: pixelCapture.X2 })).toISOString()
@@ -1574,16 +1878,26 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         function deleteSelectedEditChartElement(e)
         {
             if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-
             if (e.key === 'Delete')
             {
                 e.preventDefault()
-                dispatch(removeChartingElement({ ...editChartElementRef.current, ticker }))
+                if (editChartElementRef.current.group === 'relevantHigh' ||
+                    editChartElementRef.current.group === 'relevantLow' ||
+                    editChartElementRef.current.group === 'institutional'
+                )
+                {
+                    console.log(editChartElementRef.current)
+                    dispatch(removeRelevantHighLowInstitution({ remove: editChartElementRef.current, ticker }))
+                    attemptToUpdateEnterExit()
+                } else
+                {
+
+                    dispatch(removeChartingElement({ ...editChartElementRef.current, ticker }))
+                }
                 if (macroTickerInfo) { attemptToUpdateMacroTicker() }
             }
 
         }
-
         return (() =>
         {
             document.removeEventListener('keydown', resetTempBeforeCompletion)
@@ -1600,6 +1914,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             if (enableZoom)
             {
                 const zoomState = zoomTransform(stockCandleSVG.node())
+
                 dispatch(setXZoomState({ uuid, zoom: { x: zoomState.x, y: zoomState.y, k: zoomState.k } }))
             }
             return null
@@ -1948,6 +2263,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     <g className='lowVolumeNodes' />
                     <g className='highVolumeNodes' />
                     <g className='keyLevels' />
+                    <g className='morningOpen' />
                     <g className='initialTrack' />
                     <g className='enterExits' />
                     <g className='supportResistance' />
@@ -1972,6 +2288,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     <g className='linesH' />
                     <g className='trendLines' />
                     <g className='EMNumbers' />
+                    <g className='relevantHigh' />
+                    <g className='relevantLow' />
+                    <g className='relevantInstitutional' />
 
                     <g className='currentPrice' />
                 </svg>

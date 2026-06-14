@@ -2,19 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { enterBufferSelectors, enterExitPlannedSelectors, fiveMinSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import MiniFiveMinChart from './MiniFiveMinChart'
+import { provideEnterExitPlanSelector } from '../../../../../../../Utilities/adaptorSelection'
 
 function SingleTinyPreWatch({ id, index, setSelectedTickerIndex })
 {
-
     const tickerData = useSelector(state => fiveMinSelectors.selectById(state, id))
-    const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideSelector(data) : undefined }) })
-    function provideSelector(data)
-    {
-        let entityToReturn = enterBufferSelectors.selectById(data.enterBufferHit, id);
-        if (!entityToReturn) entityToReturn = stopLossHitSelectors.selectById(data.stopLossHit, id)
-        else if (!entityToReturn) entityToReturn = enterExitPlannedSelectors.selectById(data.plannedTickers, id)
-        return entityToReturn
-    }
+    const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideEnterExitPlanSelector(data, id) : undefined }) })
+
+
 
     const [flashNewPrice, setFlashNewPrice] = useState(false)
     useEffect(() =>

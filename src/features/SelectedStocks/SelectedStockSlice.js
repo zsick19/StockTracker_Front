@@ -51,7 +51,7 @@ const selectedStockSlice = createSlice({
                 timeFrame: defaultTimeFrames.threeDayOneMin,
                 chartId: action.payload.chartId,
                 planId: action.payload.planId,
-                plan: action.payload.plan,
+                plan: action.payload?.plan,
                 watchList: action.payload?.watchList
             }]
         },

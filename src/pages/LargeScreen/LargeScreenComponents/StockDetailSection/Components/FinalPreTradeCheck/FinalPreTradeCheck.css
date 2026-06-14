@@ -1,8 +1,18 @@
-#VolDistChart {
-  width: 500px;
-  height: 500px;
+#FinalPreTradeCheck {
+  height: 100%;
 }
+
+#VolDistVisual {
+  height: 1000px;
+  display: grid;
+  grid-template-rows: 50px 1fr 250px;
+}
+
 #VolDistChart > svg {
   width: 100%;
   height: 100%;
+}
+
+#OpenCloseProbability {
+  font-size: var(--fs-200);
 }

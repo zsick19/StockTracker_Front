@@ -17,10 +17,24 @@ export const NewsFeedApiSlice = apiSlice.injectEndpoints({
       },
       providesTags: (result, error, args) => [{ type: 'macroNews' }],
     }),
+    getActiveTradeNews: builder.query({
+      query: (args) => ({
+        url: `/news/activeTrades`,
+        validateStatus: (response, result) =>
+        {
+          return response.status === 200 && !result.isError
+        }
+      }),
+      transformResponse: responseData =>
+      {
+        return responseData
+      },
+      providesTags: (result, error, args) => [{ type: 'activeTradeNews' }],
+    }),
 
 
 
   }),
 });
 
-export const { useGetMajorMacroNewsQuery } = NewsFeedApiSlice;
+export const { useGetMajorMacroNewsQuery, useGetActiveTradeNewsQuery } = NewsFeedApiSlice;

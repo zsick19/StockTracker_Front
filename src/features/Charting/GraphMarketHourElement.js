@@ -1,5 +1,5 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
-import { isSaturday, isSunday, subDays, subMonths, subQuarters } from "date-fns";
+import { isSaturday, isSunday, subBusinessDays, subDays, subMonths, subQuarters } from "date-fns";
 
 const graphMarketHoursElement = createSlice({
     name: "graphMarketHoursElement",
@@ -105,8 +105,31 @@ const graphMarketHoursElement = createSlice({
                 case 'PY':
                     startDate = subMonths(startDate, 12)
                     break;
-            }
 
+                case 'twentyDay':
+                    if (isSaturday(startDate))
+                    {
+                        startDate = subBusinessDays(startDate, 21)
+                        endDate = subBusinessDays(endDate, 1)
+                    }
+                    else if (isSunday(startDate))
+                    {
+                        startDate = subBusinessDays(startDate, 22)
+                        endDate = subBusinessDays(endDate, 2)
+                    } else
+                    {
+                        startDate = subBusinessDays(startDate, 20)
+                    } break;
+                case 'relevantDate':
+                    startDate = action.payload.relevantCandleDate;
+                    break;
+                case 'sixMonths':
+                    startDate = subDays(startDate, 180)
+                    break;
+
+
+            }
+            console.log(startDate)
             state[action.payload.uuid].focusDates = { startDate: new Date(startDate).toISOString(), endDate: new Date(endDate).toISOString() }
         },
         clearGraphHoursControl: (state, action) =>

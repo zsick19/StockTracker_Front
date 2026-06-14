@@ -1,25 +1,34 @@
 import React from 'react'
-import { useGetUsersActiveTradesWithGraphQuery } from '../../../../../../features/Trades/TradeSliceApi'
+import { selectCurrentTradeDailyMove, useGetUsersActiveTradesQuery, useGetUsersActiveTradesWithGraphQuery } from '../../../../../../features/Trades/TradeSliceApi'
 import './ActiveTradeWatchMany.css'
 import SingleTradeGraphWrapper from './Components/SingleTradeGraphWrapper'
+import { isWeekend } from 'date-fns'
+import { useSelector } from 'react-redux'
+import PositionListDailyMoves from './Components/PositionListDailyMoves'
 
 function ActiveTradeWatchMany()
 {
+    const firstHour = new Date()
+    firstHour.setHours(10, 30)
+    const polling = new Date() < firstHour ? 300000 : 0
 
-    const { data, isLoading, isError, isSuccess, refetch, error } = useGetUsersActiveTradesWithGraphQuery(undefined, { refetchOnMountOrArgChange: true })
+
+    const { data, isLoading, isError, isSuccess, refetch, error } = useGetUsersActiveTradesWithGraphQuery(undefined, { refetchOnMountOrArgChange: true, pollingInterval: polling })
+
+
     let activeTradeContent
     if (isSuccess)
     {
-        activeTradeContent = <div id='tradeWithGraphContainer' className='hide-scrollbar'>{data.ids.map((symbol) => <SingleTradeGraphWrapper id={symbol} key={`${symbol}activeTradeGraph`} />)}</div>
+        activeTradeContent = data.ids.map((symbol) => <SingleTradeGraphWrapper id={symbol} key={`${symbol}activeTradeGraph`} />)
     } else if (isLoading)
     {
-        activeTradeContent = <div>Loading...</div>
+        activeTradeContent = <p>Loading...</p>
     } else if (isError)
     {
-        activeTradeContent = <div>Error
-            <button onClick={() => refetch()}>refetch</button>
-        </div>
+        activeTradeContent = <button onClick={() => refetch()}>refetch</button>
     }
+
+
 
     return (
         <div id='ActiveTradeWatchMany' onDoubleClick={() => refetch()}>
@@ -38,7 +47,13 @@ function ActiveTradeWatchMany()
                 <p>Purple -50ema</p>
                 <p>Red - 200ema</p>
             </div>
-            {activeTradeContent}
+            <div>
+                <div id='tradeWithGraphContainer' className='hide-scrollbar'>
+                    <PositionListDailyMoves />
+                    {activeTradeContent}
+                </div>
+
+            </div>
         </div>
     )
 }

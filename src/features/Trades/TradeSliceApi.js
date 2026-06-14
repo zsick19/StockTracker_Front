@@ -3,6 +3,7 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { enterBufferHitAdapter, enterExitAdapter, EnterExitPlanApiSlice, stopLossHitAdapter } from "../EnterExitPlans/EnterExitApiSlice";
 import { addMinutes, isToday } from "date-fns";
+import { chunkOneMinCandlesWithZeroFill, chunkOneMinToFiveMinCandles } from "../../Utilities/technicalIndicatorFunctions";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 const activeTradeAdapter = createEntityAdapter()
@@ -26,18 +27,24 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
 
                     trade.dailyCandles = response.dailyCandles[trade.tickerSymbol]
                     trade.openPrice = response.openPrice[trade.tickerSymbol]
-
-                    trade.percentOfGain = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * 100)
                     trade.gainPerShare = trade.mostRecentPrice - trade.averagePurchasePrice
-                    trade.percentFromOpen = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / trade.tradingPlanPrices[1]) * 100
                     trade.totalGain = trade.gainPerShare * trade.availableShares
 
-                    trade.percentFromPlanPrices = [(trade.mostRecentPrice - trade.tradingPlanPrices[0]) * 100 / trade.tradingPlanPrices[0],
-                    (trade.mostRecentPrice - trade.tradingPlanPrices[1]) * 100 / trade.tradingPlanPrices[1],
-                    (trade.mostRecentPrice - trade.tradingPlanPrices[2]) * 100 / trade.tradingPlanPrices[2],
-                    (trade.mostRecentPrice - trade.tradingPlanPrices[3]) * 100 / trade.tradingPlanPrices[3],
-                    (trade.mostRecentPrice - trade.tradingPlanPrices[4]) * 100 / trade.tradingPlanPrices[4],
-                    (trade.mostRecentPrice - trade.tradingPlanPrices[5]) * 100 / trade.tradingPlanPrices[5]]
+                    trade.tradingPlanPrices = [
+                        trade.enterExitPlanId.stopLossPrice,
+                        trade.enterExitPlanId.enterPrice,
+                        trade.enterExitPlanId.enterBufferPrice,
+                        trade.enterExitPlanId.exitBufferPrice,
+                        trade.enterExitPlanId.exitPrice,
+                        trade.enterExitPlanId.moonPrice
+                    ]
+
+
+                    trade.percentOfGain = ((trade.mostRecentPrice - trade.averagePurchasePrice) / (trade.enterExitPlanId.exitPrice - trade.averagePurchasePrice) * 100)
+                    trade.percentFromOpen = ((trade.mostRecentPrice - trade.enterExitPlanId.enterPrice) / trade.enterExitPlanId.enterPrice) * 100
+                    trade.percentFromPlanPrices = trade.tradingPlanPrices.map((t, i) => (trade.mostRecentPrice - trade.tradingPlanPrices[i]) * 100 / trade.tradingPlanPrices[i])
+
+
 
                     if (isToday(trade.enterDate))
                     {
@@ -68,7 +75,6 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     }
 
                     trade.priceDirection = undefined
-
                     return trade
                 })
 
@@ -101,14 +107,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                         activeTradeToUpdate.percentFromOpen = ((activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) / activeTradeToUpdate.tradingPlanPrices[1]) * 100
                         activeTradeToUpdate.totalGain = activeTradeToUpdate.gainPerShare * activeTradeToUpdate.availableShares
 
-                        activeTradeToUpdate.percentFromPlanPrices = [
-                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[0]) * 100 / activeTradeToUpdate.tradingPlanPrices[0],
-                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[1]) * 100 / activeTradeToUpdate.tradingPlanPrices[1],
-                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[2]) * 100 / activeTradeToUpdate.tradingPlanPrices[2],
-                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[3]) * 100 / activeTradeToUpdate.tradingPlanPrices[3],
-                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[4]) * 100 / activeTradeToUpdate.tradingPlanPrices[4],
-                            (activeTradeToUpdate.mostRecentPrice - activeTradeToUpdate.tradingPlanPrices[5]) * 100 / activeTradeToUpdate.tradingPlanPrices[5]
-                        ]
+                        activeTradeToUpdate.percentFromPlanPrices = activeTradeToUpdate.tradingPlanPrices.map((t, i) => (data.Price - activeTradeToUpdate.tradingPlanPrices[i]) * 100 / activeTradeToUpdate.tradingPlanPrices[i])
 
 
                         if (isToday(activeTradeToUpdate.enterDate))
@@ -158,7 +157,6 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 }
 
                 await cacheEntryRemoved
-                console.log('removed cache entry')
                 unsubscribe('activeTradePrice', incomingTradeListener, userId, 'ActiveTrades')
             },
             providesTags: (result) => { return result ? [{ type: 'activeTrades', id: 'LIST' }, ...(result.ids.map((id) => ({ type: 'activeTrades', id })) || []),] : [{ type: 'activeTrades', id: 'LIST' }] }
@@ -176,8 +174,8 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                     trade.dailyCandles = response.dailyCandles[trade.tickerSymbol]
                     trade.previousClose = response.snapShots[trade.tickerSymbol].PrevDailyBar.ClosePrice
                     trade.snapShot = response.snapShots[trade.tickerSymbol]
-                    trade.percentFromOpen = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / trade.tradingPlanPrices[1]) * 100
 
+                    trade.percentFromOpen = ((trade.mostRecentPrice - trade.averagePurchasePrice) / trade.averagePurchasePrice) * 100
 
                     let openBell = new Date()
                     openBell.setHours(9, 30)
@@ -190,13 +188,21 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                         trade.PrevDailyBar = response.snapShots[trade.tickerSymbol].DailyBar
                         trade.TodayOpenPrice = undefined
                     }
+                    let chunkedCandleData = chunkOneMinCandlesWithZeroFill(response.dailyCandles[trade.tickerSymbol])
+                    trade.preMarketVolume = chunkedCandleData.preMarket
+                    trade.fiveMinVolume = chunkedCandleData.mainMarket
+                    trade.totalVolumeFirstHour = chunkedCandleData.mainMarket.reduce((accumulator, currentItem) => { return accumulator + currentItem.Volume; }, 0)
+
+
+
                     trade.mostRecentTickerCandle = response.dailyCandles[trade.tickerSymbol].pop()
                     trade.mostRecentTickerCandle.ClosePrice = response.snapShots[trade.tickerSymbol].LatestTrade.Price
                     trade.mostRecentTickerCandle.Timestamp = response.snapShots[trade.tickerSymbol].LatestTrade.Timestamp
 
-                    trade.percentOfGain = ((trade.mostRecentPrice - trade.tradingPlanPrices[1]) / (trade.tradingPlanPrices[4] - trade.tradingPlanPrices[1]) * 100)
+                    trade.percentOfGain = ((trade.mostRecentPrice - trade.averagePurchasePrice) / (trade.enterExitPlanId.exitPrice - trade.averagePurchasePrice) * 100)
 
-                    trade.todaysATRCapture = trade.mostRecentPrice - trade.previousClose
+
+                    trade.todaysATRCapture = trade.mostRecentPrice - trade.PrevDailyBar.ClosePrice
 
                     if (isToday(trade.enterDate))
                     {
@@ -229,12 +235,10 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                         if (activeTradeToUpdate === undefined) return
 
 
-
                         if (data.Price > activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'positiveDirection'
                         else if (data.Price < activeTradeToUpdate.mostRecentPrice) activeTradeToUpdate.priceDirection = 'negativeDirection'
 
                         activeTradeToUpdate.mostRecentPrice = data.Price
-
                         let compareTimestamp = { previous: activeTradeToUpdate.mostRecentTickerCandle.Timestamp, incoming: data.Timestamp }
                         if (checkForSameTimeFrameCandle(compareTimestamp))
                         {
@@ -250,6 +254,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                                 if (data.Price < activeTradeToUpdate.mostRecentTickerCandle.LowPrice) { activeTradeToUpdate.mostRecentTickerCandle.LowPrice = data.Price }
                             }
                             activeTradeToUpdate.mostRecentTickerCandle.ClosePrice = data.Price
+                            activeTradeToUpdate.mostRecentTickerCandle.Volume += data.Size
                         } else
                         {
                             let copyOfClosingCandle = activeTradeToUpdate.mostRecentTickerCandle
@@ -258,6 +263,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                             {
                                 activeTradeToUpdate.mostRecentTickerCandle = {
                                     ...copyOfClosingCandle,
+                                    Volume: data.Size,
                                     Timestamp: provideNewTimeStamp(compareTimestamp.previous).toISOString(),
                                     HighPrice: data.Price,
                                     LowPrice: copyOfClosingCandle.ClosePrice,
@@ -268,6 +274,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                             {
                                 activeTradeToUpdate.mostRecentTickerCandle = {
                                     ...copyOfClosingCandle,
+                                    Volume: data.Size,
                                     Timestamp: provideNewTimeStamp(compareTimestamp.previous).toISOString(),
                                     HighPrice: copyOfClosingCandle.ClosePrice,
                                     LowPrice: data.Price,
@@ -373,6 +380,14 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ['activeTrades', 'accountBalance', 'tradeHistory', 'tradingJournal']
         }),
+        updateTradeRecord: builder.mutation({
+            query: (args) => ({
+                url: `/trades/${args.tradeId}/updateRecord/`,
+                method: 'PUT',
+                body: { ...args.update }
+            }),
+            invalidatesTags: ['activeTrades', 'accountBalance', 'tradeHistory', 'tradingJournal']
+        }),
     })
 });
 
@@ -381,7 +396,8 @@ export const {
     useGetUsersActiveTradesWithGraphQuery,
     useGetUsersTradeHistoryQuery,
     useInitiateTradeRecordMutation,
-    useAlterTradeRecordMutation
+    useAlterTradeRecordMutation,
+    useUpdateTradeRecordMutation
 } = TradeApiSlice;
 
 export const activeTradeWithGraphSelectors = activeTradeGraphAdapter.getSelectors()
@@ -391,4 +407,23 @@ export const activeTradeSelectors = activeTradeAdapter.getSelectors();
 
 export const selectCurrentTradeTickers = createSelector(TradeApiSlice.endpoints.getUsersActiveTrades.select(),
     (result) => { return result?.data.ids || [] })
+
+export const selectCurrentTradeDailyMove = createSelector(TradeApiSlice.endpoints.getUsersActiveTrades.select(),
+    (result) =>
+    {
+        if (!result?.data) return []
+        return activeTradeSelectors.selectAll(result.data).map((t) =>
+        {
+            return {
+                tickerSymbol: t.tickerSymbol,
+                todaysGain: t.todaysGain.toFixed(2),
+                todaysGainPercent: t.todaysGainPercent.toFixed(2),
+                percentFromOpen: t.percentFromOpen.toFixed(2),
+                averagePurchasePrice: t.averagePurchasePrice.toFixed(2),
+                positionGain: (t.gainPerShare * t.availableShares).toFixed(2),
+                openPrice: t.openPrice,
+                mostRecentPrice: t.mostRecentPrice.toFixed(2)
+            }
+        })
+    })
 

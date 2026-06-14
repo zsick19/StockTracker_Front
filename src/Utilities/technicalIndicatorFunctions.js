@@ -1,4 +1,5 @@
 import { min, max } from "d3"
+import { differenceInBusinessDays, isToday } from "date-fns";
 
 export const calculateEMADataPoints = (candleData, period, lastCandleData) =>
 {
@@ -687,10 +688,6 @@ export function calculateStochastic2(candles, periodK = 14, periodD = 3)
         .map(({ date, k, d }) => ({ date, k, d }));
 }
 
-
-
-
-
 export function stochasticCalc(candleData, kPeriod = 14, dPeriod = 3)
 {
     const stochasticValues = [];
@@ -735,7 +732,6 @@ export function stochasticCalc(candleData, kPeriod = 14, dPeriod = 3)
 
     return stochasticValues.slice(2);
 }
-
 
 export function calculateStockStandardDeviation(prices)
 {
@@ -814,6 +810,11 @@ export function calculateATR(candles, period = 14)
 
 
 
+
+
+
+
+
 /** 
 * Evaluates 5-minute intraday candles to calculate Volume Efficiency and highlight Churn. 
 * @param {Array} candles - Array of objects containing OpenPrice, ClosePrice, HighPrice, LowPrice, Volume,Timestamp 
@@ -823,58 +824,65 @@ export function calculateATR(candles, period = 14)
 export function calculateVolumeEfficiency(candles, lookback = 20)
 {
     if (!candles || candles.length < lookback) { throw new Error(`Insufficient data. Need at least ${lookback} candles.`); }
-    return candles.map((candle, index, array) =>
-    {
-        // 1. Core Component: Absolute price movement (Spread)
+    const institutionalCandles = []
+    return {
+        candles:
+            candles.map((candle, index, array) =>
+            {
+                // 1. Core Component: Absolute price movement (Spread)
 
-        const priceSpread = Math.abs(candle.ClosePrice - candle.OpenPrice);
-        const volume = candle.Volume; // Prevent division by zero on flat / illiquid candles 
-        const rawEfficiency = volume === 0 ? 0 : priceSpread / volume; // Initialize output object with structural metadata
+                const priceSpread = Math.abs(candle.ClosePrice - candle.OpenPrice);
+                const volume = candle.Volume; // Prevent division by zero on flat / illiquid candles 
+                const rawEfficiency = volume === 0 ? 0 : priceSpread / volume; // Initialize output object with structural metadata
 
 
+                const enrichedCandle = {
+                    ...candle,
+                    rawEfficiency: rawEfficiency,
+                    priceSpread: priceSpread,
+                    isInstitutionalHour: false,
+                    classification: "CLEAN_MOVE", // Default category 
+                    visualColor: candle.ClosePrice > candle.OpenPrice ? "green" : "red" // Neon Green/Red 
+                };
+                // // 2. IdentifyTime of Day(Checking if candle falls in the final 60 minutes) 
+                const date = new Date(candle.Timestamp);
+                const nyTimeStr = date.toLocaleString('en-US', { timeZone: "America/New_York" })
+                const nyDate = new Date(nyTimeStr)
+                const hours = nyDate.getHours();
+                const minutes = nyDate.getMinutes();
 
-        const enrichedCandle = {
-            ...candle,
-            rawEfficiency: rawEfficiency,
-            priceSpread: priceSpread,
-            isInstitutionalHour: false,
-            classification: "CLEAN_MOVE", // Default category 
-            visualColor: candle.ClosePrice > candle.OpenPrice ? "green" : "red" // Neon Green/Red 
-        };
-        // // 2. IdentifyTime of Day(Checking if candle falls in the final 60 minutes) 
-        const date = new Date(candle.Timestamp);
-        const nyTimeStr = date.toLocaleString('en-US', { timeZone: "America/New_York" })
-        const nyDate = new Date(nyTimeStr)
-        const hours = nyDate.getHours();
-        const minutes = nyDate.getMinutes();
+                let volumeMultiplier = 2
+                if (hours === 9 || (hours === 10 && minutes <= 30)) { volumeMultiplier = 4 }
+                if (hours === 15 || (hours === 16 && minutes === 0)) { enrichedCandle.isInstitutionalHour = true; }
+                //We need a trailing window baseline to calculate if a spike or churn is statistically significant 
+                if (index < lookback) return enrichedCandle; // Skip normalization for early candles without enough history        
 
-        let volumeMultiplier = 2
-        if (hours === 9 || (hours === 10 && minutes <= 30)) { volumeMultiplier = 4 }
-        if (hours === 15 || (hours === 16 && minutes === 0)) { enrichedCandle.isInstitutionalHour = true; }
-        //We need a trailing window baseline to calculate if a spike or churn is statistically significant 
-        if (index < lookback) return enrichedCandle; // Skip normalization for early candles without enough history        
+                // 3. Slice trailing lookback window for comparative context
+                const window = array.slice(index - lookback, index);
+                const avgVolume = window.reduce((sum, c) => sum + c.Volume, 0) / lookback;
+                const avgSpread = window.reduce((sum, c) => sum + Math.abs(c.ClosePrice - c.OpenPrice), 0) / lookback; // 4. Determine Dynamic Thresholds 
+                const isVolumeSpike = volume > (avgVolume * volumeMultiplier); // 2x baseline volume
+                const isCompressedSpread = priceSpread < (avgSpread * 0.5); // Spread is under half the average // 
 
-        // 3. Slice trailing lookback window for comparative context
-        const window = array.slice(index - lookback, index);
-        const avgVolume = window.reduce((sum, c) => sum + c.Volume, 0) / lookback;
-        const avgSpread = window.reduce((sum, c) => sum + Math.abs(c.ClosePrice - c.OpenPrice), 0) / lookback; // 4. Determine Dynamic Thresholds 
-        const isVolumeSpike = volume > (avgVolume * volumeMultiplier); // 2x baseline volume
-        const isCompressedSpread = priceSpread < (avgSpread * 0.5); // Spread is under half the average // 
+                // 5. Visual Trend Classification Matrix 
+                if (isVolumeSpike && isCompressedSpread)
+                { // High Effort + No Result =Institutional Churn Node 
+                    enrichedCandle.classification = "CHURN_NODE";
+                    enrichedCandle.visualColor = hours === 9 ? '#00FFFF' : "#FFFF00"; // Bright Neon Yellow 
+                    let daysBetween = differenceInBusinessDays(new Date(), enrichedCandle.Timestamp)
+                    if (daysBetween < 20 && enrichedCandle.isInstitutionalHour) institutionalCandles.push(enrichedCandle)
 
-        // 5. Visual Trend Classification Matrix 
-        if (isVolumeSpike && isCompressedSpread)
-        { // High Effort + No Result =Institutional Churn Node 
-            enrichedCandle.classification = "CHURN_NODE";
-            enrichedCandle.visualColor = hours === 9 ? '#00FFFF' : "#FFFF00"; // Bright Neon Yellow 
-        } else if (!isVolumeSpike && priceSpread > avgSpread)
-        {
-            // Low Effort + Clean Result = Low resistance continuation 
-            enrichedCandle.classification = "EFFICIENT_DRIVE";
-            enrichedCandle.visualColor = candle.ClosePrice > candle.OpenPrice ? "green" : "red"; // Neon Green/Red 
-        }
-        return enrichedCandle;
+                } else if (!isVolumeSpike && priceSpread > avgSpread)
+                {
+                    // Low Effort + Clean Result = Low resistance continuation 
+                    enrichedCandle.classification = "EFFICIENT_DRIVE";
+                    enrichedCandle.visualColor = candle.ClosePrice > candle.OpenPrice ? "green" : "red"; // Neon Green/Red 
+                }
+                return enrichedCandle;
 
-    });
+            }), institutionalCandles: institutionalCandles.reverse()
+    }
+
 }
 
 
@@ -1227,5 +1235,533 @@ export function calculateExtendedSessionProbabilities(candles)
             highPrintedPercent: toPercent(closingHighs),
             lowPrintedPercent: toPercent(closingLows)
         }
+    };
+}
+
+
+/**
+ * Layers the Reversal Vulnerability Score (RVS) with a Multi-Day Contingency Matrix.
+ * Compares a standard percentage drop against a drop that also features an open "Air Pocket" above it.
+ * 
+ * @param {Array} dailyCandles - Daily candles: [{ Timestamp, ClosePrice }, ...]
+ * @param {Array} intradayCandles - Full array of historical 5-minute candles containing Volume and ClosePrice
+ * @param {number} dropThreshold - Daily drop trigger (e.g., -0.03 for a 3% drop)
+ * @param {number} lowRvsMaxThreshold - The maximum allowed RVS score to qualify as a "Clean Air Pocket" (default: 35%)
+ */
+export function evaluateRvsWinRateBoost(dailyCandles, intradayCandles, dropThreshold = -0.03, lowRvsMaxThreshold = 35.0)
+{
+    const targetDrop = dropThreshold > 0 ? -dropThreshold : dropThreshold;
+
+    // Track metrics for ALL setups (Baseline) vs ONLY Low RVS setups (Our Edge)
+    const baselineStats = { totalSetups: 0, day2UpCount: 0, day2DownCount: 0, totalDay2Return: 0 };
+    const lowRvsStats = { totalSetups: 0, day2UpCount: 0, day2DownCount: 0, totalDay2Return: 0 };
+
+    // Group intraday 5-minute candles by day for instant historical lookup
+    const intradayByDay = {};
+    intradayCandles.forEach(candle =>
+    {
+        const dateKey = candle.Timestamp.split('T')[0]; // Extract YYYY-MM-DD
+        if (!intradayByDay[dateKey]) intradayByDay[dateKey] = [];
+        intradayByDay[dateKey].push(candle);
+    });
+
+    // Loop through the daily candle dataset, stopping before the end to allow for a 2-day forward check
+    for (let i = 5; i < dailyCandles.length - 2; i++)
+    {
+        const previousClose = dailyCandles[i - 1].ClosePrice;
+        const currentClose = dailyCandles[i].ClosePrice;
+        const currentDailyDate = dailyCandles[i].Timestamp.split('T')[0];
+
+        const dailyMove = (currentClose - previousClose) / previousClose;
+
+        // Condition 1: A sudden percentage drop occurs
+        if (dailyMove <= targetDrop)
+        {
+            baselineStats.totalSetups++;
+
+            // Track what happens exactly 2 days later relative to today's daily close
+            const closeDay2 = dailyCandles[i + 2].ClosePrice;
+            const returnDay2 = (closeDay2 - currentClose) / currentClose;
+
+            baselineStats.totalDay2Return += returnDay2;
+            if (returnDay2 > 0) baselineStats.day2UpCount++;
+            else baselineStats.day2DownCount++;
+
+            // Condition 2: Deep dive into the intraday volume profile up to this specific historical day
+            // We isolate the pattern by slicing the intraday data from 5 days prior up to the current drop day close
+            let historicalPatternIntraday = [];
+            for (let j = i - 5; j <= i; j++)
+            {
+                const pastDateKey = dailyCandles[j].Timestamp.split('T')[0];
+                if (intradayByDay[pastDateKey])
+                {
+                    historicalPatternIntraday = historicalPatternIntraday.concat(intradayByDay[pastDateKey]);
+                }
+            }
+
+            if (historicalPatternIntraday.length > 0)
+            {
+                // Run the RVS calculation code directly on this historical snapshot
+                const rvsMetrics = calculateHistoricalRvs(historicalPatternIntraday);
+
+                // Check if this historical drop possessed a highly efficient "Air Pocket" sitting overhead
+                if (rvsMetrics.rvsScorePercent <= lowRvsMaxThreshold)
+                {
+                    lowRvsStats.totalSetups++;
+                    lowRvsStats.totalDay2Return += returnDay2;
+
+                    if (returnDay2 > 0) lowRvsStats.day2UpCount++;
+                    else lowRvsStats.day2DownCount++;
+                }
+            }
+        }
+    }
+
+    // Helper to calculate percentages safely
+    const calcWinRate = (stats) => stats.totalSetups === 0 ? 0 : parseFloat(((stats.day2UpCount / stats.totalSetups) * 100).toFixed(2));
+    const calcAvgReturn = (stats) => stats.totalSetups === 0 ? 0 : parseFloat(((stats.totalDay2Return / stats.totalSetups) * 100).toFixed(2));
+
+    const baselineWinRate = calcWinRate(baselineStats);
+    const filteredWinRate = calcWinRate(lowRvsStats);
+
+    return {
+        dropThresholdAnalyzed: `${(targetDrop * 100).toFixed(2)}%`,
+        rvsFilterThreshold: `<=${lowRvsMaxThreshold}%`,
+        baselinePerformance: {
+            totalSetupsFound: baselineStats.totalSetups,
+            day2WinRatePercent: baselineWinRate,
+            day2AverageReturnPercent: calcAvgReturn(baselineStats)
+        },
+        lowRvsFilteredPerformance: {
+            totalSetupsFound: lowRvsStats.totalSetups,
+            day2WinRatePercent: filteredWinRate,
+            day2AverageReturnPercent: calcAvgReturn(lowRvsStats)
+        },
+        statisticalEdgeBoostPercent: parseFloat((filteredWinRate - baselineWinRate).toFixed(2))
+    };
+}
+
+/**
+ * Stripped down, fast helper to calculate RVS on a historical array segment
+ */
+function calculateHistoricalRvs(candles, binSizeCents = 0.50)
+{
+    const currentPrice = candles[candles.length - 1].ClosePrice;
+    const volumeProfile = {};
+    let totalVolumeAbove = 0;
+    let overheadFrictionVolume = 0;
+
+    candles.forEach(c =>
+    {
+        const bin = Math.floor(c.ClosePrice / binSizeCents) * binSizeCents;
+        volumeProfile[bin] = (volumeProfile[bin] || 0) + c.Volume;
+    });
+
+    Object.keys(volumeProfile).forEach(binStr =>
+    {
+        const binPrice = parseFloat(binStr);
+        if (binPrice > currentPrice)
+        {
+            totalVolumeAbove += volumeProfile[binStr];
+            if (binPrice <= currentPrice * 1.02) overheadFrictionVolume += volumeProfile[binStr];
+        }
+    });
+
+    const frictionRatio = totalVolumeAbove === 0 ? 0 : (overheadFrictionVolume / totalVolumeAbove);
+    const prices = candles.map(c => c.ClosePrice);
+    const position = (currentPrice - Math.min(...prices)) / (Math.max(...prices) - Math.min(...prices) || 1);
+
+    return { rvsScorePercent: ((frictionRatio * 0.70) + (1 - Math.abs(position - 0.5) * 0.30)) * 100 };
+}
+
+
+/**
+ * Advanced Multi-Directional Morning Stretch & Rebound Engine.
+ * Calculates positive/negative opening extensions, average time of morning extremes,
+ * and subsequent intraday rebound probabilities.
+ * 
+ * @param {Array} candles - Array of 5-minute candle objects: { Timestamp, OpenPrice, ClosePrice, HighPrice, LowPrice }
+ * @returns {Object} Complete data report for dashboard time-gating and target mapping
+ */
+export function calculateCompleteMorningMetrics(candles)
+{
+    if (!candles || candles.length === 0)
+    {
+        return { totalDaysAnalyzed: 0, statistics: null };
+    }
+
+    // 1. Group the 5-minute candles by day (New York Market Time)
+    const daysData = {};
+
+    candles.forEach(candle =>
+    {
+        const dateObj = new Date(candle.Timestamp);
+        const nyString = dateObj.toLocaleString("en-US", { timeZone: "America/New_York" });
+
+        const [datePart, timePart] = nyString.split(", ");
+        const [rawTime, ampm] = timePart.split(" ");
+        let [hours, minutes] = rawTime.split(":");
+
+        let hourNum = parseInt(hours);
+        if (ampm === "PM" && hourNum !== 12) hourNum += 12;
+        if (ampm === "AM" && hourNum === 12) hourNum = 0;
+        const timeKey = `${String(hourNum).padStart(2, "0")}:${minutes.padStart(2, "0")}`;
+
+        // Focus strictly on regular market hours (9:30 AM to 4:00 PM ET)
+        if (timeKey < "09:30" || timeKey > "16:00") return;
+
+        if (!daysData[datePart])
+        {
+            daysData[datePart] = [];
+        }
+
+        daysData[datePart].push({
+            time: timeKey,
+            open: candle.OpenPrice,
+            high: candle.HighPrice,
+            low: candle.LowPrice,
+            close: candle.ClosePrice
+        });
+    });
+
+    // 2. Trackers for Downward Openings (Downside Stretch & Rebound)
+    let downOpeningDaysCount = 0;
+    let downReboundSuccessCount = 0;
+    let totalDownStretchPercent = 0;
+    let totalDownReboundSizePercent = 0;
+    let downBottomMinutesSum = 0; // For tracking average time of the low
+
+    // Trackers for Upward Openings (Upside Stretch & Pullback)
+    let upOpeningDaysCount = 0;
+    let upPullbackSuccessCount = 0;
+    let totalUpStretchPercent = 0;
+    let totalUpPullbackSizePercent = 0;
+    let upPeakMinutesSum = 0; // For tracking average time of the high
+
+    // Helper to convert HH:MM string to absolute minutes from midnight
+    const timeToMinutes = (timeStr) =>
+    {
+        const [h, m] = timeStr.split(":").map(Number);
+        return h * 60 + m;
+    };
+
+    // Helper to convert absolute minutes back to an HH:MM AM/PM string for display
+    const minutesToTimeString = (totalMinutes) =>
+    {
+        let h = Math.floor(totalMinutes / 60);
+        let m = Math.round(totalMinutes % 60);
+        let ampm = h >= 12 ? "PM" : "AM";
+        h = h % 12;
+        h = h ? h : 12; // Convert 0 to 12
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
+    };
+
+    // 3. Evaluate Day-by-Day Sequences
+    Object.keys(daysData).forEach(dateKey =>
+    {
+        const dayCandles = daysData[dateKey];
+        if (dayCandles.length === 0) return;
+
+        // Enforce strict chronological tracking
+        dayCandles.sort((a, b) => a.time.localeCompare(b.time));
+
+        const dayOpenPrice = dayCandles[0].open;
+        const morningSession = dayCandles.filter(c => c.time <= "10:30");
+
+        // --- SECTION A: ANALYZE THE MORNING CORES (09:30 - 10:30 AM) ---
+        let morningLow = Infinity;
+        let timeOfMorningLow = "";
+        let morningHigh = -Infinity;
+        let timeOfMorningHigh = "";
+
+        morningSession.forEach(candle =>
+        {
+            if (candle.low < morningLow)
+            {
+                morningLow = candle.low;
+                timeOfMorningLow = candle.time;
+            }
+            if (candle.high > morningHigh)
+            {
+                morningHigh = candle.high;
+                timeOfMorningHigh = candle.time;
+            }
+        });
+
+        // --- SECTION B: DOWNSIDE ANALYSIS (Selling Stretch & Rebound) ---
+        if (morningLow < dayOpenPrice)
+        {
+            downOpeningDaysCount++;
+
+            // Calculate absolute size of the initial downside flush
+            const downStretch = ((dayOpenPrice - morningLow) / dayOpenPrice) * 100;
+            totalDownStretchPercent += downStretch;
+            downBottomMinutesSum += timeToMinutes(timeOfMorningLow);
+
+            // Scan the remaining candles AFTER the morning bottom to check for a full rebound
+            let brokeOpenPrice = false;
+            let maxHighAfterLow = -Infinity;
+            const postLowCandles = dayCandles.filter(c => c.time > timeOfMorningLow);
+
+            postLowCandles.forEach(c =>
+            {
+                if (c.high > dayOpenPrice) brokeOpenPrice = true;
+                if (c.high > maxHighAfterLow) maxHighAfterLow = c.high;
+            });
+
+            if (brokeOpenPrice)
+            {
+                downReboundSuccessCount++;
+                const reboundSize = ((maxHighAfterLow - morningLow) / morningLow) * 100;
+                totalDownReboundSizePercent += reboundSize;
+            }
+        }
+
+        // --- SECTION C: UPSIDE ANALYSIS (Buying Stretch & Pullback) ---
+        if (morningHigh > dayOpenPrice)
+        {
+            upOpeningDaysCount++;
+
+            // Calculate absolute size of the initial upside spike
+            const upStretch = ((morningHigh - dayOpenPrice) / dayOpenPrice) * 100;
+            totalUpStretchPercent += upStretch;
+            upPeakMinutesSum += timeToMinutes(timeOfMorningHigh);
+
+            // Scan the remaining candles AFTER the morning peak to check for a reversal drop below open
+            let brokeBelowOpenPrice = false;
+            let minLowAfterHigh = Infinity;
+            const postHighCandles = dayCandles.filter(c => c.time > timeOfMorningHigh);
+
+            postHighCandles.forEach(c =>
+            {
+                if (c.low < dayOpenPrice) brokeBelowOpenPrice = true;
+                if (c.low < minLowAfterHigh) minLowAfterHigh = c.low;
+            });
+
+            if (brokeBelowOpenPrice)
+            {
+                upPullbackSuccessCount++;
+                const pullbackSize = ((morningHigh - minLowAfterHigh) / morningHigh) * 100;
+                totalUpPullbackSizePercent += pullbackSize;
+            }
+        }
+    });
+
+    const totalDays = Object.keys(daysData).length;
+    if (totalDays === 0) return { totalDaysAnalyzed: 0 };
+
+    // 4. package up the unified statistical coordinates
+    return {
+        totalDaysScanned: totalDays,
+
+        downsideMetrics: {
+            sampleSizeDays: downOpeningDaysCount,
+            averageInitialDropStretch: parseFloat((totalDownStretchPercent / (downOpeningDaysCount || 1)).toFixed(2)) + "%",
+            averageTimeToBottom: downOpeningDaysCount ? minutesToTimeString(downBottomMinutesSum / downOpeningDaysCount) : "N/A",
+            reboundProbability: parseFloat(((downReboundSuccessCount / (downOpeningDaysCount || 1)) * 100).toFixed(2)) + "%",
+            averageSuccessfulReboundExpansion: downReboundSuccessCount ? parseFloat((totalDownReboundSizePercent / downReboundSuccessCount).toFixed(2)) + "%" : "N/A"
+        },
+
+        upsideMetrics: {
+            sampleSizeDays: upOpeningDaysCount,
+            averageInitialRallyStretch: parseFloat((totalUpStretchPercent / (upOpeningDaysCount || 1)).toFixed(2)) + "%",
+            averageTimeToPeak: upOpeningDaysCount ? minutesToTimeString(upPeakMinutesSum / upOpeningDaysCount) : "N/A",
+            pullbackBelowOpenProbability: parseFloat(((upPullbackSuccessCount / (upOpeningDaysCount || 1)) * 100).toFixed(2)) + "%",
+            averageSuccessfulPullbackSize: upPullbackSuccessCount ? parseFloat((totalUpPullbackSizePercent / upPullbackSuccessCount).toFixed(2)) + "%" : "N/A"
+        }
+    };
+}
+/**
+ * Aggregates 1-minute candle objects into sequential 5-minute time blocks starting at 09:30 AM ET,
+ * completely halting collection after 10:30 AM ET.
+ * 
+ * @param {Array} oneMinCandles - Array of 1-min candles: { Timestamp, OpenPrice, ClosePrice, HighPrice, LowPrice, Volume }
+ * @returns {Array} Array of exactly 13 aggregated 5-minute candle objects per trading day
+ */
+export function chunkOneMinToFiveMinCandles(oneMinCandles, preMarket)
+{
+    if (!oneMinCandles || oneMinCandles.length === 0) return [];
+
+    const daysData = {};
+
+    oneMinCandles.forEach(candle =>
+    {
+
+        const dateObj = new Date(candle.Timestamp);
+        if (!isToday(dateObj)) return
+        // Safely align the UTC timestamp with New York Stock Market Time
+        const nyString = dateObj.toLocaleString("en-US", { timeZone: "America/New_York" });
+
+        const [datePart, timePart] = nyString.split(", ");
+        const [rawTime, ampm] = timePart.split(" ");
+        let [hours, minutes] = rawTime.split(":");
+
+        let hourNum = parseInt(hours);
+        if (ampm === "PM" && hourNum !== 12) hourNum += 12;
+        if (ampm === "AM" && hourNum === 12) hourNum = 0;
+
+        const timeKey = `${String(hourNum).padStart(2, "0")}:${minutes.padStart(2, "0")}`;
+
+        // CRITICAL UPDATE: Hard gate that rejects anything before 09:30 AM and strictly stops adding after 10:30 AM
+        if (timeKey < "09:30" && !preMarket || timeKey > "10:30") return;
+        if (timeKey > "09:30" && preMarket) return;
+
+        if (!daysData[datePart]) { daysData[datePart] = []; }
+
+        daysData[datePart].push({
+            ...candle,
+            timeKey: timeKey,
+            hour: hourNum,
+            minute: parseInt(minutes)
+        });
+    });
+
+    const finalizedFiveMinCandles = [];
+
+    // Process each isolated day up to the 10:30 AM hard stop
+    Object.keys(daysData).forEach(dateKey =>
+    {
+        const dayCandles = daysData[dateKey];
+        dayCandles.sort((a, b) => a.timeKey.localeCompare(b.timeKey));
+
+        const fiveMinBuckets = {};
+
+        dayCandles.forEach(candle =>
+        {
+            // Calculate absolute elapsed minutes from the 09:30 AM open anchor
+            const elapsedMinutesSinceOpen = (candle.hour * 60 + candle.minute) - (9 * 60 + 30);
+
+            // Map the elapsed timeline into distinct 5-minute chunk bins
+            const bucketIndex = Math.floor(elapsedMinutesSinceOpen / 5);
+            const startMinutesFromOpen = bucketIndex * 5;
+
+            const bucketHour = 9 + Math.floor((30 + startMinutesFromOpen) / 60);
+            const bucketMinute = (30 + startMinutesFromOpen) % 60;
+            const bucketTimeKey = `${String(bucketHour).padStart(2, "0")}:${String(bucketMinute).padStart(2, "0")}`;
+
+            if (!fiveMinBuckets[bucketTimeKey])
+            {
+                fiveMinBuckets[bucketTimeKey] = [];
+            }
+            fiveMinBuckets[bucketTimeKey].push(candle);
+        });
+
+        // Flatten the localized 5-minute segments into standard candlestick formats
+        Object.keys(fiveMinBuckets).sort().forEach(timeKey =>
+        {
+            const bucketCandles = fiveMinBuckets[timeKey];
+
+            const openPrice = bucketCandles[0].OpenPrice;
+            const closePrice = bucketCandles[bucketCandles.length - 1].ClosePrice;
+            const highPrice = Math.max(...bucketCandles.map(c => c.HighPrice));
+            const lowPrice = Math.min(...bucketCandles.map(c => c.LowPrice));
+
+            // Tally the total cumulative volume field executed across this specific 5-min block
+            const totalCumulativeVolume = bucketCandles.reduce((sum, c) => sum + c.Volume, 0);
+
+            finalizedFiveMinCandles.push({
+                Timestamp: bucketCandles[0].Timestamp,
+                Volume: totalCumulativeVolume
+            });
+        });
+    });
+
+    return finalizedFiveMinCandles;
+}
+
+
+
+
+export function chunkOneMinCandlesWithZeroFill(candles)
+{
+    if (!candles || candles.length === 0)
+    {
+        return { preMarket: [], mainMarket: [] };
+    }
+
+    // 1. Establish the boundary times based strictly on TODAY's date
+    const today = new Date();
+
+    const preMarketStart = new Date(today);
+    preMarketStart.setHours(4, 0, 0, 0);
+
+    const marketOpen = new Date(today);
+    marketOpen.setHours(9, 30, 0, 0);
+
+    const marketCutoff = new Date(today);
+    marketCutoff.setHours(10, 30, 0, 0);
+
+    const preMarketBins = {};
+    const mainMarketBins = {};
+
+    // 2. Pre-populate all 30-minute pre-market intervals for today
+    let currentPreTime = new Date(preMarketStart);
+    while (currentPreTime < marketOpen)
+    {
+        preMarketBins[currentPreTime.toISOString()] = {
+            Timestamp: currentPreTime.toISOString(),
+            Volume: 0
+        };
+        currentPreTime.setMinutes(currentPreTime.getMinutes() + 30);
+    }
+
+    // 3. Pre-populate all 5-minute main-market intervals for today
+    let currentMainTime = new Date(marketOpen);
+    while (currentMainTime <= marketCutoff)
+    {
+        mainMarketBins[currentMainTime.toISOString()] = {
+            Timestamp: currentMainTime.toISOString(),
+            Volume: 0
+        };
+        currentMainTime.setMinutes(currentMainTime.getMinutes() + 5);
+    }
+
+    // 4. Aggregate actual data, ignoring older days
+    candles.forEach(candle =>
+    {
+        const time = new Date(candle.Timestamp);
+
+        // Strict filter: Ignore any data that is not from today
+        if (time.toDateString() !== today.toDateString()) return;
+
+        // Filter out anything before 4:00 AM or after 10:30 AM
+        if (time < preMarketStart || time > marketCutoff) return;
+
+        if (time < marketOpen)
+        {
+            // Find the corresponding 30-minute block
+            const minutes = Math.floor(time.getMinutes() / 30) * 30;
+            const binTime = new Date(time);
+            binTime.setMinutes(minutes, 0, 0);
+            const binStr = binTime.toISOString();
+
+            if (preMarketBins[binStr])
+            {
+                preMarketBins[binStr].Volume += candle.Volume;
+            }
+        } else
+        {
+            // Find the corresponding 5-minute block
+            const minutes = Math.floor(time.getMinutes() / 5) * 5;
+            const binTime = new Date(time);
+            binTime.setMinutes(minutes, 0, 0);
+            const binStr = binTime.toISOString();
+
+            if (mainMarketBins[binStr])
+            {
+                mainMarketBins[binStr].Volume += candle.Volume;
+            }
+        }
+    });
+
+    // Helper to turn map objects back into sorted arrays
+    const convertAndSort = (binsObject) =>
+    {
+        return Object.values(binsObject).sort((a, b) => new Date(a.Timestamp) - new Date(b.Timestamp));
+    };
+
+    return {
+        preMarket: convertAndSort(preMarketBins),
+        mainMarket: convertAndSort(mainMarketBins)
     };
 }

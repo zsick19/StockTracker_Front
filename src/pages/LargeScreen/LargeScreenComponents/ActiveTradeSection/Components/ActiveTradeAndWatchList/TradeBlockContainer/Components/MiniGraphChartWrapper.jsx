@@ -8,18 +8,19 @@ import GraphLoadingError from '../../../../../../../../components/ChartSubGraph/
 
 function MiniGraphChartWrapper({ activeTrade, setShowMiniGraph })
 {
-
-    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({ ticker: activeTrade.tickerSymbol, timeFrame: defaultTimeFrames.threeDayOneMin, liveFeed: true, news: false, info: false })
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetStockDataUsingTimeFrameQuery({
+        ticker: activeTrade.tickerSymbol,
+        timeFrame: defaultTimeFrames.dailyQuarter, liveFeed: true
+    })
 
     const uuid = useMemo(() => short.generate(), [])
-
     let graphContent
     if (isSuccess)
     {
         graphContent = <ChartWithoutPlanFetchChartingWrapper ticker={activeTrade.tickerSymbol}
-            candleData={data} interactionController={{ isZoomAble: true, isInteractive: false, isLivePrice: true }} timeFrame={defaultTimeFrames.threeDayOneMin}
-            mostRecentPrice={activeTrade.mostRecentPrice} uuid={uuid}
-            chartId={activeTrade.enterExitTradeId} planData={activeTrade.tradingPlanPrices} lastCandleData={data.mostRecentTickerCandle}
+            candleData={data} interactionController={{ isZoomAble: true, isInteractive: false, isLivePrice: true }} timeFrame={defaultTimeFrames.dailyQuarter}
+            mostRecentPrice={activeTrade.mostRecentPrice} uuid={uuid} chartId={activeTrade._id} lastCandleData={data.mostRecentTickerCandle}
+            planData={activeTrade.tradingPlanPrices}
         />
     } else if (isLoading)
     {

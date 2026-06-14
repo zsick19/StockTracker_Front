@@ -8,27 +8,23 @@ import { setEnterExitCharting } from '../../features/EnterExitPlans/EnterExitGra
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
 import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
-import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
+import { clearGraphHoursControl, setInitialGraphHoursControl, setToggleShowOnlyMarketHours } from '../../features/Charting/GraphMarketHourElement'
 import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
 import { calculateVolumeEfficiency } from '../../Utilities/technicalIndicatorFunctions'
 import { filterRegularMarketHours } from '../../Utilities/TimeFrames'
 
 function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, interactionController,
-    chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery, showEMAs, macroTickerInfo })
+    chartId, timeFrame, setTimeFrame, uuid, lastCandleData, candlesToKeepSinceLastQuery,
+    showEMAs, macroTickerInfo, onlyMarketHours })
 {
     const dispatch = useDispatch()
     const tickerForSearch = ticker?.ticker || ticker
     const chartIdForSearch = ticker?._id || chartId
+    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({
+        tickerSymbol: ticker?.ticker || ticker, chartId: ticker?._id || chartId
+    })
 
-    // const removedPrePostMarketData = useMemo(() =>
-    // {
-    //     let filter = filterRegularMarketHours(candleData.candleData)
-    //     if (filter.length > 0) return calculateVolumeEfficiency(filter)
-    //     else return calculateVolumeEfficiency(candleData.candleData)
-    // }, [candleData])
-
-    const { data: chartingData, isSuccess, isLoading, isError, error, refetch } = useGetChartingDataQuery({ tickerSymbol: ticker?.ticker || ticker, chartId: ticker?._id || chartId })
-
+    //set up UUID
     useEffect(() =>
     {
         if (uuid)
@@ -39,6 +35,9 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
             dispatch(setInitialGraphHoursControl({ uuid }))
             dispatch(setInitialGraphVisibility({ uuid }))
         }
+
+        if (onlyMarketHours) dispatch(setToggleShowOnlyMarketHours({ uuid }))
+
         return (() =>
         {
             if (uuid)
@@ -52,7 +51,7 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
         })
     }, [])
 
-
+    //add charting to graph
     useEffect(() =>
     {
         if (isSuccess)
@@ -61,6 +60,7 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
             dispatch(setKeyLevelsCharting(chartingData))
             dispatch(setPreviousCharting(chartingData))
         }
+
 
     }, [chartingData])
 

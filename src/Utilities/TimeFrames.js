@@ -1,4 +1,4 @@
-import { sub, subBusinessDays, startOfMonth, addMonths, isBefore, format, add, addDays, isSaturday, isSunday, subDays, subHours } from 'date-fns';
+import { sub, subBusinessDays, startOfMonth, addMonths, isBefore, format, add, addDays, isSaturday, isSunday, subDays, subHours, isFriday } from 'date-fns';
 
 
 export const defaultTimeFrames = {
@@ -31,36 +31,51 @@ export const interDayTimeFrames = [{ label: '1M', timeFrame: defaultTimeFrames.t
 export function generateTradingHours(timeFrame, displayMarketHours)
 {
   const timeRanges = [];
-  let currentDate = subBusinessDays(new Date().setUTCHours(9, 0, 0, 0), timeFrame.duration + 9);
+  let currentDate = subBusinessDays(new Date(), timeFrame.duration + 30);
 
-  let today = addDays(new Date(), 1)
+  let today = addDays(new Date(), 10)
 
   while (currentDate <= today)
   {
-    if (!isSaturday(currentDate) && !isSunday(currentDate) && displayMarketHours)
+    if (displayMarketHours)
     {
-      const marketCloseTime = new Date(currentDate);
-      marketCloseTime.setUTCHours(21, 0, 0, 0);
-      const nextDayMarketOpenTime = add(marketCloseTime, { hours: 17, minutes: 30 })
-      timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
-    } else if (!isSaturday(currentDate) && !isSunday(currentDate))
+
+      if (isFriday(currentDate))
+      {
+        const marketCloseTime = new Date(currentDate)
+        marketCloseTime.setHours(16, 0, 0, 0)
+        const mondayOpenTime = addDays(new Date(currentDate), 3)
+        mondayOpenTime.setHours(9, 30, 0)
+        timeRanges.push([marketCloseTime.getTime(), mondayOpenTime.getTime()])
+      } else if (!isSaturday(currentDate) && !isSunday(currentDate))
+      {
+        const marketCloseTime = new Date(currentDate);
+        marketCloseTime.setHours(16, 0, 0, 0);
+        const nextDayMarketOpenTime = add(new Date(currentDate), { days: 1 })
+        nextDayMarketOpenTime.setHours(9, 30)
+
+        timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
+      }
+    } else
     {
-      const marketCloseTime = new Date(currentDate);
-      marketCloseTime.setUTCHours(0, 0, 0, 0);
-      const nextDayMarketOpenTime = add(marketCloseTime, { hours: 8 })
-      timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
+
+      if (isFriday(currentDate))
+      {
+        const marketCloseTime = new Date(currentDate)
+        marketCloseTime.setHours(20, 0, 0, 0)
+        const mondayOpenTime = addDays(new Date(currentDate), 3)
+        mondayOpenTime.setHours(4, 0, 0, 0)
+        timeRanges.push([marketCloseTime.getTime(), mondayOpenTime.getTime()])
+      }
+      else if (!isSaturday(currentDate) && !isSunday(currentDate))
+      {
+        const marketCloseTime = new Date(currentDate);
+        marketCloseTime.setHours(20, 0, 0, 0);
+        const nextDayMarketOpenTime = add(marketCloseTime, { hours: 8 })
+        timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
+      }
     }
-    else if (isSaturday(currentDate))
-    {
-      let fridayClose = sub(new Date(currentDate), { hours: 8 })
-      let saturdayClose = add(new Date(fridayClose), { days: 1 })
-      timeRanges.push([fridayClose.getTime(), saturdayClose.getTime()])
-    } else if (isSunday(currentDate))
-    {
-      let saturdayClose = sub(new Date(currentDate), { hours: 8 })
-      let mondayOpen = add(new Date(saturdayClose), { days: 1 })
-      timeRanges.push([saturdayClose.getTime(), mondayOpen.getTime()])
-    }
+
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
@@ -185,3 +200,27 @@ export function filterRegularMarketHours(bars)
     return isAfterOpen && isBeforeClose;
   });
 }
+
+
+export function generateIntraDayTickMarks(timeFrame, displayMarketHours)
+{
+  const timeStamps = []
+  let currentDate = subBusinessDays(new Date().setUTCHours(9, 0, 0, 0), timeFrame.duration + 9);
+  let today = addDays(new Date(), 15)
+
+  while (currentDate <= today)
+  {
+    if (!isSaturday(currentDate) && !isSunday(currentDate) && displayMarketHours)
+    {
+      timeStamps.push(new Date(currentDate).setHours(9, 30))
+    } else if (!isSaturday(currentDate) && !isSunday(currentDate))
+    {
+      timeStamps.push(new Date(currentDate).setHours(4))
+      timeStamps.push(new Date(currentDate).setHours(9, 30))
+      timeStamps.push(new Date(currentDate).setHours(16))
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  return timeStamps;
+}
+

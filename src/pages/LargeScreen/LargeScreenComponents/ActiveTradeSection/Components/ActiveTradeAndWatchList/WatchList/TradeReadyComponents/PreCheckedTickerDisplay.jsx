@@ -7,12 +7,14 @@ import MiniFiveMinChart from '../../../../../StockDetailSection/Components/TinyP
 import { Check, CheckCircle, CheckCircle2, Info, Undo2, X } from 'lucide-react'
 import TwoDayFiveMinChart from './TwoDayFiveMinChart'
 import { sectorToTicker } from '../../../../../../../../Utilities/SectorsAndIndustries'
+import { initiateTickerPreCheck } from '../../../../../../../../features/Trades/PreTradeCheckSlice'
 
 function PreCheckedTickerDisplay({ plan })
 {
     const tickerData = useSelector(state => fiveMinSelectors.selectById(state, plan?.tickerSymbol))
     let direction = plan?.todayOpenPrice < plan?.mostRecentPrice
     const [showDoubleCheckRemove, setShowDoubleCheckRemove] = useState(false)
+
     const dispatch = useDispatch()
     function handleFourWaySplit()
     {
@@ -29,9 +31,16 @@ function PreCheckedTickerDisplay({ plan })
         dispatch(setStockDetailState(8))
     }
 
+    function handleStockToTradeChart()
+    {
+        dispatch(setSingleChartToTickerTimeFrameTradeId({ tickerSymbol: activeTrade.tickerSymbol, chartId: activeTrade._id, planId: activeTrade._id, trade: activeTrade }))
+        dispatch(setStockDetailState(8))
+    }
+
+
     function handleFinalPreCheckView()
     {
-        dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({
+        dispatch(initiateTickerPreCheck({
             ticker: plan.tickerSymbol, tickerSector: plan.sector,
             chartId: plan._id, planId: plan._id, plan: plan
         }))
@@ -53,7 +62,7 @@ function PreCheckedTickerDisplay({ plan })
         <div className='SinglePreChecked'>
             <div className='SinglePreCheckTicker'>
                 <h2 onClick={handleFourWaySplit}>{plan.tickerSymbol}</h2>
-                <p onClick={handleTradeView} className={direction > 0 ? 'greenText' : 'redText'}>${plan.mostRecentPrice.toFixed(2)}</p>
+                <p className={direction > 0 ? 'greenText' : 'redText'}>${plan.mostRecentPrice.toFixed(2)}</p>
                 <p className={direction > 0 ? 'greenText' : 'redText'}> {plan.currentDayPercentGain.toFixed(2)}%</p>
                 {showDoubleCheckRemove ? <button className='buttonIcon' onClick={attemptToToggleImportance}><Info size={14} color='red' /></button> :
                     <p>{plan.changeFromYesterdayClose.toFixed(2)} / {plan.dailyTickerValues.atr} ATR</p>}
@@ -72,7 +81,7 @@ function PreCheckedTickerDisplay({ plan })
                         enterBufferPrice={plan?.plan.enterBufferPrice} />
                 </div>
 
-                <div>
+                <div onClick={handleTradeView} >
                     <p>${plan.with1000DollarsCurrentGain.toFixed()}</p>
                     <p>Gain</p>
                 </div>

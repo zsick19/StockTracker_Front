@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react'
 import ChartGraph from './ChartGraph'
 import { useDispatch } from 'react-redux'
-import { setEnterExitChartingFromPlan } from '../../features/EnterExitPlans/EnterExitGraphElement'
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
 import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
 import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
+import { setEnterExitCharting, setEnterExitChartingFromPlan, setEnterExitWithDetailsFromPlan } from '../../features/EnterExitPlans/EnterExitGraphElement'
 
-function ChartWithNoFetchWrapper({ ticker, dailyCalculatedValues, candleData, interactionController, chartId,
-    timeFrame, mostRecentPrice, EMNumbers, uuid, lastCandleData, showEMAs, tradingPlanPrices, liveActionTimeFrame })
+function ChartWithNoFetchWrapper({ ticker, dailyCalculatedValues, morningMetrics, candleData, interactionController, chartId,
+    timeFrame, mostRecentPrice, EMNumbers, uuid, lastCandleData, showEMAs, tradingPlanPrices, liveActionTimeFrame, planChartingData })
 {
     const dispatch = useDispatch()
 
@@ -37,6 +37,11 @@ function ChartWithNoFetchWrapper({ ticker, dailyCalculatedValues, candleData, in
         })
     }, [])
 
+    useEffect(() =>
+    {
+        if (planChartingData) dispatch(setEnterExitWithDetailsFromPlan(planChartingData))
+    }, [])
+
     return (
         <div className="ChartGraphWrapper">
             <ChartGraph ticker={ticker} chartId={chartId} candleData={candleData.candleData}
@@ -49,6 +54,7 @@ function ChartWithNoFetchWrapper({ ticker, dailyCalculatedValues, candleData, in
                 showEMAs={showEMAs}
                 EMNumbers={EMNumbers}
                 dailyCalculatedValues={dailyCalculatedValues}
+                morningMetrics={morningMetrics}
                 tradingPlanPrices={tradingPlanPrices}
                 liveActionTimeFrame={liveActionTimeFrame}
             />

@@ -9,6 +9,7 @@ const enterExitGraphElementsSlice = createSlice({
         setEnterExitCharting: (state, action) =>
         {
             let chartingData = action.payload
+            console.log(action.payload)
             if (action.payload?.plannedId)
             {
                 state[chartingData.tickerSymbol] = {
@@ -29,9 +30,30 @@ const enterExitGraphElementsSlice = createSlice({
                 enterExitPlanAltered: true
             }
         },
+        defineRelevantHighLow: (state, action) =>
+        {
+            if (action.payload.isHigh) { state[action.payload.ticker].relevantHighs.push(action.payload.relevant) } else
+            { state[action.payload.ticker].relevantLows.push(action.payload.relevant) }
+        },
+        removeRelevantHighLowInstitution: (state, action) =>
+        {
+            if (action.payload.remove.group === 'relevantHigh')
+            {
+                state[action.payload.ticker].relevantHighs = state[action.payload.ticker].relevantHighs.filter(t => t.dateHit !== action.payload?.remove.chartingElement.dateHit)
+            } else if (action.payload.remove.group === 'relevantLow')
+            {
+                state[action.payload.ticker].relevantLows = state[action.payload.ticker].relevantLows.filter(t => t.dateHit !== action.payload?.remove.chartingElement.dateHit)
+            } else if (action.payload.remove.group === 'institutional')
+            {
+                state[action.payload.ticker].institutionalPricePoints = state[action.payload.ticker].institutionalPricePoints.filter(t => t.dateHit !== action.payload?.remove.chartingElement.dateHit)
+            }
+        },
+        defineInstitutionalPrice: (state, action) =>
+        {
+            state[action.payload.ticker].institutionalPricePoints.push(action.payload.institutional)
+        },
         setEnterExitChartingFromPlan: (state, action) =>
         {
-            console.log(action.payload)
             if (action.payload.plan?.length)
             {
                 let planArray = action.payload.plan
@@ -46,13 +68,33 @@ const enterExitGraphElementsSlice = createSlice({
                     moonPrice: planArray[5],
                     id: action.payload.planId,
                     percents: [1, 1, 1, 1, 1, 1],
-                    enterExitPlanAltered: false
+                    enterExitPlanAltered: false,
+                    relevantHighs: action.payload.relevantHighs,
+                    relevantLows: action.payload.relevantLows,
+                    institutionalPricePoints: action.payload.institutionalPricePoints
                 }
             } else
             {
                 state[action.payload.tickerSymbol] = {
                     ...action.payload.plan, id: action.payload.planId, enterExitPlanAltered: false
                 }
+            }
+        },
+        setEnterExitWithDetailsFromPlan: (state, action) =>
+        {
+            state[action.payload.tickerSymbol] = {
+                stopLossPrice: action.payload.plan.stopLossPrice,
+                enterPrice: action.payload.plan.enterPrice,
+                enterBufferPrice: action.payload.plan.enterBufferPrice,
+                exitBufferPrice: action.payload.plan.exitBufferPrice,
+                exitPrice: action.payload.plan.exitPrice,
+                moonPrice: action.payload.plan.moonPrice,
+                id: action.payload._id,
+                percents: action.payload.plan.percents,
+                enterExitPlanAltered: false,
+                relevantHighs: action.payload.relevantHighs,
+                relevantLows: action.payload.relevantLows,
+                institutionalPricePoints: action.payload.institutionalPricePoints
             }
         }
     },
@@ -84,7 +126,10 @@ const enterExitGraphElementsSlice = createSlice({
 export const {
     setEnterExitCharting,
     defineEnterExitPlan,
-    setEnterExitChartingFromPlan
+    defineInstitutionalPrice,
+    defineRelevantHighLow, removeRelevantHighLowInstitution,
+    setEnterExitChartingFromPlan,
+    setEnterExitWithDetailsFromPlan
 } = enterExitGraphElementsSlice.actions;
 
 export default enterExitGraphElementsSlice.reducer;

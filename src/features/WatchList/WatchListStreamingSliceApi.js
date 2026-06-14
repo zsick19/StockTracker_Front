@@ -116,8 +116,9 @@ export const {
 } = WatchListStreamingApiSlice;
 
 
+const selectMacroResults = WatchListStreamingApiSlice.endpoints.fetchUsersMacroWatchList.select()
 export const selectMacroTickersAndChartIds = () =>
-    createSelector(WatchListStreamingApiSlice.endpoints.fetchUsersMacroWatchList.select(),
+    createSelector(selectMacroResults,
         (result) =>
         {
             let macroTickerToIds = {}
@@ -126,7 +127,6 @@ export const selectMacroTickersAndChartIds = () =>
         }
     )
 
-const selectMacroResults = WatchListStreamingApiSlice.endpoints.fetchUsersMacroWatchList.select()
 
 const selectMacroData = createSelector(selectMacroResults, (macroResults) => macroResults.data.tickerState)
 

@@ -3,9 +3,9 @@ export function lineHover(selection)
 {
     selection.transition().attr('stroke-width', 10).attr('stroke', 'blue')
 }
-export function lineNoHover(e)
+export function lineNoHover()
 {
-    select(this).transition().attr('stroke-width', 2).attr('stroke', 'black')
+    select(this).transition().attr('stroke-width', 2)
 }
 export function lowVolNoHover(e)
 {

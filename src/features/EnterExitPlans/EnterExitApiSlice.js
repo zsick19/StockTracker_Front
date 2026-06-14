@@ -8,11 +8,7 @@ const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 export const enterExitAdapter = createEntityAdapter({ sortComparer: (a, b) => b.percentFromEnter - a.percentFromEnter })
 export const enterBufferHitAdapter = createEntityAdapter({ sortComparer: (a, b) => b.percentFromEnter - a.percentFromEnter })
 export const stopLossHitAdapter = createEntityAdapter({ sortComparer: (a, b) => b.percentFromEnter - a.percentFromEnter })
-// export const highImportanceAdapter = createEntityAdapter({})
-
 export const fiveMinPlanAdapter = createEntityAdapter({})
-
-
 
 export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -40,7 +36,9 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
           enterExit.id = enterExit.tickerSymbol
           enterExit.mostRecentPrice = stockTradeData.LatestTrade.Price
+
           enterExit.changeFromYesterdayClose = enterExit.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
+
           enterExit.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
           enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
           enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
@@ -52,17 +50,18 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             reward: ((enterExit.plan.exitPrice - enterExit.mostRecentPrice) * 100 / enterExit.mostRecentPrice),
           }
 
-          if (!enterExit?.with1000DollarsIdealGain)
-          {
-            let sharesToBuyWith1000DollarsIdeal = Math.floor(1000 / enterExit.plan.enterPrice)
-            enterExit.with1000DollarsIdealGain = (enterExit.plan.exitPrice - enterExit.plan.enterPrice) * sharesToBuyWith1000DollarsIdeal
-          }
+
+          if (!enterExit?.relevantHighs) enterExit.relevantHighs = []
+          if (!enterExit?.relevantLows) enterExit.relevantLows = []
+          if (!enterExit?.institutionalPricePoints) enterExit.institutionalPricePoints = []
+
 
           let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / enterExit.mostRecentPrice)
           enterExit.with1000DollarsCurrentGain = (enterExit.plan.exitPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
           enterExit.with1000DollarsCurrentRisk = (enterExit.plan.stopLossPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
 
           if (!enterExit?.checkOffCriteria)
+          {
             enterExit.checkOffCriteria = {
               vpCheck: false,
               rsiCheck: false,
@@ -72,11 +71,18 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
               volCheck: false,
               emaCheck: false
             }
+          }
 
+          if (!enterExit?.with1000DollarsIdealGain)
+          {
+            let sharesToBuyWith1000DollarsIdeal = Math.floor(1000 / enterExit.plan.enterPrice)
+            enterExit.with1000DollarsIdealGain = (enterExit.plan.exitPrice - enterExit.plan.enterPrice) * sharesToBuyWith1000DollarsIdeal
+          }
 
           function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
 
-          let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
+          let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice],
+            stockTradeData.LatestTrade.Price)
           enterExit.priceVsPlanUponFetch = priceVsPlan
           enterExit.listChange = false
 
@@ -93,8 +99,8 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             case 3: plansResponse.push(enterExit); break;
           }
 
+          if (enterExit.tickerSymbol === "CSWC") console.log(priceVsPlan)
         })
-
 
         return {
           enterBufferHit: enterBufferHitAdapter.setAll(enterBufferHitAdapter.getInitialState(), enterBufferResponse.sort((a, b) => b.percentFromEnter - a.percentFromEnter)),
@@ -180,8 +186,9 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
 
               if (updatedEnterExitWithImportance?.highImportance && updatedEnterExitWithImportance.highImportance !== undefined)
               {
-
                 entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
+                entityToMove.extentProb = updatedEnterExitWithImportance.extentProb
+                entityToMove.morningMetrics = updatedEnterExitWithImportance.morningMetrics
               } else
               {
                 entityToMove.highImportance = undefined
@@ -271,7 +278,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         const state = api.getState()
         let result
         let updatedEnterExit = state.enterExitElement[args.ticker]
-
         if (!updatedEnterExit)
         {
           updatedEnterExit = state.chartingElement[args.ticker].enterExitLines

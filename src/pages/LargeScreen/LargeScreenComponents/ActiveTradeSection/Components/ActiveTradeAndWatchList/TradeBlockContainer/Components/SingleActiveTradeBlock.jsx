@@ -12,47 +12,16 @@ import MiniGraphChartWrapper from './MiniGraphChartWrapper'
 import { sectorToTicker } from '../../../../../../../../Utilities/SectorsAndIndustries'
 import CashOutMessage from './CashOutMessage'
 import MiniFiveMinChart from '../../../../../StockDetailSection/Components/TinyPreWatch/Components/MiniFiveMinChart'
+import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { initiateTickerPreCheck } from '../../../../../../../../features/Trades/PreTradeCheckSlice'
+import { provideEnterExitPlanSelector } from '../../../../../../../../Utilities/adaptorSelection'
 
 function SingleActiveTradeBlock({ id })
 {
     const dispatch = useDispatch()
+
     const liquidatePrice = useRef()
-    const [showStopEnterExit, setShowStopEnterExit] = useState(0)
-    const [showPositionInfo, setShowPositionInfo] = useState(0)
-    const [showTradeOptions, setShowTradeOptions] = useState(false)
-
-    const { activeTrade } = useGetUsersActiveTradesQuery(undefined, { selectFromResult: ({ data }) => ({ activeTrade: data ? activeTradeSelectors.selectById(data, id) : undefined }) })
     const [alterTradeRecord] = useAlterTradeRecordMutation()
-
-    const macroToChartMemo = useMemo(selectMacroTickersAndChartIds, [])
-    const macroToChartId = useSelector(state => macroToChartMemo(state))
-
-    const [showGainPercentOrGPP, setShowGainPercentOrGPP] = useState(0)
-    const [showMiniGraph, setShowMiniGraph] = useState(false)
-    let totalMove = activeTrade.gainPerShare * activeTrade.availableShares
-
-    const handleStockToFourWay = () =>
-    {
-        dispatch(setStockDetailState(0))
-        dispatch(setSelectedStockAndTimelineFourSplit({ ticker: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, trade: activeTrade }))
-    }
-    const handleStockToFourWaySector = () =>
-    {
-        let sectorTicker = sectorToTicker[activeTrade.sector]
-        dispatch(setStockDetailState(0))
-        dispatch(setSelectedStockAndTimelineFourSplitWithSector({
-            ticker: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId,
-            sectorChartId: macroToChartId[sectorTicker], tickerSector: activeTrade.sector, sectorTickerSymbol: sectorTicker, trade: activeTrade
-        }))
-
-    }
-    const handleStockToTradeChart = () =>
-    {
-        dispatch(setStockDetailState(8))
-        dispatch(setSingleChartToTickerTimeFrameTradeId({ tickerSymbol: activeTrade.tickerSymbol, chartId: activeTrade.enterExitPlanId, planId: activeTrade.enterExitPlanId, trade: activeTrade }))
-    }
-
-
     async function liquidateFullPosition(priceFromCashOutMessage)
     {
 
@@ -77,18 +46,50 @@ function SingleActiveTradeBlock({ id })
         }
 
     }
+
+
+
+    const [showStopEnterExit, setShowStopEnterExit] = useState(0)
+    const [showPositionInfo, setShowPositionInfo] = useState(0)
+    const [showGainPercentOrGPP, setShowGainPercentOrGPP] = useState(0)
+    const [showTradeOptions, setShowTradeOptions] = useState(false)
+    const [showMiniGraph, setShowMiniGraph] = useState(false)
+
+    const { activeTrade } = useGetUsersActiveTradesQuery(undefined, { selectFromResult: ({ data }) => ({ activeTrade: data ? activeTradeSelectors.selectById(data, id) : undefined }) })
+    const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideEnterExitPlanSelector(data, id) : undefined }) })
+
+
+    const macroToChartMemo = useMemo(selectMacroTickersAndChartIds, [])
+    const macroToChartId = useSelector(state => macroToChartMemo(state))
+
+
+
+    function handleStockToFourWay()
+    {
+        dispatch(setStockDetailState(0))
+        dispatch(setSelectedStockAndTimelineFourSplit({ ticker: activeTrade.tickerSymbol, chartId: activeTrade._id, trade: activeTrade }))
+    }
+    function handleStockToFourWaySector()
+    {
+        let sectorTicker = sectorToTicker[activeTrade.sector]
+        dispatch(setStockDetailState(0))
+        dispatch(setSelectedStockAndTimelineFourSplitWithSector({ ticker: activeTrade.tickerSymbol, chartId: activeTrade._id, sectorChartId: macroToChartId[sectorTicker], tickerSector: activeTrade.sector, sectorTickerSymbol: sectorTicker, trade: activeTrade }))
+    }
+    function handleStockToTradeChart()
+    {
+        dispatch(setSingleChartToTickerTimeFrameTradeId({ tickerSymbol: activeTrade.tickerSymbol, chartId: activeTrade._id, planId: activeTrade._id, trade: activeTrade }))
+        dispatch(setStockDetailState(8))
+    }
     function handleFinalPreCheckView()
     {
-        dispatch(setSingleChartTickerTimeFrameChartIdPlanIdForTrade({
-            ticker: activeTrade.tickerSymbol, tickerSector: activeTrade.sector,
-            chartId: activeTrade._id, planId: activeTrade._id, plan: activeTrade
-        }))
+        dispatch(initiateTickerPreCheck({ ticker: activeTrade.tickerSymbol, tickerSector: activeTrade.sector, chartId: activeTrade._id, planId: activeTrade._id, plan: plan, activeTrade: activeTrade }))
         dispatch(setStockDetailState(20))
     }
 
+
     return (<>
         {false ?
-            // {totalMove < -50 ?
+            // {activeTrade.totalGain < -50 ?
             <CashOutMessage activeTrade={activeTrade} liquidateFullPosition={liquidateFullPosition} /> :
 
             showMiniGraph ? <MiniGraphChartWrapper setShowMiniGraph={setShowMiniGraph} activeTrade={activeTrade} /> :
@@ -100,10 +101,10 @@ function SingleActiveTradeBlock({ id })
 
                     <div className='TradeInfoSection'>
                         <div>
-
                             <div className='PriceTickerInfo'>
                                 <h2 onClick={() => { setShowTradeOptions(prev => !prev); }}>{activeTrade.tickerSymbol}</h2>
-                                <div className='PriceMovementPerTrade' onClick={() => handleStockToTradeChart()} onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); handleFinalPreCheckView() }}>
+                                <div className='PriceMovementPerTrade' onClick={() => handleStockToTradeChart()}
+                                    onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); handleFinalPreCheckView() }}>
                                     <h2 className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>${activeTrade.mostRecentPrice.toFixed(activeTrade.mostRecentPrice > 1 ? 2 : 4)}</h2>
                                     {activeTrade.priceDirection === 'negativeDirection' && < ChevronDown size={18} color='red' />}
                                     {activeTrade.priceDirection === 'positiveDirection' && <ChevronUp size={18} color='green' />}
@@ -235,10 +236,8 @@ function SingleActiveTradeBlock({ id })
                                 </div>
                         }
                     </div>
-
-
-                </div>
-        }    </>
+                </div>}
+    </>
     )
 }
 

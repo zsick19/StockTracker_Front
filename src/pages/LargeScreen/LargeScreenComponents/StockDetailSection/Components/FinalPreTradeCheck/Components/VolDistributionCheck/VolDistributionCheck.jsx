@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { selectTradeChartStock } from '../../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { useGetStockDataUsingStartDateAndTimeFrameQuery, useGetStockDataUsingTimeFrameQuery } from '../../../../../../../../features/StockData/StockDataSliceApi'
@@ -7,25 +7,32 @@ import VolDistChart from './VolDistChart'
 import OpenRangeDistChart from './OpenRangeDistChart'
 import { subBusinessDays } from 'date-fns'
 import OpenCloseExtremeProbability from './OpenCloseExtremeProbability'
+import ChartWithChartingWrapper from '../../../../../../../../components/ChartSubGraph/ChartWithChartingWrapper'
+import * as short from 'short-uuid'
+import VolEfficiencyChartDataWrapper from './VolEfficiencyChartDataWrapper'
+import './VolDistributionCheck.css'
 
-function VolDistributionCheck({ ticker, relevantStartDate })
+function VolDistributionCheck({ plannedTicker, activeTrade, setTradeDetails })
 {
-  const plannedTicker = useSelector(state => selectTradeChartStock(state))
-  let startDate = plannedTicker.plan?.relevantCandleDate || subBusinessDays(new Date(), 5)
+  const uuid = useMemo(() => short.generate(), [])
+  let ticker = plannedTicker?.tickerSymbol || plannedTicker.ticker
+  let startDate = plannedTicker.plan?.relevantCandleDate || subBusinessDays(new Date(), 20).toISOString()
 
-  const { data, isSuccess, isLoading, isError, error } = useGetStockDataUsingStartDateAndTimeFrameQuery({
-    ticker, timeFrame: defaultTimeFrames.threeDayFiveMin,
-    start: new Date(startDate).toISOString()
-  })
+  console.log(plannedTicker.plan)
+  console.log(activeTrade)
+
+  const { data, isSuccess, isLoading, isFetching, isError, error } = useGetStockDataUsingStartDateAndTimeFrameQuery({ ticker, timeFrame: defaultTimeFrames.threeDayFiveMin, start: startDate.split('T')[0] })
 
   let volDistributionContent
   let highLowDistributionContent
   let probabilityContent
+  let volumeEfficiencyContent
   if (isSuccess)
   {
+    volumeEfficiencyContent = <VolEfficiencyChartDataWrapper timeFrame={defaultTimeFrames.threeDayFiveMin} ticker={ticker} candleData={data.candleData} chartId={plannedTicker._id} uuid={uuid} />
     volDistributionContent = <VolDistChart candleData={data.candleData} />
     highLowDistributionContent = <OpenRangeDistChart candleData={data.candleData} />
-    probabilityContent = <OpenCloseExtremeProbability candleData={data.candleData} />
+    probabilityContent = <OpenCloseExtremeProbability candleData={data.candleData} setTradeDetails={setTradeDetails} />
   }
   else if (isLoading)
   {
@@ -39,24 +46,20 @@ function VolDistributionCheck({ ticker, relevantStartDate })
   }
 
   return (
-    <div>
+    <div id='VolDistVisual'>
       <div className='flex'>
-        <p>{ticker} </p>
+        <p>{ticker}</p>
         <p>Relevant Start Date: {new Date(startDate).toLocaleDateString()}</p>
       </div>
-      <div className='flex'>
-        <div>d4</div>
-        <div>d3</div>
-        <div>d2</div>
-        <div>d1</div>
-        <div>Today</div>
-        {probabilityContent}
-      </div>
-      <div className='flex'>
 
+      {volumeEfficiencyContent}
+
+      <div className='flex'>
         {volDistributionContent}
         {highLowDistributionContent}
+        {probabilityContent}
       </div>
+      
     </div>
   )
 }

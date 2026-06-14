@@ -323,7 +323,9 @@ const majorSupportResistanceTrace = (e, setEnableZoom, svg, pixelSet, setCapture
 
 
 
-export const toolFunctionExports = [infoTrace, freeLineTrace, trendLineTrace, horizontalLineTrace, horizontalLineTrace, horizontalLineTrace, majorSupportResistanceTrace, majorSupportResistanceTrace, enterExitTrace]
+export const toolFunctionExports = [infoTrace, freeLineTrace, trendLineTrace, horizontalLineTrace, horizontalLineTrace, horizontalLineTrace,
+    majorSupportResistanceTrace, majorSupportResistanceTrace, enterExitTrace]
+export const preTradeFunctionExports = [horizontalLineTrace, horizontalLineTrace, horizontalLineTrace]
 
 
 

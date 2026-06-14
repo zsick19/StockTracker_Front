@@ -1,17 +1,30 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { calculateExtendedSessionProbabilities } from '../../../../../../../../Utilities/technicalIndicatorFunctions'
 
-function OpenCloseExtremeProbability({ candleData })
+function OpenCloseExtremeProbability({ candleData, setTradeDetails })
 {
-
   const probability = useMemo(() => calculateExtendedSessionProbabilities(candleData), [candleData])
   useEffect(() =>
   {
-    console.log('ok hit')
-  }, [])
+    setTradeDetails(prev =>
+    {
+      return {
+        ...prev, extentProb:
+        {
+          openH: probability.morningSession.highPrintedPercent,
+          openL: probability.morningSession.lowPrintedPercent,
+          midH: probability.middaySession.highPrintedPercent,
+          midL: probability.middaySession.lowPrintedPercent,
+          closeH: probability.closingSession.highPrintedPercent,
+          closeL: probability.closingSession.lowPrintedPercent
+        }
+      }
+    })
+  }, [candleData])
+
 
   return (
-    <div className='flex'>
+    <div id='OpenCloseProbability' className='flex'>
       <div>
         <p>Morning</p>
         <p>High Hit: {probability.morningSession.highPrintedPercent}%</p>
