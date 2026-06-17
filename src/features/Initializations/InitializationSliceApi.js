@@ -11,7 +11,7 @@ export const InitializationApiSlice = apiSlice.injectEndpoints({
       {
         response.patternedTickers = []
         response.userStockHistory.map((history) => { response.patternedTickers.push(history.symbol) })
-
+        console.log(response.oldestRelevantDateToFetch)
         return response
       },
       keepUnusedDataFor: 60000,
@@ -25,11 +25,7 @@ export const { useGetUserInitializationQuery } = InitializationApiSlice;
 export const selectSPYIdFromUser = () =>
   createSelector(
     InitializationApiSlice.endpoints.getUserInitialization.select(),
-    (result) =>
-    {
-
-      return result?.data?._id || undefined
-    }
+    (result) => { return result?.data?._id || undefined }
   )
 
 export const selectUserMarketSearchFilters = () =>
@@ -42,5 +38,10 @@ export const selectUsersPatternedHistory = () =>
     InitializationApiSlice.endpoints.getUserInitialization.select(),
     (result) => { return result?.data?.patternedTickers || [] }
   )
+
+export const selectOldestRelevantDate = () => createSelector(
+  InitializationApiSlice.endpoints.getUserInitialization.select(),
+  (result) => { return result?.data?.oldestRelevantDateToFetch }
+)
 
 
