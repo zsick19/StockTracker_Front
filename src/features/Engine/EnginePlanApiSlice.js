@@ -3,6 +3,8 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
 import { differenceInBusinessDays } from "date-fns";
+import { symbol } from "d3";
+import { Volume } from "lucide-react";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 export const enginePlanAdapter = createEntityAdapter({})
@@ -170,28 +172,195 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 validateStatus: (response, result) => { return response.status === 200 && !result.isError }
             }), transformResponse: (responseData) =>
             {
-                console.log(responseData)
+
+                let results = responseData.map((enterExit) =>
+                {
+                    //let stockTradeData = responseData.mostRecentPrice[listOfTickers.indexOf(enterExit.tickerSymbol)]
+
+                    //         enterExit.mostRecentPrice = stockTradeData.LatestTrade.Price
+
+                    //         enterExit.changeFromYesterdayClose = enterExit.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
+
+                    //         enterExit.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
+                    //         enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
+                    //         enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
+                    //         enterExit.trackingDays = differenceInBusinessDays(today, new Date(enterExit.dateAdded))
+                    //         enterExit.todayOpenPrice = stockTradeData.DailyBar.OpenPrice
+
+                    //         enterExit.currentRiskVReward = {
+                    //             risk: ((enterExit.mostRecentPrice - enterExit.plan.stopLossPrice) * 100 / enterExit.mostRecentPrice),
+                    //             reward: ((enterExit.plan.exitPrice - enterExit.mostRecentPrice) * 100 / enterExit.mostRecentPrice),
+                    //         }
+
+
+
+
+                    //         let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / enterExit.mostRecentPrice)
+                    //         enterExit.with1000DollarsCurrentGain = (enterExit.plan.exitPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+                    //         enterExit.with1000DollarsCurrentRisk = (enterExit.plan.stopLossPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+
+
+
+                    //         function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
+
+                    //         let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice],
+                    //             stockTradeData.LatestTrade.Price)
+                    //         enterExit.priceVsPlanUponFetch = priceVsPlan
+                    //         enterExit.listChange = false
+
+
+
+                    //         if (!enterExit?.watchForTomorrow) enterExit.watchForTomorrow = null
+                    //         if (!enterExit?.updateNeededDate) enterExit.updateNeededDate = null
+                    //         if (!enterExit?.relevantHighs) enterExit.relevantHighs = []
+                    //         if (!enterExit?.relevantLows) enterExit.relevantLows = []
+                    //         if (!enterExit?.institutionalPricePoints) enterExit.institutionalPricePoints = []
+
+                    //         if (!enterExit?.with1000DollarsIdealGain)
+                    //         {
+                    //             let sharesToBuyWith1000DollarsIdeal = Math.floor(1000 / enterExit.plan.enterPrice)
+                    //             enterExit.with1000DollarsIdealGain = (enterExit.plan.exitPrice - enterExit.plan.enterPrice) * sharesToBuyWith1000DollarsIdeal
+                    //         }
+
+                    //         if (!enterExit?.checkOffCriteria)
+                    //         {
+                    //             enterExit.checkOffCriteria = {
+                    //                 vpCheck: false,
+                    //                 rsiCheck: false,
+                    //                 macdCheck: false,
+                    //                 stochasticCheck: false,
+                    //                 vortexCheck: false,
+                    //                 volCheck: false,
+                    //                 emaCheck: false
+                    //             }
+                    //         }
+
+
+                    //         switch (priceVsPlan)
+                    //         {
+                    //             case 0: stopLossResponse.push(enterExit); break;
+                    //             case 1: enterBufferResponse.push(enterExit); break;
+                    //             case 2: enterBufferResponse.push(enterExit); break;
+                    //             case 3: plansResponse.push(enterExit); break;
+                    //         }
+
+                    return { ...enterExit.plan, id: enterExit.plan.tickerSymbol, historicCandle: enterExit.candleData, todayCandleData: [], combinedCandleData: [], todayTradeData: [] }
+                })
+                console.log(results)
+                return enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), results)
             }
 
         }),
         fetchEngineCandleBarData: builder.query({
-            query: () => ({
-                url: `/engine/today/bars`,
+            query: (args) => ({
+                url: `/engine/today/bars/${args.oneMinOrFivMinBars}`,
                 validateStatus: (response, result) => { return response.status === 200 && !result.isError }
-            }), transformResponse: (responseData) =>
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
             {
-                console.log(responseData)
+                try
+                {
+                    const { data: freshCandleData } = await queryFulfilled;
 
+
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        Object.keys(freshCandleData).forEach(symbol =>
+                        {
+
+                            // if other parts of the entity are necessary to access 
+                            let entityToUpdate = draft.entities[symbol]
+                            entityToUpdate.todayCandleData = freshCandleData[symbol]
+
+                            entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData[symbol]]
+
+                            //if just pumping changes
+                            // enginePlanAdapter.updateOne(draft, {
+                            //     id: symbol,
+                            //     changes: { freshDailyCandleData: freshCandleData[symbol] }
+                            // })
+
+                        })
+                    }))
+
+                } catch (error)
+                {
+                    console.log(error)
+                }
+            }
+        }),
+        fetchEngineOneMinCandleBarData: builder.query({
+            query: (args) => ({
+                url: `/engine/today/bars/regularSession/minute`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshCandleData } = await queryFulfilled;
+
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        Object.keys(freshCandleData).forEach(symbol =>
+                        {
+
+                            // if other parts of the entity are necessary to access 
+                            let entityToUpdate = draft.entities[symbol]
+                            entityToUpdate.todayCandleData = freshCandleData[symbol]
+                            entityToUpdate.combinedFiveMinCandleData = [...(entityToUpdate.historic10Day5MinCandle || []), ...freshCandleData[symbol]]
+
+                            //if just pumping changes
+                            // enginePlanAdapter.updateOne(draft, {
+                            //     id: symbol,
+                            //     changes: { freshDailyCandleData: freshCandleData[symbol] }
+                            // })
+
+                        })
+                    }))
+
+                } catch (error)
+                {
+                    console.log(error)
+                }
             }
         }),
         fetchEngineTradeData: builder.query({
             query: () => ({
                 url: `/engine/today/trades`,
                 validateStatus: (response, result) => { return response.status === 200 && !result.isError }
-            }), transformResponse: (responseData) =>
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
             {
+                try
+                {
+                    const { data: freshTradeData } = await queryFulfilled;
 
-                console.log(responseData)
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        Object.keys(freshTradeData).forEach(symbol =>
+                        {
+
+                            // if other parts of the entity are necessary to access 
+                            let entityToUpdate = draft.entities[symbol]
+                            entityToUpdate.tradeData = freshTradeData[symbol]
+
+                            //if just pumping changes
+                            // enginePlanAdapter.updateOne(draft, {
+                            //     id: symbol,
+                            //     changes: { freshDailyCandleData: freshCandleData[symbol] }
+                            // })
+
+                        })
+                    }))
+
+                } catch (error)
+                {
+                    console.log(error)
+                }
             }
         })
     })
@@ -200,6 +369,39 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 export const {
     useInitiateEngineWithEnterExitPlanQuery,
     useFetchEngineCandleBarDataQuery,
-    useFetchEngineTradeDataQuery
+    useFetchEngineTradeDataQuery,
+    useFetchEngineOneMinCandleBarDataQuery
 } = EnginePlanPlanApiSlice;
 
+function downSampleOneMinToFiveMin(oneMinArray)
+{
+    const candlesBy5MinBucket = {}
+    const sortedArray = [...oneMinArray].sort((a, b) => new Date(a.Timestamp) - new Date(b.Timestamp))
+
+    sortedArray.forEach((candle) =>
+    {
+        const timeObj = new Date(candle.Timestamp)
+        const slotFloor = Math.floor(timeObj.getUTCMinutes() / 5) * 5
+        timeObj.setUTCMinutes(slotFloor)
+        timeObj.setUTCSeconds(0)
+        timeObj.setUTCMilliseconds(0)
+        const slotKey = timeObj.toISOString()
+
+        if (!candlesBy5MinBucket[slotKey]) candlesBy5MinBucket[slotKey] = [];
+        candlesBy5MinBucket[slotKey].push(candle)
+    })
+
+    return Object.keys(candlesBy5MinBucket).map(slotKey =>
+    {
+        const bucket = candlesBy5MinBucket[slotKey]
+        return {
+            Timestamp: slotKey,
+            OpenPrice: bucket[0].OpenPrice,
+            HighPrice: Math.max(...bucket.map(c => c.HighPrice)),
+            LowPrice: Math.min(...bucket.map(c => c.LowPrice)),
+            ClosePrice: bucket[bucket.length - 1].ClosePrice,
+            Volume: bucket.reduce((sum, c) => sum + c.Volume, 0)
+        }
+    })
+
+}

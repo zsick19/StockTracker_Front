@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { store } from "../AppRedux/store";
-
+import { toZonedTime } from 'date-fns-tz'
 import { useDispatch } from "react-redux";
 import { InitializationApiSlice } from "./Initializations/InitializationSliceApi";
 import { Outlet } from "react-router-dom";
 import { EnginePlanPlanApiSlice } from "./Engine/EnginePlanApiSlice";
+import { format, isWeekend, isWithinInterval, parse } from "date-fns";
 
 function Prefetch()
 {
@@ -13,6 +14,8 @@ function Prefetch()
   const [prefetchError, setPrefetchError] = useState(null);
 
   const pollingClockRef = useRef(null);
+  const oneMinPollingClockRef = useRef(null);
+  const tradeSyncTimeoutRef = useRef(null);
   const currentIntervalMS = useRef(60000);
 
 
@@ -45,6 +48,7 @@ function Prefetch()
 
     // --- CORE CORE: THE HEADLESS CHRONOLOGICAL RECONCILIATION ENGINE ---
     let liveSubscriptionRef = null;
+    let oneMinLiveSubscriptionRef = null;
 
     // --- DYNAMIC POLLING BALANCER AND TIMEFRAME SWITCHER ---
     const manageDynamicIntervalLoop = () =>
@@ -65,33 +69,67 @@ function Prefetch()
 
       // Clean, explicit interval assignments: 1-min for Opening Hour, 5-min for typical session
       const targetIntervalMS = isMorningPowerHour ? 60000 : 300000;
-
-      if (pollingClockRef.current && currentIntervalMS.current === targetIntervalMS) { return; }
-
-      if (pollingClockRef.current) { clearInterval(pollingClockRef.current); }
-
-      currentIntervalMS.current = targetIntervalMS;
-      console.log(`⏱️ Adjusting Background Polling: ${targetIntervalMS / 60000} Min Interval Engine.`);
-
-      pollingClockRef.current = setInterval(() =>
+      if (!pollingClockRef.current || currentIntervalMS.current !== targetIntervalMS)
       {
-        const clock = getMarketTimeContext();
+        if (pollingClockRef.current) { clearInterval(pollingClockRef.current); }
 
-        if (clock.isRegularSessionActive && !clock.isWeekend)
+
+        pollingClockRef.current = setInterval(() =>
         {
-          if (liveSubscriptionRef)
+          const clock = getMarketTimeContext();
+          if (clock.isRegularSessionActive && !clock.isWeekend)
           {
-            store.dispatch(
-              EngineApiSlice.endpoints.getTodaysLiveCandlesBatch.initiate(undefined, {
-                subscribe: true,
-                forceRefetch: true
-              })
-            );
-          }
-        }
+            if (liveSubscriptionRef)
+            {
+              store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: clock.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true }))
+            }
 
-        manageDynamicIntervalLoop();
-      }, targetIntervalMS);
+            if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
+            tradeSyncTimeoutRef.current = setTimeout(() =>
+            {
+              store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
+            }, 45000)
+
+          }
+          manageDynamicIntervalLoop();
+        }, targetIntervalMS);
+      }
+
+      if (!isMorningPowerHour)
+      {
+        if (!oneMinPollingClockRef.current)
+        {
+          oneMinPollingClockRef.current = setInterval(() =>
+          {
+            const clock = getMarketTimeContext()
+            if (clock.isRegularSessionActive && !clock.isWeekend)
+            {
+              store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineOneMinCandleBarData.initiate(undefined, { subscribe: true, forceRefetch: true }))
+
+              if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
+              tradeSyncTimeoutRef.current = setTimeout(() =>
+              {
+                store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
+              }, 45000)
+            }
+          }, 60000)
+        }
+      } else
+      {
+        if (oneMinPollingClockRef.current)
+        {
+          clearInterval(oneMinPollingClockRef.current)
+          oneMinPollingClockRef.current = null
+        }
+        if (tradeSyncTimeoutRef.current)
+        {
+          clearTimeout(tradeSyncTimeoutRef.current)
+          tradeSyncTimeoutRef.current = null
+        }
+      }
+
+
+
     };
 
 
@@ -104,9 +142,13 @@ function Prefetch()
       .then(() =>
       {
         const timeContext = getMarketTimeContext();
-        liveSubscriptionRef = store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate(undefined, { subscribe: true, forceRefetch: true }))
+
+        liveSubscriptionRef = store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: timeContext.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true }))
         return liveSubscriptionRef.unwrap()
+
+
       })
+
       .then((data) =>
       {
         setIsSystemHydrated(true);
@@ -115,6 +157,7 @@ function Prefetch()
       })
       .catch((error) =>
       {
+
         console.error("❌ Critical RTK Query Root Ingestion Failure:", error);
         setPrefetchError(error.message || "Failed to load historical data.");
       });
@@ -138,8 +181,10 @@ function Prefetch()
     {
       prefetchUserInitial.unsubscribe();
       prefetchHistoricalEngineData.unsubscribe()
+      if (liveSubscriptionRef) liveSubscriptionRef.unsubscribe()
       if (pollingClockRef.current) clearInterval(pollingClockRef.current);
-
+      if (oneMinPollingClockRef.current) clearInterval(oneMinPollingClockRef.current)
+      if (tradeSyncTimeoutRef.current) clearInterval(tradeSyncTimeoutRef.current)
     };
   }, [dispatch]);
 

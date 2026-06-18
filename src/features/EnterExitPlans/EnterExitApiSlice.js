@@ -99,7 +99,6 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
             case 3: plansResponse.push(enterExit); break;
           }
 
-          if (enterExit.tickerSymbol === "CSWC") console.log(priceVsPlan)
         })
 
         return {
