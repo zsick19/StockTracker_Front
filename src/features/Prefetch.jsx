@@ -11,12 +11,7 @@ function Prefetch()
 
   useEffect(() =>
   {
-    const prefetchUserInitial = store.dispatch(
-      InitializationApiSlice.endpoints.getUserInitialization.initiate(
-        undefined,
-        { subscribe: true, forceRefetch: true }
-      )
-    );
+    const prefetchUserInitial = store.dispatch(InitializationApiSlice.endpoints.getUserInitialization.initiate(undefined, { subscribe: true, forceRefetch: true }));
 
     return () =>
     {
@@ -29,12 +24,4 @@ function Prefetch()
 
 export default Prefetch;
 
-export const manualRefetchOfInitializedData = () =>
-{
-  store.dispatch(
-    InitializationApiSlice.endpoints.getUserInitialization.initiate(
-      undefined,
-      { subscribe: false, forceRefetch: true }
-    )
-  );
-};
+export const manualRefetchOfInitializedData = () => { store.dispatch(InitializationApiSlice.endpoints.getUserInitialization.initiate(undefined, { subscribe: false, forceRefetch: true })); };
