@@ -351,18 +351,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                                     // Clear out your temporary memory pricing buffer to reset for the next 500ms cycle
                                     // This leaves your memory arrays pristine for the incoming stream frames
-                                    for (const prop in streamingPriceBuffer)
-                                    {
-                                        delete streamingPriceBuffer[prop];
-                                    }
+                                    for (const prop in streamingPriceBuffer) { delete streamingPriceBuffer[prop]; }
                                 });
-
-
-
-
-
-
-                            })
+                            }, 500)
 
 
 
