@@ -239,6 +239,59 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     return { ...enterExit.plan, id: enterExit.plan.tickerSymbol, historicCandle: enterExit.candleData, todayCandleData: [], combinedCandleData: [], liveAuctionMetrics }
                 })
                 return enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), results)
+            },
+            async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
+            {
+
+                const userId = getState().auth.userId
+                const ws = getWebSocket(userId, 'PlannedWatchListTickers')
+
+                const incomingTradeListener = (data) =>
+                {
+                    updateCachedData((draft) =>
+                    {
+                        let entityToUpdate = draft.entities[data.tickerSymbol]
+                        if (entityToUpdate)
+                        {
+
+                            console.log(entityToUpdate)
+                            // entityToUpdate.mostRecentPrice = data.tradePrice
+                            // entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.tradePrice) / entityToUpdate.plan.enterPrice) * 100
+                            // entityToUpdate.changeFromYesterdayClose = entityToUpdate.mostRecentPrice - entityToUpdate.yesterdayClose
+                            // entityToUpdate.currentDayPercentGain = (entityToUpdate.changeFromYesterdayClose / entityToUpdate.yesterdayClose) * 100
+
+                            // entityToUpdate.currentRiskVReward = {
+                            //     risk: ((entityToUpdate.mostRecentPrice - entityToUpdate.plan.stopLossPrice) * 100 / entityToUpdate.mostRecentPrice),
+                            //     reward: ((entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * 100 / entityToUpdate.mostRecentPrice),
+                            // }
+
+                            // let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / entityToUpdate.mostRecentPrice)
+                            // entityToUpdate.with1000DollarsCurrentGain = (entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+                            // entityToUpdate.with1000DollarsCurrentRisk = (entityToUpdate.plan.stopLossPrice - entityToUpdate.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+
+                            // function getInsertionIndexLinear(arr, num)
+                            // {
+                            //     for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
+                            //     return 3;
+                            // }
+                            // let priceVsPlan = getInsertionIndexLinear([entityToUpdate.plan.stopLossPrice, entityToUpdate.plan.enterPrice, entityToUpdate.plan.enterBufferPrice], data.tradePrice)
+                            // if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch)
+                            //     entityToUpdate.listChange = true
+                        }
+                    })
+                }
+                try
+                {
+                    await cacheDataLoaded
+                    subscribe('enterExitWatchListPrice', incomingTradeListener, 'initialEnginePopulate')
+                } catch (error)
+                {
+                    await cacheEntryRemoved
+                    unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'initialEnginePopulate')
+                }
+
+                await cacheEntryRemoved
+                unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'initialEnginePopulate')
             }
 
         }),

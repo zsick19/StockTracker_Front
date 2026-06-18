@@ -4,7 +4,11 @@ import { addSTDDaily } from '../../features/STDs/StockDetailControlSlice';
 import { addPriceAlert, removeQuickAlert } from '../../features/PriceAlerts/PriceAlertControlSlice';
 
 // Create a singleton to manage the single WebSocket connection
-let listeners = { 'enterExitWatchListPrice': [], 'activeTradePrice': [], 'macroWatchListUpdate': [], 'singleLiveChart': [], }
+let listeners = { 'enterExitWatchListPrice': [],
+     'activeTradePrice': [], 
+     'macroWatchListUpdate': [], 
+     'singleLiveChart': [],
+    'engineLivePrice':[] }
 let ws;
 let store;
 export const injectStore = (_store) =>
