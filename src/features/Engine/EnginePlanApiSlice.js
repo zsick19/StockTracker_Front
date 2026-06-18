@@ -245,12 +245,11 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
             },
             async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
             {
-                // Create an in-memory dictionary to hold rolling transaction timestamps for active penny tickers.
-                // We use an in-memory ref object to prevent polluting the global Redux state with messy arrays!
+                const streamingPriceBuffer = {};
                 const pennyVelocityTimestampsMap = {};
+                let throttledUIUpdateClock = null;
 
                 let wsConnection = null;
-                let localVelocityClock = null;
 
                 const userId = getState().auth.userId
                 const ws = getWebSocket(userId, 'PlannedWatchListTickers')
@@ -279,39 +278,97 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 pennyVelocityTimestampsMap[activePlan.id].push(Date.now()); // Store only the integer millisecond timestamp of the transaction [INDEX]
                             }
 
+
                             // =========================================================================
-                            // ⏱️ THE SUB-SECOND PENNY VELOCITY MONITOR (RUNS EVERY 500MS)
+                            // ⏰ CRITICAL STAGE B: THE 500MS SYSTEM BATCH THROTTLER (ONE REDUX PASS)
                             // =========================================================================
-                            localVelocityClock = setInterval(() =>
+                            // Instead of mutating state 500 times a second, this clock bundles all active 
+                            // changes across your entire watchlist and updates your UI inside ONE clean frame! [INDEX]
+                            throttledUIUpdateClock = setInterval(() =>
                             {
                                 const now = Date.now();
-                                const fiveSecondsAgo = now - 5000; // Moving 5-second window reference [INDEX]
+                                const fiveSecondsAgo = now - 5000;
 
+                                // Process your velocity calculations in raw memory first
+                                const currentCalculatedMetrics = {};
+
+                                Object.keys(pennyVelocityTimestampsMap).forEach(symbol =>
+                                {
+                                    // Trim old timestamps out of your raw memory arrays
+                                    pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(
+                                        ts => ts >= fiveSecondsAgo
+                                    );
+
+                                    const activeTicksCount = pennyVelocityTimestampsMap[symbol].length;
+                                    const currentVelocityTPS = parseFloat((activeTicksCount / 5).toFixed(1));
+
+                                    currentCalculatedMetrics[symbol] = {
+                                        liveTicksPerSecond: currentVelocityTPS,
+                                        isTapeSpeedScreaming: currentVelocityTPS >= 12.0
+                                    };
+                                });
+
+                                // Check if any fresh stream updates are actually sitting in your memory cache
+                                const symbolsWithActivePriceUpdates = Object.keys(streamingPriceBuffer);
+                                const symbolsWithActiveVelocityUpdates = Object.keys(currentCalculatedMetrics);
+
+                                if (symbolsWithActivePriceUpdates.length === 0 && symbolsWithActiveVelocityUpdates.length === 0)
+                                {
+                                    return; // Stalls the clock if no active data changed, saving CPU power
+                                }
+
+                                // FIRE ONE SINGLE MUTATION FOR THE ENTIRE WATCHLIST COMPILATION PASS [INDEX]
                                 updateCachedData((draft) =>
                                 {
                                     if (!draft) return;
 
-                                    Object.keys(pennyVelocityTimestampsMap).forEach(symbol =>
+                                    // Part 1: Batch overwrite the latest prices for standard and penny tickers
+                                    symbolsWithActivePriceUpdates.forEach(symbol =>
                                     {
-                                        let activePlan = draft.entities[symbol]
-                                        if (!activePlan) return
-
-                                        // Trim transaction timestamps older than 5 seconds to clear out old data [INDEX]
-                                        pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(ts => ts >= fiveSecondsAgo);
-
-                                        // Calculate Ticks Per Second (TPS) over the active window
-                                        const activeTicksCount = pennyVelocityTimestampsMap[symbol].length;
-                                        const currentVelocityTPS = parseFloat((activeTicksCount / 5).toFixed(1));
-
-                                        activePlan.liveAuctionMetrics = {
-                                            ...activePlan.liveAuctionMetrics,
-                                            liveTicksPerSecond: currentVelocityTPS,
-                                            isTapeSpeedScreaming: currentVelocityTPS >= 12.0 // Flash alert wakes up your Penny HUD if tape speed screams past 12 updates/sec [INDEX]
-                                        };
+                                        const activePlan = draft[symbol];
+                                        if (activePlan)
+                                        {
+                                            activePlan.liveAuctionMetrics = {
+                                                ...activePlan.liveAuctionMetrics,
+                                                lastTradePrice: parseFloat(streamingPriceBuffer[symbol].toFixed(2))
+                                            };
+                                        }
                                     });
+
+                                    // Part 2: Batch overwrite velocity values for active penny tickers
+                                    symbolsWithActiveVelocityUpdates.forEach(symbol =>
+                                    {
+                                        const activePlan = draft[symbol];
+                                        if (activePlan)
+                                        {
+                                            activePlan.liveAuctionMetrics = {
+                                                ...activePlan.liveAuctionMetrics,
+                                                liveTicksPerSecond: currentCalculatedMetrics[symbol].liveTicksPerSecond,
+                                                isTapeSpeedScreaming: currentCalculatedMetrics[symbol].isTapeSpeedScreaming
+                                            };
+                                        }
+                                    });
+
+                                    // Clear out your temporary memory pricing buffer to reset for the next 500ms cycle
+                                    // This leaves your memory arrays pristine for the incoming stream frames
+                                    for (const prop in streamingPriceBuffer)
+                                    {
+                                        delete streamingPriceBuffer[prop];
+                                    }
                                 });
-                                
-                            }, 500); // Ticks twice a second for lightning-fast responsiveness
+
+
+
+
+
+
+                            })
+
+
+
+
+
+
 
 
 
@@ -342,6 +399,8 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         }
                     })
                 }
+
+
                 try
                 {
                     await cacheDataLoaded
@@ -350,10 +409,14 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 {
                     await cacheEntryRemoved
                     unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'initialEnginePopulate')
+                    if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
+
                 }
 
                 await cacheEntryRemoved
                 unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'initialEnginePopulate')
+                if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
+
             }
 
         }),
