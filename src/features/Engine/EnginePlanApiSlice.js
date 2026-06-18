@@ -173,6 +173,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
             }), transformResponse: (responseData) =>
             {
 
+                const currentTime = new Date()
                 let results = responseData.map((enterExit) =>
                 {
                     let stockTradeData = enterExit.snapShot
@@ -180,63 +181,65 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     let liveAuctionMetrics = undefined
                     if (enterExit.tradeData) liveAuctionMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
 
-                    //         enterExit.mostRecentPrice = stockTradeData.LatestTrade.Price
+                    let tradeDetails = {}
+                    tradeDetails.mostRecentPrice = stockTradeData.LatestTrade.Price
 
-                    //         enterExit.changeFromYesterdayClose = enterExit.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
-
-                    //         enterExit.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
-                    //         enterExit.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
-                    //         enterExit.percentFromEnter = ((enterExit.plan.enterPrice - enterExit.mostRecentPrice) / enterExit.plan.enterPrice) * 100
-                    //         enterExit.trackingDays = differenceInBusinessDays(today, new Date(enterExit.dateAdded))
-                    //         enterExit.todayOpenPrice = stockTradeData.DailyBar.OpenPrice
-
-                    //         enterExit.currentRiskVReward = {
-                    //             risk: ((enterExit.mostRecentPrice - enterExit.plan.stopLossPrice) * 100 / enterExit.mostRecentPrice),
-                    //             reward: ((enterExit.plan.exitPrice - enterExit.mostRecentPrice) * 100 / enterExit.mostRecentPrice),
-                    //         }
+                    tradeDetails.changeFromYesterdayClose = tradeDetails.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
+                    tradeDetails.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
 
 
+                    // tradeDetails.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
+                    // tradeDetails.percentFromEnter = ((enterExit.plan.plan.enterPrice - tradeDetails.mostRecentPrice) / enterExit.plan.enterPrice) * 100
+                    // tradeDetails.trackingDays = differenceInBusinessDays(today, new Date(enterExit.plan.dateAdded))
+                    // tradeDetails.todayOpenPrice = stockTradeData.DailyBar.OpenPrice
 
-
-                    //         let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / enterExit.mostRecentPrice)
-                    //         enterExit.with1000DollarsCurrentGain = (enterExit.plan.exitPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
-                    //         enterExit.with1000DollarsCurrentRisk = (enterExit.plan.stopLossPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+                    // enterExit.currentRiskVReward = {
+                    //     risk: ((enterExit.mostRecentPrice - enterExit.plan.stopLossPrice) * 100 / enterExit.mostRecentPrice),
+                    //     reward: ((enterExit.plan.exitPrice - enterExit.mostRecentPrice) * 100 / enterExit.mostRecentPrice),
+                    // }
 
 
 
-                    //         function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
 
-                    //         let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
-                    //         enterExit.priceVsPlanUponFetch = priceVsPlan
-                    //         enterExit.listChange = false
-
-                    //         if (!enterExit?.watchForTomorrow) enterExit.watchForTomorrow = null
-                    //         if (!enterExit?.updateNeededDate) enterExit.updateNeededDate = null
-                    //         if (!enterExit?.relevantHighs) enterExit.relevantHighs = []
-                    //         if (!enterExit?.relevantLows) enterExit.relevantLows = []
-                    //         if (!enterExit?.institutionalPricePoints) enterExit.institutionalPricePoints = []
-
-                    //         if (!enterExit?.with1000DollarsIdealGain)
-                    //         {
-                    //             let sharesToBuyWith1000DollarsIdeal = Math.floor(1000 / enterExit.plan.enterPrice)
-                    //             enterExit.with1000DollarsIdealGain = (enterExit.plan.exitPrice - enterExit.plan.enterPrice) * sharesToBuyWith1000DollarsIdeal
-                    //         }
-
-                    //         if (!enterExit?.checkOffCriteria)
-                    //         {
-                    //             enterExit.checkOffCriteria = {
-                    //                 vpCheck: false,
-                    //                 rsiCheck: false,
-                    //                 macdCheck: false,
-                    //                 stochasticCheck: false,
-                    //                 vortexCheck: false,
-                    //                 volCheck: false,
-                    //                 emaCheck: false
-                    //             }
-                    //         }
+                    // let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / enterExit.mostRecentPrice)
+                    // enterExit.with1000DollarsCurrentGain = (enterExit.plan.exitPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+                    // enterExit.with1000DollarsCurrentRisk = (enterExit.plan.stopLossPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
 
 
-                    return { ...enterExit.plan, id: enterExit.plan.tickerSymbol, historicCandle: enterExit.candleData, todayCandleData: [], combinedCandleData: [], liveAuctionMetrics }
+
+                    // function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
+
+                    // let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
+                    // enterExit.priceVsPlanUponFetch = priceVsPlan
+                    // enterExit.listChange = false
+
+                    // if (!enterExit?.watchForTomorrow) enterExit.watchForTomorrow = null
+                    // if (!enterExit?.updateNeededDate) enterExit.updateNeededDate = null
+                    // if (!enterExit?.relevantHighs) enterExit.relevantHighs = []
+                    // if (!enterExit?.relevantLows) enterExit.relevantLows = []
+                    // if (!enterExit?.institutionalPricePoints) enterExit.institutionalPricePoints = []
+
+                    // if (!enterExit?.with1000DollarsIdealGain)
+                    // {
+                    //     let sharesToBuyWith1000DollarsIdeal = Math.floor(1000 / enterExit.plan.enterPrice)
+                    //     enterExit.with1000DollarsIdealGain = (enterExit.plan.exitPrice - enterExit.plan.enterPrice) * sharesToBuyWith1000DollarsIdeal
+                    // }
+
+                    // if (!enterExit?.checkOffCriteria)
+                    // {
+                    //     enterExit.checkOffCriteria = {
+                    //         vpCheck: false,
+                    //         rsiCheck: false,
+                    //         macdCheck: false,
+                    //         stochasticCheck: false,
+                    //         vortexCheck: false,
+                    //         volCheck: false,
+                    //         emaCheck: false
+                    //     }
+                    // }
+
+
+                    return { ...enterExit.plan, ...tradeDetails, id: enterExit.plan.tickerSymbol, historicCandle: enterExit.candleData, todayCandleData: [], combinedCandleData: [], liveAuctionMetrics }
                 })
                 return enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), results)
             },
@@ -254,7 +257,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         if (entityToUpdate)
                         {
 
-                            console.log(entityToUpdate)
+                            if (entityToUpdate.maintainLiveCandles) console.log(data)
                             // entityToUpdate.mostRecentPrice = data.tradePrice
                             // entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.tradePrice) / entityToUpdate.plan.enterPrice) * 100
                             // entityToUpdate.changeFromYesterdayClose = entityToUpdate.mostRecentPrice - entityToUpdate.yesterdayClose
