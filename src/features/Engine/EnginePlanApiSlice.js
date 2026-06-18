@@ -2,9 +2,11 @@ import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
-import { differenceInBusinessDays } from "date-fns";
+import { differenceInBusinessDays, isWeekend, isWithinInterval } from "date-fns";
+import { toZonedTime } from 'date-fns-tz'
 import { symbol } from "d3";
 import { Volume } from "lucide-react";
+
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 export const enginePlanAdapter = createEntityAdapter({})
@@ -286,6 +288,32 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             // changes across your entire watchlist and updates your UI inside ONE clean frame! [INDEX]
                             throttledUIUpdateClock = setInterval(() =>
                             {
+                                // 1. GET PRISTINE WALL STREET TIME OVERRIDES VIA DATE-FNS
+                                const systemTime = new Date();
+                                const nyTime = toZonedTime(systemTime, 'America/New_York')
+
+                                // 2. EXPRESSIVE TIME-GATE CALCULATIONS (NO STRING CONCATENATION)
+                                // We use date-fns 'set' to cleanly attach our market open/close boundaries to today's NY object
+                                const streamOpenBarrier = set(nyTime, { hours: 7, minutes: 30, seconds: 0, milliseconds: 0 });
+                                const streamCloseBarrier = set(nyTime, { hours: 16, minutes: 30, seconds: 0, milliseconds: 0 });
+
+                                // Declaratively check if the stream is authorized to run right now
+                                const isStreamAuthorized = !isWeekend(nyTime) && isWithinInterval(nyTime, {
+                                    start: streamOpenBarrier,
+                                    end: streamCloseBarrier
+                                });
+
+                                // --- CRITICAL OVERRIDE: IF OUTSIDE AUTHORIZED MARKET HOURS, SCRUB AND EXIT ---
+                                if (!isStreamAuthorized)
+                                {
+                                    // Instantly flush your temporary objects so no residual data leaks overnight
+                                    streamingPriceBuffer = {};
+                                    pennyVelocityTimestampsMap = {};
+                                    return; // Shortcut exit! Bypasses the heavy Redux mutation logic below
+                                }
+
+
+
                                 const now = Date.now();
                                 const fiveSecondsAgo = now - 5000;
 
