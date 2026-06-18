@@ -259,69 +259,58 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 {
                     updateCachedData((draft) =>
                     {
-                        let entityToUpdate = draft.entities[data.tickerSymbol]
-                        if (entityToUpdate)
+                        let activePlan = draft.entities[data.tickerSymbol]
+                        if (activePlan)
                         {
-
-                            if (entityToUpdate.maintainLiveCandles) console.log(data)
-
                             // Check your database flag to determine the asset class routing channel
                             // const isPennyScalpAsset = activePlan.planConfig?.userSelectedPattern === "SUB_ENGINE_PENNY_STOCK_SCALP";
-                            const isPennyScalpAsset = entityToUpdate.maintainLiveCandles;
+                            const isPennyScalpAsset = activePlan.maintainLiveCandles;
 
                             // --- PATH A: THE REAL-TIME PRICE PATCH (ALL ASSETS) ---
                             activePlan.liveAuctionMetrics = {
                                 ...activePlan.liveAuctionMetrics,
-                                lastTradePrice: parseFloat(data.Price.toFixed(2))
+                                lastTradePrice: parseFloat(data.trade.Price.toFixed(2))
                             };
 
                             // --- PATH B: THE PENNY TAPE VELOCITY COLLECTOR ---
                             if (isPennyScalpAsset)
                             {
-                                if (!pennyVelocityTimestampsMap[symbol])
-                                {
-                                    pennyVelocityTimestampsMap[symbol] = [];
-                                }
-                                // Store only the integer millisecond timestamp of the transaction [INDEX]
-                                pennyVelocityTimestampsMap[symbol].push(Date.now());
+                                if (!pennyVelocityTimestampsMap[activePlan.id]) { pennyVelocityTimestampsMap[activePlan.id] = []; }
+                                pennyVelocityTimestampsMap[activePlan.id].push(Date.now()); // Store only the integer millisecond timestamp of the transaction [INDEX]
                             }
 
                             // =========================================================================
                             // ⏱️ THE SUB-SECOND PENNY VELOCITY MONITOR (RUNS EVERY 500MS)
                             // =========================================================================
-                            // This background clock calculates tape speed headlessly for pennies [INDEX]
                             localVelocityClock = setInterval(() =>
                             {
                                 const now = Date.now();
                                 const fiveSecondsAgo = now - 5000; // Moving 5-second window reference [INDEX]
 
-                                updateCachedData((draftState) =>
+                                updateCachedData((draft) =>
                                 {
-                                    if (!draftState) return;
+                                    if (!draft) return;
 
                                     Object.keys(pennyVelocityTimestampsMap).forEach(symbol =>
                                     {
-                                        const activePlan = draftState[symbol];
-                                        if (!activePlan) return;
+                                        let activePlan = draft.entities[symbol]
+                                        if (!activePlan) return
 
                                         // Trim transaction timestamps older than 5 seconds to clear out old data [INDEX]
-                                        pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(
-                                            ts => ts >= fiveSecondsAgo
-                                        );
+                                        pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(ts => ts >= fiveSecondsAgo);
 
                                         // Calculate Ticks Per Second (TPS) over the active window
                                         const activeTicksCount = pennyVelocityTimestampsMap[symbol].length;
                                         const currentVelocityTPS = parseFloat((activeTicksCount / 5).toFixed(1));
 
-                                        // Inject the live tape speed directly into your global cache metrics!
                                         activePlan.liveAuctionMetrics = {
                                             ...activePlan.liveAuctionMetrics,
                                             liveTicksPerSecond: currentVelocityTPS,
-                                            // Flash alert wakes up your Penny HUD if tape speed screams past 12 updates/sec [INDEX]
-                                            isTapeSpeedScreaming: currentVelocityTPS >= 12.0
+                                            isTapeSpeedScreaming: currentVelocityTPS >= 12.0 // Flash alert wakes up your Penny HUD if tape speed screams past 12 updates/sec [INDEX]
                                         };
                                     });
                                 });
+                                
                             }, 500); // Ticks twice a second for lightning-fast responsiveness
 
 
