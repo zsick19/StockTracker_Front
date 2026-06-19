@@ -59,13 +59,16 @@ export const StockCsvUpload = () =>
         const formPayload = new FormData();
         formPayload.append('csvFile', activeFile);
 
+
+
+
         try
         {
-            const response = await uploadStockDataCsv(formPayload).unwrap()
+            const response = await uploadStockDataCsv({ formData: formPayload }).unwrap()
 
             setUploadStatus({
                 state: 'SUCCESS',
-                message: `🎯 Success! Processed and aligned ${outcome.recordsProcessed} stocks in your database.`
+                message: `🎯 Success! Processed and aligned ${response.recordsProcessed} stocks in your database.`
             });
             setActiveFile(null);
 

@@ -4,10 +4,10 @@ import { InitializationApiSlice } from "../Initializations/InitializationSliceAp
 export const UtilityApiSLice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         uploadStockDataCsv: builder.mutation({
-            query: (formDataPayload) => ({
-                url: '/upload-csv-snapshot',
+            query: (args) => ({
+                url: 'util/dailyStockCSVUpload',
                 method: 'POST',
-                body: formDataPayload, // Injects your binary file FormData container straight into the request body
+                body: args.formData, // Injects your binary file FormData container straight into the request body
 
                 // CRITICAL STRUCTURAL ARCHITECTURE STEP: 
                 // Do NOT supply a 'Content-Type' header here. By leaving headers undefined or omitted,
@@ -18,10 +18,27 @@ export const UtilityApiSLice = apiSlice.injectEndpoints({
             // you can automatically invalidate relevant query cache tags to trigger a frontend refresh!
             invalidatesTags: ['StockPlanCollection']
         }),
+        uploadExpectedCoreMovesFromAsherBot: builder.mutation({
+            query: (args) => ({
+                url: 'util/expectedMovesCoreUpload',
+                method: 'POST',
+                body: args.formData,
+            }),
+        }),
+        uploadZoneDocument: builder.mutation({
+            query: (args) => ({
+                url: 'util/zoneDocUpload',
+                method: 'POST',
+                body: args.formData,
+            }),
+        }),
+
 
     }),
 });
 
 export const {
-    useUploadStockDataCsvMutation
+    useUploadStockDataCsvMutation,
+    useUploadExpectedCoreMovesFromAsherBotMutation,
+    useUploadZoneDocumentMutation
 } = UtilityApiSLice;
