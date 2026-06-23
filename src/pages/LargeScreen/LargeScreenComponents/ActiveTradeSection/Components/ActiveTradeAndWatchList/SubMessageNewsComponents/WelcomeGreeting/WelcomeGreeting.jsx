@@ -4,6 +4,8 @@ import { Check } from 'lucide-react'
 import PositionListDailyMoves from '../../../../../StockDetailSection/Components/ActiveTradeWatchMany/Components/PositionListDailyMoves'
 import './WelcomeGreeting.css'
 import { useGetActiveTradeNewsQuery } from '../../../../../../../../features/NewsFeed/NewsFeedApiSlice'
+import { StockCsvUpload } from './StockCsvUpload'
+import ExpectedMoveUpload from './ExpectedMoveUpload'
 
 function WelcomeGreeting()
 {
@@ -35,6 +37,9 @@ function WelcomeGreeting()
                 {showRefreshDelivered ? <p>Stream Refreshed <Check color="green" /></p> : <button onClick={() => attemptStreamTickerRefresh()}>Refresh Stream</button>}
                 <button onClick={() => window.location.reload()}>Refresh Page</button>
             </div>
+            <StockCsvUpload />
+            <ExpectedMoveUpload Process={'Core Daily EM'} />
+            <ExpectedMoveUpload Process={'Zone Doc'} />
 
             <PositionListDailyMoves />
 
