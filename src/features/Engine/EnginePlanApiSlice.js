@@ -15,6 +15,7 @@ import { compileHistoricalContinuationBaselines } from "./RootCalculations/Histo
 import { processPennyChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/pennyStockIntraDayCalc";
 import { processStandardChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/channelIntraDayCalc";
 import { processCascadeLiveDelta } from "./RootCalculations/IntraDayAnalytics/cascadeIntraDayCalc";
+import { processContinuationLiveDelta } from "./RootCalculations/IntraDayAnalytics/continuationIntraDayCalc";
 
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
@@ -447,13 +448,14 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                     }
                                 } else if (entityPatternClassification === 'continuation')
                                 {
-                                    // patternSpecificScore=process
+                                    patternSpecificScore = processContinuationLiveDelta(entityToUpdate, liveCandles)
                                 } else if (entityPatternClassification === 'cascade')
                                 {
                                     patternSpecificScore = processCascadeLiveDelta(entityToUpdate, liveCandles)
                                 }
 
 
+                                
                                 entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData.planData[symbol]]
 
 
