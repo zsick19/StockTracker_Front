@@ -8,6 +8,10 @@ import { Volume } from "lucide-react";
 import { filterRegularSessionCandles } from "./RootCalculations/filterRegularSessionCandles";
 import { calculateMacroThirtyMinMacd } from "./RootCalculations/macro30MinMACD";
 import { symbol } from "d3";
+import { compileHistoricalOneMinPennyBaselines } from "./RootCalculations/HistoricalCandleAnalytics/pennyStockPatternAnalytics";
+import { compileHistoricalStandardChannelBaselines } from "./RootCalculations/HistoricalCandleAnalytics/horizontalChannelAnalytics";
+import { compileHistoricalFiveMinCascadeBaselines } from "./RootCalculations/HistoricalCandleAnalytics/cascadePatternAnalytics";
+import { compileHistoricalContinuationBaselines } from "./RootCalculations/HistoricalCandleAnalytics/continuationPatternAnalytics";
 
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
@@ -25,81 +29,135 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 const currentTime = new Date()
                 let results = []
 
-                if (responseData?.plans) results = responseData.plans.map((enterExit) =>
-                {
-                    let stockTradeData = enterExit.snapShot
+                if (responseData?.plans)
+                    results = responseData.plans
+                        .filter(t => t.plan?.patternClassification !== undefined)
+                        .map((enterExit) =>
+                        {
+                            let patternClassification = enterExit.plan.patternClassification
 
-                    let liveAuctionMetrics = undefined
-                    if (enterExit.tradeData) liveAuctionMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
+                            let baseLineIndicators = {}
+                            let planConfig
+                            let regularSessionCandles = filterRegularSessionCandles(enterExit.candleData)
 
-                    let tradeDetails = {}
-                    tradeDetails.mostRecentPrice = stockTradeData.LatestTrade.Price
+                            if (patternClassification === 'channel')
+                            {
+                                let planConfig = enterExit.plan.channelPattern
+                                if (planConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
+                                {
+                                    baseLineIndicators = compileHistoricalOneMinPennyBaselines(regularSessionCandles)
+                                } else
+                                {
+                                    baseLineIndicators = compileHistoricalStandardChannelBaselines(planConfig, regularSessionCandles)
+                                }
+                            } else if (patternClassification === 'continuation')
+                            {
+                                planConfig = enterExit.plan.continuationPattern
+                                baseLineIndicators = compileHistoricalContinuationBaselines(regularSessionCandles)
+                            } else if (patternClassification === 'cascade')
+                            {
+                                planConfig = enterExit.plan.cascadePattern
+                                baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(planConfig, regularSessionCandles)
+                            }
 
-                    tradeDetails.changeFromYesterdayClose = tradeDetails.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
-                    tradeDetails.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
+                            // let stockTradeData = enterExit.snapShot
+
+                            // let liveTradeMetrics = undefined
+                            // if (enterExit.tradeData) liveTradeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
 
 
-                    // tradeDetails.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
-                    // tradeDetails.percentFromEnter = ((enterExit.plan.plan.enterPrice - tradeDetails.mostRecentPrice) / enterExit.plan.enterPrice) * 100
-                    // tradeDetails.trackingDays = differenceInBusinessDays(today, new Date(enterExit.plan.dateAdded))
-                    // tradeDetails.todayOpenPrice = stockTradeData.DailyBar.OpenPrice
-
-                    // enterExit.currentRiskVReward = {
-                    //     risk: ((enterExit.mostRecentPrice - enterExit.plan.stopLossPrice) * 100 / enterExit.mostRecentPrice),
-                    //     reward: ((enterExit.plan.exitPrice - enterExit.mostRecentPrice) * 100 / enterExit.mostRecentPrice),
-                    // }
+                            // let tradeDetails = {}
+                            // tradeDetails.mostRecentPrice = stockTradeData.LatestTrade.Price
+                            // tradeDetails.changeFromYesterdayClose = tradeDetails.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
+                            // tradeDetails.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
 
 
+                            return {
+                                id: enterExit.plan.tickerSymbol,
+                                planConfig: enterExit.plan,
+                                historicalCandles: regularSessionCandles,
+                                todaysCandles: [],
+                                compiledExecutionCandles: regularSessionCandles,
+
+                                liveAuctionMetrics: {
+                                    lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
+                                    auditedRollingVolume: 0,
+                                    liveTicksPerSecond: 0.0,
+
+                                    staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
+                                    ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
+                                    isChannelHeightViable: baseLineIndicators?.isChannelHeightViable || false,
+
+                                    historicalTrendHealthScore: baseLineIndicators?.historicalTrendHealthScore || 50,
+                                    isPullbackVolumeDry: baseLineIndicators?.isPullbackVolumeDry || false,
+                                    baseBreakoutVelocity: baseLineIndicators?.baseBreakoutVelocity || 0,
+
+                                    volumeCliffPrice: baseLineIndicators?.volumeCliffPrice || 0,
+                                    baselineAvgOneMinVolume: baseLineIndicators?.baselineAvgOneMinVolume || 0,
+                                    historicalAtr: baseLineIndicators?.historicalAtr || 0.0
+                                }
+                            }
+                        })
+
+                // tradeDetails.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
+                // tradeDetails.percentFromEnter = ((enterExit.plan.plan.enterPrice - tradeDetails.mostRecentPrice) / enterExit.plan.enterPrice) * 100
+                // tradeDetails.trackingDays = differenceInBusinessDays(today, new Date(enterExit.plan.dateAdded))
+                // tradeDetails.todayOpenPrice = stockTradeData.DailyBar.OpenPrice
+
+                // enterExit.currentRiskVReward = {
+                //     risk: ((enterExit.mostRecentPrice - enterExit.plan.stopLossPrice) * 100 / enterExit.mostRecentPrice),
+                //     reward: ((enterExit.plan.exitPrice - enterExit.mostRecentPrice) * 100 / enterExit.mostRecentPrice),
+                // }
 
 
-                    // let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / enterExit.mostRecentPrice)
-                    // enterExit.with1000DollarsCurrentGain = (enterExit.plan.exitPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
-                    // enterExit.with1000DollarsCurrentRisk = (enterExit.plan.stopLossPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+
+
+                // let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / enterExit.mostRecentPrice)
+                // enterExit.with1000DollarsCurrentGain = (enterExit.plan.exitPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+                // enterExit.with1000DollarsCurrentRisk = (enterExit.plan.stopLossPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
 
 
 
-                    // function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
+                // function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
 
-                    // let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
-                    // enterExit.priceVsPlanUponFetch = priceVsPlan
-                    // enterExit.listChange = false
+                // let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
+                // enterExit.priceVsPlanUponFetch = priceVsPlan
+                // enterExit.listChange = false
 
-                    // if (!enterExit?.watchForTomorrow) enterExit.watchForTomorrow = null
-                    // if (!enterExit?.updateNeededDate) enterExit.updateNeededDate = null
-                    // if (!enterExit?.relevantHighs) enterExit.relevantHighs = []
-                    // if (!enterExit?.relevantLows) enterExit.relevantLows = []
-                    // if (!enterExit?.institutionalPricePoints) enterExit.institutionalPricePoints = []
+                // if (!enterExit?.watchForTomorrow) enterExit.watchForTomorrow = null
+                // if (!enterExit?.updateNeededDate) enterExit.updateNeededDate = null
+                // if (!enterExit?.relevantHighs) enterExit.relevantHighs = []
+                // if (!enterExit?.relevantLows) enterExit.relevantLows = []
+                // if (!enterExit?.institutionalPricePoints) enterExit.institutionalPricePoints = []
 
-                    // if (!enterExit?.with1000DollarsIdealGain)
-                    // {
-                    //     let sharesToBuyWith1000DollarsIdeal = Math.floor(1000 / enterExit.plan.enterPrice)
-                    //     enterExit.with1000DollarsIdealGain = (enterExit.plan.exitPrice - enterExit.plan.enterPrice) * sharesToBuyWith1000DollarsIdeal
-                    // }
+                // if (!enterExit?.with1000DollarsIdealGain)
+                // {
+                //     let sharesToBuyWith1000DollarsIdeal = Math.floor(1000 / enterExit.plan.enterPrice)
+                //     enterExit.with1000DollarsIdealGain = (enterExit.plan.exitPrice - enterExit.plan.enterPrice) * sharesToBuyWith1000DollarsIdeal
+                // }
 
-                    // if (!enterExit?.checkOffCriteria)
-                    // {
-                    //     enterExit.checkOffCriteria = {
-                    //         vpCheck: false,
-                    //         rsiCheck: false,
-                    //         macdCheck: false,
-                    //         stochasticCheck: false,
-                    //         vortexCheck: false,
-                    //         volCheck: false,
-                    //         emaCheck: false
-                    //     }
-                    // }
+                // if (!enterExit?.checkOffCriteria)
+                // {
+                //     enterExit.checkOffCriteria = {
+                //         vpCheck: false,
+                //         rsiCheck: false,
+                //         macdCheck: false,
+                //         stochasticCheck: false,
+                //         vortexCheck: false,
+                //         volCheck: false,
+                //         emaCheck: false
+                //     }
+                // }
 
-                    console.log(enterExit.plan)
-                    return {
-                        ...enterExit.plan,
-                        ...tradeDetails,
-                        id: enterExit.plan.tickerSymbol,
-                        historicCandle: enterExit.candleData,
-                        todayCandleData: [],
-                        combinedCandleData: enterExit.candleData,
-                        liveAuctionMetrics
-                    }
-                })
+                // return {
+                //     ...enterExit.plan,
+                //     ...tradeDetails,
+                //     id: enterExit.plan.tickerSymbol,
+                //     historicCandle: enterExit.candleData,
+                //     todayCandleData: [],
+                //     combinedCandleData: enterExit.candleData,
+                //     liveAuctionMetrics
+                // }
 
 
                 let macroResults = []
@@ -450,9 +508,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         Object.keys(freshTradeData).forEach(symbol =>
                         {
                             let entityToUpdate = draft.plans.entities[symbol]
-                            if(!entityToUpdate || !freshTradeData[symbol]) return
-                            
-                            entityToUpdate.liveAuctionMetrics = processAuthoritativeTradesArray(freshTradeData[symbol]) 
+                            if (!entityToUpdate || !freshTradeData[symbol]) return
+
+                            entityToUpdate.liveAuctionMetrics = processAuthoritativeTradesArray(freshTradeData[symbol])
                             console.log(entityToUpdate.liveAuctionMetrics)
                         })
                     }))

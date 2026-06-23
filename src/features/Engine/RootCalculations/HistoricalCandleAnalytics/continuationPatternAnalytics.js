@@ -6,11 +6,11 @@
  * @param {Array} clean5MinHistory - Filtered regular hours 5-minute candle array
  * @returns {Object} High-utility scalar constants to seed your memory metrics cache
  */
-export function compileHistoricalContinuationBaselines(planConfig, clean5MinHistory) {
+export function compileHistoricalContinuationBaselines(planConfig, clean5MinHistory)
+{
     const fallback = { historicalTrendHealthScore: 50, isPullbackVolumeDry: false, baseBreakoutVelocity: 0 };
-    const continuation = planConfig.continuationPattern;
 
-    if (!continuation || !clean5MinHistory || clean5MinHistory.length < 50) return fallback;
+    if (!clean5MinHistory || clean5MinHistory.length < 50) return fallback;
 
     let totalUpwardVolume = 0;
     let totalDownwardVolume = 0;
@@ -19,13 +19,16 @@ export function compileHistoricalContinuationBaselines(planConfig, clean5MinHist
 
     // 1. ANCHOR A: VOLUME INFLOW DISCOVERY
     // Scan the historical data blocks to evaluate volume characteristics split by candle type
-    clean5MinHistory.forEach(candle => {
+    clean5MinHistory.forEach(candle =>
+    {
         const isGreenCandle = candle.ClosePrice > candle.OpenPrice;
-        
-        if (isGreenCandle) {
+
+        if (isGreenCandle)
+        {
             totalUpwardVolume += candle.Volume;
             upwardCandleCount++;
-        } else {
+        } else
+        {
             totalDownwardVolume += candle.Volume;
             downwardCandleCount++;
         }
@@ -44,16 +47,19 @@ export function compileHistoricalContinuationBaselines(planConfig, clean5MinHist
     const trailingCluster = clean5MinHistory.slice(-78); // Isolates roughly 1 regular session of 5-min bars
     let trendHealth = 50;
 
-    if (trailingCluster.length > 0) {
+    if (trailingCluster.length > 0)
+    {
         const firstClose = trailingCluster[0].ClosePrice;
         const finalClose = trailingCluster[trailingCluster.length - 1].ClosePrice;
-        
+
         // Simple linear price slope velocity score
         const totalSessionDriftPct = ((finalClose - firstClose) / firstClose) * 100;
-        
-        if (totalSessionDriftPct > 0) {
+
+        if (totalSessionDriftPct > 0)
+        {
             trendHealth = Math.min(Math.round(50 + (totalSessionDriftPct * 10)), 100);
-        } else {
+        } else
+        {
             trendHealth = Math.max(Math.round(50 + (totalSessionDriftPct * 10)), 10);
         }
     }
