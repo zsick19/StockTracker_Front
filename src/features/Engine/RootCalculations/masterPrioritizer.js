@@ -1,15 +1,19 @@
-import { SCORING_WEIGHTS as W } from './scoringWeights';
+import { SCORING_WEIGHTS as W } from './ScoringWeights'
 import { getDay } from 'date-fns';
-import { processCascadeLiveDelta, processStandardChannelLiveDelta, scorePennyChannelLiveDelta, processContinuationLiveDelta } from './livePatternEngines';
+import { processPennyChannelLiveDelta } from './IntraDayAnalytics/pennyStockIntraDayCalc';
+import { processCascadeLiveDelta } from './IntraDayAnalytics/cascadeIntraDayCalc';
+import { processContinuationLiveDelta } from './IntraDayAnalytics/continuationIntraDayCalc';
+import { processStandardChannelLiveDelta } from './IntraDayAnalytics/channelIntraDayCalc';
 
 /**
  * TIER 1: CORE BASE ENVIRONMENT SCORER
  * Computes all shared macro indicators, systemic options gates, and pre-market 
  * catalysts completely on-the-fly inside your browser's memory.
  */
-function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan) {
+function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan)
+{
     let baseScore = 0;
-    
+
     const { dailyTickerValues, correlationValues, optionsExpectedMoves } = planEntity;
     if (!todaysLiveCandles || todaysLiveCandles.length === 0) return 0;
 
@@ -33,12 +37,15 @@ function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, live
     // 🧲 SECTION B: TECHNICAL HOURLY & DAILY LINES
     // =========================================================================
     const staticMetrics = planEntity.liveAuctionMetrics; // Pulls constants attached on boot
-    if (staticMetrics && staticMetrics.ema50Line) {
+    if (staticMetrics && staticMetrics.ema50Line)
+    {
         const distanceToEmaPct = Math.abs(livePrice - staticMetrics.ema50Line) / staticMetrics.ema50Line;
-        
-        if (distanceToEmaPct <= 0.0035) {
+
+        if (distanceToEmaPct <= 0.0035)
+        {
             baseScore += W.structuralMagnets.emaSupportProximity;
-        } else if (livePrice < (staticMetrics.ema50Line * 0.99)) {
+        } else if (livePrice < (staticMetrics.ema50Line * 0.99))
+        {
             baseScore += W.structuralMagnets.emaTrendBrokenPenalty; // Apply trailing penalty
         }
     }
@@ -46,21 +53,26 @@ function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, live
     // =========================================================================
     // 🚨 SECTION C: SYSTEMIC BROAD MARKET GAMMA GATES (SPY FILTERS)
     // =========================================================================
-    if (liveSpyPlan && dailyTickerValues && correlationValues) {
+    if (liveSpyPlan && dailyTickerValues && correlationValues)
+    {
         // If the broad index breaks below its daily Gamma Flip line, toggle volatility gates
         const isMarketInNegativeGammaRegime = liveSpyPlan.livePrice < liveSpyPlan.gammaFlipLine;
 
-        if (isMarketInNegativeGammaRegime) {
+        if (isMarketInNegativeGammaRegime)
+        {
             const stockBeta = dailyTickerValues.spyBetaValue || 1.0;
             const broadCorrelation = correlationValues.SPY?.correlation90Day || 0;
 
-            if (stockBeta >= 1.40 && broadCorrelation >= 0.70) {
+            if (stockBeta >= 1.40 && broadCorrelation >= 0.70)
+            {
                 baseScore += W.systemicGammaGates.highBetaVulnerabilityPenalty; // Severe -40 pass
-            } else if (correlationValues.SPY?.isCurrentlyDecoupled || stockBeta <= 0.85) {
+            } else if (correlationValues.SPY?.isCurrentlyDecoupled || stockBeta <= 0.85)
+            {
                 baseScore += W.systemicGammaGates.idiosymmetricSafeHavenBonus; // Reward defensive names
             }
 
-            if (planEntity.patternClassification === "TOOL_4_CONTINUATION_MOMENTUM") {
+            if (planEntity.patternClassification === "TOOL_4_CONTINUATION_MOMENTUM")
+            {
                 baseScore += W.systemicGammaGates.momentumContinuationRiskPenalty;
             }
         }
@@ -69,7 +81,8 @@ function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, live
     // =========================================================================
     // 📊 SECTION D: PRE-MARKET CATALYSTS & STOCKANALYSIS STRUCTURAL DATA
     // =========================================================================
-    if (dailyTickerValues) {
+    if (dailyTickerValues)
+    {
         if (dailyTickerValues.relativeVolume >= 2.0) baseScore += W.stockSpecificCatalysts.highRelativeVolumeBonus;
         else if (dailyTickerValues.relativeVolume <= 0.5) baseScore += W.stockSpecificCatalysts.lowRelativeVolumePenalty;
 
@@ -80,16 +93,20 @@ function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, live
     // =========================================================================
     // ⏱️ SECTION E: BROAD MARKET OPTION EXPECTED MOVE CYCLES
     // =========================================================================
-    if (liveSpyPlan && optionsExpectedMoves?.weekly?.putWall) {
+    if (liveSpyPlan && optionsExpectedMoves?.weekly?.putWall)
+    {
         const weeklyPutWall = optionsExpectedMoves.weekly.putWall;
         const isSpyAtWeeklyWall = Math.abs(liveSpyPlan.livePrice - weeklyPutWall) / weeklyPutWall <= 0.0015;
 
-        if (isSpyAtWeeklyWall) {
+        if (isSpyAtWeeklyWall)
+        {
             const currentDayIndex = getDay(new Date());
             // Check day-of-week decay weighting (Monday/Tuesday vs Thursday/Friday)
-            if (currentDayIndex === 1 || currentDayIndex === 2) {
+            if (currentDayIndex === 1 || currentDayIndex === 2)
+            {
                 baseScore += W.optionsExpectedMoves.earlyCycleWeeklyLowerSDPenalty;
-            } else if (currentDayIndex === 4 || currentDayIndex === 5) {
+            } else if (currentDayIndex === 4 || currentDayIndex === 5)
+            {
                 baseScore += W.optionsExpectedMoves.lateCycleWeeklyLowerSDPinBonus;
             }
         }
@@ -102,11 +119,13 @@ function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, live
  * CENTRAL MASTER COMPILER ROUTER
  * Invoked continuously by your child UI layout panels to aggregate the complete score.
  */
-export function calculateCentralPlanScore(planEntity, todaysLiveCandles, liveSpyPlan) {
+export function calculateCentralPlanScore(planEntity, todaysLiveCandles, liveSpyPlan)
+{
     const patternClassification = planEntity.planConfig?.userSelectedPattern || planEntity.patternClassification;
-    
+
     // Gating check: Default to 0% score if polling arrays are empty
-    if (!todaysLiveCandles || todaysLiveCandles.length === 0) {
+    if (!todaysLiveCandles || todaysLiveCandles.length === 0)
+    {
         return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM" };
     }
 
@@ -121,19 +140,22 @@ export function calculateCentralPlanScore(planEntity, todaysLiveCandles, liveSpy
     // ─────────────────────────────────────────────────────────────────────────
     // STEP B: ROUTE TO SPECIFIC PATTERN SUB-ENGINES (TIER 2) [INDEX]
     // ─────────────────────────────────────────────────────────────────────────
-    switch (patternClassification) {
+    switch (patternClassification)
+    {
         case "TOOL_1_VERTICAL_CASCADER":
             patternSpecificScore = processCascadeLiveDelta(planEntity, todaysLiveCandles);
             break;
-            
+
         case "TOOL_2_HORIZONTAL_CHANNEL":
-            if (planEntity.channelPattern?.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP") {
+            if (planEntity.channelPattern?.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
+            {
                 patternSpecificScore = scorePennyChannelLiveDelta(planEntity, livePrice, todaysLiveCandles);
-            } else {
+            } else
+            {
                 patternSpecificScore = processStandardChannelLiveDelta(planEntity, todaysLiveCandles);
             }
             break;
-            
+
         case "TOOL_4_CONTINUATION_MOMENTUM":
             patternSpecificScore = processContinuationLiveDelta(planEntity, todaysLiveCandles);
             break;

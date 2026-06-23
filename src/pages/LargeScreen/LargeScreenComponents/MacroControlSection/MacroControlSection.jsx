@@ -12,6 +12,7 @@ import * as short from 'short-uuid'
 import { clearGraphControl, setInitialGraphControl } from "../../../../features/Charting/GraphHoverZoomElement";
 import { defaultTimeFrames } from "../../../../Utilities/TimeFrames";
 import ZonesInputForm from "./Components/MacroKeyInputs/ZonesInputForm";
+import { WatchlistPriorityGrid } from "./Components/WatchListEngine/WatchlistPriorityGrid";
 
 function MacroControlSection()
 {
@@ -74,7 +75,7 @@ function MacroControlSection()
 
   return (
     <section id="LSH-MacroSection">
-
+      <WatchlistPriorityGrid />
       <div id="LSH-MacroWatchLists">
         <MacroWatchListContainer setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />
         {showAddWatchlist ? <div className="LSH-AddWatchListForm">

@@ -2,20 +2,19 @@ import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
-import { differenceInBusinessDays, isWeekend, isWithinInterval, set } from "date-fns";
+import { differenceInBusinessDays, isWeekend, isWithinInterval, set, getDay } from "date-fns";
 import { toZonedTime } from 'date-fns-tz'
-import { Volume } from "lucide-react";
+
 import { filterRegularSessionCandles } from "./RootCalculations/filterRegularSessionCandles";
 import { calculateMacroThirtyMinMacd } from "./RootCalculations/macro30MinMACD";
-import { symbol } from "d3";
 import { compileHistoricalOneMinPennyBaselines } from "./RootCalculations/HistoricalCandleAnalytics/pennyStockPatternAnalytics";
 import { compileHistoricalStandardChannelBaselines } from "./RootCalculations/HistoricalCandleAnalytics/horizontalChannelAnalytics";
 import { compileHistoricalFiveMinCascadeBaselines } from "./RootCalculations/HistoricalCandleAnalytics/cascadePatternAnalytics";
 import { compileHistoricalContinuationBaselines } from "./RootCalculations/HistoricalCandleAnalytics/continuationPatternAnalytics";
-import { processPennyChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/pennyStockIntraDayCalc";
-import { processStandardChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/channelIntraDayCalc";
-import { processCascadeLiveDelta } from "./RootCalculations/IntraDayAnalytics/cascadeIntraDayCalc";
-import { processContinuationLiveDelta } from "./RootCalculations/IntraDayAnalytics/continuationIntraDayCalc";
+
+import { calculateCentralPlanScore } from "./RootCalculations/masterPrioritizer";
+import { processAuthoritativeTradesArray } from "./RootCalculations/TradeBookAnalytics/processAuthoritativeTrade";
+
 
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
@@ -31,77 +30,73 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
             }), transformResponse: (responseData) =>
             {
                 const currentTime = new Date()
-                let results = []
+                let planResults = []
+                if (responseData?.plans) planResults = responseData.plans.filter(t => t.plan?.patternClassification !== undefined).map((enterExit) =>
+                {
+                    let patternClassification = enterExit.plan.patternClassification
 
-                if (responseData?.plans)
-                    results = responseData.plans
-                        .filter(t => t.plan?.patternClassification !== undefined)
-                        .map((enterExit) =>
+                    let baseLineIndicators = {}
+                    let patternConfig
+                    let regularSessionCandles = filterRegularSessionCandles(enterExit.candleData)
+
+                    if (patternClassification === 'channel')
+                    {
+                        let patternConfig = enterExit.plan.channelPattern
+                        if (patternConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
                         {
-                            let patternClassification = enterExit.plan.patternClassification
+                            baseLineIndicators = compileHistoricalOneMinPennyBaselines(regularSessionCandles)
+                        } else
+                        {
+                            baseLineIndicators = compileHistoricalStandardChannelBaselines(patternConfig, regularSessionCandles)
+                        }
+                    } else if (patternClassification === 'continuation')
+                    {
+                        patternConfig = enterExit.plan.continuationPattern
+                        baseLineIndicators = compileHistoricalContinuationBaselines(regularSessionCandles)
+                    } else if (patternClassification === 'cascade')
+                    {
+                        patternConfig = enterExit.plan.cascadePattern
+                        baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(patternConfig, regularSessionCandles)
+                    }
 
-                            let baseLineIndicators = {}
-                            let patternConfig
-                            let regularSessionCandles = filterRegularSessionCandles(enterExit.candleData)
+                    // let stockTradeData = enterExit.snapShot
 
-                            if (patternClassification === 'channel')
-                            {
-                                let patternConfig = enterExit.plan.channelPattern
-                                if (patternConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
-                                {
-                                    baseLineIndicators = compileHistoricalOneMinPennyBaselines(regularSessionCandles)
-                                } else
-                                {
-                                    baseLineIndicators = compileHistoricalStandardChannelBaselines(patternConfig, regularSessionCandles)
-                                }
-                            } else if (patternClassification === 'continuation')
-                            {
-                                patternConfig = enterExit.plan.continuationPattern
-                                baseLineIndicators = compileHistoricalContinuationBaselines(regularSessionCandles)
-                            } else if (patternClassification === 'cascade')
-                            {
-                                patternConfig = enterExit.plan.cascadePattern
-                                baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(patternConfig, regularSessionCandles)
-                            }
-
-                            // let stockTradeData = enterExit.snapShot
-
-                            // let liveTradeMetrics = undefined
-                            // if (enterExit.tradeData) liveTradeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
+                    // let liveTradeMetrics = undefined
+                    // if (enterExit.tradeData) liveTradeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
 
 
-                            // let tradeDetails = {}
-                            // tradeDetails.mostRecentPrice = stockTradeData.LatestTrade.Price
-                            // tradeDetails.changeFromYesterdayClose = tradeDetails.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
-                            // tradeDetails.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
+                    // let tradeDetails = {}
+                    // tradeDetails.mostRecentPrice = stockTradeData.LatestTrade.Price
+                    // tradeDetails.changeFromYesterdayClose = tradeDetails.mostRecentPrice - stockTradeData.PrevDailyBar.ClosePrice
+                    // tradeDetails.yesterdayClose = stockTradeData.PrevDailyBar.ClosePrice
 
 
-                            return {
-                                id: enterExit.plan.tickerSymbol,
-                                planConfig: enterExit.plan,
-                                patternConfig,
-                                historicalCandles: regularSessionCandles,
-                                todaysCandles: [],
-                                compiledExecutionCandles: regularSessionCandles,
-                                liveAuctionMetrics: {
-                                    lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
-                                    auditedRollingVolume: 0,
-                                    liveTicksPerSecond: 0.0,
+                    return {
+                        id: enterExit.plan.tickerSymbol,
+                        planConfig: enterExit.plan,
+                        patternConfig,
+                        historicCandle: regularSessionCandles,
+                        todaysCandles: [],
+                        combinedCandleData: regularSessionCandles,
+                        liveAuctionMetrics: {
+                            lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
+                            auditedRollingVolume: 0,
+                            liveTicksPerSecond: 0.0,
 
-                                    staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
-                                    ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
-                                    isChannelHeightViable: baseLineIndicators?.isChannelHeightViable || false,
+                            staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
+                            ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
+                            isChannelHeightViable: baseLineIndicators?.isChannelHeightViable || false,
 
-                                    historicalTrendHealthScore: baseLineIndicators?.historicalTrendHealthScore || 50,
-                                    isPullbackVolumeDry: baseLineIndicators?.isPullbackVolumeDry || false,
-                                    baseBreakoutVelocity: baseLineIndicators?.baseBreakoutVelocity || 0,
+                            historicalTrendHealthScore: baseLineIndicators?.historicalTrendHealthScore || 50,
+                            isPullbackVolumeDry: baseLineIndicators?.isPullbackVolumeDry || false,
+                            baseBreakoutVelocity: baseLineIndicators?.baseBreakoutVelocity || 0,
 
-                                    volumeCliffPrice: baseLineIndicators?.volumeCliffPrice || 0,
-                                    baselineAvgOneMinVolume: baseLineIndicators?.baselineAvgOneMinVolume || 0,
-                                    historicalAtr: baseLineIndicators?.historicalAtr || 0.0
-                                }
-                            }
-                        })
+                            volumeCliffPrice: baseLineIndicators?.volumeCliffPrice || 0,
+                            baselineAvgOneMinVolume: baseLineIndicators?.baselineAvgOneMinVolume || 0,
+                            historicalAtr: baseLineIndicators?.historicalAtr || 0.0
+                        }
+                    }
+                })
 
                 // tradeDetails.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
                 // tradeDetails.percentFromEnter = ((enterExit.plan.plan.enterPrice - tradeDetails.mostRecentPrice) / enterExit.plan.enterPrice) * 100
@@ -170,13 +165,12 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     let regularSessionCandles = filterRegularSessionCandles(macroPlan.candleData)
                     let regularSessionLength = regularSessionCandles.length
                     let computedMACDMetrics = calculateMacroThirtyMinMacd(regularSessionCandles)
-                    console.log(macroPlan.macroPlan)
 
                     return {
                         id: macroPlan.macroPlan.tickerSymbol,
                         planData: { ...macroPlan.macroPlan },
                         historicCandle: regularSessionCandles,
-                        todayCandleData: [],
+                        todaysCandles: [],
                         combinedCandleData: regularSessionCandles,
                         macroTideSentry: {
                             macdLine: computedMACDMetrics.macdLine,
@@ -190,26 +184,25 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 })
 
                 return {
-                    plans: enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), results),
+                    plans: enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), planResults),
                     macros: engineMacroAdapter.setAll(engineMacroAdapter.getInitialState(), macroResults)
                 }
             },
             async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
             {
-                const macroAndSectorTickers = ['SPY', 'QQQ', 'IWM', 'DIA', 'XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE']
-                let macroStreamingPriceBuffer = Object.fromEntries(macroAndSectorTickers.map(key => [key, null]))
+                // const macroAndSectorTickers = ['SPY', 'QQQ', 'IWM', 'DIA', 'XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE']
+                let macroStreamingPriceBuffer = Object.fromEntries(['SPY', 'QQQ', 'IWM', 'DIA', 'XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE'].map(key => [key, null]))
                 let streamingPriceBuffer = {};
 
-                let pennyVelocityTimestampsMap = {};
                 let throttledUIUpdateClock = null;
                 let macroThrottledUIUpdateClock = null;
 
+                let pennyVelocityTimestampsMap = {};
+
 
                 let wsConnection = null;
-
                 const userId = getState().auth.userId
                 const ws = getWebSocket(userId, 'PlannedWatchListTickers')
-
                 const checkStreamAuthorization = () =>
                 {
                     const systemTime = new Date();
@@ -298,11 +291,12 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                     const activePlan = draft.plans.entities[symbol];
                                     if (!activePlan) return;
 
+                                    let price = parseFloat(streamingPriceBuffer[symbol].toFixed(2))
                                     activePlan.liveAuctionMetrics = {
                                         ...activePlan.liveAuctionMetrics,
-                                        lastTradePrice: parseFloat(streamingPriceBuffer[symbol].toFixed(2))
+                                        lastTradePrice: price
                                     };
-
+                                    activePlan.mostRecentPrice = price
                                 });
 
                                 // Part 2: Batch overwrite velocity values for active penny tickers
@@ -316,7 +310,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                         liveTicksPerSecond: currentCalculatedMetrics[symbol].liveTicksPerSecond,
                                         isTapeSpeedScreaming: currentCalculatedMetrics[symbol].isTapeSpeedScreaming
                                     };
-
                                 });
 
                                 for (const prop in streamingPriceBuffer) { delete streamingPriceBuffer[prop]; }
@@ -333,11 +326,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                     macroThrottledUIUpdateClock = setInterval(() =>
                     {
-                        if (!checkStreamAuthorization())
-                        {
-                            macroStreamingPriceBuffer = {};
-                            return; // CRITICAL OVERRIDE: IF OUTSIDE AUTHORIZED MARKET HOURS, SCRUB AND EXIT
-                        }
+                        if (!checkStreamAuthorization()) { macroStreamingPriceBuffer = {}; return; }
 
                         const symbolsWithActiveTicks = Object.keys(macroStreamingPriceBuffer).filter(symbol => macroStreamingPriceBuffer[symbol] !== null)
                         if (symbolsWithActiveTicks.length === 0) return
@@ -350,13 +339,12 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 const activeMacroEntity = draft.macros.entities[symbol]
                                 if (!activeMacroEntity) return;
 
-                                activeMacroEntity.macroTideSentry.lastPrice = parseFloat(macroStreamingPriceBuffer[symbol].toFixed(2))
+                                let price = parseFloat(macroStreamingPriceBuffer[symbol].toFixed(2))
+                                activeMacroEntity.mostRecentPrice = price
+                                activeMacroEntity.macroTideSentry.lastPrice = price
 
                             })
-                            symbolsWithActiveTicks.forEach(symbol =>
-                            {
-                                macroStreamingPriceBuffer[symbol] = null
-                            })
+                            symbolsWithActiveTicks.forEach(symbol => { macroStreamingPriceBuffer[symbol] = null })
 
                         })
                     }, 500);
@@ -423,51 +411,44 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
-                        if (freshCandleData?.planData)
-                            Object.keys(freshCandleData.planData).forEach(symbol =>
-                            {
-                                // if other parts of the entity are necessary to access 
-                                let entityToUpdate = draft.plans.entities[symbol]
-                                if (!entityToUpdate) return
-                                let liveCandles = freshCandleData.planData[symbol]
-                                if (liveCandles.length <= 0) return
+                        if (freshCandleData?.planData) Object.keys(freshCandleData.planData).forEach(symbol =>
+                        {
+                            // if other parts of the entity are necessary to access 
+                            let entityToUpdate = draft.plans.entities[symbol]
+                            if (!entityToUpdate) return
+                            let liveCandles = freshCandleData.planData[symbol]
+                            if (liveCandles.length === 0) return
 
-                                entityToUpdate.todayCandleData = liveCandles
-                                let liveCandlePrice = liveCandles.at(-1).ClosePrice
-                                let entityPatternClassification = entityToUpdate.planConfig.patternClassification
+                            entityToUpdate.todaysCandles = liveCandles
+                            let liveCandlePrice = liveCandles.at(-1).ClosePrice
 
-                                let patternSpecificScore
-                                if (entityPatternClassification === 'channel')
-                                {
-                                    if (entityToUpdate.patternConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
-                                    {
-                                        patternSpecificScore = processPennyChannelLiveDelta(entityToUpdate, liveCandlePrice, liveCandles)
-                                    } else
-                                    {
-                                        patternSpecificScore = processStandardChannelLiveDelta(entityToUpdate, liveCandles)
-                                    }
-                                } else if (entityPatternClassification === 'continuation')
-                                {
-                                    patternSpecificScore = processContinuationLiveDelta(entityToUpdate, liveCandles)
-                                } else if (entityPatternClassification === 'cascade')
-                                {
-                                    patternSpecificScore = processCascadeLiveDelta(entityToUpdate, liveCandles)
-                                }
+                            entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData.planData[symbol]]
+                        })
 
+                        if (freshCandleData?.macroData) Object.keys(freshCandleData.macroData).forEach(symbol =>
+                        {
+                            let entityToUpdate = draft.macros.entities[symbol]
+                            let liveCandles = freshCandleData.macroData[symbol]
+                            if (!entityToUpdate || liveCandles.length === 0) return
 
+                            const compiled5MinCandles = downSampleOneMinToFiveMin(liveCandles)
+                            entityToUpdate.todaysCandles = liveCandles
 
-                                entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData.planData[symbol]]
+                            const cleanRegularCandles = filterRegularSessionCandles(compiled5MinCandles)
+                            const fullCombinedCandles = [...EnginePlanPlanApiSlice(entityToUpdate.historicCandle || []), ...cleanRegularCandles]
 
+                            const updatedMACDMetrics = calculateMacroThirtyMinMacd(fullCombinedCandles)
+                            entityToUpdate.combinedCandleData = fullCombinedCandles
 
-                            })
-
-                        if (freshCandleData?.macroData)
-                            Object.keys(freshCandleData.macroData).forEach(symbol =>
-                            {
-                                let entityToUpdate = draft.macros.entities[symbol]
-                                if (!entityToUpdate) return
-                                if (entityToUpdate) console.log(symbol)
-                            })
+                            entityToUpdate.macroTideSentry = {
+                                ...entityToUpdate.macroTideSentry,
+                                macdLine: updatedMACDMetrics.macdLine,
+                                signalLine: updatedMACDMetrics.signalLine,
+                                histogram: updatedMACDMetrics.histogram,
+                                isHistogramGrowingBearish: updatedMACDMetrics.isHistogramGrowingBearish,
+                            }
+                            console.log(updatedMACDMetrics)
+                        })
                     }))
 
                 } catch (error)
@@ -490,24 +471,41 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
-                        if (freshCandleData?.planData)
-                            Object.keys(freshCandleData.planData).forEach(symbol =>
-                            {
-                                // if other parts of the entity are necessary to access 
-                                let entityToUpdate = draft.plans.entities[symbol]
-                                if (!entityToUpdate) return
-                                entityToUpdate.todayCandleData = freshCandleData.planData[symbol]
-                                entityToUpdate.combinedFiveMinCandleData = [...(entityToUpdate.historic10Day5MinCandle || []), ...freshCandleData.planData[symbol]]
-                            })
+                        if (freshCandleData?.planData) Object.keys(freshCandleData.planData).forEach(symbol =>
+                        {
+                            let entityToUpdate = draft.plans.entities[symbol]
+                            if (!entityToUpdate) return
 
+                            let liveCandles = freshCandleData.planData[symbol]
+                            if (liveCandles.length === 0) return
+                            entityToUpdate.todaysCandles = liveCandles
 
-                        if (freshCandleData?.macroData)
-                            Object.keys(freshCandleData.macroData).forEach(symbol =>
-                            {
-                                let entityToUpdate = draft.macros.entities[symbol]
-                                if (!entityToUpdate) return
-                                if (entityToUpdate) console.log(symbol)
-                            })
+                            entityToUpdate.combinedCandleData = [...(entityToUpdate.historic10Day5MinCandle || []), ...liveCandles]
+                        })
+
+                        if (freshCandleData?.macroData) Object.keys(freshCandleData.macroData).forEach(symbol =>
+                        {
+                            let entityToUpdate = draft.macros.entities[symbol]
+                            let liveCandles = freshCandleData.macroData[symbol]
+                            if (!entityToUpdate || liveCandles.length === 0) return
+
+                            const compiled5MinCandles = downSampleOneMinToFiveMin(liveCandles)
+                            entityToUpdate.todaysCandles = liveCandles
+
+                            const cleanRegularCandles = filterRegularSessionCandles(compiled5MinCandles)
+                            const fullCombinedCandles = [...EnginePlanPlanApiSlice(entityToUpdate.historicCandle || []), ...cleanRegularCandles]
+                            entityToUpdate.combinedCandleData = fullCombinedCandles
+
+                            const updatedMACDMetrics = calculateMacroThirtyMinMacd(fullCombinedCandles)
+                            entityToUpdate.macroTideSentry = {
+                                ...entityToUpdate.macroTideSentry,
+                                macdLine: updatedMACDMetrics.macdLine,
+                                signalLine: updatedMACDMetrics.signalLine,
+                                histogram: updatedMACDMetrics.histogram,
+                                isHistogramGrowingBearish: updatedMACDMetrics.isHistogramGrowingBearish,
+                            }
+                        })
+
                     }))
 
                 } catch (error)
@@ -591,164 +589,50 @@ function downSampleOneMinToFiveMin(oneMinArray)
 
 
 
-
-/**
- * Isolated Authoritative Trade Array Processor.
- * Ingests a raw array of Alpaca REST trades, extracts true velocity 
- * and volume metrics over the real data footprint, and returns pure scalar values.
- * 
- * @param {Array} alpacaTradesArray - Raw historical trade prints: [{ p: Number, s: Number, t: String }]
- * @returns {Object} Clean, calculated execution constants for your cache overwrite
- */
-function processAuthoritativeTradesArray(alpacaTradesArray)
-{
-    if (alpacaTradesArray.length === 0)
-    {
-        return {
-            auditedTicksPerSecond: 0.0,
-            auditedRollingVolume: 0,
-            lastTradePrice: 0.00,
-            hasDataFootprint: false
-        };
-    }
-
-    let totalVolumeAccumulated = 0;
-    const totalTicksCount = alpacaTradesArray.length;
-
-    // 1. Accumulate total share volume size via a fast loop pass
-    alpacaTradesArray.forEach(trade =>
-    {
-        totalVolumeAccumulated += trade.Size; // 's' is Alpaca's primitive key for Size (Shares executed)
-    });
-
-    // Extract the most recent settled print to act as your live price anchor
-    const lastTradeIndex = totalTicksCount - 1;
-    const latestTradePrice = alpacaTradesArray[lastTradeIndex].Price; // 'p' is Price
-
-    // 2. COMPUTE THE TRUE ACTIVE TIME FOOTPRINT
-    // Convert Alpaca's ISO strings into absolute millisecond timestamps
-    const earliestTimestampMS = new Date(alpacaTradesArray[0].Timestamp).getTime(); // 't' is Timestamp
-    const latestTimestampMS = new Date(alpacaTradesArray[lastTradeIndex].Timestamp).getTime();
-
-    // Calculate total seconds elapsed between the first and last printed trade inside the file
-    const elapsedSecondsDistance = (latestTimestampMS - earliestTimestampMS) / 1000;
-
-    // Defensive Cushion: If all trades occurred in the same second, default the window to 1.0 to prevent a Divide-by-Zero crash
-    const trueActiveWindowSeconds = elapsedSecondsDistance > 0 ? elapsedSecondsDistance : 1.0;
-
-    // 3. EXTRACT TRUE VELOCITY (Ticks Per Second)
-    const exactTicksPerSecond = totalTicksCount / trueActiveWindowSeconds;
-
-    return {
-        // Enforce a strict one-decimal floating point for clean, stable UI rendering
-        auditedTicksPerSecond: parseFloat(exactTicksPerSecond.toFixed(1)),
-        auditedRollingVolume: totalVolumeAccumulated,
-        lastTradePrice: parseFloat(latestTradePrice.toFixed(2)),
-        hasDataFootprint: true
-    };
-}
+const selectHistoricalQueryCache = EnginePlanPlanApiSlice.endpoints.initiateEngineWithEnterExitPlan.select()
+const selectApiCacheData = createSelector([selectHistoricalQueryCache], (queryResult) => queryResult.data);
+const stockPlanSelectors = enginePlanAdapter.getSelectors((state) => selectApiCacheData(state)?.plans || enginePlanAdapter.getInitialState());
+const macroMarketSelectors = engineMacroAdapter.getSelectors((state) => selectApiCacheData(state)?.macros || engineMacroAdapter.getInitialState());
 
 
-
-
-
-import { createSelector } from '@reduxjs/toolkit';
-import { calculateCentralPlanScore } from './masterPrioritizer'; // Path to your orchestrator script
-import { candlesAdapter } from './candlesSlice'; // Path to your stock entity adapter
-
-// 1. Base Selectors: Pull raw dictionaries out of your global central state
-const selectAllStockEntities = (state) => state.candles.entities;
-const selectAllStockIds = (state) => state.candles.ids;
-const selectMacroMarketEntities = (state) => state.macroMarket.entities;
-
-
-const selectAllStockEntities = (state) => state.candles.entities;
-const selectAllStockIds = (state) => state.candles.ids;
-const selectMacroMarketEntities = (state) => state.macroMarket.entities;
-
-
-
-
-
-
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { createSelector } from '@reduxjs/toolkit';
-import { getDay } from 'date-fns';
-import { calculateCentralPlanScore } from './masterPrioritizer'; // Path to your logic file
-
-
-// =========================================================================
-// 🎯 STEP 1: CONFIGURE THE ADAPTER ROOT SELECTOR MAPS
-// =========================================================================
-// Because your entities are stored inside the RTK Query cache under the 
-// 'getHistoricalEnginePlanData' endpoint key, we extract their inner data documents:
-const selectHistoricalQueryCache = EnginePlanPlanApiSlice.endpoints.getHistoricalEnginePlanData.select();
-
-// Extracts the raw query payload data block when fulfilled
-const selectApiCacheData = createSelector(
-    [selectHistoricalQueryCache],
-    (queryResult) => queryResult.data
-);
-
-// ─────────────────────────────────────────────────────────────────────────
-// ADAPTER TRACK A: THE STOCK PLANS SELECTORS
-// ─────────────────────────────────────────────────────────────────────────
-// We map the adapter's selectors directly to the 'stockPlans' object sub-key
-const stockPlanSelectors = enginePlanAdapter.getSelectors(
-    (state) => selectApiCacheData(state)?.plans || enginePlanAdapter.getInitialState()
-);
-
-// ─────────────────────────────────────────────────────────────────────────
-// ADAPTER TRACK B: THE MACRO MARKET SELECTORS
-// ─────────────────────────────────────────────────────────────────────────
-// We map the macro adapter's selectors directly to the 'macroIndices' object sub-key
-const macroMarketSelectors = engineMacroAdapter.getSelectors(
-    (state) => selectApiCacheData(state)?.macros || engineMacroAdapter.getInitialState()
-);
-
-// =========================================================================
-// 🎯 STEP 2: EMBED THE COMPOSITE PRIORITY SELECTOR
-// =========================================================================
-// We pull the built-in 'selectAll' and 'selectEntities' methods from our adapter tracks
 export const selectPrioritizedWatchlist = createSelector(
     [
         stockPlanSelectors.selectIds,      // Array of active stock keys ["AMD", "NVDA"]
         stockPlanSelectors.selectEntities, // The raw stock documents dictionary
+        macroMarketSelectors.selectIds,
         macroMarketSelectors.selectEntities // The raw macro index dictionary
     ],
-    (stockIds, stockEntities, macroEntities) =>
+    (stockIds, stockEntities, macroIds, macroEntities) =>
     {
-        // if (stockIds.length === 0) return [];
+        if (stockIds.length === 0) return [];
 
         // // Isolate your SPY macro tide constants cleanly out of your index dictionary
-        // const liveSpyPlan = macroEntities['SPY'] ? macroEntities['SPY'].macroTideSentry : null;
+        const liveSpyPlan = macroEntities['SPY'] ? macroEntities['SPY'].macroTideSentry : null;
+        console.log(liveSpyPlan)
 
-        // // Loop through your stocks to run your prioritizer headlessly at runtime [INDEX]
-        // const scoredWatchlistArray = stockIds.map(id =>
-        // {
-        //     const planEntity = stockEntities[id];
-        //     if (!planEntity) return null;
 
-        //     const todaysLiveCandles = planEntity.todaysCandles || [];
+        const scoredWatchlistArray = stockIds.map(id =>
+        {
+            const planEntity = stockEntities[id];
+            if (!planEntity) return null;
+            console.log(planEntity)
+            const todaysLiveCandles = planEntity.todaysCandles || [];
+            return { alphaConvictionScore: Math.random(0, 1) * 100 }
 
-        //     // Execute your Tier 1 and Tier 2 matrix scoring rules in mid-air! [INDEX]
-        //     const centralScoreProfile = calculateCentralPlanScore(planEntity, todaysLiveCandles, liveSpyPlan);
+            // // Execute your Tier 1 and Tier 2 matrix scoring rules in mid-air! [INDEX]
+            // const centralScoreProfile = calculateCentralPlanScore(planEntity, todaysLiveCandles, liveSpyPlan);
 
-        //     return {
-        //         ...planEntity,
-        //         alphaConvictionScore: centralScoreProfile.matchScorePercent,
-        //         executionStatus: centralScoreProfile.status,
-        //         livePriceMetrics: centralScoreProfile.metrics
-        //     };
-        // }).filter(Boolean);
+            // return {
+            //     ...planEntity,
+            //     alphaConvictionScore: centralScoreProfile.matchScorePercent,
+            //     executionStatus: centralScoreProfile.status,
+            //     livePriceMetrics: centralScoreProfile.metrics
+            // };
+        }).filter(Boolean);
 
-        // // Sort chronologically from absolute highest conviction (100%) to lowest (0%)
-        // return scoredWatchlistArray.sort((a, b) => b.alphaConvictionScore - a.alphaConvictionScore);
+        // Sort chronologically from absolute highest conviction (100%) to lowest (0%)
+        return scoredWatchlistArray.sort((a, b) => b.alphaConvictionScore - a.alphaConvictionScore);
 
-        console.log(stockIds)
-        return []
     }
 );
 
-// Export hooks alongside your selector
-// export const { useGetHistoricalEnginePlanDataQuery, useGetTodaysLiveCandlesBatchQuery } = EngineApiSlice;
