@@ -12,7 +12,9 @@ import { compileHistoricalOneMinPennyBaselines } from "./RootCalculations/Histor
 import { compileHistoricalStandardChannelBaselines } from "./RootCalculations/HistoricalCandleAnalytics/horizontalChannelAnalytics";
 import { compileHistoricalFiveMinCascadeBaselines } from "./RootCalculations/HistoricalCandleAnalytics/cascadePatternAnalytics";
 import { compileHistoricalContinuationBaselines } from "./RootCalculations/HistoricalCandleAnalytics/continuationPatternAnalytics";
-import { scorePennyChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/pennyStockIntraDayCalc";
+import { processPennyChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/pennyStockIntraDayCalc";
+import { processStandardChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/channelIntraDayCalc";
+import { processCascadeLiveDelta } from "./RootCalculations/IntraDayAnalytics/cascadeIntraDayCalc";
 
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
@@ -436,15 +438,25 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 let patternSpecificScore
                                 if (entityPatternClassification === 'channel')
                                 {
-                                    if(entityToUpdate.patternConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP"){
-                                        patternSpecificScore=scorePennyChannelLiveDelta()
+                                    if (entityToUpdate.patternConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
+                                    {
+                                        patternSpecificScore = processPennyChannelLiveDelta(entityToUpdate, liveCandlePrice, liveCandles)
+                                    } else
+                                    {
+                                        patternSpecificScore = processStandardChannelLiveDelta(entityToUpdate, liveCandles)
                                     }
+                                } else if (entityPatternClassification === 'continuation')
+                                {
+                                    // patternSpecificScore=process
+                                } else if (entityPatternClassification === 'cascade')
+                                {
+                                    patternSpecificScore = processCascadeLiveDelta(entityToUpdate, liveCandles)
                                 }
 
 
                                 entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData.planData[symbol]]
 
-                      
+
                             })
 
                         if (freshCandleData?.macroData)

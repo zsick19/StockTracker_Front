@@ -1,4 +1,4 @@
-import { SCORING_WEIGHTS as W } from './scoringWeights';
+import { SCORING_WEIGHTS as W } from '../ScoringWeights';
 
 /**
  * Live Session Ingestion Engine: Penny Stock Channel Scalper.
@@ -10,7 +10,7 @@ import { SCORING_WEIGHTS as W } from './scoringWeights';
  * @param {Array} todaysLiveCandles - Today's streaming regular-session 1-minute candle array
  * @returns {number} High-velocity pattern structural score (Max 50 points)
  */
-export function scorePennyChannelLiveDelta(planEntity, livePrice, todaysLiveCandles)
+export function processPennyChannelLiveDelta(planEntity, livePrice, todaysLiveCandles)
 {
     const channel = planEntity.channelPattern;
     const metrics = planEntity.liveAuctionMetrics;
