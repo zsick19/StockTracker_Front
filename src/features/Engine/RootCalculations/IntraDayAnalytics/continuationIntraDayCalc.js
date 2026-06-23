@@ -1,37 +1,40 @@
+import { SCORING_WEIGHTS as W } from '../scoringWeights';
+
 /**
- * Live Session Ingestion Engine: Standard Horizontal Channel.
- * Tracks live floor wicks and updates cumulative touch density values without array loops.
+ * Live Session Ingestion Engine: Continuation Momentum.
+ * Evaluates trigger breach velocity and combines it with pre-compiled volume dry flags.
  */
-export function processStandardChannelLiveDelta(planEntity, todaysLiveCandles)
+export function processContinuationLiveDelta(planEntity, todaysLiveCandles)
 {
-    const channel = planEntity.channelPattern;
+    const continuation = planEntity.continuationPattern;
     const metrics = planEntity.liveAuctionMetrics;
 
-    if (!channel || !todaysLiveCandles || todaysLiveCandles.length === 0) return 0;
+    if (!continuation || !todaysLiveCandles || todaysLiveCandles.length === 0) return 0;
 
-    const { channelBottom, entryStrikeBuffer } = channel;
+    const { tomorrowEntryTriggerPrice, trailingInvalidationStopPrice } = continuation;
     const currentCandle = todaysLiveCandles[todaysLiveCandles.length - 1];
     const livePrice = currentCandle.ClosePrice;
 
-    // Hard Sentry Gate: Price must stay inside your lower buying corridor bracket
-    if (livePrice > entryStrikeBuffer || livePrice < channelBottom) return 0;
+    // Hard Failure Risk: If price falls beneath your trailing stop, the trend is broken
+    if (livePrice <= trailingInvalidationStopPrice) return 0;
 
-    let liveCumulativeScore = W.patterns.channel.insideStrikeBufferBonus; // +25 Base Points
+    let liveCumulativeScore = 0;
 
-    // 1. Evaluate your pre-compiled historical support density backing
-    if (metrics.staticHistoryTouchCount >= 4 && metrics.isChannelHeightViable)
+    // 1. Verify if momentum has programmatically breached the breakout gate line
+    if (livePrice >= tomorrowEntryTriggerPrice)
     {
-        liveCumulativeScore += W.patterns.channel.heightVolatilityBonus; // +10 Points
+        liveCumulativeScore += W.patterns.continuation.triggerBreachBonus; // +30 Points
     }
 
-    // 2. Track real-time live floor sweeps (Lower shadow absorption walls)
-    const supportCushion = channelBottom * 0.0025;
-    const isLiveWickSweepingFloor = currentCandle.LowPrice < channelBottom;
-    const isLiveBodyReclaimingFloor = currentCandle.ClosePrice >= (channelBottom - supportCushion);
-
-    if (isLiveWickSweepingFloor && isLiveBodyReclaimingFloor)
+    // 2. Incorporate your pre-compiled historical trend fanning health and dry supply constraints
+    if (metrics.historicalTrendHealthScore >= 75)
     {
-        liveCumulativeScore += W.patterns.channel.floorSweepReclaimBonus; // +15 Points
+        liveCumulativeScore += W.patterns.continuation.strongTrendHealthBonus; // +10 Points
+    }
+
+    if (metrics.isPullbackVolumeDry && metrics.baseBreakoutVelocity >= 1.50)
+    {
+        liveCumulativeScore += W.patterns.continuation.highGrowthVelocityBonus; // +10 Points
     }
 
     return liveCumulativeScore;
