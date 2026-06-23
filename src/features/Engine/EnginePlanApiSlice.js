@@ -12,6 +12,7 @@ import { compileHistoricalOneMinPennyBaselines } from "./RootCalculations/Histor
 import { compileHistoricalStandardChannelBaselines } from "./RootCalculations/HistoricalCandleAnalytics/horizontalChannelAnalytics";
 import { compileHistoricalFiveMinCascadeBaselines } from "./RootCalculations/HistoricalCandleAnalytics/cascadePatternAnalytics";
 import { compileHistoricalContinuationBaselines } from "./RootCalculations/HistoricalCandleAnalytics/continuationPatternAnalytics";
+import { scorePennyChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/pennyStockIntraDayCalc";
 
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
@@ -37,27 +38,27 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             let patternClassification = enterExit.plan.patternClassification
 
                             let baseLineIndicators = {}
-                            let planConfig
+                            let patternConfig
                             let regularSessionCandles = filterRegularSessionCandles(enterExit.candleData)
 
                             if (patternClassification === 'channel')
                             {
-                                let planConfig = enterExit.plan.channelPattern
-                                if (planConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
+                                let patternConfig = enterExit.plan.channelPattern
+                                if (patternConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
                                 {
                                     baseLineIndicators = compileHistoricalOneMinPennyBaselines(regularSessionCandles)
                                 } else
                                 {
-                                    baseLineIndicators = compileHistoricalStandardChannelBaselines(planConfig, regularSessionCandles)
+                                    baseLineIndicators = compileHistoricalStandardChannelBaselines(patternConfig, regularSessionCandles)
                                 }
                             } else if (patternClassification === 'continuation')
                             {
-                                planConfig = enterExit.plan.continuationPattern
+                                patternConfig = enterExit.plan.continuationPattern
                                 baseLineIndicators = compileHistoricalContinuationBaselines(regularSessionCandles)
                             } else if (patternClassification === 'cascade')
                             {
-                                planConfig = enterExit.plan.cascadePattern
-                                baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(planConfig, regularSessionCandles)
+                                patternConfig = enterExit.plan.cascadePattern
+                                baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(patternConfig, regularSessionCandles)
                             }
 
                             // let stockTradeData = enterExit.snapShot
@@ -75,10 +76,10 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             return {
                                 id: enterExit.plan.tickerSymbol,
                                 planConfig: enterExit.plan,
+                                patternConfig,
                                 historicalCandles: regularSessionCandles,
                                 todaysCandles: [],
                                 compiledExecutionCandles: regularSessionCandles,
-
                                 liveAuctionMetrics: {
                                     lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
                                     auditedRollingVolume: 0,
@@ -425,15 +426,25 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 // if other parts of the entity are necessary to access 
                                 let entityToUpdate = draft.plans.entities[symbol]
                                 if (!entityToUpdate) return
-                                entityToUpdate.todayCandleData = freshCandleData.planData[symbol]
+                                let liveCandles = freshCandleData.planData[symbol]
+                                if (liveCandles.length <= 0) return
+
+                                entityToUpdate.todayCandleData = liveCandles
+                                let liveCandlePrice = liveCandles.at(-1).ClosePrice
+                                let entityPatternClassification = entityToUpdate.planConfig.patternClassification
+
+                                let patternSpecificScore
+                                if (entityPatternClassification === 'channel')
+                                {
+                                    if(entityToUpdate.patternConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP"){
+                                        patternSpecificScore=scorePennyChannelLiveDelta()
+                                    }
+                                }
+
 
                                 entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData.planData[symbol]]
 
-                                //if just pumping changes
-                                // enginePlanAdapter.updateOne(draft, {
-                                //     id: symbol,
-                                //     changes: { freshDailyCandleData: freshCandleData[symbol] }
-                                // })
+                      
                             })
 
                         if (freshCandleData?.macroData)
