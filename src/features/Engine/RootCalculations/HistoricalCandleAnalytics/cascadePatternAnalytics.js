@@ -6,14 +6,14 @@
  * @param {Array} clean5MinHistory - Filtered regular hours 5-minute candle array
  * @returns {Object} Static baseline constants to seed your memory metrics cache
  */
-export function compileHistoricalFiveMinPlanBaselines(planConfig, clean5MinHistory)
+export function compileHistoricalFiveMinCascadeBaselines(planConfig, clean5MinHistory)
 {
     const fallback = { staticHistoryTouchCount: 0, volumeCliffPrice: 0, trailingDescentVelocity: 0 };
     if (!clean5MinHistory || clean5MinHistory.length === 0) return fallback;
 
     // A. LAYER 1: MULTI-DAY SUPPORT TOUCH DENSITY COMPILER
     let touchCount = 0;
-    const targetFloorLine = planConfig.channelPattern?.channelBottom || planConfig.cascadePattern?.projection?.priceFloor || 0;
+    const targetFloorLine = planConfig?.projection?.priceFloor || 0;
     const proximityCushionCents = targetFloorLine * 0.0020; // 0.20% tight buffer check
 
     if (targetFloorLine > 0)
