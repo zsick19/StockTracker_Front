@@ -1,3 +1,4 @@
+import { SCORING_WEIGHTS as W } from '../ScoringWeights';
 /**
  * Live Session Ingestion Engine: Standard Horizontal Channel.
  * Tracks live floor wicks and updates cumulative touch density values without array loops.

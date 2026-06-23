@@ -12,7 +12,9 @@ import { compileHistoricalOneMinPennyBaselines } from "./RootCalculations/Histor
 import { compileHistoricalStandardChannelBaselines } from "./RootCalculations/HistoricalCandleAnalytics/horizontalChannelAnalytics";
 import { compileHistoricalFiveMinCascadeBaselines } from "./RootCalculations/HistoricalCandleAnalytics/cascadePatternAnalytics";
 import { compileHistoricalContinuationBaselines } from "./RootCalculations/HistoricalCandleAnalytics/continuationPatternAnalytics";
-import { scorePennyChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/pennyStockIntraDayCalc";
+import { processPennyChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/pennyStockIntraDayCalc";
+import { processStandardChannelLiveDelta } from "./RootCalculations/IntraDayAnalytics/channelIntraDayCalc";
+import { processCascadeLiveDelta } from "./RootCalculations/IntraDayAnalytics/cascadeIntraDayCalc";
 
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
@@ -438,8 +440,17 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 {
                                     if (entityToUpdate.patternConfig.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
                                     {
-                                        patternSpecificScore = scorePennyChannelLiveDelta()
+                                        patternSpecificScore = processPennyChannelLiveDelta(entityToUpdate, liveCandlePrice, liveCandles)
+                                    } else
+                                    {
+                                        patternSpecificScore = processStandardChannelLiveDelta(entityToUpdate, liveCandles)
                                     }
+                                } else if (entityPatternClassification === 'continuation')
+                                {
+                                    // patternSpecificScore=process
+                                } else if (entityPatternClassification === 'cascade')
+                                {
+                                    patternSpecificScore = processCascadeLiveDelta(entityToUpdate, liveCandles)
                                 }
 
 
@@ -634,105 +645,3 @@ function processAuthoritativeTradesArray(alpacaTradesArray)
         hasDataFootprint: true
     };
 }
-
-
-import { createSelector } from '@reduxjs/toolkit';
-import { calculateCentralPlanScore } from './masterPrioritizer'; // Path to your orchestrator script
-import { candlesAdapter } from './candlesSlice'; // Path to your stock entity adapter
-
-// 1. Base Selectors: Pull raw dictionaries out of your global central state
-const selectAllStockEntities = (state) => state.candles.entities;
-const selectAllStockIds = (state) => state.candles.ids;
-const selectMacroMarketEntities = (state) => state.macroMarket.entities;
-
-
-const selectAllStockEntities = (state) => state.candles.entities;
-const selectAllStockIds = (state) => state.candles.ids;
-const selectMacroMarketEntities = (state) => state.macroMarket.entities;
-
-
-
-
-
-
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { createSelector } from '@reduxjs/toolkit';
-import { getDay } from 'date-fns';
-import { calculateCentralPlanScore } from './masterPrioritizer'; // Path to your logic file
-
-
-// =========================================================================
-// 🎯 STEP 1: CONFIGURE THE ADAPTER ROOT SELECTOR MAPS
-// =========================================================================
-// Because your entities are stored inside the RTK Query cache under the 
-// 'getHistoricalEnginePlanData' endpoint key, we extract their inner data documents:
-const selectHistoricalQueryCache = EnginePlanPlanApiSlice.endpoints.getHistoricalEnginePlanData.select();
-
-// Extracts the raw query payload data block when fulfilled
-const selectApiCacheData = createSelector(
-    [selectHistoricalQueryCache],
-    (queryResult) => queryResult.data
-);
-
-// ─────────────────────────────────────────────────────────────────────────
-// ADAPTER TRACK A: THE STOCK PLANS SELECTORS
-// ─────────────────────────────────────────────────────────────────────────
-// We map the adapter's selectors directly to the 'stockPlans' object sub-key
-const stockPlanSelectors = enginePlanAdapter.getSelectors(
-    (state) => selectApiCacheData(state)?.plans || enginePlanAdapter.getInitialState()
-);
-
-// ─────────────────────────────────────────────────────────────────────────
-// ADAPTER TRACK B: THE MACRO MARKET SELECTORS
-// ─────────────────────────────────────────────────────────────────────────
-// We map the macro adapter's selectors directly to the 'macroIndices' object sub-key
-const macroMarketSelectors = engineMacroAdapter.getSelectors(
-    (state) => selectApiCacheData(state)?.macros || engineMacroAdapter.getInitialState()
-);
-
-// =========================================================================
-// 🎯 STEP 2: EMBED THE COMPOSITE PRIORITY SELECTOR
-// =========================================================================
-// We pull the built-in 'selectAll' and 'selectEntities' methods from our adapter tracks
-export const selectPrioritizedWatchlist = createSelector(
-    [
-        stockPlanSelectors.selectIds,      // Array of active stock keys ["AMD", "NVDA"]
-        stockPlanSelectors.selectEntities, // The raw stock documents dictionary
-        macroMarketSelectors.selectEntities // The raw macro index dictionary
-    ],
-    (stockIds, stockEntities, macroEntities) =>
-    {
-        // if (stockIds.length === 0) return [];
-
-        // // Isolate your SPY macro tide constants cleanly out of your index dictionary
-        // const liveSpyPlan = macroEntities['SPY'] ? macroEntities['SPY'].macroTideSentry : null;
-
-        // // Loop through your stocks to run your prioritizer headlessly at runtime [INDEX]
-        // const scoredWatchlistArray = stockIds.map(id =>
-        // {
-        //     const planEntity = stockEntities[id];
-        //     if (!planEntity) return null;
-
-        //     const todaysLiveCandles = planEntity.todaysCandles || [];
-
-        //     // Execute your Tier 1 and Tier 2 matrix scoring rules in mid-air! [INDEX]
-        //     const centralScoreProfile = calculateCentralPlanScore(planEntity, todaysLiveCandles, liveSpyPlan);
-
-        //     return {
-        //         ...planEntity,
-        //         alphaConvictionScore: centralScoreProfile.matchScorePercent,
-        //         executionStatus: centralScoreProfile.status,
-        //         livePriceMetrics: centralScoreProfile.metrics
-        //     };
-        // }).filter(Boolean);
-
-        // // Sort chronologically from absolute highest conviction (100%) to lowest (0%)
-        // return scoredWatchlistArray.sort((a, b) => b.alphaConvictionScore - a.alphaConvictionScore);
-
-        console.log(stockIds)
-        return []
-    }
-);
-
-// Export hooks alongside your selector
-// export const { useGetHistoricalEnginePlanDataQuery, useGetTodaysLiveCandlesBatchQuery } = EngineApiSlice;

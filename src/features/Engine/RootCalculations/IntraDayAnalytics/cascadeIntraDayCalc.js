@@ -1,4 +1,4 @@
-import { SCORING_WEIGHTS as W } from './scoringWeights';
+import { SCORING_WEIGHTS as W } from '../ScoringWeights';
 
 /**
  * Live Session Ingestion Engine: Vertical Cascader.
