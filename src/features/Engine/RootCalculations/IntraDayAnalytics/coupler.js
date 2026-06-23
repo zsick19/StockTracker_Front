@@ -1,5 +1,9 @@
 // Inside your central master strategy router function:
-const patternClassification = planEntity.patternConfig?.userSelectedPattern || planEntity.patternClassification;
+
+
+const patternClassification = planEntity.patternConfig?.userSelectedPattern || 
+planEntity.patternClassification;
+
 let patternSpecificScore = 0;
 
 const liveCandlesArray = planEntity.todaysCandles || []; // Today's streaming regular session cache
