@@ -9,6 +9,7 @@ import { Volume } from "lucide-react";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 export const enginePlanAdapter = createEntityAdapter({})
+export const engineMacroAdapter = createEntityAdapter({})
 
 export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -18,9 +19,8 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 validateStatus: (response, result) => { return response.status === 200 && !result.isError }
             }), transformResponse: (responseData) =>
             {
-
                 const currentTime = new Date()
-                let results = responseData.map((enterExit) =>
+                let results = responseData.plans.map((enterExit) =>
                 {
                     let stockTradeData = enterExit.snapShot
 
@@ -87,7 +87,18 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                     return { ...enterExit.plan, ...tradeDetails, id: enterExit.plan.tickerSymbol, historicCandle: enterExit.candleData, todayCandleData: [], combinedCandleData: [], liveAuctionMetrics }
                 })
-                return enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), results)
+
+                let macroResults = responseData.macros.map((macroPlan) =>
+                {
+                    macroPlan.id = macroPlan.macroPlan.tickerSymbol
+                    return macroPlan
+                })
+                console.log(macroResults)
+
+                return {
+                    plans: enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), results),
+                    macros: engineMacroAdapter.setAll(engineMacroAdapter.getInitialState(), macroResults)
+                }
             },
             async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
             {
@@ -104,177 +115,172 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 {
                     updateCachedData((draft) =>
                     {
-                        let activePlan = draft.entities[data.tickerSymbol]
-                        if (activePlan)
+                        let activePlan = draft.plans.entities[data.tickerSymbol]
+                        if (!activePlan) return
+                        // Check your database flag to determine the asset class routing channel
+                        // const isPennyScalpAsset = activePlan.planConfig?.userSelectedPattern === "SUB_ENGINE_PENNY_STOCK_SCALP";
+                        const isPennyScalpAsset = activePlan.maintainLiveCandles;
+                        // --- PATH A: THE REAL-TIME PRICE PATCH (ALL ASSETS) ---
+                        activePlan.liveAuctionMetrics = { ...activePlan.liveAuctionMetrics, lastTradePrice: parseFloat(data.trade.Price.toFixed(2)) };
+
+                        // --- PATH B: THE PENNY TAPE VELOCITY COLLECTOR ---
+                        if (isPennyScalpAsset)
                         {
-                            // Check your database flag to determine the asset class routing channel
-                            // const isPennyScalpAsset = activePlan.planConfig?.userSelectedPattern === "SUB_ENGINE_PENNY_STOCK_SCALP";
-                            const isPennyScalpAsset = activePlan.maintainLiveCandles;
+                            if (!pennyVelocityTimestampsMap[activePlan.id]) { pennyVelocityTimestampsMap[activePlan.id] = []; }
+                            pennyVelocityTimestampsMap[activePlan.id].push(Date.now()); // Store only the integer millisecond timestamp of the transaction [INDEX]
+                        }
 
-                            // --- PATH A: THE REAL-TIME PRICE PATCH (ALL ASSETS) ---
-                            activePlan.liveAuctionMetrics = {
-                                ...activePlan.liveAuctionMetrics,
-                                lastTradePrice: parseFloat(data.trade.Price.toFixed(2))
-                            };
 
-                            // --- PATH B: THE PENNY TAPE VELOCITY COLLECTOR ---
-                            if (isPennyScalpAsset)
+                        // =========================================================================
+                        // ⏰ CRITICAL STAGE B: THE 500MS SYSTEM BATCH THROTTLER (ONE REDUX PASS)
+                        // =========================================================================
+                        // Instead of mutating state 500 times a second, this clock bundles all active 
+                        // changes across your entire watchlist and updates your UI inside ONE clean frame! [INDEX]
+                        throttledUIUpdateClock = setInterval(() =>
+                        {
+                            // 1. GET PRISTINE WALL STREET TIME OVERRIDES VIA DATE-FNS
+                            const systemTime = new Date();
+                            const nyTime = toZonedTime(systemTime, 'America/New_York')
+
+                            // 2. EXPRESSIVE TIME-GATE CALCULATIONS (NO STRING CONCATENATION)
+                            // We use date-fns 'set' to cleanly attach our market open/close boundaries to today's NY object
+                            const streamOpenBarrier = set(nyTime, { hours: 7, minutes: 30, seconds: 0, milliseconds: 0 });
+                            const streamCloseBarrier = set(nyTime, { hours: 16, minutes: 30, seconds: 0, milliseconds: 0 });
+
+                            // Declaratively check if the stream is authorized to run right now
+                            const isStreamAuthorized = !isWeekend(nyTime) && isWithinInterval(nyTime, { start: streamOpenBarrier, end: streamCloseBarrier });
+
+                            // --- CRITICAL OVERRIDE: IF OUTSIDE AUTHORIZED MARKET HOURS, SCRUB AND EXIT ---
+                            if (!isStreamAuthorized)
                             {
-                                if (!pennyVelocityTimestampsMap[activePlan.id]) { pennyVelocityTimestampsMap[activePlan.id] = []; }
-                                pennyVelocityTimestampsMap[activePlan.id].push(Date.now()); // Store only the integer millisecond timestamp of the transaction [INDEX]
+                                streamingPriceBuffer = {};
+                                pennyVelocityTimestampsMap = {};
+                                return;
                             }
 
 
-                            // =========================================================================
-                            // ⏰ CRITICAL STAGE B: THE 500MS SYSTEM BATCH THROTTLER (ONE REDUX PASS)
-                            // =========================================================================
-                            // Instead of mutating state 500 times a second, this clock bundles all active 
-                            // changes across your entire watchlist and updates your UI inside ONE clean frame! [INDEX]
-                            throttledUIUpdateClock = setInterval(() =>
+                            const now = Date.now();
+                            const fiveSecondsAgo = now - 5000;
+
+                            // Process your velocity calculations in raw memory first
+                            const currentCalculatedMetrics = {};
+
+                            Object.keys(pennyVelocityTimestampsMap).forEach(symbol =>
                             {
-                                // 1. GET PRISTINE WALL STREET TIME OVERRIDES VIA DATE-FNS
-                                const systemTime = new Date();
-                                const nyTime = toZonedTime(systemTime, 'America/New_York')
+                                // Trim old timestamps out of your raw memory arrays
+                                pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(
+                                    ts => ts >= fiveSecondsAgo
+                                );
 
-                                // 2. EXPRESSIVE TIME-GATE CALCULATIONS (NO STRING CONCATENATION)
-                                // We use date-fns 'set' to cleanly attach our market open/close boundaries to today's NY object
-                                const streamOpenBarrier = set(nyTime, { hours: 7, minutes: 30, seconds: 0, milliseconds: 0 });
-                                const streamCloseBarrier = set(nyTime, { hours: 16, minutes: 30, seconds: 0, milliseconds: 0 });
+                                const activeTicksCount = pennyVelocityTimestampsMap[symbol].length;
+                                const currentVelocityTPS = parseFloat((activeTicksCount / 5).toFixed(1));
 
-                                // Declaratively check if the stream is authorized to run right now
-                                const isStreamAuthorized = !isWeekend(nyTime) && isWithinInterval(nyTime, { start: streamOpenBarrier, end: streamCloseBarrier });
+                                currentCalculatedMetrics[symbol] = {
+                                    liveTicksPerSecond: currentVelocityTPS,
+                                    isTapeSpeedScreaming: currentVelocityTPS >= 12.0
+                                };
+                            });
 
-                                // --- CRITICAL OVERRIDE: IF OUTSIDE AUTHORIZED MARKET HOURS, SCRUB AND EXIT ---
-                                if (!isStreamAuthorized)
+                            // Check if any fresh stream updates are actually sitting in your memory cache
+                            const symbolsWithActivePriceUpdates = Object.keys(streamingPriceBuffer);
+                            const symbolsWithActiveVelocityUpdates = Object.keys(currentCalculatedMetrics);
+
+                            if (symbolsWithActivePriceUpdates.length === 0 && symbolsWithActiveVelocityUpdates.length === 0)
+                            {
+                                return; // Stalls the clock if no active data changed, saving CPU power
+                            }
+
+                            // FIRE ONE SINGLE MUTATION FOR THE ENTIRE WATCHLIST COMPILATION PASS [INDEX]
+                            updateCachedData((draft) =>
+                            {
+                                if (!draft) return;
+
+                                // Part 1: Batch overwrite the latest prices for standard and penny tickers
+                                symbolsWithActivePriceUpdates.forEach(symbol =>
                                 {
-                                    streamingPriceBuffer = {};
-                                    pennyVelocityTimestampsMap = {};
-                                    return;
-                                }
-
-
-                                const now = Date.now();
-                                const fiveSecondsAgo = now - 5000;
-
-                                // Process your velocity calculations in raw memory first
-                                const currentCalculatedMetrics = {};
-
-                                Object.keys(pennyVelocityTimestampsMap).forEach(symbol =>
-                                {
-                                    // Trim old timestamps out of your raw memory arrays
-                                    pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(
-                                        ts => ts >= fiveSecondsAgo
-                                    );
-
-                                    const activeTicksCount = pennyVelocityTimestampsMap[symbol].length;
-                                    const currentVelocityTPS = parseFloat((activeTicksCount / 5).toFixed(1));
-
-                                    currentCalculatedMetrics[symbol] = {
-                                        liveTicksPerSecond: currentVelocityTPS,
-                                        isTapeSpeedScreaming: currentVelocityTPS >= 12.0
-                                    };
+                                    const activePlan = draft[symbol];
+                                    if (activePlan)
+                                    {
+                                        activePlan.liveAuctionMetrics = {
+                                            ...activePlan.liveAuctionMetrics,
+                                            lastTradePrice: parseFloat(streamingPriceBuffer[symbol].toFixed(2))
+                                        };
+                                    }
                                 });
 
-                                // Check if any fresh stream updates are actually sitting in your memory cache
-                                const symbolsWithActivePriceUpdates = Object.keys(streamingPriceBuffer);
-                                const symbolsWithActiveVelocityUpdates = Object.keys(currentCalculatedMetrics);
-
-                                if (symbolsWithActivePriceUpdates.length === 0 && symbolsWithActiveVelocityUpdates.length === 0)
+                                // Part 2: Batch overwrite velocity values for active penny tickers
+                                symbolsWithActiveVelocityUpdates.forEach(symbol =>
                                 {
-                                    return; // Stalls the clock if no active data changed, saving CPU power
-                                }
-
-                                // FIRE ONE SINGLE MUTATION FOR THE ENTIRE WATCHLIST COMPILATION PASS [INDEX]
-                                updateCachedData((draft) =>
-                                {
-                                    if (!draft) return;
-
-                                    // Part 1: Batch overwrite the latest prices for standard and penny tickers
-                                    symbolsWithActivePriceUpdates.forEach(symbol =>
+                                    const activePlan = draft[symbol];
+                                    if (activePlan)
                                     {
-                                        const activePlan = draft[symbol];
-                                        if (activePlan)
-                                        {
-                                            activePlan.liveAuctionMetrics = {
-                                                ...activePlan.liveAuctionMetrics,
-                                                lastTradePrice: parseFloat(streamingPriceBuffer[symbol].toFixed(2))
-                                            };
-                                        }
-                                    });
-
-                                    // Part 2: Batch overwrite velocity values for active penny tickers
-                                    symbolsWithActiveVelocityUpdates.forEach(symbol =>
-                                    {
-                                        const activePlan = draft[symbol];
-                                        if (activePlan)
-                                        {
-                                            activePlan.liveAuctionMetrics = {
-                                                ...activePlan.liveAuctionMetrics,
-                                                liveTicksPerSecond: currentCalculatedMetrics[symbol].liveTicksPerSecond,
-                                                isTapeSpeedScreaming: currentCalculatedMetrics[symbol].isTapeSpeedScreaming
-                                            };
-                                        }
-                                    });
-
-                                    // Clear out your temporary memory pricing buffer to reset for the next 500ms cycle
-                                    // This leaves your memory arrays pristine for the incoming stream frames
-                                    for (const prop in streamingPriceBuffer) { delete streamingPriceBuffer[prop]; }
+                                        activePlan.liveAuctionMetrics = {
+                                            ...activePlan.liveAuctionMetrics,
+                                            liveTicksPerSecond: currentCalculatedMetrics[symbol].liveTicksPerSecond,
+                                            isTapeSpeedScreaming: currentCalculatedMetrics[symbol].isTapeSpeedScreaming
+                                        };
+                                    }
                                 });
-                            }, 500)
 
-
-
-
-
-
-
-
-
-
-
-                            // entityToUpdate.mostRecentPrice = data.tradePrice
-                            // entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.tradePrice) / entityToUpdate.plan.enterPrice) * 100
-                            // entityToUpdate.changeFromYesterdayClose = entityToUpdate.mostRecentPrice - entityToUpdate.yesterdayClose
-                            // entityToUpdate.currentDayPercentGain = (entityToUpdate.changeFromYesterdayClose / entityToUpdate.yesterdayClose) * 100
-
-                            // entityToUpdate.currentRiskVReward = {
-                            //     risk: ((entityToUpdate.mostRecentPrice - entityToUpdate.plan.stopLossPrice) * 100 / entityToUpdate.mostRecentPrice),
-                            //     reward: ((entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * 100 / entityToUpdate.mostRecentPrice),
-                            // }
-
-                            // let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / entityToUpdate.mostRecentPrice)
-                            // entityToUpdate.with1000DollarsCurrentGain = (entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
-                            // entityToUpdate.with1000DollarsCurrentRisk = (entityToUpdate.plan.stopLossPrice - entityToUpdate.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
-
-                            // function getInsertionIndexLinear(arr, num)
-                            // {
-                            //     for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
-                            //     return 3;
-                            // }
-                            // let priceVsPlan = getInsertionIndexLinear([entityToUpdate.plan.stopLossPrice, entityToUpdate.plan.enterPrice, entityToUpdate.plan.enterBufferPrice], data.tradePrice)
-                            // if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch)
-                            //     entityToUpdate.listChange = true
-                        }
+                                // Clear out your temporary memory pricing buffer to reset for the next 500ms cycle
+                                // This leaves your memory arrays pristine for the incoming stream frames
+                                for (const prop in streamingPriceBuffer) { delete streamingPriceBuffer[prop]; }
+                            });
+                        }, 500)
                     })
                 }
+                const incomingMacroTradeListener = (data) =>
+                {
+                    updateCachedData((draft) =>
+                    {
+                        let activePlan = draft.macros.entities[data.Symbol]
+                        if (!activePlan) return
+                        console.log('working on macro plan now')
+                    })
+                }
+
+                // entityToUpdate.mostRecentPrice = data.tradePrice
+                // entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.tradePrice) / entityToUpdate.plan.enterPrice) * 100
+                // entityToUpdate.changeFromYesterdayClose = entityToUpdate.mostRecentPrice - entityToUpdate.yesterdayClose
+                // entityToUpdate.currentDayPercentGain = (entityToUpdate.changeFromYesterdayClose / entityToUpdate.yesterdayClose) * 100
+
+                // entityToUpdate.currentRiskVReward = {
+                //     risk: ((entityToUpdate.mostRecentPrice - entityToUpdate.plan.stopLossPrice) * 100 / entityToUpdate.mostRecentPrice),
+                //     reward: ((entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * 100 / entityToUpdate.mostRecentPrice),
+                // }
+
+                // let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / entityToUpdate.mostRecentPrice)
+                // entityToUpdate.with1000DollarsCurrentGain = (entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+                // entityToUpdate.with1000DollarsCurrentRisk = (entityToUpdate.plan.stopLossPrice - entityToUpdate.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
+
+                // function getInsertionIndexLinear(arr, num)
+                // {
+                //     for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } }
+                //     return 3;
+                // }
+                // let priceVsPlan = getInsertionIndexLinear([entityToUpdate.plan.stopLossPrice, entityToUpdate.plan.enterPrice, entityToUpdate.plan.enterBufferPrice], data.tradePrice)
+                // if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch)
+                //     entityToUpdate.listChange = true
+
 
 
                 try
                 {
                     await cacheDataLoaded
                     subscribe('enterExitWatchListPrice', incomingTradeListener, 'initialEnginePopulate')
+                    subscribe('macroWatchListUpdate', incomingMacroTradeListener, 'initialEnginePopulate')
                 } catch (error)
                 {
                     await cacheEntryRemoved
                     unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'initialEnginePopulate')
+                    unsubscribe('macroWatchListUpdate', incomingMacroTradeListener, userId, 'initialEnginePopulate')
                     if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
-
                 }
 
                 await cacheEntryRemoved
                 unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'initialEnginePopulate')
+                unsubscribe('macroWatchListUpdate', incomingMacroTradeListener, userId, 'initialEnginePopulate')
                 if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
-
             }
 
         }),
@@ -289,26 +295,29 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 {
                     const { data: freshCandleData } = await queryFulfilled;
 
-
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
-                        Object.keys(freshCandleData).forEach(symbol =>
+                        Object.keys(freshCandleData.planData).forEach(symbol =>
                         {
-
                             // if other parts of the entity are necessary to access 
-                            let entityToUpdate = draft.entities[symbol]
-                            entityToUpdate.todayCandleData = freshCandleData[symbol]
+                            let entityToUpdate = draft.plans.entities[symbol]
+                            entityToUpdate.todayCandleData = freshCandleData.planData[symbol]
 
-                            entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData[symbol]]
+                            entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData.planData[symbol]]
 
                             //if just pumping changes
                             // enginePlanAdapter.updateOne(draft, {
                             //     id: symbol,
                             //     changes: { freshDailyCandleData: freshCandleData[symbol] }
                             // })
-
                         })
+                        if (freshCandleData?.macroData) Object.keys(freshCandleData.macroData).forEach(symbol =>
+                        {
+                            let entityToUpdate = draft.macros.entities([symbol])
+                            if (entityToUpdate) console.log(symbol)
+                        })
+
                     }))
 
                 } catch (error)
@@ -331,21 +340,26 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
-                        Object.keys(freshCandleData).forEach(symbol =>
+                        Object.keys(freshCandleData.planData).forEach(symbol =>
                         {
-
                             // if other parts of the entity are necessary to access 
-                            let entityToUpdate = draft.entities[symbol]
-                            entityToUpdate.todayCandleData = freshCandleData[symbol]
-                            entityToUpdate.combinedFiveMinCandleData = [...(entityToUpdate.historic10Day5MinCandle || []), ...freshCandleData[symbol]]
-                            console.log(entityToUpdate)
+                            let entityToUpdate = draft.plans.entities[symbol]
+                            entityToUpdate.todayCandleData = freshCandleData.planData[symbol]
+                            entityToUpdate.combinedFiveMinCandleData = [...(entityToUpdate.historic10Day5MinCandle || []), ...freshCandleData.planData[symbol]]
+
                             //if just pumping changes
                             // enginePlanAdapter.updateOne(draft, {
                             //     id: symbol,
                             //     changes: { freshDailyCandleData: freshCandleData[symbol] }
                             // })
-
                         })
+
+                        Object.keys(freshCandleData.macroData).forEach(symbol =>
+                        {
+                            let entityToUpdate = draft.macros.entities[symbol]
+                            if (entityToUpdate) console.log(symbol)
+                        })
+
                     }))
 
                 } catch (error)
@@ -372,7 +386,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         {
 
                             // if other parts of the entity are necessary to access 
-                            let entityToUpdate = draft.entities[symbol]
+                            let entityToUpdate = draft.plans.entities[symbol]
                             if (freshTradeData[symbol]) { entityToUpdate.liveAuctionMetrics = processAuthoritativeTradesArray(freshTradeData[symbol]) }
 
                             console.log(entityToUpdate.liveAuctionMetrics)

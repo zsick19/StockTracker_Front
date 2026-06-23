@@ -5,7 +5,7 @@ import PositionListDailyMoves from '../../../../../StockDetailSection/Components
 import './WelcomeGreeting.css'
 import { useGetActiveTradeNewsQuery } from '../../../../../../../../features/NewsFeed/NewsFeedApiSlice'
 import { StockCsvUpload } from './StockCsvUpload'
-import ExpectedMovesCoreUpload from './ExpectedMoveUpload'
+import ExpectedMoveUpload from './ExpectedMoveUpload'
 
 function WelcomeGreeting()
 {
