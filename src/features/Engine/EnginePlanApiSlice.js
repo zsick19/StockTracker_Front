@@ -5,6 +5,9 @@ import { InitializationApiSlice } from "../Initializations/InitializationSliceAp
 import { differenceInBusinessDays, isWeekend, isWithinInterval, set } from "date-fns";
 import { toZonedTime } from 'date-fns-tz'
 import { Volume } from "lucide-react";
+import { filterRegularSessionCandles } from "./RootCalculations/filterRegularSessionCandles";
+import { calculateMacroThirtyMinMacd } from "./RootCalculations/macro30MinMACD";
+import { symbol } from "d3";
 
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
@@ -20,7 +23,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
             }), transformResponse: (responseData) =>
             {
                 const currentTime = new Date()
-                let results = responseData.plans.map((enterExit) =>
+                let results = []
+
+                if (responseData?.plans) results = responseData.plans.map((enterExit) =>
                 {
                     let stockTradeData = enterExit.snapShot
 
@@ -84,16 +89,43 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     //     }
                     // }
 
-
-                    return { ...enterExit.plan, ...tradeDetails, id: enterExit.plan.tickerSymbol, historicCandle: enterExit.candleData, todayCandleData: [], combinedCandleData: [], liveAuctionMetrics }
+                    console.log(enterExit.plan)
+                    return {
+                        ...enterExit.plan,
+                        ...tradeDetails,
+                        id: enterExit.plan.tickerSymbol,
+                        historicCandle: enterExit.candleData,
+                        todayCandleData: [],
+                        combinedCandleData: enterExit.candleData,
+                        liveAuctionMetrics
+                    }
                 })
 
-                let macroResults = responseData.macros.map((macroPlan) =>
+
+                let macroResults = []
+                if (responseData?.macros) macroResults = responseData.macros.map((macroPlan) =>
                 {
-                    macroPlan.id = macroPlan.macroPlan.tickerSymbol
-                    return macroPlan
+                    let regularSessionCandles = filterRegularSessionCandles(macroPlan.candleData)
+                    let regularSessionLength = regularSessionCandles.length
+                    let computedMACDMetrics = calculateMacroThirtyMinMacd(regularSessionCandles)
+                    console.log(macroPlan.macroPlan)
+
+                    return {
+                        id: macroPlan.macroPlan.tickerSymbol,
+                        planData: { ...macroPlan.macroPlan },
+                        historicCandle: regularSessionCandles,
+                        todayCandleData: [],
+                        combinedCandleData: regularSessionCandles,
+                        macroTideSentry: {
+                            macdLine: computedMACDMetrics.macdLine,
+                            signalLine: computedMACDMetrics.signalLine,
+                            histogram: computedMACDMetrics.histogram,
+                            isHistogramGrowingBearish: computedMACDMetrics.isHistogramGrowingBearish,
+                            lastPrice: regularSessionLength > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00
+                        },
+                        mostRecentPrice: macroPlan.snapShot.LatestTrade.Price
+                    }
                 })
-                console.log(macroResults)
 
                 return {
                     plans: enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), results),
@@ -102,16 +134,34 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
             },
             async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
             {
+                const macroAndSectorTickers = ['SPY', 'QQQ', 'IWM', 'DIA', 'XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE']
+                let macroStreamingPriceBuffer = Object.fromEntries(macroAndSectorTickers.map(key => [key, null]))
                 let streamingPriceBuffer = {};
+
                 let pennyVelocityTimestampsMap = {};
                 let throttledUIUpdateClock = null;
+                let macroThrottledUIUpdateClock = null;
+
 
                 let wsConnection = null;
 
                 const userId = getState().auth.userId
                 const ws = getWebSocket(userId, 'PlannedWatchListTickers')
 
-                const incomingTradeListener = (data) =>
+                const checkStreamAuthorization = () =>
+                {
+                    const systemTime = new Date();
+                    const nyTime = toZonedTime(systemTime, 'America/New_York')
+
+                    const streamOpenBarrier = set(nyTime, { hours: 7, minutes: 30, seconds: 0, milliseconds: 0 });
+                    const streamCloseBarrier = set(nyTime, { hours: 16, minutes: 30, seconds: 0, milliseconds: 0 });
+
+                    return !isWeekend(nyTime) && isWithinInterval(nyTime, { start: streamOpenBarrier, end: streamCloseBarrier });
+                }
+
+
+
+                const incomingPlanTradeListener = (data) =>
                 {
                     updateCachedData((draft) =>
                     {
@@ -120,6 +170,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         // Check your database flag to determine the asset class routing channel
                         // const isPennyScalpAsset = activePlan.planConfig?.userSelectedPattern === "SUB_ENGINE_PENNY_STOCK_SCALP";
                         const isPennyScalpAsset = activePlan.maintainLiveCandles;
+
                         // --- PATH A: THE REAL-TIME PRICE PATCH (ALL ASSETS) ---
                         activePlan.liveAuctionMetrics = { ...activePlan.liveAuctionMetrics, lastTradePrice: parseFloat(data.trade.Price.toFixed(2)) };
 
@@ -138,20 +189,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         // changes across your entire watchlist and updates your UI inside ONE clean frame! [INDEX]
                         throttledUIUpdateClock = setInterval(() =>
                         {
-                            // 1. GET PRISTINE WALL STREET TIME OVERRIDES VIA DATE-FNS
-                            const systemTime = new Date();
-                            const nyTime = toZonedTime(systemTime, 'America/New_York')
-
-                            // 2. EXPRESSIVE TIME-GATE CALCULATIONS (NO STRING CONCATENATION)
-                            // We use date-fns 'set' to cleanly attach our market open/close boundaries to today's NY object
-                            const streamOpenBarrier = set(nyTime, { hours: 7, minutes: 30, seconds: 0, milliseconds: 0 });
-                            const streamCloseBarrier = set(nyTime, { hours: 16, minutes: 30, seconds: 0, milliseconds: 0 });
-
-                            // Declaratively check if the stream is authorized to run right now
-                            const isStreamAuthorized = !isWeekend(nyTime) && isWithinInterval(nyTime, { start: streamOpenBarrier, end: streamCloseBarrier });
 
                             // --- CRITICAL OVERRIDE: IF OUTSIDE AUTHORIZED MARKET HOURS, SCRUB AND EXIT ---
-                            if (!isStreamAuthorized)
+                            if (!checkStreamAuthorization())
                             {
                                 streamingPriceBuffer = {};
                                 pennyVelocityTimestampsMap = {};
@@ -168,9 +208,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             Object.keys(pennyVelocityTimestampsMap).forEach(symbol =>
                             {
                                 // Trim old timestamps out of your raw memory arrays
-                                pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(
-                                    ts => ts >= fiveSecondsAgo
-                                );
+                                pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(ts => ts >= fiveSecondsAgo);
 
                                 const activeTicksCount = pennyVelocityTimestampsMap[symbol].length;
                                 const currentVelocityTPS = parseFloat((activeTicksCount / 5).toFixed(1));
@@ -185,58 +223,81 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             const symbolsWithActivePriceUpdates = Object.keys(streamingPriceBuffer);
                             const symbolsWithActiveVelocityUpdates = Object.keys(currentCalculatedMetrics);
 
-                            if (symbolsWithActivePriceUpdates.length === 0 && symbolsWithActiveVelocityUpdates.length === 0)
-                            {
-                                return; // Stalls the clock if no active data changed, saving CPU power
-                            }
+                            if (symbolsWithActivePriceUpdates.length === 0 && symbolsWithActiveVelocityUpdates.length === 0) { return; }
+                            // Stalls the clock if no active data changed, saving CPU power
 
                             // FIRE ONE SINGLE MUTATION FOR THE ENTIRE WATCHLIST COMPILATION PASS [INDEX]
                             updateCachedData((draft) =>
                             {
                                 if (!draft) return;
-
                                 // Part 1: Batch overwrite the latest prices for standard and penny tickers
                                 symbolsWithActivePriceUpdates.forEach(symbol =>
                                 {
-                                    const activePlan = draft[symbol];
-                                    if (activePlan)
-                                    {
-                                        activePlan.liveAuctionMetrics = {
-                                            ...activePlan.liveAuctionMetrics,
-                                            lastTradePrice: parseFloat(streamingPriceBuffer[symbol].toFixed(2))
-                                        };
-                                    }
+                                    const activePlan = draft.plans.entities[symbol];
+                                    if (!activePlan) return;
+
+                                    activePlan.liveAuctionMetrics = {
+                                        ...activePlan.liveAuctionMetrics,
+                                        lastTradePrice: parseFloat(streamingPriceBuffer[symbol].toFixed(2))
+                                    };
+
                                 });
 
                                 // Part 2: Batch overwrite velocity values for active penny tickers
                                 symbolsWithActiveVelocityUpdates.forEach(symbol =>
                                 {
-                                    const activePlan = draft[symbol];
-                                    if (activePlan)
-                                    {
-                                        activePlan.liveAuctionMetrics = {
-                                            ...activePlan.liveAuctionMetrics,
-                                            liveTicksPerSecond: currentCalculatedMetrics[symbol].liveTicksPerSecond,
-                                            isTapeSpeedScreaming: currentCalculatedMetrics[symbol].isTapeSpeedScreaming
-                                        };
-                                    }
+                                    const activePlan = draft.plans.entities[symbol];
+                                    if (!activePlan) return;
+
+                                    activePlan.liveAuctionMetrics = {
+                                        ...activePlan.liveAuctionMetrics,
+                                        liveTicksPerSecond: currentCalculatedMetrics[symbol].liveTicksPerSecond,
+                                        isTapeSpeedScreaming: currentCalculatedMetrics[symbol].isTapeSpeedScreaming
+                                    };
+
                                 });
 
-                                // Clear out your temporary memory pricing buffer to reset for the next 500ms cycle
-                                // This leaves your memory arrays pristine for the incoming stream frames
                                 for (const prop in streamingPriceBuffer) { delete streamingPriceBuffer[prop]; }
                             });
                         }, 500)
                     })
                 }
+
+
                 const incomingMacroTradeListener = (data) =>
                 {
-                    updateCachedData((draft) =>
+                    if (!Object.hasOwn(macroStreamingPriceBuffer, data.Symbol)) return
+                    macroStreamingPriceBuffer[data.Symbol] = data.Price
+
+                    macroThrottledUIUpdateClock = setInterval(() =>
                     {
-                        let activePlan = draft.macros.entities[data.Symbol]
-                        if (!activePlan) return
-                        console.log('working on macro plan now')
-                    })
+                        if (!checkStreamAuthorization())
+                        {
+                            macroStreamingPriceBuffer = {};
+                            return; // CRITICAL OVERRIDE: IF OUTSIDE AUTHORIZED MARKET HOURS, SCRUB AND EXIT
+                        }
+
+                        const symbolsWithActiveTicks = Object.keys(macroStreamingPriceBuffer).filter(symbol => macroStreamingPriceBuffer[symbol] !== null)
+                        if (symbolsWithActiveTicks.length === 0) return
+
+                        updateCachedData((draft) =>
+                        {
+                            if (!draft) return
+                            symbolsWithActiveTicks.forEach(symbol =>
+                            {
+                                const activeMacroEntity = draft.macros.entities[symbol]
+                                if (!activeMacroEntity) return;
+
+                                activeMacroEntity.macroTideSentry.lastPrice = parseFloat(macroStreamingPriceBuffer[symbol].toFixed(2))
+
+                            })
+                            symbolsWithActiveTicks.forEach(symbol =>
+                            {
+                                macroStreamingPriceBuffer[symbol] = null
+                            })
+
+                        })
+                    }, 500);
                 }
 
                 // entityToUpdate.mostRecentPrice = data.tradePrice
@@ -267,20 +328,22 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     await cacheDataLoaded
-                    subscribe('enterExitWatchListPrice', incomingTradeListener, 'initialEnginePopulate')
+                    subscribe('enterExitWatchListPrice', incomingPlanTradeListener, 'initialEnginePopulate')
                     subscribe('macroWatchListUpdate', incomingMacroTradeListener, 'initialEnginePopulate')
                 } catch (error)
                 {
                     await cacheEntryRemoved
-                    unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'initialEnginePopulate')
+                    unsubscribe('enterExitWatchListPrice', incomingPlanTradeListener, userId, 'initialEnginePopulate')
                     unsubscribe('macroWatchListUpdate', incomingMacroTradeListener, userId, 'initialEnginePopulate')
                     if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
+                    if (macroThrottledUIUpdateClock) clearInterval(macroThrottledUIUpdateClock)
                 }
 
                 await cacheEntryRemoved
-                unsubscribe('enterExitWatchListPrice', incomingTradeListener, userId, 'initialEnginePopulate')
+                unsubscribe('enterExitWatchListPrice', incomingPlanTradeListener, userId, 'initialEnginePopulate')
                 unsubscribe('macroWatchListUpdate', incomingMacroTradeListener, userId, 'initialEnginePopulate')
                 if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
+                if (macroThrottledUIUpdateClock) clearInterval(macroThrottledUIUpdateClock)
             }
 
         }),
@@ -298,26 +361,30 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
-                        Object.keys(freshCandleData.planData).forEach(symbol =>
-                        {
-                            // if other parts of the entity are necessary to access 
-                            let entityToUpdate = draft.plans.entities[symbol]
-                            entityToUpdate.todayCandleData = freshCandleData.planData[symbol]
+                        if (freshCandleData?.planData)
+                            Object.keys(freshCandleData.planData).forEach(symbol =>
+                            {
+                                // if other parts of the entity are necessary to access 
+                                let entityToUpdate = draft.plans.entities[symbol]
+                                if (!entityToUpdate) return
+                                entityToUpdate.todayCandleData = freshCandleData.planData[symbol]
 
-                            entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData.planData[symbol]]
+                                entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData.planData[symbol]]
 
-                            //if just pumping changes
-                            // enginePlanAdapter.updateOne(draft, {
-                            //     id: symbol,
-                            //     changes: { freshDailyCandleData: freshCandleData[symbol] }
-                            // })
-                        })
-                        if (freshCandleData?.macroData) Object.keys(freshCandleData.macroData).forEach(symbol =>
-                        {
-                            let entityToUpdate = draft.macros.entities([symbol])
-                            if (entityToUpdate) console.log(symbol)
-                        })
+                                //if just pumping changes
+                                // enginePlanAdapter.updateOne(draft, {
+                                //     id: symbol,
+                                //     changes: { freshDailyCandleData: freshCandleData[symbol] }
+                                // })
+                            })
 
+                        if (freshCandleData?.macroData)
+                            Object.keys(freshCandleData.macroData).forEach(symbol =>
+                            {
+                                let entityToUpdate = draft.macros.entities[symbol]
+                                if (!entityToUpdate) return
+                                if (entityToUpdate) console.log(symbol)
+                            })
                     }))
 
                 } catch (error)
@@ -340,26 +407,24 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
-                        Object.keys(freshCandleData.planData).forEach(symbol =>
-                        {
-                            // if other parts of the entity are necessary to access 
-                            let entityToUpdate = draft.plans.entities[symbol]
-                            entityToUpdate.todayCandleData = freshCandleData.planData[symbol]
-                            entityToUpdate.combinedFiveMinCandleData = [...(entityToUpdate.historic10Day5MinCandle || []), ...freshCandleData.planData[symbol]]
+                        if (freshCandleData?.planData)
+                            Object.keys(freshCandleData.planData).forEach(symbol =>
+                            {
+                                // if other parts of the entity are necessary to access 
+                                let entityToUpdate = draft.plans.entities[symbol]
+                                if (!entityToUpdate) return
+                                entityToUpdate.todayCandleData = freshCandleData.planData[symbol]
+                                entityToUpdate.combinedFiveMinCandleData = [...(entityToUpdate.historic10Day5MinCandle || []), ...freshCandleData.planData[symbol]]
+                            })
 
-                            //if just pumping changes
-                            // enginePlanAdapter.updateOne(draft, {
-                            //     id: symbol,
-                            //     changes: { freshDailyCandleData: freshCandleData[symbol] }
-                            // })
-                        })
 
-                        Object.keys(freshCandleData.macroData).forEach(symbol =>
-                        {
-                            let entityToUpdate = draft.macros.entities[symbol]
-                            if (entityToUpdate) console.log(symbol)
-                        })
-
+                        if (freshCandleData?.macroData)
+                            Object.keys(freshCandleData.macroData).forEach(symbol =>
+                            {
+                                let entityToUpdate = draft.macros.entities[symbol]
+                                if (!entityToUpdate) return
+                                if (entityToUpdate) console.log(symbol)
+                            })
                     }))
 
                 } catch (error)
@@ -384,24 +449,11 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         if (!draft) return
                         Object.keys(freshTradeData).forEach(symbol =>
                         {
-
-                            // if other parts of the entity are necessary to access 
                             let entityToUpdate = draft.plans.entities[symbol]
-                            if (freshTradeData[symbol]) { entityToUpdate.liveAuctionMetrics = processAuthoritativeTradesArray(freshTradeData[symbol]) }
-
+                            if(!entityToUpdate || !freshTradeData[symbol]) return
+                            
+                            entityToUpdate.liveAuctionMetrics = processAuthoritativeTradesArray(freshTradeData[symbol]) 
                             console.log(entityToUpdate.liveAuctionMetrics)
-
-
-
-
-
-
-                            //if just pumping changes
-                            // enginePlanAdapter.updateOne(draft, {
-                            //     id: symbol,
-                            //     changes: { freshDailyCandleData: freshCandleData[symbol] }
-                            // })
-
                         })
                     }))
 
