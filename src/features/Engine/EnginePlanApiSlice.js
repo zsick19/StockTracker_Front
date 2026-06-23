@@ -455,7 +455,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 }
 
 
-                                
+
                                 entityToUpdate.combinedCandleData = [...(entityToUpdate.historicCandles || []), ...freshCandleData.planData[symbol]]
 
 
@@ -651,6 +651,7 @@ function processAuthoritativeTradesArray(alpacaTradesArray)
 
 
 
+
 import { createSelector } from '@reduxjs/toolkit';
 import { calculateCentralPlanScore } from './masterPrioritizer'; // Path to your orchestrator script
 import { candlesAdapter } from './candlesSlice'; // Path to your stock entity adapter
@@ -751,4 +752,3 @@ export const selectPrioritizedWatchlist = createSelector(
 
 // Export hooks alongside your selector
 // export const { useGetHistoricalEnginePlanDataQuery, useGetTodaysLiveCandlesBatchQuery } = EngineApiSlice;
-
