@@ -22,17 +22,13 @@ export function processAuthoritativeTradesArray(alpacaTradesArray)
     const totalTicksCount = alpacaTradesArray.length;
 
     // 1. Accumulate total share volume size via a fast loop pass
-    alpacaTradesArray.forEach(trade =>
-    {
-        totalVolumeAccumulated += trade.Size; // 's' is Alpaca's primitive key for Size (Shares executed)
-    });
+    alpacaTradesArray.forEach(trade => { totalVolumeAccumulated += trade.Size; });
 
     // Extract the most recent settled print to act as your live price anchor
     const lastTradeIndex = totalTicksCount - 1;
     const latestTradePrice = alpacaTradesArray[lastTradeIndex].Price; // 'p' is Price
 
     // 2. COMPUTE THE TRUE ACTIVE TIME FOOTPRINT
-    // Convert Alpaca's ISO strings into absolute millisecond timestamps
     const earliestTimestampMS = new Date(alpacaTradesArray[0].Timestamp).getTime(); // 't' is Timestamp
     const latestTimestampMS = new Date(alpacaTradesArray[lastTradeIndex].Timestamp).getTime();
 
@@ -46,7 +42,6 @@ export function processAuthoritativeTradesArray(alpacaTradesArray)
     const exactTicksPerSecond = totalTicksCount / trueActiveWindowSeconds;
 
     return {
-        // Enforce a strict one-decimal floating point for clean, stable UI rendering
         auditedTicksPerSecond: parseFloat(exactTicksPerSecond.toFixed(1)),
         auditedRollingVolume: totalVolumeAccumulated,
         lastTradePrice: parseFloat(latestTradePrice.toFixed(2)),

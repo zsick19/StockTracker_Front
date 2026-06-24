@@ -2,19 +2,20 @@ import io from 'socket.io-client'
 // import { store } from '../store';
 import { addSTDDaily } from '../../features/STDs/StockDetailControlSlice';
 import { addPriceAlert, removeQuickAlert } from '../../features/PriceAlerts/PriceAlertControlSlice';
+import { toZonedTime } from 'date-fns-tz';
+import { isWeekend, isWithinInterval, set } from 'date-fns';
 
 // Create a singleton to manage the single WebSocket connection
-let listeners = { 'enterExitWatchListPrice': [],
-     'activeTradePrice': [], 
-     'macroWatchListUpdate': [], 
-     'singleLiveChart': [],
-    'engineLivePrice':[] }
+let listeners = {
+    'enterExitWatchListPrice': [],
+    'activeTradePrice': [],
+    'macroWatchListUpdate': [],
+    'singleLiveChart': [],
+    'engineLivePrice': []
+}
 let ws;
 let store;
-export const injectStore = (_store) =>
-{
-    store = _store
-}
+export const injectStore = (_store) => { store = _store }
 
 export const setupWebSocket = () =>
 {
@@ -69,8 +70,21 @@ export const setupWebSocket = () =>
 
     }
 
-    return { getWebSocket, subscribe, unsubscribe };
+    const checkStreamAuthorization = () =>
+    {
+        const systemTime = new Date();
+        const nyTime = toZonedTime(systemTime, 'America/New_York')
+
+        const streamOpenBarrier = set(nyTime, { hours: 7, minutes: 30, seconds: 0, milliseconds: 0 });
+        const streamCloseBarrier = set(nyTime, { hours: 16, minutes: 30, seconds: 0, milliseconds: 0 });
+
+        return !isWeekend(nyTime) && isWithinInterval(nyTime, { start: streamOpenBarrier, end: streamCloseBarrier });
+    }
+
+    return { getWebSocket, subscribe, unsubscribe, checkStreamAuthorization };
 };
+
+
 
 
 

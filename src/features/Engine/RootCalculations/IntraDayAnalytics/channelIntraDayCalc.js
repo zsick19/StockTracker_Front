@@ -5,14 +5,16 @@ import { SCORING_WEIGHTS as W } from '../ScoringWeights';
  */
 export function processStandardChannelLiveDelta(planEntity, todaysLiveCandles)
 {
-    const channel = planEntity.channelPattern;
+    const channel = planEntity.patternConfig;
     const metrics = planEntity.liveAuctionMetrics;
 
     if (!channel || !todaysLiveCandles || todaysLiveCandles.length === 0) return 0;
 
     const { channelBottom, entryStrikeBuffer } = channel;
+
     const currentCandle = todaysLiveCandles[todaysLiveCandles.length - 1];
     const livePrice = currentCandle.ClosePrice;
+
 
     // Hard Sentry Gate: Price must stay inside your lower buying corridor bracket
     if (livePrice > entryStrikeBuffer || livePrice < channelBottom) return 0;

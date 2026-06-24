@@ -12,23 +12,18 @@ import { SCORING_WEIGHTS as W } from '../ScoringWeights';
  */
 export function processPennyChannelLiveDelta(planEntity, livePrice, todaysLiveCandles)
 {
-    const channel = planEntity.channelPattern;
+    const channel = planEntity.patternConfig;
     const metrics = planEntity.liveAuctionMetrics;
 
-    if (!channel || !todaysLiveCandles || todaysLiveCandles.length === 0)
-    {
-        return 0;
-    }
+    if (!channel || !todaysLiveCandles || todaysLiveCandles.length === 0) { return 0; }
 
+    console.log(channel)
     const { channelBottom, entryStrikeBuffer, requiredVolumeMultiplier } = channel;
     let livePatternScore = 0;
 
     // --- GATE 1: THE BRACKET PRICE SENTRY ---
     // Price must be sitting within your lower buying corridor buffer to activate calculations
-    if (livePrice > entryStrikeBuffer || livePrice < (channelBottom * 0.95))
-    {
-        return 0;
-    }
+    if (livePrice > entryStrikeBuffer || livePrice < (channelBottom * 0.95)) { return 0; }
 
     // Award base points for sitting directly inside your target strike zone box
     livePatternScore += W.patterns.channel.insideStrikeBufferBonus; // +25 Base Points

@@ -8,7 +8,6 @@ export const WatchlistPriorityGrid = () =>
     // 1. Invoke your high-performance prioritized watchlist selector
     // This hook naturally updates your view layout whenever prices or macro indices shift!
     const prioritizedWatchlist = useSelector(selectPrioritizedWatchlist);
-    console.log(prioritizedWatchlist)
     return <></>
     // return (
     //     <div className="watchlist-grid-container" style={{ padding: '20px', background: '#0a0a0a', color: '#fff', fontFamily: 'monospace' }}>

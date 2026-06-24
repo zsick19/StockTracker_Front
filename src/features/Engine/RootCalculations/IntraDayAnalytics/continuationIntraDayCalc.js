@@ -6,22 +6,22 @@ import { SCORING_WEIGHTS as W } from '../scoringWeights';
  */
 export function processContinuationLiveDelta(planEntity, todaysLiveCandles)
 {
-    const continuation = planEntity.continuationPattern;
+    const continuation = planEntity.patternConfig;
     const metrics = planEntity.liveAuctionMetrics;
 
     if (!continuation || !todaysLiveCandles || todaysLiveCandles.length === 0) return 0;
-
-    const { tomorrowEntryTriggerPrice, trailingInvalidationStopPrice } = continuation;
+    
+    const { entryTrigger, invalidationStop } = continuation;
     const currentCandle = todaysLiveCandles[todaysLiveCandles.length - 1];
     const livePrice = currentCandle.ClosePrice;
 
     // Hard Failure Risk: If price falls beneath your trailing stop, the trend is broken
-    if (livePrice <= trailingInvalidationStopPrice) return 0;
+    if (livePrice <= invalidationStop) return 0;
 
     let liveCumulativeScore = 0;
 
     // 1. Verify if momentum has programmatically breached the breakout gate line
-    if (livePrice >= tomorrowEntryTriggerPrice)
+    if (livePrice >= entryTrigger)
     {
         liveCumulativeScore += W.patterns.continuation.triggerBreachBonus; // +30 Points
     }
