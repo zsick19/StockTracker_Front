@@ -6,7 +6,7 @@ import { differenceInBusinessDays, isWeekend, isWithinInterval, set, getDay } fr
 import { toZonedTime } from 'date-fns-tz'
 
 import { filterRegularSessionCandles } from "./RootCalculations/filterRegularSessionCandles";
-import { calculateMacroThirtyMinMacd } from "./RootCalculations/macro30MinMACD";
+import { calculateMacro30MinMacdFromOneMinCandles, calculateMacroThirtyMinMacd } from "./RootCalculations/macro30MinMACD";
 import { compileHistoricalOneMinPennyBaselines } from "./RootCalculations/HistoricalCandleAnalytics/pennyStockPatternAnalytics";
 import { compileHistoricalStandardChannelBaselines } from "./RootCalculations/HistoricalCandleAnalytics/horizontalChannelAnalytics";
 import { compileHistoricalFiveMinCascadeBaselines } from "./RootCalculations/HistoricalCandleAnalytics/cascadePatternAnalytics";
@@ -14,6 +14,7 @@ import { compileHistoricalContinuationBaselines } from "./RootCalculations/Histo
 
 import { calculateCentralPlanScore } from "./RootCalculations/masterPrioritizer";
 import { processAuthoritativeTradesArray } from "./RootCalculations/TradeBookAnalytics/processAuthoritativeTrade";
+import { macroAndSectorTickers } from "../../Utilities/SectorsAndIndustries";
 
 
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
@@ -148,15 +149,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 //     }
                 // }
 
-                // return {
-                //     ...enterExit.plan,
-                //     ...tradeDetails,
-                //     id: enterExit.plan.tickerSymbol,
-                //     historicCandle: enterExit.candleData,
-                //     todayCandleData: [],
-                //     combinedCandleData: enterExit.candleData,
-                //     liveAuctionMetrics
-                // }
+
 
 
                 let macroResults = []
@@ -190,8 +183,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
             },
             async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
             {
-                // const macroAndSectorTickers = ['SPY', 'QQQ', 'IWM', 'DIA', 'XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE']
-                let macroStreamingPriceBuffer = Object.fromEntries(['SPY', 'QQQ', 'IWM', 'DIA', 'XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE'].map(key => [key, null]))
+                let macroStreamingPriceBuffer = Object.fromEntries(macroAndSectorTickers.map(key => [key, null]))
                 let streamingPriceBuffer = {};
 
                 let throttledUIUpdateClock = null;
@@ -431,15 +423,14 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             let liveCandles = freshCandleData.macroData[symbol]
                             if (!entityToUpdate || liveCandles.length === 0) return
 
-                            const compiled5MinCandles = downSampleOneMinToFiveMin(liveCandles)
                             entityToUpdate.todaysCandles = liveCandles
-
+                            const compiled5MinCandles = downSampleOneMinToFiveMin(liveCandles)
                             const cleanRegularCandles = filterRegularSessionCandles(compiled5MinCandles)
-                            const fullCombinedCandles = [...EnginePlanPlanApiSlice(entityToUpdate.historicCandle || []), ...cleanRegularCandles]
 
-                            const updatedMACDMetrics = calculateMacroThirtyMinMacd(fullCombinedCandles)
-                            entityToUpdate.combinedCandleData = fullCombinedCandles
+                            let combinedCandleData = [...EnginePlanPlanApiSlice(entityToUpdate.historicCandle || []), ...cleanRegularCandles]
+                            entityToUpdate.combinedCandleData = combinedCandleData
 
+                            const updatedMACDMetrics = calculateMacroThirtyMinMacd(combinedCandleData)
                             entityToUpdate.macroTideSentry = {
                                 ...entityToUpdate.macroTideSentry,
                                 macdLine: updatedMACDMetrics.macdLine,
@@ -447,7 +438,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 histogram: updatedMACDMetrics.histogram,
                                 isHistogramGrowingBearish: updatedMACDMetrics.isHistogramGrowingBearish,
                             }
-                            console.log(updatedMACDMetrics)
                         })
                     }))
 
@@ -489,14 +479,14 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             let liveCandles = freshCandleData.macroData[symbol]
                             if (!entityToUpdate || liveCandles.length === 0) return
 
-                            const compiled5MinCandles = downSampleOneMinToFiveMin(liveCandles)
                             entityToUpdate.todaysCandles = liveCandles
-
+                            const compiled5MinCandles = downSampleOneMinToFiveMin(liveCandles)
                             const cleanRegularCandles = filterRegularSessionCandles(compiled5MinCandles)
-                            const fullCombinedCandles = [...EnginePlanPlanApiSlice(entityToUpdate.historicCandle || []), ...cleanRegularCandles]
-                            entityToUpdate.combinedCandleData = fullCombinedCandles
 
-                            const updatedMACDMetrics = calculateMacroThirtyMinMacd(fullCombinedCandles)
+                            let combinedCandleData = [...EnginePlanPlanApiSlice(entityToUpdate.historicCandle || []), ...cleanRegularCandles]
+                            entityToUpdate.combinedCandleData = combinedCandleData
+
+                            const updatedMACDMetrics = calculateMacroThirtyMinMacd(combinedCandleData)
                             entityToUpdate.macroTideSentry = {
                                 ...entityToUpdate.macroTideSentry,
                                 macdLine: updatedMACDMetrics.macdLine,
