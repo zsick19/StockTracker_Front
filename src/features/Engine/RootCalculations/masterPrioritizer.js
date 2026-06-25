@@ -226,6 +226,10 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     return baseScore;
 }
 
+
+
+
+
 /**
  * @param {Object} planEntity - Fully hydrated stock plan object from your entity adapter cache
  * @param {Array} todaysLiveCandles - Today's streaming regular session candle array [INDEX]
@@ -233,12 +237,12 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
  */
 export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
 {
-    let baseScore = 0;
+    let timeScore = 0;
     const { extentProb, morningMetrics, morningVolume, extremeProbByFiveMin } = planEntity.metricConfig
+    let livePrice = planEntity.mostRecentPrice
 
-    // =========================================================================
-    // 🏛️ THE TIME-AWARE MORNING PROBABILITY MATRIX
-    // =========================================================================
+    if (!todaysLiveCandles || todaysLiveCandles.length === 0) return timeScore
+    let sessionOpenPrice = todaysLiveCandles[0].OpenPrice
 
     const nyTime = toZonedTime(new Date(), 'America/New_York');
     const currentHour = getHours(nyTime);
@@ -246,7 +250,9 @@ export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
     // Calculate exactly how many minutes have elapsed since the 09:30 AM opening bell
     const minutesElapsedSinceOpen = ((currentHour - 9) * 60) + (currentMinute - 30);
 
-    // WE ENGAGE THESE FILTERS STRICTLY DURING THE MORNING AUCTION WINDOW (09:30 AM - 10:30 AM)
+    // =========================================================================
+    // 🥪 PHASE 1: THE MORNING OPEN HOUR (09:30 AM - 10:30 PM)
+    // =========================================================================
     if (minutesElapsedSinceOpen >= 0 && minutesElapsedSinceOpen <= 60)
     {
 
@@ -266,10 +272,8 @@ export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
 
         // 2. RECON B: HORIZONTAL EXTENT PROBABILITY SEGMENTATION
         // If today's open price is down from yesterday, track your openL probability threshold
-        if (planEntity.mostRecentPrice < todaysLiveCandles[0].OpenPrice && extentProb)
-        {
+        if (livePrice < sessionOpenPrice && extentProb)
             if (extentProb.openL >= 0.70) timeScore += 10; // Award Opening Low Statistical Cushion Bonus
-        }
 
         // 3. RECON C: THE 5-MINUTE CANDLE INTERVAL LOW PRINT PROBABILITY
         // Calculate today's active 5-minute block index index (0 = 09:30, 1 = 09:35, 2 = 09:40...)
@@ -281,72 +285,58 @@ export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
         }
 
         // 4. RECON D: MORNING VOLUME VELOCITY RUNWAY COUNTER
-        if (morningVolumeMetrics && morningVolumeMetrics.avgDownTotalVolToFirstHour > 0)
+        if (morningVolume && morningVolume.avgDownTotalVolToFirstHour > 0)
         {
             // Calculate the total combined volume executed across today's session candles so far
             const todaysRunningSessionVolume = todaysLiveCandles.reduce((sum, c) => sum + c.Volume, 0);
             // If we are only 20 minutes into the session, but volume already clears 60% of the full first-hour norm
-            if (minutesElapsedSinceOpen <= 25 && todaysRunningSessionVolume >= (morningVolumeMetrics.avgDownTotalVolToFirstHour * 0.60))
+            if (minutesElapsedSinceOpen <= 25 && todaysRunningSessionVolume >= (morningVolume.avgDownTotalVolToFirstHour * 0.60))
             {
                 timeScore += 15; // Award Volume Velocity Explosion Bonus!
             }
         }
     }
-
     // =========================================================================
     // 🥪 PHASE 2: THE MIDDAY LUNCHTIME CHURN CAGE (11:30 AM - 01:30 PM)
     // =========================================================================
-    // Minutes Elapsed: 11:30 AM = 120 mins | 01:30 PM = 240 mins
     else if (minutesElapsedSinceOpen >= 120 && minutesElapsedSinceOpen <= 240)
     {
         // Severe penalty applied because institutional liquidity vanishes. 
         // Breakout continuations will fake out, and mean-reversion channels will break lower.
-        timeModifier -= 20;
+        timeScore -= 20;
 
         // Cross-check your whole-day trading stats from your schema mapping entries
         if (extentProb)
         {
             // If the stock's midday low probability is weak, increase the penalty safely
-            if (extentProb.midL <= 0.35) timeModifier -= 5;
+            if (extentProb.midL <= 0.35) timeScore -= 5;
         }
     }
     // =========================================================================
     // ⚡ PHASE 3: THE AFTERNOON CLOSING POWER HOUR (03:00 PM - 04:00 PM)
     // =================────────────────────────────────────────────────────────
-    // Minutes Elapsed: 03:00 PM = 330 mins | 04:00 PM = 390 mins
     else if (minutesElapsedSinceOpen >= 330 && minutesElapsedSinceOpen <= 390)
     {
         // Inward institutional volume returns to execute market-on-close (MOC) allocations
-        timeModifier += W.structuralMagnets.powerHourTimeBonus; // Award +15 Points Power Hour Bonus
+        timeScore += W.structuralMagnets.powerHourTimeBonus; // Award +15 Points Power Hour Bonus
 
         if (extentProb)
         {
             // If today's price is positive, check if the stock tends to close near its high
             if (livePrice > sessionOpenPrice && extentProb.closeH >= 0.70)
             {
-                timeModifier += 10; // Boost score for high-probability closing runners
+                timeScore += 10; // Boost score for high-probability closing runners
             }
             // If running a mean-reversion play, verify the close-low historical cushion
             else if (livePrice < sessionOpenPrice && extentProb.closeL >= 0.65)
             {
-                timeModifier += 10;
+                timeScore += 10;
             }
         }
     }
 
     return timeScore
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 /**
