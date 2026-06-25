@@ -167,7 +167,7 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     if (!todaysLiveCandles || todaysLiveCandles.length === 0) return 0;
 
     const currentCandle = todaysLiveCandles[todaysLiveCandles.length - 1];
-    const livePrice = currentCandle.ClosePrice;
+    const livePrice = planEntity.mostRecentPrice
 
     // =========================================================================
     // 📊 1. REAL-TIME INTRADAY TAPE & ORDER FLOW
@@ -200,7 +200,8 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     if (vpSupportResistance)
     {
         const shelves = vpSupportResistance?.overHeadResistance || [];
-        const immediateCeilingShelf = shelves.find(shelf => shelf.priceLevel > livePrice) || { frictionRating: "MILD", scoringWeight: 0 };
+        const priceAscShelves = [...shelves].sort((a, b) => a.priceLevel - b.priceLevel)
+        const immediateCeilingShelf = priceAscShelves.find(shelf => shelf.priceLevel > livePrice) || { frictionRating: "MILD", scoringWeight: 0 };
         if (immediateCeilingShelf.frictionRating === "MILD_VELOCITY_SHELF")
         {
             baseScore += 15; // Award Asymmetric Runway Bonus: Thin supply immediately overhead [INDEX]
@@ -213,14 +214,14 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     // =========================================================================
     // 🚨 3. BROAD MARKET INDEX FLIPS & DEFENSIVE SENTRY FILTERS
     // =========================================================================
-    if (liveSpyPlan && dailyCalculatedValues && correlationValues)
+    if (liveSpyPlan && spyBetaValue && correlationValues)
     {
         // If the broad index breaks below its daily Gamma Flip line, toggle volatility gates
         const isMarketInNegativeGammaRegime = liveSpyPlan.mostRecentPrice < liveSpyPlan.planData.gammaFlip;
 
         if (isMarketInNegativeGammaRegime)
         {
-            const stockBeta = planEntity.planConfig.spyBetaValue || 1.0;
+            const stockBeta = spyBetaValue || 1.0;
             const broadCorrelation = correlationValues.SPY?.correlation90Day || 0;
             if (stockBeta >= 1.40 && broadCorrelation >= 0.70)
             {
@@ -268,7 +269,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     // =========================================================================
     if (liveSectorPlan && liveSectorPlan.mostRecentPrice)
     {
-        const liveSectorPrice = liveSectorPlan.mostRecentPrice;
         const sectorHistory = liveSectorPlan.historicCandle || [];
 
         if (sectorHistory.length > 0)
@@ -277,7 +277,7 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
 
             // Compute standard 30-minute relative strength outperformance ratio [INDEX]
             const stockReturnPct = ((livePrice - dailyCalculatedValues.ema200) / dailyCalculatedValues.ema200) * 100;
-            const sectorReturnPct = ((liveSectorPrice - sectorPriorClose) / sectorPriorClose) * 100;
+            const sectorReturnPct = ((liveSectorPlan.mostRecentPrice - sectorPriorClose) / sectorPriorClose) * 100;
 
             const relativeStrengthDelta = stockReturnPct - sectorReturnPct;
             if (relativeStrengthDelta >= 1.5) baseScore += 20; // Award Institutional Rotation Divergence Bonus
@@ -297,7 +297,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
         {
             const spyReturn = ((spyPrice - spyHistory[spyHistory.length - 1].ClosePrice) / spyHistory[spyHistory.length - 1].ClosePrice) * 100;
             const rspReturn = ((rspPrice - rspHistory[rspHistory.length - 1].ClosePrice) / rspHistory[rspHistory.length - 1].ClosePrice) * 100;
-
             // If SPY is fake-pumping on Mag 8 while RSP decays, penalize high-beta long plans [INDEX]
             if ((spyReturn - rspReturn) >= 0.75 && spyBetaValue >= 1.15) { baseScore -= 20; }
         }
@@ -306,9 +305,10 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     // =========================================================================
     // ⏱️ 6. OPTION EXPIRATION TIME-DECAY CYCLES & SEASONAL EVENTS
     // =========================================================================
-    if (liveSpyPlan && liveSpyPlan.planConfig?.weeklyEM?.iVolWeeklyEMLower)
+    if (liveSpyPlan && liveSpyPlan.planData?.weeklyEM?.iVolWeeklyEMLower)
     {
-        const weeklyPutWall = liveSpyPlan.planConfig?.weeklyEM?.iVolWeeklyEMLower;
+        const weeklyPutWall = liveSpyPlan.planData?.weeklyEM?.iVolWeeklyEMLower;
+
         const isSpyAtWeeklyWall = Math.abs(liveSpyPlan.mostRecentPrice - weeklyPutWall) / weeklyPutWall <= 0.0015;
 
         if (isSpyAtWeeklyWall)
@@ -328,7 +328,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     const currentDayOfMonth = getDate(systemDate);
 
     const isEndofQuarterRebalancingWindow = (currentMonth0Based === 5 && currentDayOfMonth >= 15) || (currentMonth0Based === 11 && currentDayOfMonth >= 15);
-
     if (isEndofQuarterRebalancingWindow)
     {
         if (stockAnalysisInfo?.InstitutionalSharePercent >= 85.0) baseScore -= 10; // Crowded basket selling penalty

@@ -565,9 +565,11 @@ export const selectPrioritizedWatchlist = createSelector(
 
         const scoredWatchlistArray = stockIds.map(id =>
         {
+
             const planEntity = stockEntities[id];
             if (!planEntity) return null;
-            let liveSectorPlan = macroEntities[sectorToTicker(planEntity.planConfig.sector)]
+
+            let liveSectorPlan = macroEntities[sectorToTicker[planEntity.planConfig.sector]]
             // // Execute your Tier 1 and Tier 2 matrix scoring rules in mid-air!
             const centralScoreProfile = calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan);
 
