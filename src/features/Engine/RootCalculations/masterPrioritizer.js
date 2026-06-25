@@ -264,6 +264,64 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
         if (stockAnalysisInfo.PositionInRangePercent >= 90.0) baseScore += W.stockSpecificCatalysts.positionInRangeTopBonus;
     }
 
+    // // =========================================================================
+    // // 📊 SECTION 4: STOCKANALYSIS DAILY METRICS & EXTENDED STRUCTURE
+    // // =========================================================================
+    // if (dailyTickerValues) {
+    //     // A. Existing Volume & Catalyst Evaluations
+    //     if (dailyTickerValues.relativeVolume >= 2.0) baseScore += W.stockSpecificCatalysts.highRelativeVolumeBonus;
+    //     else if (dailyTickerValues.relativeVolume <= 0.5) baseScore += W.stockSpecificCatalysts.lowRelativeVolumePenalty;
+
+    //     if (dailyTickerValues.daysGapPercent <= -3.0) baseScore += W.stockSpecificCatalysts.gapTrapReversalPenalty;
+
+    //     // B. Unified Position In Range Check
+    //     const yearlyPositionRange = dailyTickerValues.positionInRangePercent || 0;
+    //     if (yearlyPositionRange <= 15.0) baseScore -= 15; // Structural Weakness Penalty
+    //     if (yearlyPositionRange >= 90.0) baseScore += W.stockSpecificCatalysts.positionInRangeTopBonus; // Runway Bonus
+
+    //     // =====================================================================
+    //     // 🛑 NEW IMPLEMENTATION: INTEGRATING THE 6 IGNORED PARAMETERS
+    //     // =====================================================================
+
+    //     // 1. Audit Optionable Liquidity
+    //     if (dailyTickerValues.hasOptions === false && planEntity.patternClassification !== "TOOL_4_CONTINUATION_MOMENTUM") {
+    //         baseScore -= 15; // Apply Illiquid Structure Penalty
+    //     }
+
+    //     // 2. Audit Market Cap Liquidity Framework
+    //     const rawMarketCap = dailyTickerValues.marketCap || 0;
+    //     if (rawMarketCap > 0) {
+    //         if (rawMarketCap < 250000000) baseScore -= 10; // Micro-Cap Slippage Penalty
+    //         else if (rawMarketCap >= 10000000000) baseScore += 10; // Large-Cap Institutional Bonus
+    //     }
+
+    //     // 3. Audit Daily RSI Mean Reversion Exhaustion
+    //     if (dailyTickerValues.dailyRsi <= 30.0 && planEntity.patternClassification === "TOOL_2_HORIZONTAL_CHANNEL") {
+    //         baseScore += 15; // Extreme Oversold Reversal Bonus
+    //     }
+
+    //     // 4. Audit Crowded Total Shares Shorting Matrix
+    //     if (dailyTickerValues.shortPercentOfShares >= 12.0) {
+    //         baseScore += 10; // Aggressive Squeeze Bonus
+    //     }
+
+    //     // 5. Compute Exact Percentage Extension from the Moving Average anchors
+    //     const ma20 = dailyTickerValues.ma20Price;
+    //     const ma200 = dailyTickerValues.ma200Price;
+
+    //     if (ma20 && ma200 && livePrice > ma200) {
+    //         const distanceToMa20Pct = (livePrice - ma20) / ma20;
+
+    //         // If the stock is in a long-term bull trend but has pulled back tightly to its 20 MA line
+    //         if (distanceToMa20Pct >= 0 && distanceToMa20Pct <= 0.02 && planEntity.patternClassification === "TOOL_4_CONTINUATION_MOMENTUM") {
+    //             baseScore += 15; // Coiled Pullback Bonus
+    //         }
+    //     }
+    // }
+
+
+
+
     // =========================================================================
     // 🏛️ 5. SECTOR ETF DIVERGENCE & MULTI-CORRELATION BREADTH
     // =========================================================================
@@ -320,8 +378,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     }
 
 
-
-
     // AUDIT SYSTEMIC CALENDAR REBALANCING WINDOWS (June / December Portfolio Drifts)
     const systemDate = new Date();
     const currentMonth0Based = getMonth(systemDate);
@@ -333,6 +389,91 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
         if (stockAnalysisInfo?.InstitutionalSharePercent >= 85.0) baseScore -= 10; // Crowded basket selling penalty
         baseScore -= 15; // Global seasonal headwind cushion
     }
+
+
+    // =========================================================================
+    // 🏛️ NEW IMPLEMENTATION: THE TIME-AWARE MORNING PROBABILITY MATRIX
+    // =========================================================================
+    // const nyTime = toZonedTime(new Date(), 'America/New_York');
+    // const currentHour = getHours(nyTime);
+    // const currentMinute = getMinutes(nyTime);
+
+    // // Calculate exactly how many minutes have elapsed since the 09:30 AM opening bell
+    // const minutesElapsedSinceOpen = ((currentHour - 9) * 60) + (currentMinute - 30);
+
+    // // WE ENGAGE THESE FILTERS STRICTLY DURING THE MORNING AUCTION WINDOW (09:30 AM - 10:30 AM)
+    // if (minutesElapsedSinceOpen >= 0 && minutesElapsedSinceOpen <= 60)
+    // {
+
+    //     // 1. RECON A: THE POWER-HOUR REVERSAL TIME ALIGNMENT CHECK
+    //     const downSideMetrics = morningMetrics?.downSide;
+    //     if (downSideMetrics && downSideMetrics.averageTimeToBottom)
+    //     {
+    //         const targetHour = downSideMetrics.averageTimeToBottom.hour || 9;
+    //         const targetMin = downSideMetrics.averageTimeToBottom.minute || 42;
+    //         const targetMinutesSinceOpen = ((targetHour - 9) * 60) + (targetMin - 30);
+
+    //         // If the current regular session clock is within a tight 5-minute cushion of the historical low print time
+    //         const isInsideHistoricalReversalWindow = Math.abs(minutesElapsedSinceOpen - targetMinutesSinceOpen) <= 5;
+
+    //         if (isInsideHistoricalReversalWindow && downSideMetrics.reboundProbability >= 0.65)
+    //         {
+    //             baseScore += 15; // Award Power-Hour Time Alignment Bonus!
+    //         }
+    //     }
+
+    //     // 2. RECON B: HORIZONTAL EXTENT PROBABILITY SEGMENTATION
+    //     // If today's open price is down from yesterday, track your openL probability threshold
+    //     if (livePrice < todaysLiveCandles[0].OpenPrice && extentProb)
+    //     {
+    //         if (extentProb.openL >= 0.70)
+    //         {
+    //             baseScore += 10; // Award Opening Low Statistical Cushion Bonus
+    //         }
+    //     }
+
+    //     // 3. RECON C: THE 5-MINUTE CANDLE INTERVAL LOW PRINT PROBABILITY
+    //     // Calculate today's active 5-minute block index index (0 = 09:30, 1 = 09:35, 2 = 09:40...)
+    //     const activeFiveMinBlockIndex = Math.floor(minutesElapsedSinceOpen / 5);
+
+    //     if (extremeProbByFiveMin && extremeProbByFiveMin[activeFiveMinBlockIndex])
+    //     {
+    //         const liveBlockProbability = extremeProbByFiveMin[activeFiveMinBlockIndex].lowProb || 0;
+
+    //         if (liveBlockProbability >= 0.65)
+    //         {
+    //             baseScore += 20; // Award Statistical Floor Probability Multiplier!
+    //         }
+    //     }
+
+    //     // 4. RECON D: MORNING VOLUME VELOCITY RUNWAY COUNTER
+    //     if (morningVolumeMetrics && morningVolumeMetrics.avgDownTotalVolToFirstHour > 0)
+    //     {
+    //         // Calculate the total combined volume executed across today's session candles so far
+    //         const todaysRunningSessionVolume = todaysLiveCandles.reduce((sum, c) => sum + c.Volume, 0);
+
+    //         // If we are only 20 minutes into the session, but volume already clears 60% of the full first-hour norm
+    //         if (minutesElapsedSinceOpen <= 25 && todaysRunningSessionVolume >= (morningVolumeMetrics.avgDownTotalVolToFirstHour * 0.60))
+    //         {
+    //             baseScore += 15; // Award Volume Velocity Explosion Bonus!
+    //         }
+    //     }
+    // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     return baseScore;
 }
 
