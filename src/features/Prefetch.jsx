@@ -73,7 +73,6 @@ function Prefetch()
       {
         if (pollingClockRef.current) { clearInterval(pollingClockRef.current); }
 
-
         pollingClockRef.current = setInterval(() =>
         {
           const clock = getMarketTimeContext();
@@ -89,13 +88,13 @@ function Prefetch()
             {
               store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
             }, 45000)
-
           }
+
           manageDynamicIntervalLoop();
         }, targetIntervalMS);
       }
 
-      if (!isMorningPowerHour)
+      if (!isMorningPowerHour && !isWeekend)
       {
         if (!oneMinPollingClockRef.current)
         {
@@ -112,6 +111,20 @@ function Prefetch()
                 store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
               }, 45000)
             }
+          }, 60000)
+        }
+      } 
+      else if (isMorningPowerHour && !isWeekend)
+      {
+        if (!oneMinPollingClockRef.current)
+        {
+          oneMinPollingClockRef.current = setInterval(() =>
+          {
+            if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
+            tradeSyncTimeoutRef.current = setTimeout(() =>
+            {
+              store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
+            }, 45000)
           }, 60000)
         }
       } else
@@ -145,10 +158,7 @@ function Prefetch()
 
         liveSubscriptionRef = store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: timeContext.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true }))
         return liveSubscriptionRef.unwrap()
-
-
       })
-
       .then((data) =>
       {
         setIsSystemHydrated(true);

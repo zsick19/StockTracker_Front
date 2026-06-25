@@ -43,11 +43,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
 
                     let patternConfig
-                    // let threeTierResistance = []
                     let baseLineIndicators = {}
-
-
-
                     if (patternClassification === 'channel')
                     {
                         patternConfig = enterExit.plan.channelPattern
@@ -67,16 +63,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         patternConfig = enterExit.plan.cascadePattern
                         baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(patternConfig, regularSessionCandles)
                     }
-
-                    // if (patternClassification === 'channel' && enterExit.plan.channelPattern.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
-                    // {
-                    //     threeTierResistance = compileThreeTierPennyResistance(patternConfig, regularSessionCandles)
-                    // } else
-                    // {
-                    //     threeTierResistance = compileThreeTierOverheadResistance(patternConfig, regularSessionCandles)
-                    // }
                     patternConfig.maintainLiveCandles = enterExit.plan?.maintainLiveCandles === true
                     patternConfig.patternClassification = patternClassification
+
 
 
                     let planConfig = {}
@@ -92,11 +81,14 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     planConfig.dailyCalculatedValues = enterExit.plan.dailyTickerValues
 
 
+
                     let metricConfig = {}
                     metricConfig.extentProb = enterExit.plan.extentProb
                     metricConfig.morningMetrics = enterExit.plan.morningMetrics
                     metricConfig.morningVolume = enterExit.plan.morningVolumeMetrics
                     metricConfig.extremeProbByFiveMin = enterExit.plan.extremeProbByFiveMin
+                    metricConfig.vpSupportResistance = enterExit.plan.volumeProfileMetrics
+         
 
 
                     let currentPriceStats = {}
@@ -112,33 +104,10 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     currentPriceStats.with1000DollarsCurrentRisk = (enterExitPlanPrices.stopLossPrice - mostRecentPrice) * currentPriceStats.sharesToBuyWith1000DollarsCurrent
 
 
+
                     let tradeTapeConfig = {}
                     if (enterExit.tradeData) tradeTapeConfig.liveTapeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
                     else tradeTapeConfig.liveTapeMetrics = undefined
-
-                    // const currentTime = new Date()
-                    // tradeDetails.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
-                    // tradeDetails.percentFromEnter = ((enterExit.plan.plan.enterPrice - tradeDetails.mostRecentPrice) / enterExit.plan.enterPrice) * 100
-                    // tradeDetails.todayOpenPrice = stockTradeData.DailyBar.OpenPrice
-
-                    // function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
-                    // let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
-                    // enterExit.priceVsPlanUponFetch = priceVsPlan
-                    // enterExit.listChange = false
-
-                    // if (!enterExit?.watchForTomorrow) enterExit.watchForTomorrow = null
-                    // if (!enterExit?.updateNeededDate) enterExit.updateNeededDate = null
-                    // if (!enterExit?.relevantHighs) enterExit.relevantHighs = []
-                    // if (!enterExit?.relevantLows) enterExit.relevantLows = []
-                    // if (!enterExit?.institutionalPricePoints) enterExit.institutionalPricePoints = []
-
-                    // if (!enterExit?.checkOffCriteria)
-                    // {
-                    //     enterExit.checkOffCriteria = {vpCheck: false, rsiCheck: false, macdCheck: false,
-                    //         stochasticCheck: false, vortexCheck: false, volCheck: false, emaCheck: false }
-                    // }
-
-
 
                     return {
                         id: enterExit.plan.tickerSymbol,
@@ -157,8 +126,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             auditedRollingVolume: 0,
                             liveTicksPerSecond: 0.0,
 
-                            // overheadResistanceShelves: threeTierResistance,
-
                             staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
                             ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
                             isChannelHeightViable: baseLineIndicators?.isChannelHeightViable || false,
@@ -174,43 +141,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     }
                 })
 
-                // const currentTime = new Date()
-                // tradeDetails.currentDayPercentGain = (currentTime < target.getUTCDate() ? 0 : ((enterExit.mostRecentPrice - enterExit.yesterdayClose) / enterExit.yesterdayClose) * 100)
-
-
-                // tradeDetails.percentFromEnter = ((enterExit.plan.plan.enterPrice - tradeDetails.mostRecentPrice) / enterExit.plan.enterPrice) * 100
-                // tradeDetails.trackingDays = differenceInBusinessDays(today, new Date(enterExit.plan.dateAdded))
-                // tradeDetails.todayOpenPrice = stockTradeData.DailyBar.OpenPrice
-                // enterExit.currentRiskVReward = {
-                //     risk: ((enterExit.mostRecentPrice - enterExit.plan.stopLossPrice) * 100 / enterExit.mostRecentPrice),
-                //     reward: ((enterExit.plan.exitPrice - enterExit.mostRecentPrice) * 100 / enterExit.mostRecentPrice),
-                // }
-                // let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / enterExit.mostRecentPrice)
-                // enterExit.with1000DollarsCurrentGain = (enterExit.plan.exitPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
-                // enterExit.with1000DollarsCurrentRisk = (enterExit.plan.stopLossPrice - enterExit.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
-                // function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
-
-                // let priceVsPlan = getInsertionIndexLinear([enterExit.plan.stopLossPrice, enterExit.plan.enterPrice, enterExit.plan.enterBufferPrice], stockTradeData.LatestTrade.Price)
-                // enterExit.priceVsPlanUponFetch = priceVsPlan
-                // enterExit.listChange = false
-                // if (!enterExit?.watchForTomorrow) enterExit.watchForTomorrow = null
-                // if (!enterExit?.updateNeededDate) enterExit.updateNeededDate = null
-                // if (!enterExit?.relevantHighs) enterExit.relevantHighs = []
-                // if (!enterExit?.relevantLows) enterExit.relevantLows = []
-                // if (!enterExit?.institutionalPricePoints) enterExit.institutionalPricePoints = []
-
-
-                // if (!enterExit?.with1000DollarsIdealGain)
-                // {
-                //     let sharesToBuyWith1000DollarsIdeal = Math.floor(1000 / enterExit.plan.enterPrice)
-                //     enterExit.with1000DollarsIdealGain = (enterExit.plan.exitPrice - enterExit.plan.enterPrice) * sharesToBuyWith1000DollarsIdeal
-                // }
-
-                // if (!enterExit?.checkOffCriteria)
-                // {
-                //     enterExit.checkOffCriteria = {vpCheck: false, rsiCheck: false, macdCheck: false,
-                //         stochasticCheck: false, vortexCheck: false, volCheck: false, emaCheck: false }
-                // }
 
                 let macroResults = []
                 if (responseData?.macros) macroResults = responseData.macros.map((macroPlan) =>
@@ -235,6 +165,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         mostRecentPrice: macroPlan.snapShot.LatestTrade.Price
                     }
                 })
+
 
                 return {
                     plans: enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), planResults),
@@ -399,18 +330,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 }
 
 
-
-                // let sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / entityToUpdate.mostRecentPrice)
-                // entityToUpdate.with1000DollarsCurrentGain = (entityToUpdate.plan.exitPrice - entityToUpdate.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
-                // entityToUpdate.with1000DollarsCurrentRisk = (entityToUpdate.plan.stopLossPrice - entityToUpdate.mostRecentPrice) * sharesToBuyWith1000DollarsCurrent
-
-                // function getInsertionIndexLinear(arr, num) { for (let i = 0; i < 3; i++) { if (arr[i] >= num) { return i; } } return 3; }
-                // let priceVsPlan = getInsertionIndexLinear([entityToUpdate.plan.stopLossPrice, entityToUpdate.plan.enterPrice, entityToUpdate.plan.enterBufferPrice], data.tradePrice)
-                // if (!entityToUpdate.listChange && priceVsPlan !== entityToUpdate.priceVsPlanUponFetch)
-                //     entityToUpdate.listChange = true
-
-
-
                 try
                 {
                     await cacheDataLoaded
@@ -450,17 +369,12 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         {
                             if (!draft.plans.entities[symbol]) return
                             let liveCandles = freshCandleData.planData[symbol]
-                            console.log(liveCandles.length)
                             if (!liveCandles || liveCandles.length === 0) return
+
                             const cleanCandlesToday = filterRegularSessionCandles(liveCandles)
-
                             draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
-                            console.log(draft.plans.entities[symbol].todaysCandles)
 
-                            if (draft.plans.entities[symbol].maintainLiveCandles)
-                            {
-                                draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
-                            } else if (args.oneMinOrFivMinBars === 'regularSession')
+                            if (draft.plans.entities[symbol].maintainLiveCandles || args.oneMinOrFivMinBars === 'regularSession')
                             {
                                 draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
                             } else
@@ -518,29 +432,28 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         if (freshCandleData?.planData) Object.keys(freshCandleData.planData).forEach(symbol =>
                         {
                             if (!draft.plans.entities[symbol]) return
+
                             let liveCandles = freshCandleData.planData[symbol]
                             if (!liveCandles || liveCandles.length === 0) return
                             const cleanCandlesToday = filterRegularSessionCandles(liveCandles)
 
                             draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
-
-                            const currentHistoric = draft.plans.entities[symbol].historicCandle
-
-                            draft.plans.entities[symbol].combinedCandleData = [...currentHistoric, ...cleanCandlesToday]
+                            draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
                         })
 
                         if (freshCandleData?.macroData) Object.keys(freshCandleData.macroData).forEach(symbol =>
                         {
-
                             if (!draft.macros.entities[symbol]) return
+
                             let liveCandles = freshCandleData.macroData[symbol]
                             if (!liveCandles || liveCandles.length === 0) return
                             const cleanCandlesToday = filterRegularSessionCandles(liveCandles)
                             draft.macros.entities[symbol].todaysCandles = cleanCandlesToday
-                            const compiled5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
 
+                            const compiled5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
                             let combinedCandleData = [...(draft.macros.entities[symbol].historicCandle || []), ...compiled5MinCandles]
                             draft.macros.entities[symbol].combinedCandleData = combinedCandleData
+
                             const updatedMACDMetrics = calculateMacroThirtyMinMacd(combinedCandleData)
 
                             draft.macros.entities[symbol].macroTideSentry = {
