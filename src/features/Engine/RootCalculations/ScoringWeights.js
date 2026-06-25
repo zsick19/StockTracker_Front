@@ -24,12 +24,29 @@ export const SCORING_WEIGHTS = {
 
     // 3. StockAnalysis Pre-Market Catalysts & Extended Layout Features
     stockSpecificCatalysts: {
-        highRelativeVolumeBonus: 10,       // Relative Volume >= 2.0
-        positionInRangeTopBonus: 10,       // Position in Range (%) >= 90% (Blue-sky runway)
-        largeCapInstitutionalBonus: 5,      // MarketCap >= $10 Billion (Highly institutional order depth)
-        extremeOversoldReversalBonus: 10,  // DailyRsi <= 30.0 inside a horizontal channel support entry
-        preMarketStructureValidation: 5,   // Today's pre-market block volume matches historical patterns
-        earningsCircuitBreakerScore: 0     // Hard overwrite that completely zeros out final score if earnings is live
+        // A. Pure Volume & Supply Consensus Dynamics
+        highRelativeVolumeBonus: 10,       // Relative Volume >= 2.0 (Institutional volume confirmation)
+        lowRelativeVolumePenalty: -15,     // Relative Volume <= 0.5 (Complete lack of institutional interest)
+        lowFloatSqueezeBonus: 15,          // Shares Float <= 50M AND Short % Float >= 15% (Low supply powder keg)
+        shortRatioDaysToCoverBonus: 10,    // Short Ratio >= 5.0 days (High time-friction short covering tailwind)
+        aggressiveCrowdedSharesShortBonus: 10, // Short % Shares >= 12% (Shorts aggressively blocking insider supply)
+
+        // B. Price Extensions, Gaps, & Range Topology Boundaries
+        gapTrapReversalPenalty: -20,       // Days Gap (%) <= -3.0% (Indicates severe overnight liquidation)
+        positionInRangeTopBonus: 10,       // Position in Range (%) >= 90% (Blue-sky runway breakout)
+        structuralWeaknessPenalty: -15,    // Position in Range (%) <= 15% (Trapped at 52-week lows; tax-loss selling)
+        coiledPullbackBonus: 15,           // Price trading above 200 MA, but within a tight 2% cushion of 20 MA line
+        extremeOversoldReversalBonus: 10,  // DailyRsi <= 30.0 (High-probability short-term capitulation exhaustion)
+
+        // C. Corporate Risk, Liquidity Frameworks, & Market Caps
+        largeCapInstitutionalBonus: 5,     // MarketCap >= $10 Billion (Highly institutional, clean order book depth)
+        microCapSlippagePenalty: -10,      // MarketCap < $250 Million (High slippage risk, thin order books)
+        illiquidStructurePenalty: -15,     // HasOptions === false (Lacks derivative pinning/hedging mechanics)
+        preMarketStructureValidation: 5,   // PreMarket Volume / PreMarket % Change matches historical patterns
+        earningsCircuitBreakerScore: 0,    // Hard circuit breaker that zeros out score on live earnings days
+        preEarningsQuietWindowPenalty: -15, // Next Earnings Date is <= 5 trading days away (Block size freeze)
+        week52LowLiquidationPenalty: -20,     // Shares Change (YoY) <= -15.0% (Severe institutional fund desertion)
+        crowdedRebalancingRiskPenalty: -10 // Shares Institutions >= 85% during end-of-quarter rebalancing weeks
     },
 
     // 4. Time-of-Day Morning & Afternoon Probability Extensions
