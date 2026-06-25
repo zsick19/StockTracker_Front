@@ -16,6 +16,8 @@ import { calculateCentralPlanScore } from "./RootCalculations/masterPrioritizer"
 import { processAuthoritativeTradesArray } from "./RootCalculations/TradeBookAnalytics/processAuthoritativeTrade";
 import { macroAndSectorTickers } from "../../Utilities/SectorsAndIndustries";
 import { symbol } from "d3";
+import { compileThreeTierPennyResistance } from "./RootCalculations/HistoricalCandleAnalytics/compilePennyStockOverheadResistance";
+import { compileThreeTierOverheadResistance } from "./RootCalculations/HistoricalCandleAnalytics/compileOverheadResistance";
 
 
 const { getWebSocket, subscribe, unsubscribe, checkStreamAuthorization } = setupWebSocket();
@@ -41,7 +43,11 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
 
                     let patternConfig
+                    let threeTierResistance = []
                     let baseLineIndicators = {}
+
+
+
                     if (patternClassification === 'channel')
                     {
                         patternConfig = enterExit.plan.channelPattern
@@ -61,8 +67,17 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         patternConfig = enterExit.plan.cascadePattern
                         baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(patternConfig, regularSessionCandles)
                     }
+
+                    if (patternClassification === 'channel' && enterExit.plan.channelPattern.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
+                    {
+                        threeTierResistance = compileThreeTierPennyResistance(patternConfig, regularSessionCandles)
+                    } else
+                    {
+                        threeTierResistance = compileThreeTierOverheadResistance(patternConfig, regularSessionCandles)
+                    }
                     patternConfig.maintainLiveCandles = enterExit.plan?.maintainLiveCandles === true
                     patternConfig.patternClassification = patternClassification
+
 
                     let planConfig = {}
                     planConfig.trackingDays = differenceInBusinessDays(new Date(), new Date(enterExit.plan.dateAdded))
@@ -141,6 +156,8 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
                             auditedRollingVolume: 0,
                             liveTicksPerSecond: 0.0,
+
+                            overheadResistanceShelves: threeTierResistance,
 
                             staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
                             ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
