@@ -14,7 +14,7 @@ import { compileHistoricalContinuationBaselines } from "./RootCalculations/Histo
 
 import { calculateCentralPlanScore } from "./RootCalculations/masterPrioritizer";
 import { processAuthoritativeTradesArray } from "./RootCalculations/TradeBookAnalytics/processAuthoritativeTrade";
-import { macroAndSectorTickers } from "../../Utilities/SectorsAndIndustries";
+import { macroAndSectorTickers, sectorToTicker } from "../../Utilities/SectorsAndIndustries";
 import { symbol } from "d3";
 import { compileThreeTierPennyResistance } from "./RootCalculations/HistoricalCandleAnalytics/compilePennyStockOverheadResistance";
 import { compileThreeTierOverheadResistance } from "./RootCalculations/HistoricalCandleAnalytics/compileOverheadResistance";
@@ -88,7 +88,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     metricConfig.morningVolume = enterExit.plan.morningVolumeMetrics
                     metricConfig.extremeProbByFiveMin = enterExit.plan.extremeProbByFiveMin
                     metricConfig.vpSupportResistance = enterExit.plan.volumeProfileMetrics
-         
+
 
 
                     let currentPriceStats = {}
@@ -560,15 +560,16 @@ export const selectPrioritizedWatchlist = createSelector(
 
         // // Isolate your SPY macro tide constants cleanly out of your index dictionary
         const liveSpyPlan = macroEntities['SPY']
+        const liveRSPPlan = macroEntities['RSP']
 
 
         const scoredWatchlistArray = stockIds.map(id =>
         {
             const planEntity = stockEntities[id];
             if (!planEntity) return null;
-
+            let liveSectorPlan = macroEntities[sectorToTicker(planEntity.planConfig.sector)]
             // // Execute your Tier 1 and Tier 2 matrix scoring rules in mid-air!
-            const centralScoreProfile = calculateCentralPlanScore(planEntity, liveSpyPlan);
+            const centralScoreProfile = calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan);
 
             return {
                 // ...planEntity,
