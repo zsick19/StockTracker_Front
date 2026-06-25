@@ -43,7 +43,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
 
                     let patternConfig
-                    let threeTierResistance = []
+                    // let threeTierResistance = []
                     let baseLineIndicators = {}
 
 
@@ -68,13 +68,13 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(patternConfig, regularSessionCandles)
                     }
 
-                    if (patternClassification === 'channel' && enterExit.plan.channelPattern.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
-                    {
-                        threeTierResistance = compileThreeTierPennyResistance(patternConfig, regularSessionCandles)
-                    } else
-                    {
-                        threeTierResistance = compileThreeTierOverheadResistance(patternConfig, regularSessionCandles)
-                    }
+                    // if (patternClassification === 'channel' && enterExit.plan.channelPattern.channelType === "SUB_ENGINE_PENNY_STOCK_SCALP")
+                    // {
+                    //     threeTierResistance = compileThreeTierPennyResistance(patternConfig, regularSessionCandles)
+                    // } else
+                    // {
+                    //     threeTierResistance = compileThreeTierOverheadResistance(patternConfig, regularSessionCandles)
+                    // }
                     patternConfig.maintainLiveCandles = enterExit.plan?.maintainLiveCandles === true
                     patternConfig.patternClassification = patternClassification
 
@@ -157,7 +157,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             auditedRollingVolume: 0,
                             liveTicksPerSecond: 0.0,
 
-                            overheadResistanceShelves: threeTierResistance,
+                            // overheadResistanceShelves: threeTierResistance,
 
                             staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
                             ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
