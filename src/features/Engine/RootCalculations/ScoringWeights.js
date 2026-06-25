@@ -7,7 +7,7 @@ export const SCORING_WEIGHTS = {
     // =========================================================================
     // TIER 1: THE GLOBAL BASE ENVIRONMENT MATRIX (MAX 50 COLD POINTS)
     // =========================================================================
-    
+
     // 1. Core Intraday Order-Flow Metrics 
     orderFlow: {
         clvMildBounce: 10,                 // Price closed in lower-middle wick tier (CLV >= 0.30)
@@ -74,21 +74,21 @@ export const SCORING_WEIGHTS = {
             volumetricClimaxMatch: 15,     // Live price trading below yesterday's historical volume climax bar high
             descentVelocityDecel: 10       // Today's intraday cascade speed is lower than trailingDescentVelocity
         },
-        
+
         // TOOL 2: THE HORIZONTAL CHANNEL (LARGE-CAP / STANDARD STOCKS)
         standardChannel: {
             insideStrikeBufferBonus: 25,   // Price sitting between entryStrikeBuffer and channelBottom
             floorSweepReclaimBonus: 15,    // Live lower wicks swept beneath channelBottom and closed back above
             asymmetricRunwayBonus: 10      // Immediate overhead resistance shelf is rated "MILD_VELOCITY_SHELF"
         },
-        
+
         // TOOL 2: THE PENNY STOCK CHANNEL SCALPER (1-MINUTE HIGH VELOCITY TAPE)
         pennyChannel: {
             insideStrikeBufferBonus: 25,   // Price sitting inside the high-resolution buying buffer bracket
             stopRunReclaimBonus: 15,       // A 1-minute lower wick sweeps beneath channelBottom and instantly reclaims it
             volumetricAbsorptionWall: 10   // Active 1-minute candle volume >= 3.5x baselineAvgOneMinVolume
         },
-        
+
         // TOOL 4: THE CONTINUATION MOMENTUM
         continuation: {
             triggerBreachBonus: 25,        // Price programmatically crosses above tomorrowEntryTriggerPrice
@@ -96,5 +96,12 @@ export const SCORING_WEIGHTS = {
             coiledPullbackBonus: 10,       // Live price floats within a tight 2% cushion above its 20 MA line
             trailingStopBreachPenalty: -50  // Price falls beneath trailingInvalidationStopPrice (Hard Failure)
         }
+    },
+
+    // 6. OPTIONS EXPECTED MOVE BOUNDARY DYNAMICS (2-3 DAY SWING CYCLES)
+    optionsExpectedMoves: {
+        earlyCycleWeeklyLowerSDPenalty: -15, // Testing weekly lower limits on Monday/Tuesday (High continuation risk)
+        lateCycleWeeklyLowerSDPinBonus: 20,  // Testing weekly lower limits on Thursday/Friday (High short-covering pin probability)
+        dualExpectedMoveExhaustion: 20       // Price breaches weekly expected low AND hits daily implied low simultaneously
     }
 };
