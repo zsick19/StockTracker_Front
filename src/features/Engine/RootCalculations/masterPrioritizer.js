@@ -6,145 +6,6 @@ import { processStandardChannelLiveDelta } from './IntraDayAnalytics/channelIntr
 import { getDay, getMonth, getDate, differenceInMinutes, getHours, getMinutes } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
-// /**
-//  * TIER 1: CORE BASE ENVIRONMENT SCORER
-//  * Computes all shared macro indicators, systemic options gates, and pre-market 
-//  * catalysts completely on-the-fly inside your browser's memory.
-//  */
-// function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan)
-// {
-//     let baseScore = 0;
-
-//     const { dailyCalculatedValues, correlationValues, spyBetaValue } = planEntity.planConfig;
-//     const { optionsExpectedMoves } = planEntity;
-//     if (!todaysLiveCandles || todaysLiveCandles.length === 0) return 0;
-
-//     const currentCandle = todaysLiveCandles[todaysLiveCandles.length - 1];
-//     const livePrice = currentCandle.ClosePrice;
-
-//     // =========================================================================
-//     // 🛡️ SECTION A: INTRADAY TAPE ORDER-FLOW MATRIX
-//     // =========================================================================
-//     const liveHigh = Math.max(...todaysLiveCandles.map(c => c.HighPrice));
-//     const liveLow = Math.min(...todaysLiveCandles.map(c => c.LowPrice));
-//     const liveSpread = liveHigh - liveLow;
-//     const liveClv = liveSpread === 0 ? -1 : ((livePrice - liveLow) - (liveHigh - livePrice)) / liveSpread;
-
-//     // Track active wick reclaims and opening session baseline crosses
-//     if (liveClv >= 0.30) baseScore += W.orderFlow.clvMildBounce;
-//     if (liveClv >= 0.65) baseScore += W.orderFlow.clvExtremeBounce;
-//     if (livePrice > todaysLiveCandles[0].OpenPrice) baseScore += W.orderFlow.priceAboveOpen;
-
-//     // =========================================================================
-//     // 🧲 SECTION B: TECHNICAL HOURLY & DAILY LINES
-//     // =========================================================================
-//     const staticMetrics = planEntity.liveAuctionMetrics; // Pulls constants attached on boot
-//     if (dailyCalculatedValues && dailyCalculatedValues.ema50)
-//     {
-//         const distanceToEmaPct = Math.abs(livePrice - dailyCalculatedValues.ema50) / dailyCalculatedValues.ema50;
-
-//         if (distanceToEmaPct <= 0.0035)
-//         {
-//             baseScore += W.structuralMagnets.emaSupportProximity;
-//         } else if (livePrice < (staticMetrics.ema50Line * 0.99))
-//         {
-//             baseScore += W.structuralMagnets.emaTrendBrokenPenalty; // Apply trailing penalty
-//         }
-//     }
-
-//     // =========================================================================
-//     // 🚨 SECTION C: SYSTEMIC BROAD MARKET GAMMA GATES (SPY FILTERS)
-//     // =========================================================================
-//     if (liveSpyPlan && dailyCalculatedValues && correlationValues)
-//     {
-
-//         // If the broad index breaks below its daily Gamma Flip line, toggle volatility gates
-//         const isMarketInNegativeGammaRegime = liveSpyPlan.mostRecentPrice < liveSpyPlan.planData.gammaFlip;
-
-//         if (isMarketInNegativeGammaRegime)
-//         {
-//             const stockBeta = spyBetaValue || 1.0;
-//             const broadCorrelation = correlationValues.SPY?.correlation90Day || 0;
-
-//             if (stockBeta >= 1.40 && broadCorrelation >= 0.70)
-//             {
-//                 baseScore += W.systemicGammaGates.highBetaVulnerabilityPenalty; // Severe -40 pass
-//             } else if (correlationValues.SPY?.isCurrentlyDecoupled || stockBeta <= 0.85)
-//             {
-//                 baseScore += W.systemicGammaGates.idiosymmetricSafeHavenBonus; // Reward defensive names
-//             }
-
-//             if (planEntity.patternClassification === "continuation")
-//             {
-//                 baseScore += W.systemicGammaGates.momentumContinuationRiskPenalty;
-//             }
-//         }
-//     }
-
-//     // =========================================================================
-//     // 📊 SECTION D: PRE-MARKET CATALYSTS & STOCKANALYSIS STRUCTURAL DATA
-//     // =========================================================================
-//     if (planEntity.stockInfo)
-//     {
-//         if (planEntity.stockInfo.RelativeVolume >= 2.0) baseScore += W.stockSpecificCatalysts.highRelativeVolumeBonus;
-//         else if (planEntity.stockInfo.RelativeVolume <= 0.5) baseScore += W.stockSpecificCatalysts.lowRelativeVolumePenalty;
-
-//         if (planEntity.stockInfo.DaysGapPercent <= -3.0) baseScore += W.stockSpecificCatalysts.gapTrapReversalPenalty;
-//         if (planEntity.stockInfo.PositionInRangePercent >= 90.0) baseScore += W.stockSpecificCatalysts.positionInRangeTopBonus;
-//     }
-
-//     // =========================================================================
-//     // ⏱️ SECTION E: BROAD MARKET OPTION EXPECTED MOVE CYCLES
-//     // =========================================================================
-//     if (liveSpyPlan && liveSpyPlan?.weeklyEM)
-//     {
-//         const weeklyPutWall = optionsExpectedMoves.weeklyEM?.iVolWeeklyEMLower;
-//         const isSpyAtWeeklyWall = Math.abs(liveSpyPlan.mostRecentPrice - weeklyPutWall) / weeklyPutWall <= 0.0015;
-
-//         if (isSpyAtWeeklyWall)
-//         {
-//             const currentDayIndex = getDay(new Date());
-//             // Check day-of-week decay weighting (Monday/Tuesday vs Thursday/Friday)
-//             if (currentDayIndex === 1 || currentDayIndex === 2)
-//             {
-//                 baseScore += W.optionsExpectedMoves.earlyCycleWeeklyLowerSDPenalty;
-//             } else if (currentDayIndex === 4 || currentDayIndex === 5)
-//             {
-//                 baseScore += W.optionsExpectedMoves.lateCycleWeeklyLowerSDPinBonus;
-//             }
-//         }
-//     }
-
-
-
-//     // =========================================================================
-//     // ⏱️ SECTION F: SUPPORT/RESISTANCE SHELVES 
-//     // =========================================================================
-//     // const supportShelves = planEntity.staticPreCompiledIndicators?.underlyingSupportShelves || [];
-//     // // Look up if today's price is currently drifting down into a known support shelf
-//     // const immediateSupportFloorBelow = supportShelves.find(shelf => shelf.priceLevel < livePrice);
-
-//     // if (immediateSupportFloorBelow)
-//     // {
-//     //     if (immediateSupportFloorBelow.frictionRating === "HIGH_CRITICAL_CLIFF")
-//     //     {
-//     //         // TODAY'S DRIFT IS CONTROLLED: A massive institutional buy cluster is sitting directly beneath the asset!
-//     //         // Maintain a neutral or slightly positive modifier to prevent emotional stop outs.
-//     //         baseEnvironmentScore += 10;
-//     //     } else if (immediateSupportFloorBelow.frictionRating === "MILD_VELOCITY_SHELF")
-//     //     {
-//     //         // LIQUIDITY VACUUM WARNING: The shelf below is paper-thin. 
-//     //         // If the current support cracks, the stock will free-fall rapidly to the next tier node.
-//     //         // Penalize the score heavily to act as an early protective risk warning!
-//     //         baseEnvironmentScore -= 15;
-//     //     }
-//     // }
-//     return baseScore;
-// }
-
-
-
-
 /**
  * @param {Object} planEntity - Fully hydrated stock plan object from your entity adapter cache
  * @param {Array} todaysLiveCandles - Today's streaming regular session candle array [INDEX]
@@ -368,8 +229,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
 /**
  * @param {Object} planEntity - Fully hydrated stock plan object from your entity adapter cache
  * @param {Array} todaysLiveCandles - Today's streaming regular session candle array [INDEX]
- * @param {Object} liveSpyPlan - The live macro Sentry metadata block from your macro store
- * @param {Object} macroEntities - The raw macro market entity adapter dictionary [INDEX]
  * @returns {number} The finalized cumulative Base Environment Score (Max 50 points base layout)
  */
 export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
@@ -402,14 +261,14 @@ export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
             // If the current regular session clock is within a tight 5-minute cushion of the historical low print time
             const isInsideHistoricalReversalWindow = Math.abs(minutesElapsedSinceOpen - targetMinutesSinceOpen) <= 5;
 
-            if (isInsideHistoricalReversalWindow && downSideMetrics.reboundProbability >= 0.65) baseScore += 15; // Award Power-Hour Time Alignment Bonus!
+            if (isInsideHistoricalReversalWindow && downSideMetrics.reboundProbability >= 0.65) timeScore += 15; // Award Power-Hour Time Alignment Bonus!
         }
 
         // 2. RECON B: HORIZONTAL EXTENT PROBABILITY SEGMENTATION
         // If today's open price is down from yesterday, track your openL probability threshold
         if (planEntity.mostRecentPrice < todaysLiveCandles[0].OpenPrice && extentProb)
         {
-            if (extentProb.openL >= 0.70) baseScore += 10; // Award Opening Low Statistical Cushion Bonus
+            if (extentProb.openL >= 0.70) timeScore += 10; // Award Opening Low Statistical Cushion Bonus
         }
 
         // 3. RECON C: THE 5-MINUTE CANDLE INTERVAL LOW PRINT PROBABILITY
@@ -418,7 +277,7 @@ export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
         if (extremeProbByFiveMin && extremeProbByFiveMin[activeFiveMinBlockIndex])
         {
             const liveBlockProbability = extremeProbByFiveMin[activeFiveMinBlockIndex].lowProb || 0;
-            if (liveBlockProbability >= 0.65) baseScore += 20; // Award Statistical Floor Probability Multiplier!
+            if (liveBlockProbability >= 0.65) timeScore += 20; // Award Statistical Floor Probability Multiplier!
         }
 
         // 4. RECON D: MORNING VOLUME VELOCITY RUNWAY COUNTER
@@ -429,10 +288,53 @@ export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
             // If we are only 20 minutes into the session, but volume already clears 60% of the full first-hour norm
             if (minutesElapsedSinceOpen <= 25 && todaysRunningSessionVolume >= (morningVolumeMetrics.avgDownTotalVolToFirstHour * 0.60))
             {
-                baseScore += 15; // Award Volume Velocity Explosion Bonus!
+                timeScore += 15; // Award Volume Velocity Explosion Bonus!
             }
         }
     }
+
+    // =========================================================================
+    // 🥪 PHASE 2: THE MIDDAY LUNCHTIME CHURN CAGE (11:30 AM - 01:30 PM)
+    // =========================================================================
+    // Minutes Elapsed: 11:30 AM = 120 mins | 01:30 PM = 240 mins
+    else if (minutesElapsedSinceOpen >= 120 && minutesElapsedSinceOpen <= 240)
+    {
+        // Severe penalty applied because institutional liquidity vanishes. 
+        // Breakout continuations will fake out, and mean-reversion channels will break lower.
+        timeModifier -= 20;
+
+        // Cross-check your whole-day trading stats from your schema mapping entries
+        if (extentProb)
+        {
+            // If the stock's midday low probability is weak, increase the penalty safely
+            if (extentProb.midL <= 0.35) timeModifier -= 5;
+        }
+    }
+    // =========================================================================
+    // ⚡ PHASE 3: THE AFTERNOON CLOSING POWER HOUR (03:00 PM - 04:00 PM)
+    // =================────────────────────────────────────────────────────────
+    // Minutes Elapsed: 03:00 PM = 330 mins | 04:00 PM = 390 mins
+    else if (minutesElapsedSinceOpen >= 330 && minutesElapsedSinceOpen <= 390)
+    {
+        // Inward institutional volume returns to execute market-on-close (MOC) allocations
+        timeModifier += W.structuralMagnets.powerHourTimeBonus; // Award +15 Points Power Hour Bonus
+
+        if (extentProb)
+        {
+            // If today's price is positive, check if the stock tends to close near its high
+            if (livePrice > sessionOpenPrice && extentProb.closeH >= 0.70)
+            {
+                timeModifier += 10; // Boost score for high-probability closing runners
+            }
+            // If running a mean-reversion play, verify the close-low historical cushion
+            else if (livePrice < sessionOpenPrice && extentProb.closeL >= 0.65)
+            {
+                timeModifier += 10;
+            }
+        }
+    }
+
+    return timeScore
 }
 
 
