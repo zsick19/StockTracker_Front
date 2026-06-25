@@ -113,6 +113,31 @@ function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, live
             }
         }
     }
+
+
+
+    // =========================================================================
+    // ⏱️ SECTION F: SUPPORT/RESISTANCE SHELVES 
+    // =========================================================================
+    // const supportShelves = planEntity.staticPreCompiledIndicators?.underlyingSupportShelves || [];
+    // // Look up if today's price is currently drifting down into a known support shelf
+    // const immediateSupportFloorBelow = supportShelves.find(shelf => shelf.priceLevel < livePrice);
+
+    // if (immediateSupportFloorBelow)
+    // {
+    //     if (immediateSupportFloorBelow.frictionRating === "HIGH_CRITICAL_CLIFF")
+    //     {
+    //         // TODAY'S DRIFT IS CONTROLLED: A massive institutional buy cluster is sitting directly beneath the asset!
+    //         // Maintain a neutral or slightly positive modifier to prevent emotional stop outs.
+    //         baseEnvironmentScore += 10;
+    //     } else if (immediateSupportFloorBelow.frictionRating === "MILD_VELOCITY_SHELF")
+    //     {
+    //         // LIQUIDITY VACUUM WARNING: The shelf below is paper-thin. 
+    //         // If the current support cracks, the stock will free-fall rapidly to the next tier node.
+    //         // Penalize the score heavily to act as an early protective risk warning!
+    //         baseEnvironmentScore -= 15;
+    //     }
+    // }
     return baseScore;
 }
 
@@ -155,6 +180,12 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan)
     {
         patternSpecificScore = processCascadeLiveDelta(planEntity, todaysLiveCandles);
     }
+
+
+
+
+
+
 
     // ─────────────────────────────────────────────────────────────────────────
     // STEP C: MERGE AND FINALIZE ALPHA CONVICTION PERCENTAGE [INDEX]
