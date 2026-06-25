@@ -19,7 +19,7 @@ export function processStandardChannelLiveDelta(planEntity, todaysLiveCandles)
     // Hard Sentry Gate: Price must stay inside your lower buying corridor bracket
     if (livePrice > entryStrikeBuffer || livePrice < channelBottom) return 0;
 
-    let liveCumulativeScore = W.patterns.channel.insideStrikeBufferBonus; // +25 Base Points
+    let liveCumulativeScore = W.patterns.standardChannel.insideStrikeBufferBonus; // +25 Base Points
 
     // 1. Evaluate your pre-compiled historical support density backing
     if (metrics.staticHistoryTouchCount >= 4 && metrics.isChannelHeightViable)

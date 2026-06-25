@@ -3,7 +3,7 @@ import { processPennyChannelLiveDelta } from './IntraDayAnalytics/pennyStockIntr
 import { processCascadeLiveDelta } from './IntraDayAnalytics/cascadeIntraDayCalc';
 import { processContinuationLiveDelta } from './IntraDayAnalytics/continuationIntraDayCalc';
 import { processStandardChannelLiveDelta } from './IntraDayAnalytics/channelIntraDayCalc';
-import { getDay, getMonth, getDate, differenceInMinutes, getHours, getMinutes } from 'date-fns';
+import { isWithinInterval, parse, format, subMinutes, addMinutes, getDay, getMonth, getDate, differenceInMinutes, getHours, getMinutes } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
 /**
@@ -150,8 +150,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
                 baseScore += 15; // Coiled Pullback Bonus
             }
         }
-
-
     }
 
 
@@ -340,10 +338,6 @@ export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
 
 
 
-import { getMonth, getDate, getMinutes, getHours, isWithinInterval, parse, format, subMinutes, addMinutes } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
-import { SCORING_WEIGHTS as W } from './scoringWeights';
-
 /**
  * PRODUCTION RISK SENTRY: Systemic Macro Deductions Compiler.
  * Aggregates all active corporate, cyclical, options-driven, and broad index 
@@ -521,34 +515,11 @@ export function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, li
 }
 
 
-
-
-/**
- * CENTRAL MASTER COMPILER ROUTER
- * Invoked continuously by your child UI layout panels to aggregate the complete score.
- */
-export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan)
+export function compilePatternSpecificScore(planEntity, todaysLiveCandles)
 {
-    const patternClassification = planEntity.patternConfig.patternClassification;
-    const todaysLiveCandles = planEntity.todaysCandles
-    // Gating check: Default to 0% score if polling arrays are empty
-    if (!todaysLiveCandles || todaysLiveCandles.length === 0) { return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM", metrics: {} }; }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // STEP A: COMPUTE THE SHARED BASE ENVIRONMENT SCORE (TIER 1) [INDEX]
-    // ─────────────────────────────────────────────────────────────────────────
-    const baseEnvironmentScore = compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan, liveSectorPlan);
-    const timeDependentScore = compileTimeDependentMetrics(planEntity, todaysLiveCandles)
-    const combinedBaseTime = Math.min((baseEnvironmentScore + timeDependentScore), 50)
-
-
-
     const livePrice = todaysLiveCandles[todaysLiveCandles.length - 1].ClosePrice;
     let patternSpecificScore = 0;
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // STEP B: ROUTE TO SPECIFIC PATTERN SUB-ENGINES (TIER 2) [INDEX]
-    // ─────────────────────────────────────────────────────────────────────────
+    let patternClassification = planEntity.patternConfig.patternClassification
     if (patternClassification === 'channel')
     {
 
@@ -566,35 +537,58 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     {
         patternSpecificScore = processCascadeLiveDelta(planEntity, todaysLiveCandles);
     }
+    return patternSpecificScore
+}
+
+/**
+ * CENTRAL MASTER COMPILER ROUTER
+ * Invoked continuously by your child UI layout panels to aggregate the complete score.
+ */
+export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan)
+{
+    const patternClassification = planEntity.patternConfig.patternClassification;
+    const todaysLiveCandles = planEntity.todaysCandles
+
+    // Gating check: Default to 0% score if polling arrays are empty
+    if (!todaysLiveCandles || todaysLiveCandles.length === 0) { return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM", metrics: {} }; }
+    const livePrice = todaysLiveCandles[todaysLiveCandles.length - 1].ClosePrice;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP A: COMPUTE THE SHARED BASE ENVIRONMENT SCORE (TIER 1) [INDEX]
+    // ─────────────────────────────────────────────────────────────────────────
+    const baseEnvironmentScore = compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan, liveSectorPlan);
+    const timeDependentScore = compileTimeDependentMetrics(planEntity, todaysLiveCandles)
+    const combinedBaseTime = Math.min((baseEnvironmentScore + timeDependentScore), 50)
 
 
-    const patternScore = Math.min(patternSpecificScore, 50)
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP B: ROUTE TO SPECIFIC PATTERN SUB-ENGINES (TIER 2) [INDEX]
+    // ─────────────────────────────────────────────────────────────────────────
+    const patternScore = Math.min(compilePatternSpecificScore(planEntity, todaysLiveCandles), 50)
 
 
     // =======================================================================
-    // STEP 3: AGGREGATE SYSTEMIC DEDUCTIONS (MACRO RISK FILTERS)
+    // STEP C: AGGREGATE SYSTEMIC DEDUCTIONS (MACRO RISK FILTERS)
     // =========================================================================
     // Accumulate all active macro penalties (Fed meetings, negative gamma, breadth decays, lunch hours)
-    let totalActiveSystemicPenalties = compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, macroEntities);
+    let totalActiveSystemicPenalties = 0
+    // let totalActiveSystemicPenalties = compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, macroEntities);
 
     // =========================================================================
     // STEP 4: THE ALPHA CONVICTION PERCENTAGE RESOLUTION
     // =========================================================================
     // Combine your two perfectly balanced halves and subtract your risk penalties
     const rawCompiledTotal = combinedBaseTime + patternScore - Math.abs(totalActiveSystemicPenalties);
-
     // ENFORCE FINAL HARD BOUNDARY CAPPING (Strictly between 0% and 100%)
     const finalizedAlphaScore = Math.min(Math.max(rawCompiledTotal, 0), 100);
-
 
     return {
         matchScorePercent: finalizedAlphaScore,
         status: finalizedAlphaScore >= 75 ? "🟢 HIGH_CONVICTION_ALERT" : "🔍 MONITORING_RADAR",
-
         metrics: {
             baseEnvironmentScore,
             timeDependentScore,
-            patternSpecificScore,
+            patternSpecificScore: patternScore,
             systemicPenaltiesApplied: totalActiveSystemicPenalties,
 
             livePrice: parseFloat(livePrice.toFixed(2))
