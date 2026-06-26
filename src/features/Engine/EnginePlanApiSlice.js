@@ -194,13 +194,12 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                         // --- PATH A: THE REAL-TIME PRICE PATCH (ALL ASSETS) ---
                         let currentPrice = parseFloat(data.trade.Price.toFixed(2))
-                        streamingPriceBuffer[symbol] = parseFloat(data.trade.Price.toFixed(2))
+                        streamingPriceBuffer[data.tickerSymbol] = currentPrice
 
 
                         // entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.tradePrice) / entityToUpdate.plan.enterPrice) * 100
                         // entityToUpdate.changeFromYesterdayClose = entityToUpdate.mostRecentPrice - entityToUpdate.yesterdayClose
                         // entityToUpdate.currentDayPercentGain = (entityToUpdate.changeFromYesterdayClose / entityToUpdate.yesterdayClose) * 100
-
 
 
 
@@ -246,7 +245,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             const symbolsWithActivePriceUpdates = Object.keys(streamingPriceBuffer);
                             const symbolsWithActiveVelocityUpdates = Object.keys(currentCalculatedMetrics);
                             if (symbolsWithActivePriceUpdates.length === 0 && symbolsWithActiveVelocityUpdates.length === 0) { return; }
-
                             // FIRE ONE SINGLE MUTATION FOR THE ENTIRE WATCHLIST COMPILATION PASS
                             updateCachedData((draft) =>
                             {
@@ -257,7 +255,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                     const activePlan = draft.plans.entities[symbol];
                                     if (!activePlan) return;
 
-                                    let price = parseFloat(streamingPriceBuffer[symbol].toFixed(2))
+                                    let price = streamingPriceBuffer[symbol]
                                     activePlan.liveAuctionMetrics = {
                                         ...activePlan.liveAuctionMetrics,
                                         lastTradePrice: price
@@ -273,9 +271,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                     activePlan.currentPriceStats.sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / price)
                                     activePlan.currentPriceStats.with1000DollarsCurrentGain = (activePlan.planConfig.plan.exitPrice - price) * activePlan.currentPriceStats.sharesToBuyWith1000DollarsCurrent
                                     activePlan.currentPriceStats.with1000DollarsCurrentRisk = (activePlan.planConfig.plan.stopLossPrice - price) * activePlan.currentPriceStats.sharesToBuyWith1000DollarsCurrent
-
-
-
 
                                 });
 
@@ -294,7 +289,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                                 for (const prop in streamingPriceBuffer) { delete streamingPriceBuffer[prop]; }
                             });
-                        }, 9000)
+                        }, 500)
                     })
                 }
 
@@ -326,7 +321,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             symbolsWithActiveTicks.forEach(symbol => { macroStreamingPriceBuffer[symbol] = null })
 
                         })
-                    }, 9000);
+                    }, 500);
                 }
 
 
@@ -562,7 +557,6 @@ export const selectPrioritizedWatchlist = createSelector(
         const liveSpyPlan = macroEntities['SPY']
         const liveRSPPlan = macroEntities['RSP']
 
-
         const scoredWatchlistArray = stockIds.map(id =>
         {
 
@@ -574,8 +568,10 @@ export const selectPrioritizedWatchlist = createSelector(
             const centralScoreProfile = calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan);
 
             return {
-                // ...planEntity,
                 tickerSymbol: planEntity.id,
+                mostRecentPrice: planEntity.mostRecentPrice,
+                patternClassification: planEntity.patternConfig.patternClassification,
+                sector: planEntity.planConfig.sector,
                 alphaConvictionScore: centralScoreProfile.matchScorePercent,
                 executionStatus: centralScoreProfile.status,
                 livePriceMetrics: centralScoreProfile.metrics

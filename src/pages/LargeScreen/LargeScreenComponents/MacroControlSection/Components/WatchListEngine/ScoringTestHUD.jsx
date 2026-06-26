@@ -7,7 +7,7 @@ export const ScoringTestHUD = () =>
     // Pull the live sorted watchlist straight from your master selector loop
     const prioritizedWatchlist = useSelector(selectPrioritizedWatchlist)
     return (
-        <div style={{ padding: '20px', background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', minHeight: '100vh' }}>
+        <div style={{ padding: '20px', background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', minHeight: '600px' }}>
             <h2 style={{ color: '#00ffff', borderBottom: '1px solid #222', paddingBottom: '10px', margin: '0 0 20px 0' }}>
                 🔬 CORE ENGINE INFERENCE MATRIX TEST SCRATCHPAD
             </h2>
@@ -24,6 +24,7 @@ export const ScoringTestHUD = () =>
                             <th style={{ padding: '12px 10px' }}>PATTERN STRATEGY CLASSIFICATION</th>
                             <th style={{ padding: '12px 10px', textAlign: 'center' }}>LIVE PRICE</th>
                             <th style={{ padding: '12px 10px', textAlign: 'center', color: '#50fa7b' }}>TIER 1 (BASE)</th>
+                            <th style={{ padding: '12px 10px', textAlign: 'center', color: '#50fa7b' }}>TIER 1 (TIME)</th>
                             <th style={{ padding: '12px 10px', textAlign: 'center', color: '#50fa7b' }}>TIER 2 (STRAT)</th>
                             <th style={{ padding: '12px 10px', textAlign: 'center', color: '#ff5555' }}>PENALTIES</th>
                             <th style={{ padding: '12px 10px', textAlign: 'right', color: '#00ffff' }}>FINAL ALPHA SCORE</th>
@@ -34,6 +35,7 @@ export const ScoringTestHUD = () =>
                         {
                             // Extract our headless pre-compiled metrics
                             const baseScore = plan.livePriceMetrics?.baseEnvironmentScore || 0;
+                            const timeScore = plan.livePriceMetrics?.timeDependentScore || 0
                             const strategyScore = plan.livePriceMetrics?.patternSpecificScore || 0;
                             const penaltiesApplied = plan.livePriceMetrics?.systemicPenaltiesApplied || 0;
                             const finalScore = plan.alphaConvictionScore;
@@ -47,17 +49,22 @@ export const ScoringTestHUD = () =>
 
                                     {/* STRATEGY PATTERN TRACK */}
                                     <td style={{ padding: '14px 10px', color: '#aaa' }}>
-                                        {plan.patternClassification.replace('TOOL_', '')}
+                                        {plan.patternClassification}
                                     </td>
 
                                     {/* DYNAMIC CLOSE PRICE */}
                                     <td style={{ padding: '14px 10px', textAlign: 'center', color: '#8be9fd' }}>
-                                        ${plan.livePriceMetrics?.livePrice?.toFixed(2) || '0.00'}
+                                        ${plan?.mostRecentPrice.toFixed(2) || '0.00'}
                                     </td>
 
                                     {/* TIER 1 BASE (CAPPED 50) */}
                                     <td style={{ padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
                                         +{baseScore}
+                                    </td>
+
+                                    {/* TIER 1 BASE (CAPPED 50) */}
+                                    <td style={{ padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
+                                        +{timeScore}
                                     </td>
 
                                     {/* TIER 2 STRATEGY (CAPPED 50) */}

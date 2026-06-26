@@ -13,6 +13,7 @@ import { clearGraphControl, setInitialGraphControl } from "../../../../features/
 import { defaultTimeFrames } from "../../../../Utilities/TimeFrames";
 import ZonesInputForm from "./Components/MacroKeyInputs/ZonesInputForm";
 import { WatchlistPriorityGrid } from "./Components/WatchListEngine/WatchlistPriorityGrid";
+import { ScoringTestHUD } from "./Components/WatchListEngine/ScoringTestHUD";
 
 function MacroControlSection()
 {
@@ -102,13 +103,14 @@ function MacroControlSection()
 
       <div id="LSH-MacroCharts">
         <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} incomingTF={defaultTimeFrames.threeDayOneMin} />
-
-        {showMacroKeyLevelDisplay === 0 ?
+        <ScoringTestHUD />
+        {/* {showMacroKeyLevelDisplay === 0 ?
           <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyHalfYear} /> :
+
           showMacroKeyLevelDisplay === 1 ?
             <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
             <ZonesInputForm setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} />
-        }
+        } */}
       </div>
     </section>
   );

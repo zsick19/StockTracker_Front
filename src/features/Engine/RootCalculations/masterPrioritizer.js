@@ -3,7 +3,7 @@ import { processPennyChannelLiveDelta } from './IntraDayAnalytics/pennyStockIntr
 import { processCascadeLiveDelta } from './IntraDayAnalytics/cascadeIntraDayCalc';
 import { processContinuationLiveDelta } from './IntraDayAnalytics/continuationIntraDayCalc';
 import { processStandardChannelLiveDelta } from './IntraDayAnalytics/channelIntraDayCalc';
-import { isWithinInterval, parse, format, subMinutes, addMinutes, getDay, getMonth, getDate, differenceInMinutes, getHours, getMinutes } from 'date-fns';
+import { isWithinInterval, parse, format, subMinutes, addMinutes, getDay, getMonth, getDate, differenceInMinutes, getHours, getMinutes, differenceInBusinessDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
 /**
@@ -209,17 +209,7 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     }
 
 
-    // AUDIT SYSTEMIC CALENDAR REBALANCING WINDOWS (June / December Portfolio Drifts)
-    const systemDate = new Date();
-    const currentMonth0Based = getMonth(systemDate);
-    const currentDayOfMonth = getDate(systemDate);
 
-    const isEndofQuarterRebalancingWindow = (currentMonth0Based === 5 && currentDayOfMonth >= 15) || (currentMonth0Based === 11 && currentDayOfMonth >= 15);
-    if (isEndofQuarterRebalancingWindow)
-    {
-        if (stockAnalysisInfo?.InstitutionalSharePercent >= 85.0) baseScore -= 10; // Crowded basket selling penalty
-        baseScore -= 15; // Global seasonal headwind cushion
-    }
 
     return baseScore;
 }
@@ -233,7 +223,7 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
  * @param {Array} todaysLiveCandles - Today's streaming regular session candle array [INDEX]
  * @returns {number} The finalized cumulative Base Environment Score (Max 50 points base layout)
  */
-export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
+function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
 {
     let timeScore = 0;
     const { extentProb, morningMetrics, morningVolume, extremeProbByFiveMin } = planEntity.metricConfig
@@ -346,14 +336,16 @@ export function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
  * @param {Object} planEntity - Fully hydrated stock plan document from cache
  * @param {Array} todaysLiveCandles - Today's streaming regular session candle array [INDEX]
  * @param {Object} liveSpyPlan - The live macro Sentry metadata block from your macro store
- * @param {Object} macroEntities - The raw macro market entity adapter dictionary [INDEX]
+ * @param {Object} liveRSPPlan - The raw macro market entity adapter dictionary [INDEX]
  * @returns {number} The absolute cumulative point penalties active (Returns a clean negative integer)
  */
-export function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, macroEntities)
+function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan)
 {
     let totalPenalties = 0;
 
-    const { dailyTickerValues, correlationValues } = planEntity;
+    const { dailyCalculatedValues, correlationValues, greatestCorrelation, spyBetaValue, patternClassification } = planEntity.planConfig;
+    const stockAnalysisInfo = planEntity.stockInfo
+
     if (!todaysLiveCandles || todaysLiveCandles.length === 0) return 0;
 
     const currentCandle = todaysLiveCandles[todaysLiveCandles.length - 1];
@@ -367,29 +359,34 @@ export function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, li
     // =========================================================================
     // 🛡️ TRACK 1: INDIVIDUAL ASSET CRITICAL RISK PENALTIES
     // =========================================================================
-    if (dailyTickerValues)
+    if (stockAnalysisInfo)
     {
-        // A. Corporate Earnings Quiet Window Sentry (T-Minus 5 Days)
-        if (dailyTickerValues.daysUntilNextEarnings <= 5 && dailyTickerValues.daysUntilNextEarnings > 0)
+        if (stockAnalysisInfo.EarningsDate)
         {
-            totalPenalties += W.systemicDeductions.preEarningsQuietWindowPenalty; // -15 Points
+
+            const daysTillEarnings = differenceInBusinessDays(new Date(), stockAnalysisInfo.EarningsDate)
+            // A. Corporate Earnings Quiet Window Sentry (T-Minus 5 Days)
+            if (daysTillEarnings <= 5 && daysTillEarnings > 0)
+            {
+                totalPenalties += W.systemicDeductions.preEarningsQuietWindowPenalty; // -15 Points
+            }
         }
 
         // B. Lack of Optionable Liquidity or Hedging Tracks
-        if (dailyTickerValues.hasOptions === false && planEntity.patternClassification !== "TOOL_4_CONTINUATION_MOMENTUM")
+        if (stockAnalysisInfo.hasOptions === false && planEntity.patternConfig.patternClassification !== "continuation")
         {
             totalPenalties += W.systemicDeductions.illiquidStructurePenalty; // -15 Points
         }
 
         // C. Micro-Cap Order Book Slippage Friction
-        const rawMarketCap = dailyTickerValues.marketCap || 0;
+        const rawMarketCap = stockAnalysisInfo.MarketCap || 0;
         if (rawMarketCap > 0 && rawMarketCap < 250000000)
         {
             totalPenalties += W.systemicDeductions.microCapSlippagePenalty; // -10 Points
         }
 
         // D. 52-Week Structural Weakness Trap (Scrubbed unified field name)
-        if (dailyTickerValues.positionInRangePercent <= 15.0)
+        if (stockAnalysisInfo.PositionInRangePercent <= 15.0)
         {
             totalPenalties += W.systemicDeductions.structuralWeaknessPenalty; // -15 Points
         }
@@ -398,13 +395,13 @@ export function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, li
     // =========================================================================
     // 🛡️ TRACK 2: BROAD INDEX DISTORTION & LIQUIDITY DRIFTS
     // =========================================================================
-    if (liveSpyPlan && dailyTickerValues && correlationValues)
+    if (liveSpyPlan && dailyCalculatedValues && correlationValues)
     {
-        const isMarketInNegativeGammaRegime = liveSpyPlan.lastPrice < liveSpyPlan.gammaFlipLine;
+        const isMarketInNegativeGammaRegime = liveSpyPlan.mostRecentPrice < liveSpyPlan.planData.gammaFlip;
 
         if (isMarketInNegativeGammaRegime)
         {
-            const stockBeta = dailyTickerValues.spyBetaValue || 1.0;
+            const stockBeta = spyBetaValue || 1.0;
             const broadCorrelation = correlationValues.SPY?.correlation90Day || 0;
 
             // Large Cap High-Beta Inflow Crash Risk
@@ -414,21 +411,24 @@ export function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, li
             }
 
             // High Flying Continuation Setup Vulnerability
-            if (planEntity.patternClassification === "TOOL_4_CONTINUATION_MOMENTUM")
+            if (planEntity.patternConfig.patternClassification === "continuation")
             {
                 totalPenalties += W.systemicDeductions.momentumContinuationRiskPenalty; // -25 Points
             }
         }
 
         // Broad Market Index Option Put Wall Breach
-        if (optionsExpectedMoves?.weekly?.putWall)
+        if (liveSpyPlan && liveSpyPlan.planData?.putWall)
         {
-            const weeklyPutWall = optionsExpectedMoves.weekly.putWall;
-            const isPutWallBreachedLower = liveSpyPlan.lastPrice < weeklyPutWall;
+            const weeklyPutWall = liveSpyPlan.planData?.putWall;
 
-            if (isPutWallBreachedLower)
+            const isSpyAtWeeklyWall = Math.abs(liveSpyPlan.mostRecentPrice - weeklyPutWall) / weeklyPutWall <= 0.0015;
+
+            if (isSpyAtWeeklyWall)
             {
-                totalPenalties += W.systemicDeductions.putWallBreachLiquidityDrain; // -20 Points
+                const currentDayIndex = getDay(new Date());
+                if (currentDayIndex === 1 || currentDayIndex === 2) totalPenalties += W.optionsExpectedMoves.earlyCycleWeeklyLowerSDPenalty;
+                else if (currentDayIndex === 4 || currentDayIndex === 5) totalPenalties += W.optionsExpectedMoves.lateCycleWeeklyLowerSDPinBonus;
             }
         }
     }
@@ -436,18 +436,18 @@ export function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, li
     // =========================================================================
     // 🛡️ TRACK 3: BREADTH DECAY METRICS (SPY VS RSP FAKEOUTS)
     // =========================================================================
-    if (macroEntities && macroEntities['SPY'] && macroEntities['RSP'])
+    // COMPUTE CAP-WEIGHTED VS EQUAL-WEIGHTED BREADTH DECAY (SPY vs RSP)
+    if (liveSpyPlan && liveRSPPlan)
     {
-        const spyPrice = macroEntities['SPY'].macroTideSentry?.lastPrice;
-        const rspPrice = macroEntities['RSP'].macroTideSentry?.lastPrice;
-        const spyHistory = macroEntities['SPY'].historicalCandles || [];
-        const rspHistory = macroEntities['RSP'].historicalCandles || [];
+        const spyPrice = liveSpyPlan.mostRecentPrice;
+        const rspPrice = liveRSPPlan.mostRecentPrice;
+        const spyHistory = liveSpyPlan.historicCandle || [];
+        const rspHistory = liveRSPPlan.historicCandle || [];
 
         if (spyPrice && rspPrice && spyHistory.length > 0 && rspHistory.length > 0)
         {
             const spyReturn = ((spyPrice - spyHistory[spyHistory.length - 1].ClosePrice) / spyHistory[spyHistory.length - 1].ClosePrice) * 100;
             const rspReturn = ((rspPrice - rspHistory[rspHistory.length - 1].ClosePrice) / rspHistory[rspHistory.length - 1].ClosePrice) * 100;
-
             // If headline market looks green but 400+ equal-weighted stocks are bleeding
             if ((spyReturn - rspReturn) >= 0.75 && dailyTickerValues?.spyBetaValue >= 1.15)
             {
@@ -456,23 +456,14 @@ export function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, li
         }
     }
 
+
     // =========================================================================
-    // 🛡️ TRACK 4: CALENDAR EVENT TRAPS & INTRADAY TIME LOCKOUTS
+    // 🛡️ TRACK 4: CALENDAR EVENT TRAPS 
     // =========================================================================
 
-    // A. The Midday Lunchtime Churn Cage (11:30 AM - 01:30 PM Eastern Window)
-    if (minutesElapsedSinceOpen >= 120 && minutesElapsedSinceOpen <= 240)
-    {
-        totalPenalties += W.systemicDeductions.middayLunchtimeChurnCage; // -20 Points
-
-        if (planEntity.extentProb && planEntity.extentProb.midL <= 0.35)
-        {
-            totalPenalties += W.systemicDeductions.middayLowProbabilityPenalty; // -5 Points
-        }
-    }
 
     // B. Scheduled Macro Economic Volatility Gates (Fed / CPI Data Release Brackets)
-    if (dailyTickerValues?.isMacroDataReleaseDay)
+    if (dailyCalculatedValues?.isMacroDataReleaseDay)
     {
         const formatDayStr = format(nyTime, 'yyyy-MM-dd');
         // Anchor standard 02:00 PM Eastern FOMC announcement time
@@ -493,29 +484,32 @@ export function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, li
     }
 
     // C. Institutional End-Of-Quarter Basket Portfolio Rebalancing (June / December)
-    const currentMonth0Based = getMonth(nyTime);
-    const currentDayOfMonth = getDate(nyTime);
+    const systemDate = new Date();
+    const currentMonth0Based = getMonth(systemDate);
+    const currentDayOfMonth = getDate(systemDate);
 
-    const isEndofQuarterRebalancingWindow =
-        (currentMonth0Based === 5 && currentDayOfMonth >= 15) ||
-        (currentMonth0Based === 11 && currentDayOfMonth >= 15);
-
+    const isEndofQuarterRebalancingWindow = (currentMonth0Based === 5 && currentDayOfMonth >= 15) || (currentMonth0Based === 11 && currentDayOfMonth >= 15);
     if (isEndofQuarterRebalancingWindow)
     {
-        totalPenalties += W.systemicDeductions.globalMacroHeadwindSentry; // -15 Points
+        if (stockAnalysisInfo?.InstitutionalSharePercent >= 85.0) totalPenalties += W.systemicDeductions.crowdedRebalancingRiskPenalty; // -10 Points
 
-        // If asset is crowded by pension fund capital holdings, apply the secondary layer
-        if (dailyTickerValues?.sharesInstitutionsPercent >= 85.0)
-        {
-            totalPenalties += W.systemicDeductions.crowdedRebalancingRiskPenalty; // -10 Points
-        }
+        totalPenalties += W.systemicDeductions.globalMacroHeadwindSentry; // -15 Points
     }
+
 
     return totalPenalties; // Returns accumulated negative values cleanly (e.g. -45)
 }
 
-
-export function compilePatternSpecificScore(planEntity, todaysLiveCandles)
+/**
+ * PRODUCTION RISK SENTRY: Systemic Macro Deductions Compiler.
+ * Aggregates all active corporate, cyclical, options-driven, and broad index 
+ * distribution penalties completely headlessly inside your browser's memory [INDEX].
+ * 
+ * @param {Object} planEntity - Fully hydrated stock plan document from cache
+ * @param {Array} todaysLiveCandles - Today's streaming regular session candle array [INDEX]
+ * @returns {number} The absolute cumulative point penalties active (Returns a clean negative integer)
+ */
+function compilePatternSpecificScore(planEntity, todaysLiveCandles)
 {
     const livePrice = todaysLiveCandles[todaysLiveCandles.length - 1].ClosePrice;
     let patternSpecificScore = 0;
@@ -571,8 +565,7 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     // STEP C: AGGREGATE SYSTEMIC DEDUCTIONS (MACRO RISK FILTERS)
     // =========================================================================
     // Accumulate all active macro penalties (Fed meetings, negative gamma, breadth decays, lunch hours)
-    let totalActiveSystemicPenalties = 0
-    // let totalActiveSystemicPenalties = compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, macroEntities);
+    let totalActiveSystemicPenalties = compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan);
 
     // =========================================================================
     // STEP 4: THE ALPHA CONVICTION PERCENTAGE RESOLUTION

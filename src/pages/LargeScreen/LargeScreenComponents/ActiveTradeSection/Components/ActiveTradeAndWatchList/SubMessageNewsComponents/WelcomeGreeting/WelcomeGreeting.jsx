@@ -38,8 +38,12 @@ function WelcomeGreeting()
                 <button onClick={() => window.location.reload()}>Refresh Page</button>
             </div>
             <StockCsvUpload />
-            <ExpectedMoveUpload Process={'Core Daily EM'} />
-            <ExpectedMoveUpload Process={'Zone Doc'} />
+
+            <div>
+                <ExpectedMoveUpload Process={'Core Daily EM'} />
+                <br />
+                <ExpectedMoveUpload Process={'Zone Doc'} />
+            </div>
 
             <PositionListDailyMoves />
 
