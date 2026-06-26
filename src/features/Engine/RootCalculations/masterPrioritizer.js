@@ -547,13 +547,60 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     if (!todaysLiveCandles || todaysLiveCandles.length === 0) { return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM", metrics: {} }; }
     const livePrice = todaysLiveCandles[todaysLiveCandles.length - 1].ClosePrice;
 
+
+    // Extract your predefined institutional floor line from the Mongoose sub-schemas [INDEX]
+    const targetFloorLine = planEntity.channelPattern?.channelBottom ||
+        planEntity.cascadePattern?.projection?.priceFloor ||
+        planEntity.continuationPattern?.trailingInvalidationStopPrice || 0;
+
+    // Extract your maximum buying trigger roof line
+    const targetCeilingLine = planEntity.channelPattern?.entryStrikeBuffer ||
+        planEntity.cascadePattern?.projection?.priceCeiling ||
+        planEntity.continuationPattern?.tomorrowEntryTriggerPrice || 0;
+
+
+    // =========================================================================
+    // 🛑 DYNAMIC GATING RADAR SENTRY: OMIT OFF-TARGET UI OVER-STIMULATION
+    // =========================================================================
+    // If the price is completely outside our predefined tactical zone (plus a safe 2% buffer),
+    // we bypass all heavy scoring math entirely and return a clean, un-moving standby state [INDEX].
+    if (targetFloorLine > 0 && targetCeilingLine > 0)
+    {
+        const lowerAllowedBoundary = targetFloorLine * 0.98;
+        const upperAllowedBoundary = targetCeilingLine * 1.02;
+
+        if (livePrice < lowerAllowedBoundary || livePrice > upperAllowedBoundary)
+        {
+            return {
+                matchScorePercent: 0,
+                status: "🔍 RADAR_STANDBY: OFF_TARGET_ZONE",
+                metrics: {
+                    baseEnvironmentScore: 0,
+                    patternSpecificScore: 0,
+                    systemicPenaltiesApplied: 0,
+                    livePrice: parseFloat(livePrice.toFixed(2)),
+                    positionPricingMetrics: null // Strips out running updates for this rows data [INDEX]
+                }
+            };
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
     // ─────────────────────────────────────────────────────────────────────────
     // STEP A: COMPUTE THE SHARED BASE ENVIRONMENT SCORE (TIER 1) [INDEX]
     // ─────────────────────────────────────────────────────────────────────────
     const baseEnvironmentScore = compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan, liveSectorPlan);
     const timeDependentScore = compileTimeDependentMetrics(planEntity, todaysLiveCandles)
     const combinedBaseTime = Math.min((baseEnvironmentScore + timeDependentScore), 50)
-
 
     // ─────────────────────────────────────────────────────────────────────────
     // STEP B: ROUTE TO SPECIFIC PATTERN SUB-ENGINES (TIER 2) [INDEX]
@@ -566,6 +613,46 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     // =========================================================================
     // Accumulate all active macro penalties (Fed meetings, negative gamma, breadth decays, lunch hours)
     let totalActiveSystemicPenalties = compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan);
+
+
+    // =========================================================================
+    // STEP C: RUNTIME ASYMMETRIC RISK/REWARD POSITION SIZER
+    // =========================================================================
+    // Pull the pre-compiled horizontal volume shelves saved overnight [INDEX]
+    const shelves = planEntity.staticPreCompiledIndicators?.overheadResistanceShelves || [];
+    const priceAscendingShelves = [...shelves].sort((a, b) => a.priceLevel - b.priceLevel);
+
+    // Locate the first major volume shelf blocking our upside runway
+    const immediateCeilingShelf = priceAscendingShelves.find(shelf => shelf.priceLevel > livePrice) || {
+        priceLevel: livePrice * 1.05
+    };
+
+    // Calculate percentage deltas relative to current price ticks [INDEX]
+    const rewardPct = ((immediateCeilingShelf.priceLevel - livePrice) / livePrice) * 100;
+    const riskPct = targetFloorLine > 0 ? ((livePrice - targetFloorLine) / livePrice) * 100 : 0;
+
+    // Calculate absolute dollar metrics based on a standard $1,000 total trade position [INDEX]
+    const allocationBaseline = 1000;
+    const totalSharesAllocated = allocationBaseline / livePrice;
+
+    const dollarAmountReward = (immediateCeilingShelf.priceLevel - livePrice) * totalSharesAllocated;
+    const dollarAmountRisk = targetFloorLine > 0 ? (livePrice - targetFloorLine) * totalSharesAllocated : 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // =========================================================================
     // STEP 4: THE ALPHA CONVICTION PERCENTAGE RESOLUTION
@@ -585,6 +672,13 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
             systemicPenaltiesApplied: totalActiveSystemicPenalties,
 
             livePrice: parseFloat(livePrice.toFixed(2))
+        },
+        positionPricingMetrics: {
+            immediateResistanceLevel: parseFloat(immediateCeilingShelf.priceLevel.toFixed(2)),
+            rewardPercentageDelta: parseFloat(rewardPct.toFixed(2)),
+            riskPercentageDelta: parseFloat(riskPct.toFixed(2)),
+            rewardDollarAllocation: parseFloat(dollarAmountReward.toFixed(2)),
+            riskDollarAllocation: parseFloat(dollarAmountRisk.toFixed(2))
         }
     };
 }

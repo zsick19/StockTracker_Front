@@ -570,6 +570,7 @@ export const selectPrioritizedWatchlist = createSelector(
             return {
                 tickerSymbol: planEntity.id,
                 mostRecentPrice: planEntity.mostRecentPrice,
+                industry: planEntity.stockInfo?.Industry,
                 patternClassification: planEntity.patternConfig.patternClassification,
                 sector: planEntity.planConfig.sector,
                 alphaConvictionScore: centralScoreProfile.matchScorePercent,
@@ -578,9 +579,83 @@ export const selectPrioritizedWatchlist = createSelector(
             };
         }).filter(Boolean);
 
-        // Sort chronologically from absolute highest conviction (100%) to lowest (0%)
-        return scoredWatchlistArray.sort((a, b) => b.alphaConvictionScore - a.alphaConvictionScore);
+        // Define your elite system threshold line
+        const HIGH_CONVICTION_THRESHOLD = 75;
 
+        // =========================================================================
+        // ⚔️ THE HIGH-CONVICTION THRESHOLD THRESHOLD SORTING ENGINE
+        // =========================================================================
+        return scoredWatchlistArray.sort((a, b) =>
+        {
+            const aIsHigh = a.alphaConvictionScore >= HIGH_CONVICTION_THRESHOLD;
+            const bIsHigh = b.alphaConvictionScore >= HIGH_CONVICTION_THRESHOLD;
+
+            // ─────────────────────────────────────────────────────────────────
+            // CRITICAL TIER 1: HIGH CONVICTION ZONE SEGREGATION
+            // ─────────────────────────────────────────────────────────────────
+            // If Plan B is High Conviction and Plan A is not, push B to the top
+            if (bIsHigh && !aIsHigh) return 1;
+            // If Plan A is High Conviction and Plan B is not, push A to the top
+            if (!bIsHigh && aIsHigh) return -1;
+
+
+            // ─────────────────────────────────────────────────────────────────
+            // CRITICAL TIER 2: INSIDE THE ELITE HIGH-CONVICTION BLOCK
+            // ─────────────────────────────────────────────────────────────────
+            // If BOTH plans are high conviction, sort them PURELY by dollar payout!
+            if (bIsHigh && aIsHigh)
+            {
+                const rewardA = a.positionPricingMetrics?.rewardDollarAllocation || 0;
+                const rewardB = b.positionPricingMetrics?.rewardDollarAllocation || 0;
+
+                // Sort by the largest absolute dollar reward potential on a $1,000 position
+                if (rewardB !== rewardA)
+                {
+                    return rewardB - rewardA;
+                }
+
+                // Tie-breaker: If payouts are identical, select the item with the smaller dollar risk
+                const riskA = a.positionPricingMetrics?.riskDollarAllocation || 0;
+                const riskB = b.positionPricingMetrics?.riskDollarAllocation || 0;
+                return riskA - riskB;
+            }
+            // ─────────────────────────────────────────────────────────────────
+            // CRITICAL TIER 3: INSIDE THE OBSERVER RADAR BLOCK (SCORE < 75)
+            // ─────────────────────────────────────────────────────────────────
+            // If neither plan is high conviction, sort them traditionally by score hierarchy
+            if (b.alphaConvictionScore !== a.alphaConvictionScore)
+            {
+                return b.alphaConvictionScore - a.alphaConvictionScore;
+            }
+
+            // Off-target standby cards (RADAR_STANDBY) hold null metrics; push them to the absolute bottom
+            const metricsA = a.positionPricingMetrics;
+            const metricsB = b.positionPricingMetrics;
+            if (!metricsA && metricsB) return 1;
+            if (metricsA && !metricsB) return -1;
+
+            // Score-tie fallback: Order by basic remaining reward potential
+            const rewardA = metricsA?.rewardDollarAllocation || 0;
+            const rewardB = metricsB?.rewardDollarAllocation || 0;
+            return rewardB - rewardA;
+        }
+            // Sort chronologically from absolute highest conviction (100%) to lowest (0%)
+            // return scoredWatchlistArray.sort((a, b) => b.alphaConvictionScore - a.alphaConvictionScore);
+
+
+        );
+    })
+
+/**
+ * Parameter-Driven Curried Score Selector.
+ * Allows independent UI components to securely query the live alpha score 
+ * of a SINGLE specific symbol without subscribing to the whole watchlist array [INDEX].
+ */
+export const selectScoreBySymbol = createSelector(
+    [selectPrioritizedWatchlistIdsAndScores, (state, symbol) => symbol],
+    (prioritizedWatchlist, symbol) =>
+    {
+        const targetedPlan = prioritizedWatchlist.find(item => item.tickerSymbol === symbol);
+        return targetedPlan || { alphaConvictionScore: 0, executionStatus: "OFF_RADAR", livePrice: 0.00 };
     }
 );
-
