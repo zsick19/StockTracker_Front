@@ -41,7 +41,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
         if (liveClv >= 0.65) baseScore += W.orderFlow.clvExtremeBounce;
         if (livePrice > todaysLiveCandles[0].OpenPrice) baseScore += W.orderFlow.priceAboveOpen;
     }
-
     // =========================================================================
     // 🧲 2. INSTUTITIONAL MA LINES & NIGHTLY HORIZONTAL SHELF ALIGNMENT
     // =========================================================================
@@ -64,7 +63,7 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
             baseScore += 15; // Award Asymmetric Runway Bonus: Thin supply immediately overhead [INDEX]
         } else if (immediateCeilingShelf.frictionRating === "HIGH_CRITICAL_CLIFF")
         {
-            baseScore += immediateCeilingShelf.scoringWeight; // Apply severe -25 point trapped supply penalty [INDEX]
+            baseScore += -25; // Apply severe -25 point trapped supply penalty [INDEX]
         }
     }
 
@@ -538,25 +537,43 @@ function compilePatternSpecificScore(planEntity, todaysLiveCandles)
  * CENTRAL MASTER COMPILER ROUTER
  * Invoked continuously by your child UI layout panels to aggregate the complete score.
  */
-export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan)
+export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan, provideDescriptions)
 {
     const patternClassification = planEntity.patternConfig.patternClassification;
     const todaysLiveCandles = planEntity.todaysCandles
 
+
     // Gating check: Default to 0% score if polling arrays are empty
     if (!todaysLiveCandles || todaysLiveCandles.length === 0) { return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM", metrics: {} }; }
-    const livePrice = todaysLiveCandles[todaysLiveCandles.length - 1].ClosePrice;
+    const livePrice = planEntity.mostRecentPrice ||
+        todaysLiveCandles[todaysLiveCandles.length - 1].ClosePrice;
+
+    const auditLedger = []
+
+    const logRuleTrack = (ruleName, pointsApplied, category, details) =>
+    {
+        if (provideDescriptions)
+        {
+            auditLedger.push({ ruleName, pointsApplied, category, details })
+        }
+    }
+
 
 
     // Extract your predefined institutional floor line from the Mongoose sub-schemas [INDEX]
-    const targetFloorLine = planEntity.channelPattern?.channelBottom ||
-        planEntity.cascadePattern?.projection?.priceFloor ||
-        planEntity.continuationPattern?.trailingInvalidationStopPrice || 0;
+    const targetFloorLine = planEntity.planConfig.plan.stopLossPrice
+    // planEntity.channelPattern?.channelBottom ||
+    // planEntity.cascadePattern?.projection?.priceFloor ||
+    // planEntity.continuationPattern?.trailingInvalidationStopPrice || 0;
 
     // Extract your maximum buying trigger roof line
-    const targetCeilingLine = planEntity.channelPattern?.entryStrikeBuffer ||
-        planEntity.cascadePattern?.projection?.priceCeiling ||
-        planEntity.continuationPattern?.tomorrowEntryTriggerPrice || 0;
+    const targetCeilingLine = planEntity.planConfig.plan.exitPrice
+    // planEntity.channelPattern?.entryStrikeBuffer ||
+    // planEntity.cascadePattern?.projection?.priceCeiling ||
+    // planEntity.continuationPattern?.tomorrowEntryTriggerPrice || 0;
+
+
+
 
 
     // =========================================================================
@@ -564,34 +581,27 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     // =========================================================================
     // If the price is completely outside our predefined tactical zone (plus a safe 2% buffer),
     // we bypass all heavy scoring math entirely and return a clean, un-moving standby state [INDEX].
-    if (targetFloorLine > 0 && targetCeilingLine > 0)
+    const lowerAllowedBoundary = targetFloorLine * 0.98;
+    const upperAllowedBoundary = targetCeilingLine * 1.02;
+    if (livePrice < lowerAllowedBoundary || livePrice > upperAllowedBoundary)
     {
-        const lowerAllowedBoundary = targetFloorLine * 0.98;
-        const upperAllowedBoundary = targetCeilingLine * 1.02;
-
-        if (livePrice < lowerAllowedBoundary || livePrice > upperAllowedBoundary)
-        {
-            return {
-                matchScorePercent: 0,
-                status: "🔍 RADAR_STANDBY: OFF_TARGET_ZONE",
-                metrics: {
-                    baseEnvironmentScore: 0,
-                    patternSpecificScore: 0,
-                    systemicPenaltiesApplied: 0,
-                    livePrice: parseFloat(livePrice.toFixed(2)),
-                    positionPricingMetrics: null // Strips out running updates for this rows data [INDEX]
-                }
-            };
-        }
+        let reason
+        if (livePrice < lowerAllowedBoundary) reason = `Price $${livePrice} is below the stoploss price $${lowerAllowedBoundary.toFixed(2)}.`
+        else if (livePrice > upperAllowedBoundary) reason = `Price $${livePrice} has exceeded the planned exit price $${upperAllowedBoundary.toFixed(2)}.`
+        logRuleTrack('Out Of Target Range', 0, 'Initial Check', reason)
+        return {
+            matchScorePercent: 0,
+            status: "🔍 RADAR_STANDBY: OFF_TARGET_ZONE",
+            metrics: {
+                baseEnvironmentScore: 0,
+                patternSpecificScore: 0,
+                systemicPenaltiesApplied: 0,
+                livePrice: parseFloat(livePrice.toFixed(2)),
+            },
+            positionPricingMetrics: null,
+            auditLedger
+        };
     }
-
-
-
-
-
-
-
-
 
 
 
@@ -601,6 +611,7 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     const baseEnvironmentScore = compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan, liveSectorPlan);
     const timeDependentScore = compileTimeDependentMetrics(planEntity, todaysLiveCandles)
     const combinedBaseTime = Math.min((baseEnvironmentScore + timeDependentScore), 50)
+
 
     // ─────────────────────────────────────────────────────────────────────────
     // STEP B: ROUTE TO SPECIFIC PATTERN SUB-ENGINES (TIER 2) [INDEX]
@@ -619,13 +630,11 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     // STEP C: RUNTIME ASYMMETRIC RISK/REWARD POSITION SIZER
     // =========================================================================
     // Pull the pre-compiled horizontal volume shelves saved overnight [INDEX]
-    const shelves = planEntity.staticPreCompiledIndicators?.overheadResistanceShelves || [];
+    const shelves = planEntity.metricConfig?.vpSupportResistance.overHeadResistance || [];
     const priceAscendingShelves = [...shelves].sort((a, b) => a.priceLevel - b.priceLevel);
 
     // Locate the first major volume shelf blocking our upside runway
-    const immediateCeilingShelf = priceAscendingShelves.find(shelf => shelf.priceLevel > livePrice) || {
-        priceLevel: livePrice * 1.05
-    };
+    const immediateCeilingShelf = priceAscendingShelves.find(shelf => shelf.priceLevel > livePrice) || { priceLevel: livePrice * 1.05 };
 
     // Calculate percentage deltas relative to current price ticks [INDEX]
     const rewardPct = ((immediateCeilingShelf.priceLevel - livePrice) / livePrice) * 100;
@@ -637,21 +646,6 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
 
     const dollarAmountReward = (immediateCeilingShelf.priceLevel - livePrice) * totalSharesAllocated;
     const dollarAmountRisk = targetFloorLine > 0 ? (livePrice - targetFloorLine) * totalSharesAllocated : 0;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     // =========================================================================
@@ -670,7 +664,6 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
             timeDependentScore,
             patternSpecificScore: patternScore,
             systemicPenaltiesApplied: totalActiveSystemicPenalties,
-
             livePrice: parseFloat(livePrice.toFixed(2))
         },
         positionPricingMetrics: {
@@ -679,6 +672,7 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
             riskPercentageDelta: parseFloat(riskPct.toFixed(2)),
             rewardDollarAllocation: parseFloat(dollarAmountReward.toFixed(2)),
             riskDollarAllocation: parseFloat(dollarAmountRisk.toFixed(2))
-        }
+        },
+        auditLedger
     };
 }

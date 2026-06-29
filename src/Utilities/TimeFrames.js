@@ -224,3 +224,36 @@ export function generateIntraDayTickMarks(timeFrame, displayMarketHours)
   return timeStamps;
 }
 
+
+export function downSampleOneMinToFiveMin(oneMinArray)
+{
+  const candlesBy5MinBucket = {}
+  const sortedArray = [...oneMinArray].sort((a, b) => new Date(a.Timestamp) - new Date(b.Timestamp))
+
+  sortedArray.forEach((candle) =>
+  {
+    const timeObj = new Date(candle.Timestamp)
+    const slotFloor = Math.floor(timeObj.getUTCMinutes() / 5) * 5
+    timeObj.setUTCMinutes(slotFloor)
+    timeObj.setUTCSeconds(0)
+    timeObj.setUTCMilliseconds(0)
+    const slotKey = timeObj.toISOString()
+
+    if (!candlesBy5MinBucket[slotKey]) candlesBy5MinBucket[slotKey] = [];
+    candlesBy5MinBucket[slotKey].push(candle)
+  })
+
+  return Object.keys(candlesBy5MinBucket).map(slotKey =>
+  {
+    const bucket = candlesBy5MinBucket[slotKey]
+    return {
+      Timestamp: slotKey,
+      OpenPrice: bucket[0].OpenPrice,
+      HighPrice: Math.max(...bucket.map(c => c.HighPrice)),
+      LowPrice: Math.min(...bucket.map(c => c.LowPrice)),
+      ClosePrice: bucket[bucket.length - 1].ClosePrice,
+      Volume: bucket.reduce((sum, c) => sum + c.Volume, 0)
+    }
+  })
+
+}

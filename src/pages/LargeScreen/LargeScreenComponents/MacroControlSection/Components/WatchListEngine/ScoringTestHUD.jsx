@@ -6,10 +6,11 @@ export const ScoringTestHUD = () =>
 {
     // Pull the live sorted watchlist straight from your master selector loop
     const prioritizedWatchlist = useSelector(selectPrioritizedWatchlist)
+
     return (
-        <div style={{ padding: '20px', background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', minHeight: '600px' }}>
+        <div style={{ padding: '20px', background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', minHeight: '200px' }}>
             <h2 style={{ color: '#00ffff', borderBottom: '1px solid #222', paddingBottom: '10px', margin: '0 0 20px 0' }}>
-                🔬 CORE ENGINE INFERENCE MATRIX TEST SCRATCHPAD
+                CORE ENGINE INFERENCE MATRIX TEST SCRATCHPAD
             </h2>
 
             {prioritizedWatchlist.length === 0 ? (

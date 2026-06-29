@@ -18,6 +18,7 @@ import { macroAndSectorTickers, sectorToTicker } from "../../Utilities/SectorsAn
 import { symbol } from "d3";
 import { compileThreeTierPennyResistance } from "./RootCalculations/HistoricalCandleAnalytics/compilePennyStockOverheadResistance";
 import { compileThreeTierOverheadResistance } from "./RootCalculations/HistoricalCandleAnalytics/compileOverheadResistance";
+import { downSampleOneMinToFiveMin } from "../../Utilities/TimeFrames";
 
 
 const { getWebSocket, subscribe, unsubscribe, checkStreamAuthorization } = setupWebSocket();
@@ -103,6 +104,8 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     currentPriceStats.with1000DollarsCurrentGain = (enterExitPlanPrices.exitPrice - mostRecentPrice) * currentPriceStats.sharesToBuyWith1000DollarsCurrent
                     currentPriceStats.with1000DollarsCurrentRisk = (enterExitPlanPrices.stopLossPrice - mostRecentPrice) * currentPriceStats.sharesToBuyWith1000DollarsCurrent
 
+                    let optionsConfig = {}
+                    optionsConfig.weeklyOptions = enterExit.plan.optionsExpectedMoves?.weekly || undefined
 
 
                     let tradeTapeConfig = {}
@@ -115,6 +118,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         mostRecentPrice,
                         planConfig,
                         patternConfig,
+                        optionsConfig,
                         metricConfig,
                         tradeTapeConfig,
                         currentPriceStats,
@@ -506,39 +510,6 @@ export const {
     useFetchEngineOneMinCandleBarDataQuery
 } = EnginePlanPlanApiSlice;
 
-function downSampleOneMinToFiveMin(oneMinArray)
-{
-    const candlesBy5MinBucket = {}
-    const sortedArray = [...oneMinArray].sort((a, b) => new Date(a.Timestamp) - new Date(b.Timestamp))
-
-    sortedArray.forEach((candle) =>
-    {
-        const timeObj = new Date(candle.Timestamp)
-        const slotFloor = Math.floor(timeObj.getUTCMinutes() / 5) * 5
-        timeObj.setUTCMinutes(slotFloor)
-        timeObj.setUTCSeconds(0)
-        timeObj.setUTCMilliseconds(0)
-        const slotKey = timeObj.toISOString()
-
-        if (!candlesBy5MinBucket[slotKey]) candlesBy5MinBucket[slotKey] = [];
-        candlesBy5MinBucket[slotKey].push(candle)
-    })
-
-    return Object.keys(candlesBy5MinBucket).map(slotKey =>
-    {
-        const bucket = candlesBy5MinBucket[slotKey]
-        return {
-            Timestamp: slotKey,
-            OpenPrice: bucket[0].OpenPrice,
-            HighPrice: Math.max(...bucket.map(c => c.HighPrice)),
-            LowPrice: Math.min(...bucket.map(c => c.LowPrice)),
-            ClosePrice: bucket[bucket.length - 1].ClosePrice,
-            Volume: bucket.reduce((sum, c) => sum + c.Volume, 0)
-        }
-    })
-
-}
-
 
 
 const selectHistoricalQueryCache = EnginePlanPlanApiSlice.endpoints.initiateEngineWithEnterExitPlan.select()
@@ -553,19 +524,15 @@ export const selectPrioritizedWatchlist = createSelector(
     {
         if (stockIds.length === 0) return [];
 
-        // // Isolate your SPY macro tide constants cleanly out of your index dictionary
         const liveSpyPlan = macroEntities['SPY']
         const liveRSPPlan = macroEntities['RSP']
 
         const scoredWatchlistArray = stockIds.map(id =>
         {
-
-            const planEntity = stockEntities[id];
-            if (!planEntity) return null;
+            const planEntity = stockEntities[id]; if (!planEntity) return null;
 
             let liveSectorPlan = macroEntities[sectorToTicker[planEntity.planConfig.sector]]
-            // // Execute your Tier 1 and Tier 2 matrix scoring rules in mid-air!
-            const centralScoreProfile = calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan);
+            const centralScoreProfile = calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan, false);
 
             return {
                 tickerSymbol: planEntity.id,
@@ -579,9 +546,9 @@ export const selectPrioritizedWatchlist = createSelector(
             };
         }).filter(Boolean);
 
-        // Define your elite system threshold line
-        const HIGH_CONVICTION_THRESHOLD = 75;
 
+
+        const HIGH_CONVICTION_THRESHOLD = 75;
         // =========================================================================
         // ⚔️ THE HIGH-CONVICTION THRESHOLD THRESHOLD SORTING ENGINE
         // =========================================================================
@@ -593,9 +560,7 @@ export const selectPrioritizedWatchlist = createSelector(
             // ─────────────────────────────────────────────────────────────────
             // CRITICAL TIER 1: HIGH CONVICTION ZONE SEGREGATION
             // ─────────────────────────────────────────────────────────────────
-            // If Plan B is High Conviction and Plan A is not, push B to the top
             if (bIsHigh && !aIsHigh) return 1;
-            // If Plan A is High Conviction and Plan B is not, push A to the top
             if (!bIsHigh && aIsHigh) return -1;
 
 
@@ -609,10 +574,7 @@ export const selectPrioritizedWatchlist = createSelector(
                 const rewardB = b.positionPricingMetrics?.rewardDollarAllocation || 0;
 
                 // Sort by the largest absolute dollar reward potential on a $1,000 position
-                if (rewardB !== rewardA)
-                {
-                    return rewardB - rewardA;
-                }
+                if (rewardB !== rewardA) { return rewardB - rewardA; }
 
                 // Tie-breaker: If payouts are identical, select the item with the smaller dollar risk
                 const riskA = a.positionPricingMetrics?.riskDollarAllocation || 0;
@@ -623,10 +585,7 @@ export const selectPrioritizedWatchlist = createSelector(
             // CRITICAL TIER 3: INSIDE THE OBSERVER RADAR BLOCK (SCORE < 75)
             // ─────────────────────────────────────────────────────────────────
             // If neither plan is high conviction, sort them traditionally by score hierarchy
-            if (b.alphaConvictionScore !== a.alphaConvictionScore)
-            {
-                return b.alphaConvictionScore - a.alphaConvictionScore;
-            }
+            if (b.alphaConvictionScore !== a.alphaConvictionScore) { return b.alphaConvictionScore - a.alphaConvictionScore; }
 
             // Off-target standby cards (RADAR_STANDBY) hold null metrics; push them to the absolute bottom
             const metricsA = a.positionPricingMetrics;
@@ -639,12 +598,11 @@ export const selectPrioritizedWatchlist = createSelector(
             const rewardB = metricsB?.rewardDollarAllocation || 0;
             return rewardB - rewardA;
         }
-            // Sort chronologically from absolute highest conviction (100%) to lowest (0%)
-            // return scoredWatchlistArray.sort((a, b) => b.alphaConvictionScore - a.alphaConvictionScore);
-
-
         );
     })
+
+
+
 
 /**
  * Parameter-Driven Curried Score Selector.
@@ -652,10 +610,26 @@ export const selectPrioritizedWatchlist = createSelector(
  * of a SINGLE specific symbol without subscribing to the whole watchlist array [INDEX].
  */
 export const selectScoreBySymbol = createSelector(
-    [selectPrioritizedWatchlistIdsAndScores, (state, symbol) => symbol],
+    [selectPrioritizedWatchlist, (state, symbol) => symbol],
     (prioritizedWatchlist, symbol) =>
     {
         const targetedPlan = prioritizedWatchlist.find(item => item.tickerSymbol === symbol);
         return targetedPlan || { alphaConvictionScore: 0, executionStatus: "OFF_RADAR", livePrice: 0.00 };
+    }
+);
+export const selectDetailedScoreBreakDownBySymbol = createSelector(
+    [planSelectors.selectEntities, macroSelectors.selectEntities, (state, symbol) => symbol],
+    (stockEntities, macroEntities, symbol) =>
+    {
+        const planEntity = stockEntities[symbol]
+        if (!planEntity) return {}
+
+        const liveSpyPlan = macroEntities['SPY']
+        const liveRSPPlan = macroEntities['RSP']
+        const liveSectorPlan = macroEntities[sectorToTicker[planEntity.planConfig.sector]]
+
+        const centralScoreProfile = calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan, true);
+
+        return { ...planEntity, centralScoreProfile }
     }
 );
