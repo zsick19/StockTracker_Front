@@ -21,6 +21,7 @@ import RRGChart from './Components/RRGChart/RRGChart';
 import ActiveTradeWatchMany from './Components/ActiveTradeWatchMany/ActiveTradeWatchMany';
 import SectorPlanView from './Components/SectorPlanView/SectorPlanView';
 import FinalPreTradeCheck from './Components/FinalPreTradeCheck/FinalPreTradeCheck';
+import IntegratedPlanView from './Components/IntegratedPlanView/IntegratedPlanView';
 
 function StockDetailSection()
 {
@@ -33,6 +34,7 @@ function StockDetailSection()
     MarketCap: undefined, ATR: undefined, Volume: undefined, Country: undefined
   })
 
+  console.log(currentStockDetail)
   function provideDetailContent()
   {
     switch (currentStockDetail.detailSelected)
@@ -61,6 +63,7 @@ function StockDetailSection()
       case 18: return <ActiveTradeWatchMany />
       case 19: return <SectorPlanView />
       case 20: return <FinalPreTradeCheck />
+      case 21: return <IntegratedPlanView tickerSymbol={currentStockDetail.ticker} />
     }
   }
 

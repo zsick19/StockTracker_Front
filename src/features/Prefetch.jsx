@@ -53,6 +53,7 @@ function Prefetch()
     // --- DYNAMIC POLLING BALANCER AND TIMEFRAME SWITCHER ---
     const manageDynamicIntervalLoop = () =>
     {
+      console.log('beeing called')
       const { isWeekend, isMorningPowerHour, isRegularSessionActive } = getMarketTimeContext();
 
       // WEEKEND GATEWAY: Shut down loop immediately if Saturday or Sunday
@@ -113,7 +114,7 @@ function Prefetch()
             }
           }, 60000)
         }
-      } 
+      }
       else if (isMorningPowerHour && !isWeekend)
       {
         if (!oneMinPollingClockRef.current)
@@ -154,13 +155,17 @@ function Prefetch()
     prefetchHistoricalEngineData.unwrap()
       .then(() =>
       {
-        const timeContext = getMarketTimeContext();
 
-        liveSubscriptionRef = store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: timeContext.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true }))
+        const timeContext = getMarketTimeContext();
+        const queryAction = EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: timeContext.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true })
+        liveSubscriptionRef = store.dispatch(queryAction)
+        
         return liveSubscriptionRef.unwrap()
       })
       .then((data) =>
       {
+
+        console.log('Initial pull successful')
         setIsSystemHydrated(true);
         manageDynamicIntervalLoop()
         console.log("✅ RTK Query Global Prefetch: Store fully hydrated. Workspace unlocked.");
@@ -212,7 +217,7 @@ function Prefetch()
   if (!isSystemHydrated)
   {
     return (
-      <div className="system-boot-loading-screen" style={{ height: "100vh", background: "#0a0a0a", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", color: "#fff", fontFamily: "monospace" }}>
+      <div className="system-boot-loading-screen" style={{ height: "100%", background: "#0a0a0a", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", color: "#fff", fontFamily: "monospace" }}>
         <div className="spinner" style={{ width: "40px", height: "40px", border: "4px solid #333", borderTop: "4px solid #00FFFF", borderRadius: "50%", animation: "spin 1s linear infinite" }}></div>
         <h3 style={{ marginTop: "20px", color: "#00FFFF", letterSpacing: "2px" }}>INITIALIZING QUANT TRADING ENVIRONMENT</h3>
         <p style={{ color: "#666", fontSize: "12px" }}>Hydrating global RTK Entity Adapter memory arrays via root cache subscription...</p>

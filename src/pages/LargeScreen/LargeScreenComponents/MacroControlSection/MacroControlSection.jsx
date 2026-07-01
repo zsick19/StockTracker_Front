@@ -24,7 +24,7 @@ function MacroControlSection()
   const uuidGraph1 = useMemo(() => short.generate(), [])
   const uuidGraph2 = useMemo(() => short.generate(), [])
 
-  const trial = useSelector((state) => selectDetailedScoreBreakDownBySymbol(state, 'MSGE'))
+  // const trial = useSelector((state) => selectDetailedScoreBreakDownBySymbol(state, 'MSGE'))
 
 
   const memoizedSelectedSPYId = useMemo(() => selectSPYIdFromUser(), [])
@@ -112,13 +112,13 @@ function MacroControlSection()
           </p>
           {trial.centralScoreProfile.auditLedger.map((t) => <p>{t.details}</p>)}
         </div> */}
-        {showMacroKeyLevelDisplay === 0 ?
+        {/* {showMacroKeyLevelDisplay === 0 ?
           <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyHalfYear} /> :
 
           showMacroKeyLevelDisplay === 1 ?
             <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
             <ZonesInputForm setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} />
-        }
+        } */}
       </div>
     </section >
   );

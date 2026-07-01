@@ -1,14 +1,21 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectPrioritizedWatchlist } from '../../../../../../features/Engine/EnginePlanApiSlice';
+import { setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice';
 
 export const ScoringTestHUD = () =>
 {
     // Pull the live sorted watchlist straight from your master selector loop
+    const dispatch = useDispatch()
     const prioritizedWatchlist = useSelector(selectPrioritizedWatchlist)
 
+    function handleNavigateToSinglePlan(tickerSymbol)
+    {
+        dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: tickerSymbol }))
+    }
+
     return (
-        <div style={{ padding: '20px', background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', minHeight: '200px' }}>
+        <div style={{ padding: '20px', background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', maxHeight: '600px' }}>
             <h2 style={{ color: '#00ffff', borderBottom: '1px solid #222', paddingBottom: '10px', margin: '0 0 20px 0' }}>
                 CORE ENGINE INFERENCE MATRIX TEST SCRATCHPAD
             </h2>
@@ -42,7 +49,7 @@ export const ScoringTestHUD = () =>
                             const finalScore = plan.alphaConvictionScore;
 
                             return (
-                                <tr key={plan.tickerSymbol} style={{ borderBottom: '1px solid #1c1c24', background: finalScore >= 75 ? 'rgba(0,255,255,0.02)' : 'transparent' }}>
+                                <tr onClick={() => handleNavigateToSinglePlan(plan.tickerSymbol)} key={plan.tickerSymbol} style={{ borderBottom: '1px solid #1c1c24', background: finalScore >= 75 ? 'rgba(0,255,255,0.02)' : 'transparent' }}>
                                     {/* TICKER */}
                                     <td style={{ padding: '14px 10px', fontWeight: 'bold', color: finalScore >= 75 ? '#00ffff' : '#fff', fontSize: '15px' }}>
                                         {plan.tickerSymbol}

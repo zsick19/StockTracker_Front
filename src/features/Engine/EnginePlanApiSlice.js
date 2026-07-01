@@ -105,13 +105,14 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     currentPriceStats.with1000DollarsCurrentRisk = (enterExitPlanPrices.stopLossPrice - mostRecentPrice) * currentPriceStats.sharesToBuyWith1000DollarsCurrent
 
                     let optionsConfig = {}
-                    optionsConfig.weeklyOptions = enterExit.plan.optionsExpectedMoves?.weekly || undefined
+                    optionsConfig = enterExit.plan?.optionsExpectedMoves || undefined
 
 
                     let tradeTapeConfig = {}
                     if (enterExit.tradeData) tradeTapeConfig.liveTapeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
                     else tradeTapeConfig.liveTapeMetrics = undefined
 
+                    console.log(enterExit.plan)
                     return {
                         id: enterExit.plan.tickerSymbol,
                         stockInfo: enterExit.plan.stockId,
@@ -361,6 +362,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshCandleData } = await queryFulfilled;
+                    console.log(freshCandleData)
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
