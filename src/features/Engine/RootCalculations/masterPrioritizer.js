@@ -575,7 +575,6 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
 
 
 
-
     // =========================================================================
     // 🛑 DYNAMIC GATING RADAR SENTRY: OMIT OFF-TARGET UI OVER-STIMULATION
     // =========================================================================

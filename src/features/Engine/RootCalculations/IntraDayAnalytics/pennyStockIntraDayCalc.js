@@ -17,7 +17,6 @@ export function processPennyChannelLiveDelta(planEntity, livePrice, todaysLiveCa
 
     if (!channel || !todaysLiveCandles || todaysLiveCandles.length === 0) { return 0; }
 
-    console.log(channel)
     const { channelBottom, entryStrikeBuffer, requiredVolumeMultiplier } = channel;
     let livePatternScore = 0;
 
