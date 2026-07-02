@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectDetailedScoreBreakDownBySymbol } from '../../../../../../features/Engine/EnginePlanApiSlice'
 import './IntegratedPlanView.css'
+import './ActionGraph.css'
+import './ExpandedViews.css'
 import { ExecutionUrgencyHud } from './Components/ExecutionUrgencyHUD'
 import { differenceInMinutes, isBefore, set } from 'date-fns'
 import { CapitalAllocationHUD } from './Components/CapitalAllocationHUD'
@@ -15,12 +17,13 @@ import PriceLevels from './Components/ExpandedViews/PriceLevels'
 import PositionSizeReview from './Components/ExpandedViews/PositionSizeReview'
 import IntegratedPlanChartWrapper from './Components/IntegratedPlanChartWrapper'
 import NewsReview from './Components/ExpandedViews/NewsReview'
+import FirstHourReview from './Components/ExpandedViews/FirstHourReview'
 
 function IntegratedPlanView({ tickerSymbol })
 {
     const todayOpen = new Date()
     todayOpen.setHours(9, 30, 0, 0)
-    const minutesPostOpen = differenceInMinutes(todayOpen, new Date())
+    const minutesPostOpen = differenceInMinutes(new Date(), todayOpen)
 
     const selectedPlannedTicker = useSelector((state) => selectDetailedScoreBreakDownBySymbol(state, tickerSymbol))
 
@@ -29,7 +32,6 @@ function IntegratedPlanView({ tickerSymbol })
     const [timeFrameView, setTimeFrameView] = useState(isBefore(marketOpenHour, new Date()) ? 1 : 0)
 
     const [expandedViewSelection, setExpandedViewSelection] = useState(0)
-
 
 
     function provideCurrentExpandedView()
@@ -44,9 +46,11 @@ function IntegratedPlanView({ tickerSymbol })
             case 5: return <PriceLevels plan={selectedPlannedTicker} />
             case 6: return <PositionSizeReview plan={selectedPlannedTicker} />
             case 7: return <NewsReview plan={selectedPlannedTicker} />
+            case 8: return <FirstHourReview plan={selectedPlannedTicker} />
         }
     }
-    console.log(selectedPlannedTicker)
+
+
 
     return (
         <div id='IntegratedPlanViewPage'>
@@ -67,6 +71,7 @@ function IntegratedPlanView({ tickerSymbol })
                 <div>
                     <button onClick={() => setExpandedViewSelection(0)}>Probability</button>
                     <button onClick={() => setExpandedViewSelection(6)}>Position Size</button>
+                    <button onClick={() => setExpandedViewSelection(8)}>First Hour</button>
                     <button onClick={() => setExpandedViewSelection(5)}>Price Levels</button>
                     <button onClick={() => setExpandedViewSelection(1)}>Info</button>
                     <button onClick={() => setExpandedViewSelection(2)}>Macro</button>

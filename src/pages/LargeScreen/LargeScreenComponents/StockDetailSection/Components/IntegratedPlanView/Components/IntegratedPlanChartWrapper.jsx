@@ -49,7 +49,8 @@ function IntegratedPlanChartWrapper({ plan, timeFrameView })
                 <IntegratedNoFetchChartWrapper
                     ticker={plan.id} candleData={candleDataForTimeFrame}
                     uuid={uuid} mostRecentPrice={plan.mostRecentPrice}
-                    timeFrame={defaultTimeFrames.threeDayFiveMin} />
+                    timeFrame={defaultTimeFrames.oneDayOneMin}
+                />
                 : <div>
                     Loading Today's Candle Data...
                 </div>}

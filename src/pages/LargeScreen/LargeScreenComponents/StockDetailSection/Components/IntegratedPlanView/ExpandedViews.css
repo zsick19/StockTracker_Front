@@ -1,0 +1,11 @@
+/* Probability TimeLine */
+#ExpandedProbability {
+  display: grid;
+  grid-template-columns: 1fr 40%;
+}
+
+/* First Hour */
+#ExpandedFirstHour {
+  display: grid;
+  grid-template-columns: 1fr 40%;
+}

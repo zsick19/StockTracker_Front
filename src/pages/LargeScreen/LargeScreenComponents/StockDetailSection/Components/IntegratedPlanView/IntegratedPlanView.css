@@ -16,23 +16,18 @@
 }
 
 #PlanChartAndActions > div:last-of-type {
-  background-color: blue;
+  padding: 10px;
+  background: #111219;
 }
 
-
-
-
-#ExpandedPlan div:first-child {
-  /* background-color: blue; */
+#ExpandedPlan > div:first-child {
   display: flex;
   flex-direction: column;
-  font-size: var(--fs-200);
+  font-size: var(--fs-100);
 }
 
-#ExpandedPlan div:last-child {
+#ExpandedPlan > div:last-child {
   background-color: rgb(36, 36, 37);
   border-radius: 10px;
   padding: 10px;
 }
-
-

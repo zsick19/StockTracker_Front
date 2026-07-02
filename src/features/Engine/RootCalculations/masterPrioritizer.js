@@ -591,7 +591,7 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
         logRuleTrack('Out Of Target Range', 0, 'Initial Check', reason)
         return {
             matchScorePercent: 0,
-            status: "🔍 RADAR_STANDBY: OFF_TARGET_ZONE",
+            status: "RADAR_STANDBY: OFF_TARGET_ZONE",
             metrics: {
                 baseEnvironmentScore: 0,
                 patternSpecificScore: 0,
@@ -658,7 +658,7 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
 
     return {
         matchScorePercent: finalizedAlphaScore,
-        status: finalizedAlphaScore >= 75 ? "🟢 HIGH_CONVICTION_ALERT" : "🔍 MONITORING_RADAR",
+        status: finalizedAlphaScore >= 75 ? "HIGH CONVICTION" : "MONITORING",
         metrics: {
             baseEnvironmentScore,
             timeDependentScore,

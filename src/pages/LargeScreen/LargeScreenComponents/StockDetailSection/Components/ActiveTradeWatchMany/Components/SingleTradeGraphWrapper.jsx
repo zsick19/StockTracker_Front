@@ -31,6 +31,7 @@ function SingleTradeGraphWrapper({ id })
                 tradingPlanPrices={tradeWGraph.tradingPlanPrices}
                 liveActionTimeFrame={true}
                 planChartingData={plan}
+                
                 dailyCalculatedValues={{
                     PrevDailyBar: tradeWGraph.PrevDailyBar,
                     TodayOpenPrice: tradeWGraph.TodayOpenPrice,
@@ -38,6 +39,7 @@ function SingleTradeGraphWrapper({ id })
                     dailyEMA: plan?.dailyTickerValues.dailyEma
                 }}
                 morningMetrics={plan?.morningMetrics}
+
             />
             <div>
                 {tradeWGraph.mostRecentTickerCandle.ClosePrice > tradeWGraph.TodayOpenPrice ?

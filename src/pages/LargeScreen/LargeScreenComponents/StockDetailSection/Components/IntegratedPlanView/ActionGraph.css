@@ -1,0 +1,9 @@
+#PlanStatusHUD {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#PlanStatusHUD p {
+  font-size: var(--fs-100);
+}

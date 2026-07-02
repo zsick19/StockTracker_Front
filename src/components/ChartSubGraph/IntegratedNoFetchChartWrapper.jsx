@@ -9,7 +9,7 @@ import ChartGraph from './ChartGraph'
 
 function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPrice, timeFrame })
 {
-    console.log(uuid)
+
     const dispatch = useDispatch()
 
     useEffect(() =>

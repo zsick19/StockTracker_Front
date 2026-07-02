@@ -94,6 +94,10 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                     let currentPriceStats = {}
                     let mostRecentPrice = enterExit.snapShot.LatestTrade.Price
+                    currentPriceStats.dailyBar=enterExit.snapShot.DailyBar
+                    currentPriceStats.prevDailyBar=enterExit.snapShot.PrevDailyBar
+                    
+                    
                     currentPriceStats.yesterdayClose = enterExit.snapShot.PrevDailyBar.ClosePrice
                     currentPriceStats.changeFromYesterdayClose = mostRecentPrice - currentPriceStats.yesterdayClose
                     currentPriceStats.currentRiskVReward = {
@@ -362,7 +366,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshCandleData } = await queryFulfilled;
-                    console.log(freshCandleData)
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
@@ -426,7 +429,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshCandleData } = await queryFulfilled;
-                    console.log(freshCandleData)
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return

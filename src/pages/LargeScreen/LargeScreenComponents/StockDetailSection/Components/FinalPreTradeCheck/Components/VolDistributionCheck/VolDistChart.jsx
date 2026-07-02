@@ -42,7 +42,6 @@ function VolDistChart({ candleData })
     return (
         <div ref={XSVGWrapper} id='VolDistChart'>
             <svg ref={XSVG} />
-            <p>Volume Spread</p>
         </div>
     )
 }

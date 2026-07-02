@@ -53,8 +53,10 @@ function ChartWithNoFetchWrapper({ ticker, dailyCalculatedValues, morningMetrics
                 uuid={uuid}
                 showEMAs={showEMAs}
                 EMNumbers={EMNumbers}
+
                 dailyCalculatedValues={dailyCalculatedValues}
                 morningMetrics={morningMetrics}
+                
                 tradingPlanPrices={tradingPlanPrices}
                 liveActionTimeFrame={liveActionTimeFrame}
             />
