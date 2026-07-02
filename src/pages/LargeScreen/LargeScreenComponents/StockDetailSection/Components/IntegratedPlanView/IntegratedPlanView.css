@@ -1,0 +1,38 @@
+#IntegratedPlanViewPage {
+  display: grid;
+  grid-template-rows: 50% 50%;
+  height: 100%;
+}
+
+#PlanChartAndActions {
+  display: grid;
+  grid-template-columns: 1fr 30%;
+}
+
+#ExpandedPlan {
+  padding-top: 1rem;
+  display: grid;
+  grid-template-columns: 10% 1fr;
+}
+
+#PlanChartAndActions > div:last-of-type {
+  background-color: blue;
+}
+
+
+
+
+#ExpandedPlan div:first-child {
+  /* background-color: blue; */
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-200);
+}
+
+#ExpandedPlan div:last-child {
+  background-color: rgb(36, 36, 37);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+

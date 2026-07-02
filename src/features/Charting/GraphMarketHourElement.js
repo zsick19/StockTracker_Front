@@ -1,5 +1,5 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
-import { isSaturday, isSunday, subBusinessDays, subDays, subMonths, subQuarters } from "date-fns";
+import { isSaturday, isSunday, previousFriday, subBusinessDays, subDays, subMonths, subQuarters } from "date-fns";
 
 const graphMarketHoursElement = createSlice({
     name: "graphMarketHoursElement",
@@ -27,14 +27,55 @@ const graphMarketHoursElement = createSlice({
                 case 'OMHO':
                     if (isSaturday(startDate)) startDate = subDays(startDate, 1)
                     else if (isSunday(startDate)) startDate = subDays(startDate, 2)
-                    startDate.setHours(9, 0, 0, 0)
-                    endDate = new Date(startDate).setHours(14, 0, 0, 0)
+                    startDate.setHours(9, 30, 0, 0)
+                    endDate = new Date(startDate).setHours(16, 0, 0, 0)
                     break;
                 case 'PMPM':
                     if (isSaturday(startDate)) startDate = subDays(startDate, 1)
                     else if (isSunday(startDate)) startDate = subDays(startDate, 2)
                     startDate.setHours(4, 0, 0, 0)
                     endDate = new Date(startDate).setHours(20, 0, 0, 0)
+                    break;
+                    
+                case 'MP1H':
+                    if (isSaturday(startDate)) startDate = subDays(startDate, 1)
+                    else if (isSunday(startDate)) startDate = subDays(startDate, 2)
+                    startDate.setHours(8, 30, 0, 0)
+                    endDate = new Date(startDate).setHours(17, 0, 0, 0)
+                    break;
+                case 'firstHour':
+                    if (isSaturday(startDate)) startDate = subDays(startDate, 1)
+                    else if (isSunday(startDate)) startDate = subDays(startDate, 2)
+                    startDate.setHours(9, 0, 0, 0)
+                    endDate = new Date(startDate).setHours(10, 30, 0, 0)
+                    break;
+                case 'H3D':
+                    if (isSaturday(startDate))
+                    {
+                        startDate = subBusinessDays(startDate, 3)
+                        endDate = previousFriday(endDate)
+                    }
+                    else if (isSunday(startDate))
+                    {
+                        startDate = subBusinessDays(startDate, 3)
+                        endDate = previousFriday(endDate)
+                    } else
+                    {
+                        startDate = subBusinessDays(startDate, 3)
+                    }
+                    startDate.setHours(4, 0, 0, 0)
+                    endDate.setHours(20, 0, 0, 0)
+                    break;
+                case 'H10D':
+                    if (isSaturday(startDate) || isSunday(startDate))
+                    {
+                        endDate = previousFriday(endDate)
+                    }
+
+                    startDate = subBusinessDays(endDate, 10)
+
+                    startDate.setHours(4, 0, 0, 0)
+                    endDate.setHours(20, 0, 0, 0)
                     break;
                 case 'P2D':
                     if (isSaturday(startDate))

@@ -61,7 +61,6 @@ function ChartWithChartingWrapper({ ticker, candleData, setChartInfoDisplay, int
             dispatch(setPreviousCharting(chartingData))
         }
 
-
     }, [chartingData])
 
     return (

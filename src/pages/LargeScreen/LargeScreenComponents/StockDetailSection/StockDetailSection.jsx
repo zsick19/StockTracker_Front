@@ -34,7 +34,6 @@ function StockDetailSection()
     MarketCap: undefined, ATR: undefined, Volume: undefined, Country: undefined
   })
 
-  console.log(currentStockDetail)
   function provideDetailContent()
   {
     switch (currentStockDetail.detailSelected)

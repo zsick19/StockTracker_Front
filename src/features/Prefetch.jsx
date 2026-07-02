@@ -53,8 +53,13 @@ function Prefetch()
     // --- DYNAMIC POLLING BALANCER AND TIMEFRAME SWITCHER ---
     const manageDynamicIntervalLoop = () =>
     {
-      console.log('beeing called')
       const { isWeekend, isMorningPowerHour, isRegularSessionActive } = getMarketTimeContext();
+
+      if (!isSystemHydrated)
+      {
+        store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineOneMinCandleBarData.initiate(undefined, { subscribe: true, forceRefetch: true }))
+        store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
+      }
 
       // WEEKEND GATEWAY: Shut down loop immediately if Saturday or Sunday
       if (isWeekend)
@@ -79,16 +84,9 @@ function Prefetch()
           const clock = getMarketTimeContext();
           if (clock.isRegularSessionActive && !clock.isWeekend)
           {
-            if (liveSubscriptionRef)
-            {
-              store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: clock.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true }))
-            }
-
+            if (liveSubscriptionRef) { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: clock.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true })) }
             if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
-            tradeSyncTimeoutRef.current = setTimeout(() =>
-            {
-              store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
-            }, 45000)
+            tradeSyncTimeoutRef.current = setTimeout(() => { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true })) }, 45000)
           }
 
           manageDynamicIntervalLoop();
@@ -114,6 +112,7 @@ function Prefetch()
             }
           }, 60000)
         }
+
       }
       else if (isMorningPowerHour && !isWeekend)
       {
@@ -128,7 +127,8 @@ function Prefetch()
             }, 45000)
           }, 60000)
         }
-      } else
+      }
+      else
       {
         if (oneMinPollingClockRef.current)
         {
@@ -141,9 +141,7 @@ function Prefetch()
           tradeSyncTimeoutRef.current = null
         }
       }
-
-
-
+      
     };
 
 
@@ -155,19 +153,15 @@ function Prefetch()
     prefetchHistoricalEngineData.unwrap()
       .then(() =>
       {
-
         const timeContext = getMarketTimeContext();
-        const queryAction = EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: timeContext.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true })
-        liveSubscriptionRef = store.dispatch(queryAction)
-        
+        liveSubscriptionRef = store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: timeContext.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true }))
         return liveSubscriptionRef.unwrap()
       })
       .then((data) =>
       {
-
-        console.log('Initial pull successful')
         setIsSystemHydrated(true);
         manageDynamicIntervalLoop()
+
         console.log("✅ RTK Query Global Prefetch: Store fully hydrated. Workspace unlocked.");
       })
       .catch((error) =>

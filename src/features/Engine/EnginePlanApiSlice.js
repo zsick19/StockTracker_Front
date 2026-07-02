@@ -89,8 +89,8 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     metricConfig.morningVolume = enterExit.plan.morningVolumeMetrics
                     metricConfig.extremeProbByFiveMin = enterExit.plan.extremeProbByFiveMin
                     metricConfig.vpSupportResistance = enterExit.plan.volumeProfileMetrics
-
-
+                    metricConfig.absorptionWindow = enterExit.plan.absorptionWindowMetrics
+                    metricConfig.retailVsInstitution = enterExit.plan.retailVsInstitutionMetrics
 
                     let currentPriceStats = {}
                     let mostRecentPrice = enterExit.snapShot.LatestTrade.Price
@@ -426,7 +426,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshCandleData } = await queryFulfilled;
-
+                    console.log(freshCandleData)
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
