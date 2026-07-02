@@ -7,7 +7,7 @@ import { clearGraphVisibility, setInitialGraphVisibility } from '../../features/
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import ChartGraph from './ChartGraph'
 
-function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPrice, timeFrame })
+function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPrice, timeFrame, dailyCalculatedValues, morningMetrics })
 {
 
     const dispatch = useDispatch()
@@ -42,12 +42,15 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
                 candleData={candleData}
                 uuid={uuid}
                 mostRecentPrice={mostRecentPrice}
-
+                lastCandleData={{ ClosePrice: mostRecentPrice }}
                 isInteractive={false}
                 isZoomAble={true}
                 isLivePrice={true}
 
                 timeFrame={timeFrame}
+
+                dailyCalculatedValues={dailyCalculatedValues}
+                morningMetrics={morningMetrics}
 
                 // chartId={chartId}
                 // lastCandleData={lastCandleData}

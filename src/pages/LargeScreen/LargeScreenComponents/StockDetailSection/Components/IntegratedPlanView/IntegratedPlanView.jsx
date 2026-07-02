@@ -18,6 +18,7 @@ import PositionSizeReview from './Components/ExpandedViews/PositionSizeReview'
 import IntegratedPlanChartWrapper from './Components/IntegratedPlanChartWrapper'
 import NewsReview from './Components/ExpandedViews/NewsReview'
 import FirstHourReview from './Components/ExpandedViews/FirstHourReview'
+import TradeTapeReview from './Components/ExpandedViews/TradeTapeReview'
 
 function IntegratedPlanView({ tickerSymbol })
 {
@@ -30,8 +31,7 @@ function IntegratedPlanView({ tickerSymbol })
 
     const marketOpenHour = set(new Date(), { hours: 10, minutes: 30 })
     const [timeFrameView, setTimeFrameView] = useState(isBefore(marketOpenHour, new Date()) ? 1 : 0)
-
-    const [expandedViewSelection, setExpandedViewSelection] = useState(0)
+    const [expandedViewSelection, setExpandedViewSelection] = useState(isBefore(new Date(), marketOpenHour) ? 8 : 0)
 
 
     function provideCurrentExpandedView()
@@ -47,6 +47,7 @@ function IntegratedPlanView({ tickerSymbol })
             case 6: return <PositionSizeReview plan={selectedPlannedTicker} />
             case 7: return <NewsReview plan={selectedPlannedTicker} />
             case 8: return <FirstHourReview plan={selectedPlannedTicker} />
+            case 9: return <TradeTapeReview plan={selectedPlannedTicker} />
         }
     }
 
@@ -69,15 +70,16 @@ function IntegratedPlanView({ tickerSymbol })
             </div>
             <div id='ExpandedPlan'>
                 <div>
-                    <button onClick={() => setExpandedViewSelection(0)}>Probability</button>
-                    <button onClick={() => setExpandedViewSelection(6)}>Position Size</button>
-                    <button onClick={() => setExpandedViewSelection(8)}>First Hour</button>
-                    <button onClick={() => setExpandedViewSelection(5)}>Price Levels</button>
-                    <button onClick={() => setExpandedViewSelection(1)}>Info</button>
-                    <button onClick={() => setExpandedViewSelection(2)}>Macro</button>
-                    <button onClick={() => setExpandedViewSelection(3)}>Score</button>
-                    <button onClick={() => setExpandedViewSelection(4)}>Options</button>
-                    <button onClick={() => setExpandedViewSelection(7)}>News</button>
+                    <button className={expandedViewSelection === 8 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(8)}>First Hour</button>
+                    <button className={expandedViewSelection === 0 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(0)}>Probability</button>
+                    <button className={expandedViewSelection === 6 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(6)}>Position Size</button>
+                    <button className={expandedViewSelection === 5 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(5)}>Price Levels</button>
+                    <button className={expandedViewSelection === 1 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(1)}>Info</button>
+                    <button className={expandedViewSelection === 2 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(2)}>Macro</button>
+                    <button className={expandedViewSelection === 3 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(3)}>Score</button>
+                    <button className={expandedViewSelection === 4 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(4)}>Options</button>
+                    <button className={expandedViewSelection === 7 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(7)}>News</button>
+                    <button className={expandedViewSelection === 9 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(9)}>Trade Tape</button>
                 </div>
                 {provideCurrentExpandedView()}
             </div>

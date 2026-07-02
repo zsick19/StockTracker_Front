@@ -8,11 +8,24 @@ import { setFocusStartFinishDate } from '../../../../../../../features/Charting/
 function IntegratedPlanChartWrapper({ plan, timeFrameView })
 {
     if (!plan) return
+    const dispatch = useDispatch()
+
+
     const threeDayHistoricalOrTenDay = plan?.patternConfig.maintainLiveCandles || false
     const uuid = useMemo(() => short.generate(), [])
     const [scaleForTimeFrame, setScaleForTimeFrame] = useState()
     const [candleDataForTimeFrame, setCandleDataForTimeFrame] = useState(plan.todaysCandles)
-    const dispatch = useDispatch()
+
+
+    const dailyCalculatedValues = {
+        PrevDailyBar: plan.currentPriceStats.prevDailyBar,
+        TodayOpenPrice: plan.currentPriceStats.dailyBar.OpenPrice,
+        ATR: plan.planConfig.dailyCalculatedValues.atr
+
+    }
+    const morningMetrics = plan.metricConfig.morningMetrics
+
+
     useEffect(() =>
     {
         switch (timeFrameView)
@@ -50,6 +63,9 @@ function IntegratedPlanChartWrapper({ plan, timeFrameView })
                     ticker={plan.id} candleData={candleDataForTimeFrame}
                     uuid={uuid} mostRecentPrice={plan.mostRecentPrice}
                     timeFrame={defaultTimeFrames.oneDayOneMin}
+                    dailyCalculatedValues={dailyCalculatedValues}
+                    morningMetrics={morningMetrics}
+
                 />
                 : <div>
                     Loading Today's Candle Data...

@@ -583,8 +583,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         firstHour.setHours(10, 30)
 
         let basePriceOpen
-        if ((new Date() > openTime) && dailyCalculatedValues.TodayOpenPrice) { basePriceOpen = dailyCalculatedValues.TodayOpenPrice }
+        if ((new Date() > openTime) && dailyCalculatedValues.TodayOpenPrice)
+        { basePriceOpen = dailyCalculatedValues.TodayOpenPrice }
         else { basePriceOpen = lastCandleData.ClosePrice }
+        
         let upsidePercentVsOpen = basePriceOpen + (basePriceOpen * (morningMetrics.upSide.averageInitialRallyStretch / 100))
         let downSidePercentVsOpen = basePriceOpen - (basePriceOpen * (morningMetrics.downSide.averageInitialDropStretch / 100))
 

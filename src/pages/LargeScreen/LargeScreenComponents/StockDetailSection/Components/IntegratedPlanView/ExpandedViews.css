@@ -2,6 +2,48 @@
 #ExpandedProbability {
   display: grid;
   grid-template-columns: 1fr 40%;
+  gap: 1rem;
+}
+#ExpandedProbability > div:first-of-type {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+}
+
+#extremeProbVisual,
+#volDistributionVisual {
+  padding-block: 10px;
+  border: 1px solid white;
+  border-radius: 10px;
+  background-color: rgb(27, 27, 31);
+}
+
+#extremeProbVisual svg,
+#volDistributionVisual svg {
+  padding-inline: 10px;
+  background-color: black;
+}
+#extremeProbVisual > div:last-of-type {
+  display: flex;
+  justify-content: space-around;
+  font-size: var(--fs-100);
+}
+
+#volDistributionVisual > div:last-of-type {
+  display: flex;
+  justify-content: space-around;
+  font-size: var(--fs-100);
+}
+
+.highProbVisual {
+  background-color: rgba(255, 255, 0, 0.144);
+  border: 1px solid yellow;
+  border-radius: 5px;
+}
+.lowProbVisual {
+  background-color: rgba(255, 255, 0, 0.144);
+  border: 1px solid yellow;
 }
 
 /* First Hour */
