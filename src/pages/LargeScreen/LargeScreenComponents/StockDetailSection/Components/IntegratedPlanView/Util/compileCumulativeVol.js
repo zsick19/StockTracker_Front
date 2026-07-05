@@ -7,7 +7,7 @@
  * @param {Object} planEntity - Fully hydrated MongoDB stock document tracking your historical arrays [INDEX]
  * @returns {Array} Flat JSON array array of matching coordinates: [{ label: "09:35", baseVolume: 50000, liveVolume: 62000 }]
  */
-export function compileCumulativeChartData(todaysLiveCandles, fiveMinUpDay, fiveMinDownDay)
+export function compileCumulativeChartData(fiveMinUpDay, fiveMinDownDay)
 {
 
     const rawHistoricalIntervalArray = fiveMinUpDay

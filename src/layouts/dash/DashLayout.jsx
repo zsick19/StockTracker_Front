@@ -2,6 +2,7 @@ import useAuth from "../../hooks/useAuth";
 import DashNav from "./DashNav";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import "../dash/DashLayoutNav.css";
+import { useDispatch } from "react-redux";
 
 function DashLayout() {
   const { ...userStatus } = useAuth();
@@ -16,6 +17,12 @@ function DashLayout() {
   if (userStatus.isLoading) {
     return <div>Loading authentication status...</div>;
   }
+
+
+  
+
+
+
 
   return userStatus.isAuthenticated ? (
     <>

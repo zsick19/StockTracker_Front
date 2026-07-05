@@ -1,10 +1,13 @@
 import React, { useMemo } from 'react'
 import VolDistChart from '../../../FinalPreTradeCheck/Components/VolDistributionCheck/VolDistChart'
 import RangeDistChart from '../SubComponents/RangeDistChart'
+import VolDistributionChart from '../SubComponents/VolDistributionChart'
 
 function ProbabilityTimeLine({ plan })
 {
   const extentProb = plan.metricConfig.extentProb
+  const volDistribution = plan.metricConfig.volumeDistribution
+  console.log(volDistribution)
   // const extremesBy5Min = plan.metricConfig.extremeProbByFiveMin
   const morningMetrics = plan.metricConfig.morningMetrics
   const morningVolMetrics = plan.metricConfig.morningVolume
@@ -50,18 +53,18 @@ function ProbabilityTimeLine({ plan })
 
         <div id='volDistributionVisual'>
           <h3>Volume Distribution</h3>
-          <VolDistChart candleData={plan.combinedCandleData} />
+          <VolDistributionChart volDis={volDistribution.fiveMinAvgVolume} lowestIndexStart={volDistribution.fiveMinAvgLowestVolume.startingIndex} />
           <div>
             <div>
-              <p>45%</p>
+              <p>{volDistribution.fiveMinAvgVolumeShare.firstHour}% Of Volume</p>
               <p>Open</p>
             </div>
             <div>
-              <p>45%</p>
-              <p>Mid</p>
+              <p>{volDistribution.fiveMinAvgLowestVolume.oneHourLowestVolume}</p>
+              <p>Lowest 1 Hour Volume</p>
             </div>
             <div>
-              <p>45%</p>
+              <p>{volDistribution.fiveMinAvgVolumeShare.lastHour}% Volume</p>
               <p>Close</p>
             </div>
           </div>
@@ -72,7 +75,7 @@ function ProbabilityTimeLine({ plan })
         <h4>Details</h4>
         <p>Daily High Most Likely: {greatestProb.greatestHighSession}</p>
         <p>Daily Low Most Likely: {greatestProb.greatestLowSession}</p>
-        <p>Last Calculated:{}</p>
+        <p>Last Calculated:{ }</p>
       </div>
 
     </div>

@@ -7,7 +7,6 @@ function ActiveTradeSection()
 {
   return <section id="LSH-ActiveTradeSection">
     <MessageNewsCenter />
-
     <ActiveTradeAndWatchList />
   </section>;
 }

@@ -39,10 +39,10 @@ export const VolumeVelocityOscillator = ({ todaysCandles }) =>
             .range([height, 0]);
 
         // Draw Axes
-        svg.append("g")
-            .attr("transform", `translate(0, ${yLinear(0)})`) // Place X-Axis line exactly at zero baseline
-            .call(d3.axisBottom(xBand).tickValues(velocityMatrix.filter((_, i) => i % 5 === 0).map(d => d.timeLabel)))
-            .style("color", "#2c2d3a");
+        // svg.append("g")
+        //     .attr("transform", `translate(0, ${yLinear(0)})`) // Place X-Axis line exactly at zero baseline
+        //     .call(d3.axisBottom(xBand).tickValues(velocityMatrix.filter((_, i) => i % 5 === 0).map(d => d.timeLabel)))
+        //     .style("color", "#2c2d3a");
 
         svg.append("g")
             .call(d3.axisLeft(yLinear).ticks(4).tickFormat(d3.format(".1s")))
@@ -65,10 +65,10 @@ export const VolumeVelocityOscillator = ({ todaysCandles }) =>
     }, [velocityMatrix]);
 
     return (
-        <div style={{ background: '#111219', padding: '20px', borderRadius: '4px', border: '1px solid #222', marginTop: '12px' }}>
-            <h4 style={{ margin: '0 0 10px 0', color: '#6272a4', fontSize: '10px', letterSpacing: '1px' }}>
+        <div style={{ background: '#111219', borderRadius: '4px' }}>
+            {/* <h4 style={{ margin: '0 0 10px 0', color: '#6272a4', fontSize: '10px', letterSpacing: '1px' }}>
                 🌊 INTRADAY VOLUME VELOCITY (1-MIN DERIVATIVE MOMENTUM)
-            </h4>
+            </h4> */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <svg ref={oscillatorRef}></svg>
             </div>

@@ -6,6 +6,7 @@ import './WelcomeGreeting.css'
 import { useGetActiveTradeNewsQuery } from '../../../../../../../../features/NewsFeed/NewsFeedApiSlice'
 import { StockCsvUpload } from './StockCsvUpload'
 import ExpectedMoveUpload from './ExpectedMoveUpload'
+import { TerminalTaskStatusTickerHUD } from '../../../../../../../../layouts/dash/TerminalTaskStatusTickerHUD'
 
 function WelcomeGreeting()
 {
@@ -38,7 +39,7 @@ function WelcomeGreeting()
                 <button onClick={() => window.location.reload()}>Refresh Page</button>
             </div>
             <StockCsvUpload />
-
+            <TerminalTaskStatusTickerHUD />
             <div>
                 <ExpectedMoveUpload Process={'Core Daily EM'} />
                 <br />

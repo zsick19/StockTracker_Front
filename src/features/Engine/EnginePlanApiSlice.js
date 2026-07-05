@@ -2,7 +2,7 @@ import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
-import { differenceInBusinessDays, isWeekend, isWithinInterval, set, getDay } from "date-fns";
+import { differenceInBusinessDays, isWeekend, isWithinInterval, set, getDay, isBefore } from "date-fns";
 import { toZonedTime } from 'date-fns-tz'
 
 import { filterRegularSessionCandles } from "./RootCalculations/filterRegularSessionCandles";
@@ -91,13 +91,17 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     metricConfig.vpSupportResistance = enterExit.plan.volumeProfileMetrics
                     metricConfig.absorptionWindow = enterExit.plan.absorptionWindowMetrics
                     metricConfig.retailVsInstitution = enterExit.plan.retailVsInstitutionMetrics
+                    metricConfig.volumeDistribution = enterExit.plan.volumeDistributionMetrics
+                    metricConfig.openCross = enterExit.plan.openCrossMetrics
+                    if (isBefore(new Date(), set(new Date(), { hours: 9, minutes: 4 }))) metricConfig.openCross.todaysOpenCross = undefined
+
 
                     let currentPriceStats = {}
                     let mostRecentPrice = enterExit.snapShot.LatestTrade.Price
-                    currentPriceStats.dailyBar=enterExit.snapShot.DailyBar
-                    currentPriceStats.prevDailyBar=enterExit.snapShot.PrevDailyBar
-                    
-                    
+                    currentPriceStats.dailyBar = enterExit.snapShot.DailyBar
+                    currentPriceStats.prevDailyBar = enterExit.snapShot.PrevDailyBar
+
+
                     currentPriceStats.yesterdayClose = enterExit.snapShot.PrevDailyBar.ClosePrice
                     currentPriceStats.changeFromYesterdayClose = mostRecentPrice - currentPriceStats.yesterdayClose
                     currentPriceStats.currentRiskVReward = {
@@ -116,7 +120,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     if (enterExit.tradeData) tradeTapeConfig.liveTapeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
                     else tradeTapeConfig.liveTapeMetrics = undefined
 
-                    console.log(enterExit.plan)
                     return {
                         id: enterExit.plan.tickerSymbol,
                         stockInfo: enterExit.plan.stockId,
@@ -503,6 +506,31 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     console.log(error)
                 }
             }
+        }),
+        fetchEngineOpenCrossData: builder.query({
+            query: () => ({
+                url: `/engine/today/openCross`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshOpenCrosses } = await queryFulfilled;
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        freshOpenCrosses.planAndTrackedStocks.map((t, i) =>
+                        {
+                            if (!draft.plans.entities[t.tickerSymbol]) return
+                            draft.plans.entities[t.tickerSymbol].metricConfig.openCross = t.openCrossMetrics
+                        })
+                    }))
+                } catch (error)
+                {
+                    console.log(error)
+                }
+            }
         })
     })
 });
@@ -511,7 +539,8 @@ export const {
     useInitiateEngineWithEnterExitPlanQuery,
     useFetchEngineCandleBarDataQuery,
     useFetchEngineTradeDataQuery,
-    useFetchEngineOneMinCandleBarDataQuery
+    useFetchEngineOneMinCandleBarDataQuery,
+    useFetchEngineOpenCrossDataQuery
 } = EnginePlanPlanApiSlice;
 
 

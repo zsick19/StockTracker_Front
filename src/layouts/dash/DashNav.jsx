@@ -3,14 +3,40 @@ import useWindowSize from "../../hooks/useWindowSize";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePopulateMacroTickersMutation, useResetUserMutation } from "../../features/test/testApiSlice";
 import { Check, ChessKing, ChessQueen } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectStandardDeviationState } from "../../features/STDs/StockDetailControlSlice";
 import SDTNotificationControl from "./SDTNotification/SDTNotificationControl";
 import { useRefreshStreamTickersMutation } from "../../features/auth/authApiSlice";
 import PriceAlertNotification from "./PriceAlertNotification/PriceAlertNotification";
+import { startBackgroundSessionTicker } from "../../features/Scheduling/sessionClockSlice";
 
 function DashNav()
 {
+  const dispatch = useDispatch()
+  useEffect(() =>
+  {
+    dispatch(startBackgroundSessionTicker())
+  }, [dispatch])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const width = useWindowSize();
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,7 +85,6 @@ function DashNav()
           Smaller Screen View
         </button>
       )}
-
 
       <p>Stock Tracker</p>
       <SDTNotificationControl />

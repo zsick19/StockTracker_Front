@@ -10,26 +10,18 @@ export function compileVolumeDerivative(todaysLiveCandles)
 {
     if (!todaysLiveCandles || todaysLiveCandles.length < 4) return [];
 
-    // Filter out overnight noise to anchor your time-series analysis to the RTH open cross
-    const cleanRthCandles = todaysLiveCandles.filter(candle =>
-    {
-        const rawTimestamp = candle.Timestamp || candle.t || candle.timestamp;
-        if (!rawTimestamp) return false;
-        const timeStr = new Date(rawTimestamp).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: false });
-        return timeStr >= "09:30:00" && timeStr <= "10:30:00"; // Isolate the first opening hour
-    });
 
     const derivativePlotCoordinates = [];
     const rollingSmoothPeriod = 3; // 3-bar moving frame to smooth out single random prints
 
-    for (let i = rollingSmoothPeriod; i < cleanRthCandles.length; i++)
+    for (let i = rollingSmoothPeriod; i < todaysLiveCandles.length; i++)
     {
-        const timestamp = cleanRthCandles[i].Timestamp || cleanRthCandles[i].t || cleanRthCandles[i].timestamp;
+        const timestamp = todaysLiveCandles[i].Timestamp || todaysLiveCandles[i].t || todaysLiveCandles[i].timestamp;
         const timeLabel = new Date(timestamp).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: '2-digit', minute: '2-digit', hour12: false });
 
         // Calculate the derivative: Rate of Change (ROC) vs. the preceding 3-minute baseline block
-        const currentVolume = cleanRthCandles[i].Volume || cleanRthCandles[i].v || 0;
-        const priorVolumeBase = cleanRthCandles[i - rollingSmoothPeriod].Volume || cleanRthCandles[i - rollingSmoothPeriod].v || 0;
+        const currentVolume = todaysLiveCandles[i].Volume || todaysLiveCandles[i].v || 0;
+        const priorVolumeBase = todaysLiveCandles[i - rollingSmoothPeriod].Volume || todaysLiveCandles[i - rollingSmoothPeriod].v || 0;
 
         // Velocity Delta is the absolute difference in share accumulation rate per minute
         const velocityDeltaChange = currentVolume - priorVolumeBase;

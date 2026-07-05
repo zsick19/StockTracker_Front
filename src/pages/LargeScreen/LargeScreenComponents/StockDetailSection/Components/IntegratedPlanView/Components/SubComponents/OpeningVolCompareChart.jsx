@@ -12,22 +12,13 @@ function OpeningVolCompareChart({ baseLineVolData, upOrDown, todaysVol })
 
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck()) return
+        if (preDimensionsAndCandleCheck() || todaysVol.length === 0) return
         const xScale = scaleBand().domain(baseLineVolData.map((t, i) => i)).range([0, chartDimensions.width])
         const maxBaseLine = Math.max(...baseLineVolData)
-        const liveMaxVol = max(todaysVol, d => d.liveVolumeToday)
-
+        const liveMaxVol = max(todaysVol, d => d)
         const yScale = scaleLinear().domain([0, Math.max(maxBaseLine, liveMaxVol) * 1.1]).range([chartDimensions.height, 0])
 
-        const liveVolLineGenerator = line().x((d, i) =>
-        {
-            return xScale(i)
-        }
-        ).y(d =>
-        {
-
-            return yScale(d.liveVolumeToday)
-        })
+        const liveVolLineGenerator = line().x((d, i) => xScale(i)).y(d => yScale(d))
         const svg = select(XSVG.current)
         svg.selectAll('.bar').remove()
         svg.selectAll('.liveLine').remove()

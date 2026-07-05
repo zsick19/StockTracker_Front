@@ -74,12 +74,13 @@ function IntegratedPlanView({ tickerSymbol })
                     <button className={expandedViewSelection === 0 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(0)}>Probability</button>
                     <button className={expandedViewSelection === 6 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(6)}>Position Size</button>
                     <button className={expandedViewSelection === 5 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(5)}>Price Levels</button>
-                    <button className={expandedViewSelection === 1 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(1)}>Info</button>
+                    <button className={expandedViewSelection === 1 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(1)}>Company Info</button>
                     <button className={expandedViewSelection === 2 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(2)}>Macro</button>
                     <button className={expandedViewSelection === 3 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(3)}>Score</button>
                     <button className={expandedViewSelection === 4 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(4)}>Options</button>
                     <button className={expandedViewSelection === 7 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(7)}>News</button>
                     <button className={expandedViewSelection === 9 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(9)}>Trade Tape</button>
+                    <button className={expandedViewSelection === 9 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(9)}>Pattern</button>
                 </div>
                 {provideCurrentExpandedView()}
             </div>

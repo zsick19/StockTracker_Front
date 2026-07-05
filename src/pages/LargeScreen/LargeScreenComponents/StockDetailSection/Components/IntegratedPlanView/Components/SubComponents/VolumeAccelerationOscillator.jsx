@@ -1,22 +1,23 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import { compileVolumeAccelerationDerivative } from '../utils/compileVolumeAccelerationDerivative';
+import { compileVolumeAccelerationDerivative } from '../../Util/compileVolumeAcceleration';
+// import { compileVolumeAccelerationDerivative } from '../utils/compileVolumeAccelerationDerivative';
 
-export const VolumeAccelerationChart = ({ todaysCandles, planData }) => {
+export const VolumeAccelerationChart = ({ todaysCandles, upTimeToPeak, downTimeToBottom }) =>
+{
     const svgRef = useRef(null);
     const accelerationData = compileVolumeAccelerationDerivative(todaysCandles);
 
-    // Pull historical time-of-day landmark strings straight from your morning metrics models [INDEX]
-    const morningMetrics = planData.morningMetrics || {};
-    const bottomHour = morningMetrics.downSide?.averageTimeToBottom?.hour || 9;
-    const bottomMin = morningMetrics.downSide?.averageTimeToBottom?.minute || 37;
+    const bottomHour = downTimeToBottom?.hour || 9;
+    const bottomMin = downTimeToBottom?.minute || 37;
     const formattedBottomTime = `${bottomHour}:${bottomMin < 10 ? '0' + bottomMin : bottomMin}`;
 
-    const peakHour = morningMetrics.upSide?.averageTimeToPeak?.hour || 9;
-    const peakMin = morningMetrics.upSide?.averageTimeToPeak?.minute || 52;
+    const peakHour = upTimeToPeak?.hour || 9;
+    const peakMin = upTimeToPeak?.minute || 52;
     const formattedPeakTime = `${peakHour}:${peakMin < 10 ? '0' + peakMin : peakMin}`;
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (!svgRef.current || accelerationData.length === 0) return;
 
         d3.select(svgRef.current).selectAll("*").remove();
@@ -67,7 +68,8 @@ export const VolumeAccelerationChart = ({ todaysCandles, planData }) => {
         // =====================================================================
         // 🏁 DRAW THE VERTICAL HISTORICAL TIME LANDMARKS [INDEX]
         // =====================================================================
-        const appendTimeMarkerSentry = (timeString, markerColor, markerLabel) => {
+        const appendTimeMarkerSentry = (timeString, markerColor, markerLabel) =>
+        {
             const xCoordinate = xScale(timeString);
             if (!xCoordinate) return; // Skip if the session clock hasn't reached this point yet
 
@@ -98,10 +100,10 @@ export const VolumeAccelerationChart = ({ todaysCandles, planData }) => {
     }, [accelerationData, formattedBottomTime, formattedPeakTime]);
 
     return (
-        <div style={{ background: '#111219', padding: '20px', borderRadius: '4px', border: '1px solid #222', marginTop: '12px' }}>
-            <h4 style={{ margin: '0 0 10px 0', color: '#6272a4', fontSize: '10px', letterSpacing: '1px' }}>
+        <div style={{ background: '#111219', borderRadius: '4px' }}>
+            {/* <h4 style={{ margin: '0 0 10px 0', color: '#6272a4', fontSize: '10px', letterSpacing: '1px' }}>
                 🌊 QUANT MOMENTUM FIELD (d²V/dt² RECKONER WITH TIME EXHAUSTION WALLS)
-            </h4>
+            </h4> */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <svg ref={svgRef}></svg>
             </div>

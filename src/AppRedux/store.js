@@ -22,6 +22,7 @@ import messageNewsDetailControlReducers from '../features/SelectedStocks/Message
 import standardDeviationControlReducers from '../features/STDs/StockDetailControlSlice'
 import priceAlertControlReducers from '../features/PriceAlerts/PriceAlertControlSlice'
 import preTradeCheckReducers from '../features/Trades/PreTradeCheckSlice'
+import sessionClockReducers from '../features/Scheduling/sessionClockSlice'
 import { injectStore } from "./api/ws";
 
 export const store = configureStore({
@@ -45,6 +46,7 @@ export const store = configureStore({
     standardDeviationControl: standardDeviationControlReducers,
     priceAlertControl: priceAlertControlReducers,
     preTradeCheck: preTradeCheckReducers,
+    sessionClock: sessionClockReducers,
     auth: authReducer,
     test: testReducer,
 

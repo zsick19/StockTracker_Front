@@ -3,7 +3,7 @@ import { calculateIntradayVolumeDistribution } from '../../../../../../../../Uti
 import { max, scaleBand, scaleLinear, select, selectAll } from 'd3'
 import { useResizeObserver } from '../../../../../../../../hooks/useResizeObserver'
 
-function VolDistChart({ candleData })
+function VolDistChart({ candleData, volDis })
 {
 
     const results = useMemo(() => calculateIntradayVolumeDistribution(candleData), [candleData])
