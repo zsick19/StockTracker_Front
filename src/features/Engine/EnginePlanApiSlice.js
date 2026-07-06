@@ -174,6 +174,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             isHistogramGrowingBearish: computedMACDMetrics.isHistogramGrowingBearish,
                             lastPrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00
                         },
+                        snapShot: macroPlan.snapShot,
                         mostRecentPrice: macroPlan.snapShot.LatestTrade.Price
                     }
                 })
@@ -268,10 +269,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                     if (!activePlan) return;
 
                                     let price = streamingPriceBuffer[symbol]
-                                    activePlan.liveAuctionMetrics = {
-                                        ...activePlan.liveAuctionMetrics,
-                                        lastTradePrice: price
-                                    };
+
                                     activePlan.liveAuctionMetrics = { ...activePlan.liveAuctionMetrics, lastTradePrice: price };
                                     activePlan.mostRecentPrice = price
 
@@ -667,3 +665,27 @@ export const selectDetailedScoreBreakDownBySymbol = createSelector(
         return { ...planEntity, centralScoreProfile }
     }
 );
+export const selectPlanAndPatternChartingBySymbol = createSelector(
+    [planSelectors.selectEntities, (state, symbol) => symbol],
+    (stockEntities, symbol) =>
+    {
+        const planEntity = stockEntities[symbol]
+        let lowestHour = undefined
+        if (planEntity?.metricConfig.volumeDistribution.fiveMinAvgLowestVolume.oneHourLowestVolume)
+        {
+            let timeString = planEntity?.metricConfig.volumeDistribution.fiveMinAvgLowestVolume.oneHourLowestVolume
+            const [startTime, endTime] = timeString.split(' to ');
+            const today = new Date().toDateString();
+            lowestHour = { start: new Date(`${today} ${startTime}`), end: new Date(`${today} ${endTime}`) };
+        }
+
+        return {
+            pattern: planEntity?.patternConfig || undefined,
+            plan: planEntity?.planConfig.plan || undefined,
+            options: planEntity?.optionsConfig || undefined,
+            lowestHour,
+            supportResistance: planEntity?.metricConfig.vpSupportResistance || undefined
+
+        }
+    }
+)

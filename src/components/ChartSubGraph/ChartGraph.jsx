@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addEnterExitToCharting, addHorizontalLine, addLine, addSupportResistance, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateHorizontalLine, updateLine, updateSupportResistance, updateVolumeNode } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay, addHours, addMinutes, differenceInBusinessDays } from 'date-fns'
+import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay, addHours, addMinutes, differenceInBusinessDays, set } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis, timeFormat } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { makeSelectKeyLevelsByTicker } from '../../features/KeyLevels/KeyLevelGraphElements'
@@ -25,6 +25,7 @@ import { setGraphToSubGraphCrossHair, setNoCurrentCrossHair } from '../../featur
 import './chartStyles.css'
 import { makeSelectGraphHoursByUUID } from '../../features/Charting/GraphMarketHourElement'
 import { useUpdateMacroChartingMutation } from '../../features/WatchList/WatchListStreamingSliceApi'
+import { selectPlanAndPatternChartingBySymbol } from '../../features/Engine/EnginePlanApiSlice'
 
 function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfoDisplay, morningMetrics,
     timeFrame, setTimeFrame, isLivePrice, isInteractive, isZoomAble, uuid, lastCandleData, showEMAs, macroTickerInfo, EMNumbers,
@@ -56,7 +57,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
     const editMode = useSelector(selectChartEditMode)
 
-
+    const patternConfig = useSelector((state) => selectPlanAndPatternChartingBySymbol(state, ticker))
 
     //redux graph functioning selectors
     const currentTool = useSelector(selectCurrentTool)
@@ -579,14 +580,12 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         const downSideTime = new Date()
         downSideTime.setHours(morningMetrics.downSide.averageTimeToBottom.hour, morningMetrics.downSide.averageTimeToBottom.minute)
 
-        const firstHour = new Date()
-        firstHour.setHours(10, 30)
 
         let basePriceOpen
         if ((new Date() > openTime) && dailyCalculatedValues.TodayOpenPrice)
         { basePriceOpen = dailyCalculatedValues.TodayOpenPrice }
         else { basePriceOpen = lastCandleData.ClosePrice }
-        
+
         let upsidePercentVsOpen = basePriceOpen + (basePriceOpen * (morningMetrics.upSide.averageInitialRallyStretch / 100))
         let downSidePercentVsOpen = basePriceOpen - (basePriceOpen * (morningMetrics.downSide.averageInitialDropStretch / 100))
 
@@ -595,7 +594,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
         const pixelUpTime = createDateScale({ dateToPixel: upSideTime })
         const pixelDownTime = createDateScale({ dateToPixel: downSideTime })
-        const pixelFirstHour = createDateScale({ dateToPixel: firstHour })
+        const pixelFiveMin = createDateScale({ dateToPixel: set(new Date(), { hours: 9, minutes: 35, milliseconds: 0 }) })
+        const pixelFirstHour = createDateScale({ dateToPixel: set(new Date(), { hours: 10, minutes: 30, milliseconds: 0 }) })
+        const pixelLastHour = createDateScale({ dateToPixel: set(new Date(), { hours: 15, minutes: 0, milliseconds: 0 }) })
 
         morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'cyan').attr('stroke-width', 1)
             .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelUpSide).attr('y2', pixelUpSide).attr('opacity', 0.5)
@@ -605,8 +606,15 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             .attr('x1', pixelUpTime).attr('x2', pixelUpTime).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
         morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'orange').attr('stroke-width', 1)
             .attr('x1', pixelDownTime).attr('x2', pixelDownTime).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+
+        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', 1)
+            .attr('x1', pixelFiveMin).attr('x2', pixelFiveMin).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+            .attr("stroke-dasharray", '2 2 2')
+
         morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', 1)
             .attr('x1', pixelFirstHour).attr('x2', pixelFirstHour).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', 1)
+            .attr('x1', pixelLastHour).attr('x2', pixelLastHour).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
 
 
 
@@ -621,7 +629,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     {
 
         if (preDimensionsAndCandleCheck() || !lastCandleData) return
-
+        console.log(lastCandleData)
         let centerTextOnPriceLinePixel = 4
         let centerRectOnPriceLinePixel = 15
         let priceOnYScale = priceScaleSVG.select('.currentPrice')
@@ -637,6 +645,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 tickerGroups.append('line').attr('class', 'openClose').attr('stroke', (d, i) => { return d.OpenPrice < d.ClosePrice ? 'green' : 'red' })
                     .attr('stroke-width', 2).attr('y1', (d) => createPriceScale({ priceToPixel: d.ClosePrice })).attr('y2', (d) => createPriceScale({ priceToPixel: d.OpenPrice }))
                 tickerGroups.attr("transform", (d) => { return `translate(${createDateScale({ dateToPixel: d.Timestamp })},0)` })
+
                 let pixelPrice = createPriceScale({ priceToPixel: d.ClosePrice })
                 tickerGroups.append('line').attr('class', 'livePrice')
                     .attr('x1', -5000).attr('x2', candleDimensions.width)
@@ -1439,7 +1448,176 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     }, [ticker, chartId, charting, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+        const patternSelect = stockCandleSVG.select('.patternPriceLevels')
 
+        patternSelect.selectAll('line').remove()
+        patternSelect.selectAll('rect').remove()
+        patternSelect.selectAll('text').remove()
+
+        if (patternConfig.pattern)
+        {
+            const patternClassification = patternConfig.pattern.patternClassification
+
+            if (patternClassification === 'channel')
+            {
+                const channelTop = createPriceScale({ priceToPixel: patternConfig.pattern.channelTop })
+                const channelBottom = createPriceScale({ priceToPixel: patternConfig.pattern.channelBottom })
+                const entryStrikePrice = createPriceScale({ priceToPixel: patternConfig.pattern.entryStrikeBuffer })
+
+                patternSelect.append('line').attr('class', 'patternPrice')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', channelTop).attr('y2', channelTop)
+                    .attr('stroke', 'orange').attr('stroke-width', 4).attr('opacity', 0.3)
+
+                patternSelect.append('rect').attr('class', 'patternEntryZone')
+                    .attr('x', 0).attr('y', entryStrikePrice)
+                    .attr('width', candleDimensions.width)
+                    .attr('height', channelBottom - entryStrikePrice).attr('fill', 'green').attr('opacity', 0.1)
+
+                patternSelect.append('line').attr('class', 'patternPrice')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', entryStrikePrice).attr('y2', entryStrikePrice)
+                    .attr('stroke', 'green').attr('stroke-width', 2).attr('opacity', 0.5)
+
+                patternSelect.append('line').attr('class', 'patternPrice')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', channelBottom).attr('y2', channelBottom)
+                    .attr('stroke', 'orange').attr('stroke-width', 4).attr('opacity', 0.3)
+            }
+
+        }
+        if (patternConfig.plan)
+        {
+            const stopLossPrice = createPriceScale({ priceToPixel: patternConfig.plan.stopLossPrice })
+            const patternSelect = stockCandleSVG.select('.patternPriceLevels')
+
+            patternSelect.append('line').attr('class', 'patternPrice')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', stopLossPrice).attr('y2', stopLossPrice)
+                .attr('stroke', 'red').attr('stroke-width', 1).attr('opacity', 0.75)
+        }
+        if (patternConfig.options)
+        {
+            const lowerEM = patternConfig.options.weekly.lowerExpectedBounds === 0 ?
+                patternConfig.options.monthly.lowerExpectedBounds : patternConfig.options.weekly.lowerExpectedBounds
+
+            const lowerEMPixel = createPriceScale({ priceToPixel: lowerEM })
+            patternSelect.append('line').attr('class', 'lowerExpectedBounds')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', lowerEMPixel).attr('y2', lowerEMPixel)
+                .attr('stroke', 'purple').attr('stroke-width', 1).attr('opacity', 1)
+
+            patternSelect.append('text').attr('class', 'keyLevelSubText')
+                .text(`Lower EM - ${lowerEM}`)
+                .attr('x', candleDimensions.width - 80)
+                .attr('y', lowerEMPixel).attr('dy', 10)
+
+
+            const upperEM = patternConfig.options.weekly.upperExpectedBounds === 0 ?
+                patternConfig.options.monthly.upperExpectedBounds : patternConfig.options.weekly.upperExpectedBounds
+
+            const upperEMPixel = createPriceScale({ priceToPixel: upperEM })
+            patternSelect.append('line').attr('class', 'lowerExpectedBounds')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', upperEMPixel).attr('y2', upperEMPixel)
+                .attr('stroke', 'purple').attr('stroke-width', 1).attr('opacity', 1)
+
+            patternSelect.append('text').attr('class', 'keyLevelSubText')
+                .text(`Upper EM - ${upperEM}`)
+                .attr('x', candleDimensions.width - 80)
+                .attr('y', upperEMPixel)
+
+            if (patternConfig.options.metadata.isExpirationImminent)
+            {
+                const putWall = patternConfig.options.weekly.putWall === 0 ?
+                    patternConfig.options.monthly.putWall :
+                    patternConfig.options.weekly.putWall
+                const callWall = patternConfig.options.weekly.callWall === 0 ?
+                    patternConfig.options.monthly.callWall :
+                    patternConfig.options.weekly.callWall
+
+                const callWallPixel = createPriceScale({ priceToPixel: callWall })
+                patternSelect.append('line').attr('class', 'lowerExpectedBounds')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', callWallPixel).attr('y2', callWallPixel)
+                    .attr('stroke', 'purple').attr('stroke-width', 1).attr('opacity', 1)
+
+                const puttWallPixel = createPriceScale({ priceToPixel: putWall })
+                patternSelect.append('line').attr('class', 'lowerExpectedBounds')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', puttWallPixel).attr('y2', puttWallPixel)
+                    .attr('stroke', 'purple').attr('stroke-width', 1).attr('opacity', 1)
+
+                // const daysToExpire = patternConfig.options.metadata.daysRemainingToExpiration
+                //add text if so desired
+            }
+        }
+        if (patternConfig.supportResistance)
+        {
+            const overHeadResistance = patternConfig.supportResistance.overHeadResistance
+            const belowSupportLevels = patternConfig.supportResistance.underlyingSupport
+
+            overHeadResistance.map((t, i) =>
+            {
+                let priceLevelPixel = createPriceScale({ priceToPixel: t.priceLevel })
+                let textDescription = t.frictionRating === 'HIGH_CRITICAL_CLIFF' ? 'CLIFF' : 'MILD'
+
+                patternSelect.append('line').attr('class', 'patternPrice')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', priceLevelPixel).attr('y2', priceLevelPixel)
+                    .attr('stroke', 'red').attr('stroke-width', () =>
+                    {
+                        if (t.volumePct > 30) return 6
+                        else if (t.volumePct > 20) return 4
+                        else return 2
+                    }).attr('opacity', 0.25)
+                patternSelect.append('text').attr('class', 'keyLevelSubText')
+                    .text(`${t.priceLevel} - ${t.volumePct}%`)
+                    .attr('x', candleDimensions.width - 80)
+                    .attr('y', priceLevelPixel).attr('dy', 10)
+                patternSelect.append('text').attr('class', 'keyLevelSubText')
+                    .text(`${textDescription}`)
+                    .attr('x', candleDimensions.width - 80)
+                    .attr('y', priceLevelPixel).attr('dy', -5)
+            })
+
+            belowSupportLevels.map((t, i) =>
+            {
+                let priceLevelPixel = createPriceScale({ priceToPixel: t.priceLevel })
+                let textDescription = t.frictionRating === 'HIGH_CRITICAL_CLIFF' ? 'CLIFF' : 'MILD'
+
+                patternSelect.append('line').attr('class', 'patternPrice')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', priceLevelPixel).attr('y2', priceLevelPixel)
+                    .attr('stroke', 'blue').attr('stroke-width', () =>
+                    {
+                        if (t.volumePct > 30) return 5
+                        else return 2
+                    }).attr('opacity', 0.25)
+                patternSelect.append('text').attr('class', 'keyLevelSubText')
+                    .text(`${t.priceLevel} - ${t.volumePct}%`)
+                    .attr('x', candleDimensions.width - 80)
+                    .attr('y', priceLevelPixel).attr('dy', 10)
+                patternSelect.append('text').attr('class', 'keyLevelSubText')
+                    .text(`${textDescription}`)
+                    .attr('x', candleDimensions.width - 80)
+                    .attr('y', priceLevelPixel).attr('dy', -5)
+            })
+        }
+        if (patternConfig.lowestHour)
+        {
+            const startPixel = createDateScale({ dateToPixel: patternConfig.lowestHour.start })
+            const endPixel = createDateScale({ dateToPixel: patternConfig.lowestHour.end })
+
+            patternSelect.append('rect').attr('class', 'patternEntryZone')
+                .attr('x', startPixel).attr('y', 0)
+                .attr('width', endPixel - startPixel)
+                .attr('height', candleDimensions.height).attr('fill', 'red').attr('opacity', 0.05)
+        }
+    }, [ticker, patternConfig, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
 
@@ -2262,6 +2440,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     </defs>
                     <g className='x-axis' />
                     <g className='visualDateBreaks' />
+                    <g className='patternPriceLevels' />
                     <g className='lowVolumeNodes' />
                     <g className='highVolumeNodes' />
                     <g className='keyLevels' />

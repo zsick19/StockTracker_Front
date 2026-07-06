@@ -21,6 +21,11 @@ export const SCORING_WEIGHTS = {
         emaSupportProximity: 10,           // Bonus applied if price sits within +/-0.35% cushion of a daily EMA
         powerHourTimeBonus: 10             // Reward for triggering inside 03:00-04:00 PM closing power hour
     },
+    volumeProfileShelves: {
+        mildVelocityShelf: 15,
+        highCriticalCliff: -25
+    },
+
 
     // 3. StockAnalysis Pre-Market Catalysts & Extended Layout Features
     stockSpecificCatalysts: {
@@ -37,6 +42,10 @@ export const SCORING_WEIGHTS = {
         structuralWeaknessPenalty: -15,    // Position in Range (%) <= 15% (Trapped at 52-week lows; tax-loss selling)
         coiledPullbackBonus: 15,           // Price trading above 200 MA, but within a tight 2% cushion of 20 MA line
         extremeOversoldReversalBonus: 10,  // DailyRsi <= 30.0 (High-probability short-term capitulation exhaustion)
+
+        yearlyStructuralDriftBonus: 15,
+
+
 
         // C. Corporate Risk, Liquidity Frameworks, & Market Caps
         largeCapInstitutionalBonus: 5,     // MarketCap >= $10 Billion (Highly institutional, clean order book depth)
@@ -63,8 +72,6 @@ export const SCORING_WEIGHTS = {
     // =========================================================================
     systemicDeductions: {
         emaTrendBrokenPenalty: -20,        // Price cracks below institutional 50 EMA line by > 1%
-        highBetaVulnerabilityPenalty: -40, // Applied to high-beta stocks closely tied to SPY below gamma flip line
-        momentumContinuationRiskPenalty: -25,// Applied to continuation setups if broad index liquidity drops
         lowRelativeVolumePenalty: -15,     // Relative Volume <= 0.5 (Lack of institutional consensus)
         gapTrapReversalPenalty: -20,       // Applied if stock gaps down more than 3% right on the open cross
         illiquidStructurePenalty: -15,     // HasOptions === false (Asset lacks pinning or gamma hedging mechanics)
@@ -78,8 +85,18 @@ export const SCORING_WEIGHTS = {
         breadthDecayPenalty: -20,          // SPY fake-pumping on Mag 8 while equal-weight RSP is dropping
         systemicMacroLockout: -50,         // Session clock inside a T-Minus 60m / T-Plus 30m Fed or CPI release window
         middayLunchtimeChurnCage: -20,     // Active session clock between 11:30 AM and 01:30 PM (Dead liquidity zone)
-        middayLowProbabilityPenalty: -5    // ExtentProb.midL <= 0.35 inside the lunchtime churn cage
+        middayLowProbabilityPenalty: -5,    // ExtentProb.midL <= 0.35 inside the lunchtime churn cage
     },
+
+    systemicGammaGates: {
+        idiosyncraticSafeHavenBonus: 15, // Safely counter-acts broad market index panic for resilient havens
+        highBetaVulnerabilityPenalty: -40, // Applied to high-beta stocks closely tied to SPY below gamma fli  p line
+        momentumContinuationRiskPenalty: -25,// Applied to continuation setups if broad index liquidity drops
+        etfDivergenceBreath: 20//Institutional sector alpha
+    },
+
+
+
 
     // =========================================================================
     // TIER 2: STRATEGY PATTERN TRACKS (MAX 50 STRATEGY POINTS PER TOOL)

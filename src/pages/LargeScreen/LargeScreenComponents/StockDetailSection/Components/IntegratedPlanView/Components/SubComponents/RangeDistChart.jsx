@@ -1,15 +1,18 @@
 import React, { useEffect, useMemo, useRef } from 'react'
 import { calculateHighLowTimeDistribution, calculateIntradayVolumeDistribution } from '../../../../../../../../Utilities/technicalIndicatorFunctions'
-import { max, scaleBand, scaleLinear, select, selectAll } from 'd3'
+import { max, scaleBand, scaleLinear, scaleTime, select, selectAll } from 'd3'
 import { useResizeObserver } from '../../../../../../../../hooks/useResizeObserver'
+import { set } from 'date-fns'
 
-function RangeDistChart({ results })
+function RangeDistChart({ results, currentTimeBar })
 {
     const timeAddedResults = useMemo(() => results.map((t, i) => { return { ...t, sessionZone: (i > 11 && i < 68) ? 1 : 0 } }), [results])
 
     const XSVGWrapper = useRef()
     const XSVG = useRef()
     const chartDimensions = useResizeObserver(XSVGWrapper)
+    const marketOpenTime = set(new Date(), { hours: 9, minutes: 30 })
+    const marketCloseTime = set(new Date(), { hours: 16, minutes: 0 })
 
     const preDimensionsAndCandleCheck = () => { return (!chartDimensions) }
 
@@ -46,6 +49,21 @@ function RangeDistChart({ results })
 
 
     }, [chartDimensions, results])
+
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+        const xCurrentTimeScale = scaleTime().domain([marketOpenTime, marketCloseTime]).range([0, chartDimensions.width])
+
+        const svg = select(XSVG.current)
+        let xPixel = xCurrentTimeScale(currentTimeBar)
+
+        svg.selectAll('line').remove()
+        svg.append('line')
+            .attr('x1', xPixel).attr('x2', xPixel)
+            .attr('y1', 0).attr('y2', chartDimensions.height)
+            .attr('stroke', 'white')
+    }, [chartDimensions, currentTimeBar])
 
     return (
         <div ref={XSVGWrapper} id='VolDistChart'>

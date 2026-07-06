@@ -31,6 +31,7 @@ function IntegratedPlanView({ tickerSymbol })
     const [timeFrameView, setTimeFrameView] = useState(isBefore(marketOpenHour, new Date()) ? 1 : 0)
     const [expandedViewSelection, setExpandedViewSelection] = useState(isBefore(new Date(), marketOpenHour) ? 8 : 0)
 
+    const [scoreCardView, setScoreCardView] = useState(0)
 
     function provideCurrentExpandedView()
     {
@@ -39,7 +40,7 @@ function IntegratedPlanView({ tickerSymbol })
             case 0: return <ProbabilityTimeLine plan={selectedPlannedTicker} />
             case 1: return <StockInfoView plan={selectedPlannedTicker} />
             case 2: return <MacroReview plan={selectedPlannedTicker} />
-            case 3: return <ScoreBreakDown plan={selectedPlannedTicker} />
+            case 3: return <ScoreBreakDown plan={selectedPlannedTicker} scoreCardView={scoreCardView} setScoreCardView={setScoreCardView} />
             case 4: return <OptionsReview plan={selectedPlannedTicker} />
             case 5: return <PriceLevels plan={selectedPlannedTicker} />
             case 6: return <PositionSizeReview plan={selectedPlannedTicker} />

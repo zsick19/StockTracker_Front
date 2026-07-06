@@ -104,16 +104,16 @@ function MacroControlSection()
 
       <div id="LSH-MacroCharts">
         <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} incomingTF={defaultTimeFrames.threeDayOneMin} />
-        <ScoringTestHUD />
+        {/* <ScoringTestHUD /> */}
 
-        {/* {showMacroKeyLevelDisplay === 0 ?
+        {showMacroKeyLevelDisplay === 0 ?
           <ChartSubGraphContainer ticker={secondaryChartTicker} uuid={uuidGraph2} incomingTF={defaultTimeFrames.dailyHalfYear} /> :
 
           showMacroKeyLevelDisplay === 1 ?
             <MacroKeyValuesInputContainer selectedStock={primaryChartTicker} setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} /> :
             <ZonesInputForm setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} />
-        } */}
-        
+        }
+
       </div>
     </section >
   );

@@ -38,16 +38,16 @@ function WelcomeGreeting()
                 {showRefreshDelivered ? <p>Stream Refreshed <Check color="green" /></p> : <button onClick={() => attemptStreamTickerRefresh()}>Refresh Stream</button>}
                 <button onClick={() => window.location.reload()}>Refresh Page</button>
             </div>
-            
+
             <TerminalTaskStatusTickerHUD />
-            {/* <StockCsvUpload /> */}
+            <StockCsvUpload />
             {/* <div>
                 <ExpectedMoveUpload Process={'Core Daily EM'} />
                 <br />
                 <ExpectedMoveUpload Process={'Zone Doc'} />
             </div> */}
 
-            <PositionListDailyMoves />
+            {/* <PositionListDailyMoves /> */}
 
         </div>
     )

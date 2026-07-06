@@ -13,11 +13,14 @@ import { toZonedTime } from 'date-fns-tz';
  * @param {Object} macroEntities - The raw macro market entity adapter dictionary [INDEX]
  * @returns {number} The finalized cumulative Base Environment Score (Max 50 points base layout)
  */
-export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan, liveSectorPlan)
+export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan,
+    liveSectorPlan, provideDescriptions, auditLedger)
 {
     let baseScore = 0;
+    const CATEGORYNAME = 'BASE'
 
     const { dailyCalculatedValues, correlationValues, spyBetaValue, greatestCorrelation, patternClassification } = planEntity.planConfig;
+    console.log(planEntity.planConfig)
     const { vpSupportResistance } = planEntity.metricConfig
     const stockAnalysisInfo = planEntity.stockInfo
 
@@ -37,35 +40,72 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
         // Classic Candlestick Location Vector (CLV)
         const liveClv = liveSpread === 0 ? -1 : ((livePrice - liveLow) - (liveHigh - livePrice)) / liveSpread;
 
-        if (liveClv >= 0.30) baseScore += W.orderFlow.clvMildBounce;
-        if (liveClv >= 0.65) baseScore += W.orderFlow.clvExtremeBounce;
-        if (livePrice > todaysLiveCandles[0].OpenPrice) baseScore += W.orderFlow.priceAboveOpen;
+        if (liveClv >= 0.30)
+        {
+            baseScore += W.orderFlow.clvMildBounce;
+            const UIDescription = `Price is closing inside the upper 65% of the daily session's trading range.`
+            if (provideDescriptions) logRuleTrack(auditLedger, 'Candle Stick Location Vector', W.orderFlow.clvMildBounce, CATEGORYNAME, UIDescription)
+        } else if (liveClv >= 0.65)
+        {
+            baseScore += W.orderFlow.clvExtremeBounce;
+            const UIDescription = `Price is pinned inside the absolute top 17.5% of the daily session's range.`
+            if (provideDescriptions) logRuleTrack(auditLedger, 'Candle Stick Location Vector', W.orderFlow.clvExtremeBounce, CATEGORYNAME, UIDescription)
+        }
+
+        if (livePrice > todaysLiveCandles[0].OpenPrice) 
+        {
+            baseScore += W.orderFlow.priceAboveOpen;
+            const UIDescription = `Active session price is trading above today's regular hours opening auction print.`
+            if (provideDescriptions) logRuleTrack(auditLedger, 'Opening Drive Bias', W.orderFlow.priceAboveOpen, CATEGORYNAME, UIDescription)
+        }
     }
+
     // =========================================================================
     // 🧲 2. INSTUTITIONAL MA LINES & NIGHTLY HORIZONTAL SHELF ALIGNMENT
     // =========================================================================
     // Cross-check proximity to your pre-compiled EMAs seeded on boot [INDEX]
     if (dailyCalculatedValues && dailyCalculatedValues.ema50)
     {
+
         const distanceToEmaPct = Math.abs(livePrice - dailyCalculatedValues.ema50) / dailyCalculatedValues.ema50;
-        if (distanceToEmaPct <= 0.0035) { baseScore += W.structuralMagnets.emaSupportProximity; }
-        else if (livePrice < (dailyCalculatedValues.ema50Line * 0.99)) { baseScore += W.structuralMagnets.emaTrendBrokenPenalty; }
+        if (distanceToEmaPct <= 0.0035)
+        {
+            baseScore += W.structuralMagnets.emaSupportProximity;
+            const UIDescription = `Live price is trading within 0.35% of the daily 50 EMA cushion.`
+            if (provideDescriptions) logRuleTrack(auditLedger, 'EMA-50 Institutional Magnet', W.structuralMagnets.emaSupportProximity, CATEGORYNAME, UIDescription);
+
+        }
+        else if (livePrice < (dailyCalculatedValues.ema50 * 0.99))
+        {
+            baseScore += W.systemicDeductions.emaTrendBrokenPenalty;
+            const UIDescription = 'Price has breached more than 1.0% beneath the daily 50 EMA line.'
+            if (provideDescriptions) logRuleTrack(auditLedger, 'EMA-50 Institutional Magnet', W.systemicDeductions.emaTrendBrokenPenalty, CATEGORYNAME, UIDescription);
+        }
     }
 
     // AUDIT NIGHTLY 3-TIER HORIZONTAL PROTECTION RUNWAYS
     if (vpSupportResistance)
     {
-        const shelves = vpSupportResistance?.overHeadResistance || [];
-        const priceAscShelves = [...shelves].sort((a, b) => a.priceLevel - b.priceLevel)
-        const immediateCeilingShelf = priceAscShelves.find(shelf => shelf.priceLevel > livePrice) || { frictionRating: "MILD", scoringWeight: 0 };
+        const shelves = vpSupportResistance.overHeadResistance || [];
+        const priceAscShelves = [...shelves].sort((a, b) => a.priceLevel - b.priceLevel);
+
+        // FIX B: Cleaned up empty fallback structure parameters to prevent schema corruption
+        const immediateCeilingShelf = priceAscShelves.find(shelf => shelf.priceLevel > livePrice) || { frictionRating: "MILD", volumePct: 0 };
+
         if (immediateCeilingShelf.frictionRating === "MILD_VELOCITY_SHELF")
         {
-            baseScore += 15; // Award Asymmetric Runway Bonus: Thin supply immediately overhead [INDEX]
-        } else if (immediateCeilingShelf.frictionRating === "HIGH_CRITICAL_CLIFF")
+            baseScore += W.volumeProfileShelves.mildVelocityShelf;
+            const UIDescription = `Asymmetric Runway: Thin Overhead Supply`
+            if (provideDescriptions) logRuleTrack(auditLedger, 'Volume Profile Shelves', W.volumeProfileShelves.mildVelocityShelf, CATEGORYNAME, UIDescription);
+        }
+        else if (immediateCeilingShelf.frictionRating === "HIGH_CRITICAL_CLIFF")
         {
-            baseScore += -25; // Apply severe -25 point trapped supply penalty [INDEX]
+            baseScore += W.volumeProfileShelves.highCriticalCliff;
+            const UIDescription = `Trapped Supply Barrier: Overhead Institutional Cliff`
+            if (provideDescriptions) logRuleTrack(auditLedger, 'Volume Profile Shelves', W.volumeProfileShelves.highCriticalCliff, CATEGORYNAME, UIDescription);
         }
     }
+
 
     // =========================================================================
     // 🚨 3. BROAD MARKET INDEX FLIPS & DEFENSIVE SENTRY FILTERS
@@ -82,14 +122,20 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
             if (stockBeta >= 1.40 && broadCorrelation >= 0.70)
             {
                 baseScore += W.systemicGammaGates.highBetaVulnerabilityPenalty; // Severe -40 point protection pass
+                const UIDescription = `Broad market is in a negative gamma regime; asset is high-beta and strongly correlated to SPY.`
+                if (provideDescriptions) logRuleTrack(auditLedger, 'Systemic Gamma Gates', W.systemicGammaGates.highBetaVulnerabilityPenalty, CATEGORYNAME, UIDescription);
             } else if (correlationValues.SPY?.isCurrentlyDecoupled || stockBeta <= 0.85)
             {
-                baseScore += W.systemicGammaGates.idiosymmetricSafeHavenBonus; // Reward decoupling low-beta assets
+                baseScore += W.systemicGammaGates.idiosyncraticSafeHavenBonus; // Reward decoupling low-beta assets
+                const UIDescription = `Asset exhibits a low beta or is currently actively decoupled from broad market index liquidations.`
+                if (provideDescriptions) logRuleTrack(auditLedger, 'Systemic Gamma Gates', W.systemicGammaGates.idiosyncraticSafeHavenBonus, CATEGORYNAME, UIDescription);
             }
 
             if (planEntity.planConfig.patternClassification === "continuation")
             {
                 baseScore += W.systemicGammaGates.momentumContinuationRiskPenalty; // Penalize momentum setups
+                const UIDescription = `Momentum breakout setup penalized due to high broad market volatility risk.`
+                if (provideDescriptions) logRuleTrack(auditLedger, 'Systemic Gamma Gates', W.volumeProfileShelves.highCriticalCliff, CATEGORYNAME, UIDescription);
             }
         }
     }
@@ -99,42 +145,104 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     // =========================================================================
     if (stockAnalysisInfo)
     {
+
+        const RULENAME = 'Stock Specific Catalysts'
         // Audit Relative Volume Consensus
-        if (stockAnalysisInfo.RelativeVolume >= 2.0) baseScore += W.stockSpecificCatalysts.highRelativeVolumeBonus;
-        else if (stockAnalysisInfo.RelativeVolume <= 0.5) baseScore += W.stockSpecificCatalysts.lowRelativeVolumePenalty;
+        if (stockAnalysisInfo.RelativeVolume >= 2.0)
+        {
+            baseScore += W.stockSpecificCatalysts.highRelativeVolumeBonus;
+            const UIDescription = `Intraday volume pacing at ≥ 2.0x its 3-month trailing baseline.`
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.highRelativeVolumeBonus, CATEGORYNAME, UIDescription);
+        }
+        else if (stockAnalysisInfo.RelativeVolume <= 0.5)
+        {
+            baseScore += W.stockSpecificCatalysts.lowRelativeVolumePenalty;
+            const UIDescription = `Intraday volume choking at ≤ 0.5x its historical baseline.`
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.lowRelativeVolumePenalty, CATEGORYNAME, UIDescription);
+        }
+
+
 
         // Audit Long-Term Institutional Desertion
-        if (stockAnalysisInfo.sharesChangeYoYPercent <= -15.0) baseScore += W.stockSpecificCatalysts.week52LowLiquidationPenalty; // Custom metadata penalty
+        if (stockAnalysisInfo.InstitutionalSharePercent <= 15.0)
+        {
+            baseScore += W.stockSpecificCatalysts.week52LowLiquidationPenalty;
+            const UIDescription = `Long-term institutional asset ownership sits beneath a critical 15% threshold.`
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.week52LowLiquidationPenalty, CATEGORYNAME, UIDescription);
+        }
+
 
         // Audit Short-Squeeze Time Friction
-        if (stockAnalysisInfo.ShortRatioDaysToCover >= 5.0) baseScore += W.stockSpecificCatalysts.positionInRangeTopBonus; // Assign Time Squeeze multiplier
+        if (stockAnalysisInfo.ShortRatioDaysToCover >= 5.0)
+        {
+            baseScore += W.stockSpecificCatalysts.shortRatioDaysToCoverBonus;
+            const UIDescription = `Short sellers require ≥ 5 full market sessions of volume to exit positions.`
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.shortRatioDaysToCoverBonus, CATEGORYNAME, UIDescription);
+        } // Assign Time Squeeze multiplier
+
 
         // Audit 52-Week Structural Drift Location
-        if (stockAnalysisInfo.PositionInRangePercent <= 15.0) baseScore -= 15; // Severe structural weakness penalty
+        if (stockAnalysisInfo.PositionInRangePercent <= 15.0)
+        {
+            baseScore += W.stockSpecificCatalysts.yearlyStructuralDriftBonus;
+            const UIDescription = `Current asset price is trading within the bottom 15% of its annual range.`
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.yearlyStructuralDriftBonus, CATEGORYNAME, UIDescription);
+        } // Severe structural weakness penalty
+        if (stockAnalysisInfo.PositionInRangePercent >= 90.0)
+        {
+            baseScore += W.stockSpecificCatalysts.positionInRangeTopBonus;
+            const UIDescription = ``
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.positionInRangeTopBonus, CATEGORYNAME, UIDescription);
+        }
+
+
 
         // Ingest Day's Gap and Pre-Market Catalyst Variables [INDEX]
-        if (stockAnalysisInfo.DaysGapPercent <= -3.0) baseScore += W.stockSpecificCatalysts.gapTrapReversalPenalty;
-        if (stockAnalysisInfo.PositionInRangePercent >= 90.0) baseScore += W.stockSpecificCatalysts.positionInRangeTopBonus;
+        if (stockAnalysisInfo.DaysGapPercent <= -3.0)
+        {
+            baseScore += W.stockSpecificCatalysts.gapTrapReversalPenalty;
+            const UIDescription = `Stock has gapped down more than 3.0% below yesterday's session close.`
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.gapTrapReversalPenalty, CATEGORYNAME, UIDescription);
+        }
 
-        // Audit Optionable Liquidity
-        if (stockAnalysisInfo.HasOptions === false && patternClassification !== "continuation") baseScore -= 15; // Apply Illiquid Structure Penalty
+
 
         //Audit Market Cap Liquidity Framework
         const rawMarketCap = stockAnalysisInfo.MarketCap || 0;
         if (rawMarketCap > 0)
         {
-            if (rawMarketCap < 250000000) baseScore -= 10; // Micro-Cap Slippage Penalty
-            else if (rawMarketCap >= 10000000000) baseScore += 10; // Large-Cap Institutional Bonus
+            if (rawMarketCap < 250000000)
+            {
+                baseScore += W.stockSpecificCatalysts.microCapSlippagePenalty;
+                const UIDescription = `Total equity valuation sits beneath a 250-million-dollar micro-cap ceiling.`
+                if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.microCapSlippagePenalty, CATEGORYNAME, UIDescription);
+            } // Micro-Cap Slippage Penalty
+            else if (rawMarketCap >= 10000000000)
+            {
+                baseScore += W.stockSpecificCatalysts.largeCapInstitutionalBonus;
+                const UIDescription = `Asset is a liquid large-cap giant exceeding 10 billion dollars.`
+                if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.largeCapInstitutionalBonus, CATEGORYNAME, UIDescription);
+            } // Large-Cap Institutional Bonus
         }
 
         //Audit Daily RSI Mean Reversion Exhaustion
         if (stockAnalysisInfo.DailyRsi <= 30.0 && planEntity.patternConfig.patternClassification === "channel")
         {
-            if (planEntity.patternConfig.channelType === 'MULTIDAY_SPACED') baseScore += 15; // Extreme Oversold Reversal Bonus
+            if (planEntity.patternConfig.channelType === 'MULTIDAY_SPACED')
+            {
+                baseScore += W.stockSpecificCatalysts.extremeOversoldReversalBonus;
+                const UIDescription = `Daily macro RSI has collapsed beneath a heavily oversold 30.0 line.`
+                if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.extremeOversoldReversalBonus, CATEGORYNAME, UIDescription);
+            } // Extreme Oversold Reversal Bonus
         }
 
         // Audit Crowded Total Shares Shorting Matrix
-        if (stockAnalysisInfo.ShortPercentOfShares >= 12.0) baseScore += 10; // Aggressive Squeeze Bonus        
+        if (stockAnalysisInfo.ShortPercentOfShares >= 12.0)
+        {
+            baseScore += W.stockSpecificCatalysts.aggressiveCrowdedSharesShortBonus;
+            const UIDescription = `Total shares sold short exceeds 12.0% of the active floating ledger.`
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.aggressiveCrowdedSharesShortBonus, CATEGORYNAME, UIDescription);
+        }
 
         // Compute Exact Percentage Extension from the Moving Average anchors
         const ma20 = stockAnalysisInfo.MA20Price;
@@ -146,49 +254,129 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
             // If the stock is in a long-term bull trend but has pulled back tightly to its 20 MA line
             if (distanceToMa20Pct >= 0 && distanceToMa20Pct <= 0.02 && planEntity.patternConfig.patternClassification === "continuation")
             {
-                baseScore += 15; // Coiled Pullback Bonus
+                baseScore += W.stockSpecificCatalysts.coiledPullbackBonus; // Coiled Pullback Bonus
+                const UIDescription = `Price is coiling within 2.0% of its rising daily 20 moving average line.`
+                if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.coiledPullbackBonus, CATEGORYNAME, UIDescription);
             }
         }
     }
 
 
+
+
+
     // =========================================================================
     // 🏛️ 5. SECTOR ETF DIVERGENCE & MULTI-CORRELATION BREADTH
     // =========================================================================
-    if (liveSectorPlan && liveSectorPlan.mostRecentPrice)
+    // if (liveSectorPlan && liveSectorPlan.mostRecentPrice)
+    // {
+    //     const sectorHistory = liveSectorPlan.historicCandle || [];
+
+    //     if (sectorHistory.length > 0)
+    //     {
+    //         const sectorPriorClose = sectorHistory[sectorHistory.length - 1].ClosePrice;
+
+    //         // Compute standard 30-minute relative strength outperformance ratio [INDEX]
+    //         const stockReturnPct = ((livePrice - dailyCalculatedValues.ema200) / dailyCalculatedValues.ema200) * 100;
+    //         const sectorReturnPct = ((liveSectorPlan.mostRecentPrice - sectorPriorClose) / sectorPriorClose) * 100;
+
+    //         const relativeStrengthDelta = stockReturnPct - sectorReturnPct;
+    //         if (relativeStrengthDelta >= 1.5) baseScore += 20; // Award Institutional Rotation Divergence Bonus
+    //     }
+    // }
+
+    // =========================================================================
+    // 🏛️ 5. SECTOR ETF DIVERGENCE & MULTI-CORRELATION BREADTH
+    // =========================================================================
+    if (liveSectorPlan && liveSectorPlan.mostRecentPrice && dailyCalculatedValues?.PrevDailyBar)
     {
-        const sectorHistory = liveSectorPlan.historicCandle || [];
+        // Isolate a unified baseline starting anchor: Yesterday's official regular hours closing print [INDEX]
+        const stockPriorClose = dailyCalculatedValues.PrevDailyBar.ClosePrice;
 
-        if (sectorHistory.length > 0)
+        // FIX B: Remapped path routing to point precisely to your schema's historical sector brackets
+        const sectorPriorClose = liveSectorPlan.dailyTickerValues?.PrevDailyBar?.ClosePrice || liveSectorPlan.mostRecentPrice;
+
+        if (stockPriorClose > 0 && sectorPriorClose > 0)
         {
-            const sectorPriorClose = sectorHistory[sectorHistory.length - 1].ClosePrice;
+            // FIX A: Corrected the mathematical formula to compare true apples-to-apples intraday returns [INDEX]
+            const stockIntraDayReturnPct = ((livePrice - stockPriorClose) / stockPriorClose) * 100;
+            const sectorIntraDayReturnPct = ((liveSectorPlan.mostRecentPrice - sectorPriorClose) / sectorPriorClose) * 100;
 
-            // Compute standard 30-minute relative strength outperformance ratio [INDEX]
-            const stockReturnPct = ((livePrice - dailyCalculatedValues.ema200) / dailyCalculatedValues.ema200) * 100;
-            const sectorReturnPct = ((liveSectorPlan.mostRecentPrice - sectorPriorClose) / sectorPriorClose) * 100;
+            // Isolate the pure, un-polluted institutional relative strength delta [INDEX]
+            const relativeStrengthDelta = stockIntraDayReturnPct - sectorIntraDayReturnPct;
 
-            const relativeStrengthDelta = stockReturnPct - sectorReturnPct;
-            if (relativeStrengthDelta >= 1.5) baseScore += 20; // Award Institutional Rotation Divergence Bonus
+            if (relativeStrengthDelta >= 1.5)
+            {
+                baseScore += W.systemicGammaGates.etfDivergenceBreath;
+                const UIDescription = `Institutional Sector Alpha: Outperforming Sector ETF by +${relativeStrengthDelta.toFixed(2)}%`
+                if (provideDescriptions) logRuleTrack(auditLedger, 'Sector ETF Divergence', W.systemicGammaGates.etfDivergenceBreath, CATEGORYNAME, UIDescription);
+            }
         }
     }
 
+
+
+
+
+
+
+
+    // COMPUTE CAP-WEIGHTED VS EQUAL-WEIGHTED BREADTH DECAY (SPY vs RSP)
+    // if (liveSpyPlan && liveRSPPlan)
+    // {
+    //     const spyPrice = liveSpyPlan.mostRecentPrice;
+    //     const rspPrice = liveRSPPlan.mostRecentPrice;
+    //     const spyHistory = liveSpyPlan.historicCandle || [];
+    //     const rspHistory = liveRSPPlan.historicCandle || [];
+
+    //     if (spyPrice && rspPrice && spyHistory.length > 0 && rspHistory.length > 0)
+    //     {
+    //         const spyReturn = ((spyPrice - spyHistory[spyHistory.length - 1].ClosePrice) / spyHistory[spyHistory.length - 1].ClosePrice) * 100;
+    //         const rspReturn = ((rspPrice - rspHistory[rspHistory.length - 1].ClosePrice) / rspHistory[rspHistory.length - 1].ClosePrice) * 100;
+    //         // If SPY is fake-pumping on Mag 8 while RSP decays, penalize high-beta long plans [INDEX]
+    //         if ((spyReturn - rspReturn) >= 0.75 && spyBetaValue >= 1.15) { baseScore -= 20; }
+    //     }
+    // }
 
     // COMPUTE CAP-WEIGHTED VS EQUAL-WEIGHTED BREADTH DECAY (SPY vs RSP)
     if (liveSpyPlan && liveRSPPlan)
     {
         const spyPrice = liveSpyPlan.mostRecentPrice;
         const rspPrice = liveRSPPlan.mostRecentPrice;
-        const spyHistory = liveSpyPlan.historicCandle || [];
-        const rspHistory = liveRSPPlan.historicCandle || [];
 
-        if (spyPrice && rspPrice && spyHistory.length > 0 && rspHistory.length > 0)
+        // FIX A: Remapped paths to use your schema's strict daily historical bar objects
+        const spyPriorClose = liveSpyPlan.snapShot?.PrevDailyBar?.ClosePrice;
+        const rspPriorClose = liveRSPPlan.snapShot?.PrevDailyBar?.ClosePrice;
+
+
+        if (spyPrice && rspPrice && spyPriorClose > 0 && rspPriorClose > 0)
         {
-            const spyReturn = ((spyPrice - spyHistory[spyHistory.length - 1].ClosePrice) / spyHistory[spyHistory.length - 1].ClosePrice) * 100;
-            const rspReturn = ((rspPrice - rspHistory[rspHistory.length - 1].ClosePrice) / rspHistory[rspHistory.length - 1].ClosePrice) * 100;
-            // If SPY is fake-pumping on Mag 8 while RSP decays, penalize high-beta long plans [INDEX]
-            if ((spyReturn - rspReturn) >= 0.75 && spyBetaValue >= 1.15) { baseScore -= 20; }
+            const spyReturn = ((spyPrice - spyPriorClose) / spyPriorClose) * 100;
+            const rspReturn = ((rspPrice - rspPriorClose) / rspPriorClose) * 100;
+
+            const broadMarketBreadthDivergence = spyReturn - rspReturn;
+
+            // FIX B: Wrapped your target beta reference inside a safe local fallback shield
+            const activeStockBeta = dailyCalculatedValues.spyBetaValue || planEntity.stockInfo?.Beta1Y || 1.0;
+
+            // If SPY is fake-pumping on Mag 7 while RSP decays, penalize high-beta long plans
+            if (broadMarketBreadthDivergence >= 0.75 && activeStockBeta >= 1.15)
+            {
+                baseScore += W.systemicDeductions.breadthDecayPenalty;
+                const UIDescription = `Hollow Index Pump: SPY/RSP Divergence of +${broadMarketBreadthDivergence.toFixed(2)}%`
+                if (provideDescriptions) logRuleTrack(auditLedger, 'Market Breadth Decay', W.systemicDeductions.breadthDecayPenalty, CATEGORYNAME, UIDescription);
+            }
         }
     }
+
+
+
+
+
+
+
+
+
 
     // =========================================================================
     // ⏱️ 6. OPTION EXPIRATION TIME-DECAY CYCLES & SEASONAL EVENTS
@@ -196,18 +384,25 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     if (liveSpyPlan && liveSpyPlan.planData?.weeklyEM?.iVolWeeklyEMLower)
     {
         const weeklyPutWall = liveSpyPlan.planData?.weeklyEM?.iVolWeeklyEMLower;
-
         const isSpyAtWeeklyWall = Math.abs(liveSpyPlan.mostRecentPrice - weeklyPutWall) / weeklyPutWall <= 0.0015;
-
         if (isSpyAtWeeklyWall)
         {
-            const currentDayIndex = getDay(new Date());
-            if (currentDayIndex === 1 || currentDayIndex === 2) baseScore += W.optionsExpectedMoves.earlyCycleWeeklyLowerSDPenalty;
-            else if (currentDayIndex === 4 || currentDayIndex === 5) baseScore += W.optionsExpectedMoves.lateCycleWeeklyLowerSDPinBonus;
+            const currentDayIndex = new Date().getDay();
+            if (currentDayIndex === 1 || currentDayIndex === 2)
+            {
+                baseScore += W.optionsExpectedMoves.earlyCycleWeeklyLowerSDPenalty;
+                const UIDescription = 'Early-Cycle Index Expected Move Breach'
+                if (provideDescriptions) logRuleTrack(auditLedger, 'Options Expected Moves', W.optionsExpectedMoves.earlyCycleWeeklyLowerSDPenalty, CATEGORYNAME, UIDescription);
+
+            }
+            else if (currentDayIndex === 4 || currentDayIndex === 5)
+            {
+                baseScore += W.optionsExpectedMoves.lateCycleWeeklyLowerSDPinBonus;
+                const UIDescription = 'Late-Cycle Index Market Maker Pinning Confluence'
+                if (provideDescriptions) logRuleTrack(auditLedger, 'Options Expected Moves', W.optionsExpectedMoves.lateCycleWeeklyLowerSDPinBonus, CATEGORYNAME, UIDescription);
+            }
         }
     }
-
-
 
 
     return baseScore;
@@ -338,10 +533,10 @@ function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
  * @param {Object} liveRSPPlan - The raw macro market entity adapter dictionary [INDEX]
  * @returns {number} The absolute cumulative point penalties active (Returns a clean negative integer)
  */
-function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan)
+function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan, provideDescriptions, auditLedger)
 {
     let totalPenalties = 0;
-
+    const CATEGORYNAME = 'PENALTIES'
     const { dailyCalculatedValues, correlationValues, greatestCorrelation, spyBetaValue, patternClassification } = planEntity.planConfig;
     const stockAnalysisInfo = planEntity.stockInfo
 
@@ -360,6 +555,7 @@ function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPl
     // =========================================================================
     if (stockAnalysisInfo)
     {
+        const RULENAME = 'Stock Info'
         if (stockAnalysisInfo.EarningsDate)
         {
 
@@ -371,11 +567,13 @@ function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPl
             }
         }
 
-        // B. Lack of Optionable Liquidity or Hedging Tracks
-        if (stockAnalysisInfo.hasOptions === false && planEntity.patternConfig.patternClassification !== "continuation")
+        // Audit Optionable Liquidity
+        if (stockAnalysisInfo.HasOptions === false && patternClassification !== "continuation")
         {
-            totalPenalties += W.systemicDeductions.illiquidStructurePenalty; // -15 Points
-        }
+            totalPenalties += W.stockSpecificCatalysts.illiquidStructurePenalty;
+            const UIDescription = `Asset does not support listed options contracts.`
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.illiquidStructurePenalty, CATEGORYNAME, UIDescription);
+        } // Apply Illiquid Structure Penalty
 
         // C. Micro-Cap Order Book Slippage Friction
         const rawMarketCap = stockAnalysisInfo.MarketCap || 0;
@@ -448,7 +646,7 @@ function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPl
             const spyReturn = ((spyPrice - spyHistory[spyHistory.length - 1].ClosePrice) / spyHistory[spyHistory.length - 1].ClosePrice) * 100;
             const rspReturn = ((rspPrice - rspHistory[rspHistory.length - 1].ClosePrice) / rspHistory[rspHistory.length - 1].ClosePrice) * 100;
             // If headline market looks green but 400+ equal-weighted stocks are bleeding
-            if ((spyReturn - rspReturn) >= 0.75 && dailyTickerValues?.spyBetaValue >= 1.15)
+            if ((spyReturn - rspReturn) >= 0.75 && dailyCalculatedValues?.spyBetaValue >= 1.15)
             {
                 totalPenalties += W.systemicDeductions.breadthDecayPenalty; // -20 Points
             }
@@ -495,7 +693,6 @@ function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPl
         totalPenalties += W.systemicDeductions.globalMacroHeadwindSentry; // -15 Points
     }
 
-
     return totalPenalties; // Returns accumulated negative values cleanly (e.g. -45)
 }
 
@@ -533,6 +730,7 @@ function compilePatternSpecificScore(planEntity, todaysLiveCandles)
     return patternSpecificScore
 }
 
+function logRuleTrack(auditLedger, ruleName, pointsApplied, category, details) { auditLedger[category].push({ ruleName, pointsApplied, details }) }
 /**
  * CENTRAL MASTER COMPILER ROUTER
  * Invoked continuously by your child UI layout panels to aggregate the complete score.
@@ -542,21 +740,13 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     const patternClassification = planEntity.patternConfig.patternClassification;
     const todaysLiveCandles = planEntity.todaysCandles
 
-
     // Gating check: Default to 0% score if polling arrays are empty
     if (!todaysLiveCandles || todaysLiveCandles.length === 0) { return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM", metrics: {} }; }
-    const livePrice = planEntity.mostRecentPrice ||
-        todaysLiveCandles[todaysLiveCandles.length - 1].ClosePrice;
+    const livePrice = planEntity.mostRecentPrice || todaysLiveCandles[todaysLiveCandles.length - 1].ClosePrice;
 
-    const auditLedger = []
+    const auditLedger = { BASE: [], TIME: [], STRATEGY: [], PENALTIES: [], OFF_RADAR: [] }
+    const logRuleTrack = (ruleName, pointsApplied, category, details) => { if (provideDescriptions) auditLedger[category].push({ ruleName, pointsApplied, category, details }) }
 
-    const logRuleTrack = (ruleName, pointsApplied, category, details) =>
-    {
-        if (provideDescriptions)
-        {
-            auditLedger.push({ ruleName, pointsApplied, category, details })
-        }
-    }
 
 
 
@@ -580,14 +770,17 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     // =========================================================================
     // If the price is completely outside our predefined tactical zone (plus a safe 2% buffer),
     // we bypass all heavy scoring math entirely and return a clean, un-moving standby state [INDEX].
-    const lowerAllowedBoundary = targetFloorLine * 0.98;
+    const lowerAllowedBoundary = planEntity.planConfig.plan.stopLossPrice;
     const upperAllowedBoundary = targetCeilingLine * 1.02;
     if (livePrice < lowerAllowedBoundary || livePrice > upperAllowedBoundary)
     {
         let reason
         if (livePrice < lowerAllowedBoundary) reason = `Price $${livePrice} is below the stoploss price $${lowerAllowedBoundary.toFixed(2)}.`
         else if (livePrice > upperAllowedBoundary) reason = `Price $${livePrice} has exceeded the planned exit price $${upperAllowedBoundary.toFixed(2)}.`
-        logRuleTrack('Out Of Target Range', 0, 'Initial Check', reason)
+
+
+        logRuleTrack('Out Of Target Range', 0, 'OFF_RADAR', reason)
+
         return {
             matchScorePercent: 0,
             status: "RADAR_STANDBY: OFF_TARGET_ZONE",
@@ -607,8 +800,9 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     // ─────────────────────────────────────────────────────────────────────────
     // STEP A: COMPUTE THE SHARED BASE ENVIRONMENT SCORE (TIER 1) [INDEX]
     // ─────────────────────────────────────────────────────────────────────────
-    const baseEnvironmentScore = compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan, liveSectorPlan);
-    const timeDependentScore = compileTimeDependentMetrics(planEntity, todaysLiveCandles)
+    const baseEnvironmentScore =
+        compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan, liveSectorPlan, provideDescriptions, auditLedger);
+    const timeDependentScore = compileTimeDependentMetrics(planEntity, todaysLiveCandles, provideDescriptions, auditLedger);
     const combinedBaseTime = Math.min((baseEnvironmentScore + timeDependentScore), 50)
 
 
@@ -622,7 +816,7 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     // STEP C: AGGREGATE SYSTEMIC DEDUCTIONS (MACRO RISK FILTERS)
     // =========================================================================
     // Accumulate all active macro penalties (Fed meetings, negative gamma, breadth decays, lunch hours)
-    let totalActiveSystemicPenalties = compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan);
+    let totalActiveSystemicPenalties = compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPlan, liveRSPPlan, provideDescriptions, auditLedger);
 
 
     // =========================================================================

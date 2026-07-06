@@ -7,12 +7,13 @@ import './TradePriceVisualAlert.css'
 import ActiveTradeListWrapper from './Components/ListView/ActiveTradeListWrapper'
 import AccountPLVisual from '../AccountPLVisual/AccountPLVisual'
 import { isWeekend } from 'date-fns'
+import { ScoringTestHUD } from '../../../../MacroControlSection/Components/WatchListEngine/ScoringTestHUD'
 
 function CurrentTradePositionContainer()
 {
     let isWeekendPollingInterval = isWeekend(new Date()) ? 0 : 30000
-    const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery(undefined,
-        { pollingInterval: isWeekendPollingInterval })
+    // const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery(undefined,        { pollingInterval: isWeekendPollingInterval })
+    const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery()
 
     let tradeDisplayContent
     if (isSuccess && activeTrades.ids.length > 10) { tradeDisplayContent = <ActiveTradeListWrapper ids={activeTrades.ids} refetch={refetch} /> }
@@ -24,7 +25,8 @@ function CurrentTradePositionContainer()
     return (
         <div id='LSH-ActiveTradeContainer'>
             {/* <AccountPLVisual refetch={refetch} /> */}
-            {tradeDisplayContent}
+            {/* {tradeDisplayContent} */}
+            <ScoringTestHUD />
         </div>
     )
 }

@@ -85,8 +85,8 @@ function Prefetch()
           if (clock.isRegularSessionActive && !clock.isWeekend)
           {
             if (liveSubscriptionRef) { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: clock.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true })) }
-            if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
-            tradeSyncTimeoutRef.current = setTimeout(() => { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true })) }, 45000)
+            //if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
+            //tradeSyncTimeoutRef.current = setTimeout(() => { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true })) }, 45000)
           }
 
           manageDynamicIntervalLoop();
@@ -105,10 +105,7 @@ function Prefetch()
               store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineOneMinCandleBarData.initiate(undefined, { subscribe: true, forceRefetch: true }))
 
               if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
-              tradeSyncTimeoutRef.current = setTimeout(() =>
-              {
-                store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
-              }, 45000)
+              tradeSyncTimeoutRef.current = setTimeout(() => { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true })) }, 45000)
             }
           }, 60000)
         }
@@ -121,10 +118,7 @@ function Prefetch()
           oneMinPollingClockRef.current = setInterval(() =>
           {
             if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
-            tradeSyncTimeoutRef.current = setTimeout(() =>
-            {
-              store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
-            }, 45000)
+            tradeSyncTimeoutRef.current = setTimeout(() => { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true })) }, 45000)
           }, 60000)
         }
       }
@@ -141,7 +135,7 @@ function Prefetch()
           tradeSyncTimeoutRef.current = null
         }
       }
-      
+
     };
 
 

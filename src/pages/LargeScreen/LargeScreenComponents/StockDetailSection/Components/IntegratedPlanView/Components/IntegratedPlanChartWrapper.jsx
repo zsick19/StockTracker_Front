@@ -26,38 +26,40 @@ function IntegratedPlanChartWrapper({ plan, timeFrameView })
     const morningMetrics = plan.metricConfig.morningMetrics
 
 
-    // useEffect(() =>
-    // {
-    //     switch (timeFrameView)
-    //     {
-    //         case 0:
-    //             setCandleDataForTimeFrame(plan.todaysCandles)
-    //             //today opening hour
+    useEffect(() =>
+    {
+        // switch (timeFrameView)
+        // {
+        //     case 0:
+        //         setCandleDataForTimeFrame(plan.todaysCandles)
+        //         //today opening hour
 
-    //             //add one day 5 min timeframe
-    //             setScaleForTimeFrame({ start: 3, end: 4 });
-    //             //    dispatch(setFocusStartFinishDate({ uuid: uuid, focusDates: 'firstHour' }))
-    //             break;
+        //         //add one day 5 min timeframe
+        //         setScaleForTimeFrame({ start: 3, end: 4 });
+        //         //    dispatch(setFocusStartFinishDate({ uuid: uuid, focusDates: 'firstHour' }))
+        //         break;
 
-    //         case 1:
-    //             //add one day 5 min timeframe
-    //             setCandleDataForTimeFrame(plan.todaysCandles)
-    //             // dispatch(setFocusStartFinishDate({ uuid: uuid, focusDates: 'MP1H' }))
-    //             setScaleForTimeFrame({ start: 3, end: 4 });
-    //             break;
+        //     case 1:
+        //         //add one day 5 min timeframe
+        //         setCandleDataForTimeFrame(plan.todaysCandles)
+        //         // dispatch(setFocusStartFinishDate({ uuid: uuid, focusDates: 'MP1H' }))
+        //         setScaleForTimeFrame({ start: 3, end: 4 });
+        //         break;
 
-    //         case 2:
-    //             setCandleDataForTimeFrame(plan.combinedCandleData)
+        //     case 2:
+        //         setCandleDataForTimeFrame(plan.combinedCandleData)
 
-    //             // if (threeDayHistoricalOrTenDay) dispatch(setFocusStartFinishDate({ uuid: uuid, focusDates: 'H3D' }))
-    //             // else dispatch(setFocusStartFinishDate({ uuid: uuid, focusDates: 'H10D' }))
-    //             // break;
-    //             break;
-    //     }
-    // }, [timeFrameView, plan.todaysCandles])
+        //         // if (threeDayHistoricalOrTenDay) dispatch(setFocusStartFinishDate({ uuid: uuid, focusDates: 'H3D' }))
+        //         // else dispatch(setFocusStartFinishDate({ uuid: uuid, focusDates: 'H10D' }))
+        //         // break;
+        //         break;
+        // }
+        setCandleDataForTimeFrame(plan.combinedCandleData)
+    }, [timeFrameView, plan.id, plan.todaysCandles])
 
     return (
         <>
+        
             <IntegratedNoFetchChartWrapper
                 ticker={plan.id} candleData={candleDataForTimeFrame}
                 uuid={uuid} mostRecentPrice={plan.mostRecentPrice}

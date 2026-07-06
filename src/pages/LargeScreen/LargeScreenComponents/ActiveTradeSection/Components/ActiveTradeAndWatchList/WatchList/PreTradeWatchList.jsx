@@ -11,7 +11,8 @@ import { isWeekend } from 'date-fns'
 function PreTradeWatchList()
 {
     let isWeekendPollingInterval = isWeekend(new Date()) ? 0 : 30000
-    const { data, isSuccess, isLoading, isError, error, refetch } = useGetTinyEnterExit5MinChartsQuery(undefined, { pollingInterval: isWeekendPollingInterval })
+    // const { data, isSuccess, isLoading, isError, error, refetch } = useGetTinyEnterExit5MinChartsQuery(undefined, { pollingInterval: isWeekendPollingInterval })
+    const { data, isSuccess, isLoading, isError, error, refetch } = useGetTinyEnterExit5MinChartsQuery()
     const { data: enterExitData, isSuccess: isEnterExitSuccess, refetch: refetchEnterExitPlan } = useGetUsersEnterExitPlanQuery()
     const [selectedWatchList, setSelectedWatchList] = useState(0)
     function handleSwitchingWatchList()

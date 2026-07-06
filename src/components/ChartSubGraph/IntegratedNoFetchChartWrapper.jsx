@@ -38,11 +38,12 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
 
     return (
         <div className="ChartGraphWrapper">
+
             <ChartGraph ticker={ticker}
                 candleData={candleData}
                 uuid={uuid}
                 mostRecentPrice={mostRecentPrice}
-                lastCandleData={{ ClosePrice: mostRecentPrice }}
+                // lastCandleData={{ ClosePrice: mostRecentPrice }}
                 isInteractive={false}
                 isZoomAble={true}
                 isLivePrice={true}
@@ -52,12 +53,13 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
                 dailyCalculatedValues={dailyCalculatedValues}
                 morningMetrics={morningMetrics}
 
-                // chartId={chartId}
-                // lastCandleData={lastCandleData}
-                showEMAs={false}
+                showEMAs={true}
+
+            // chartId={chartId}
+            // lastCandleData={lastCandleData}
+
+
             // EMNumbers={EMNumbers}
-            // dailyCalculatedValues={dailyCalculatedValues}
-            // morningMetrics={morningMetrics}
             // tradingPlanPrices={tradingPlanPrices}
             // liveActionTimeFrame={liveActionTimeFrame}
 

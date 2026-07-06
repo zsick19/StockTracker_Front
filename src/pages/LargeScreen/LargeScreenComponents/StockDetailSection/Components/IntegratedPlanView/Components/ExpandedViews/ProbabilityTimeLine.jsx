@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import VolDistChart from '../../../FinalPreTradeCheck/Components/VolDistributionCheck/VolDistChart'
 import RangeDistChart from '../SubComponents/RangeDistChart'
 import VolDistributionChart from '../SubComponents/VolDistributionChart'
@@ -25,12 +25,23 @@ function ProbabilityTimeLine({ plan })
     }
   }, [plan.id])
 
+  const [currentTimeForTrace, setCurrentTimeForTrace] = useState(new Date())
+  const movingBarIntervalRef = useRef()
+  useEffect(() =>
+  {
+    movingBarIntervalRef.current = setInterval(() => { setCurrentTimeForTrace(new Date()) }, [300000])
+    return () => { clearInterval(movingBarIntervalRef.current) }
+  }, [])
+
+
+
   return (
     <div id='ExpandedProbability'>
       <div>
         <div id='extremeProbVisual'>
           <h4>Extremes Probability</h4>
-          <RangeDistChart results={plan.metricConfig.extremeProbByFiveMin} extremesBreakdown={plan.metricConfig.extentProb} />
+          <RangeDistChart results={plan.metricConfig.extremeProbByFiveMin} extremesBreakdown={plan.metricConfig.extentProb}
+            currentTimeBar={currentTimeForTrace} />
           <div>
             <div>
               <p className={extentProb.openH > 60 && 'highProbVisual'}>High Hit: <span>{extentProb.openH}%</span></p>
@@ -55,7 +66,8 @@ function ProbabilityTimeLine({ plan })
 
 
 
-          <VolDistributionChart volDis={volDistribution.fiveMinAvgVolume} lowestIndexStart={volDistribution.fiveMinAvgLowestVolume?.startingIndex} />
+          <VolDistributionChart volDis={volDistribution.fiveMinAvgVolume} lowestIndexStart={volDistribution.fiveMinAvgLowestVolume?.startingIndex}
+            currentTimeBar={currentTimeForTrace} />
 
 
 
