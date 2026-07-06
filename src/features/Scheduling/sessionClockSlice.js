@@ -5,12 +5,12 @@ import { isWeekend } from 'date-fns';
 // ⏱️ THE ABSOLUTE CENTRAL TIMELINE CONFIGURATION
 // =============================================================================
 const TIMELINE_EVENTS = [
-    { id: 'PRE_FLIGHT', time: '08:30', label: 'Pre-Flight Hydration', description: 'Ingesting morning CSV metadata arrays & Alpaca options chains.' },
+    { id: 'PRE_FLIGHT', time: '09:22', label: 'Pre-Flight Hydration', description: 'Ingesting morning CSV metadata arrays & Alpaca options chains.' },
+    { id: 'DAILY_MACRO', time: '09:26', label: 'Macro Ticker Hydration', description: 'Input daily SPY values and core expected moves.' },
     { id: 'OPEN_CROSS', time: '09:34', label: 'Frontend Ingestion Wave', description: 'RTK Query fetching optimized pre-compiled opening cross watchlist data.' },
-
     { id: 'PRIME_SWEET', time: '09:35', label: 'Prime Execution Window', description: 'Opening bell cool-down safety gates unlocked. Live volume climax tracking active.' },
+    
     { id: 'MIDDAY_CHURN', time: '11:30', label: 'Midday Churn Monitoring', description: 'Evaluating live midday density ratios to flag un-sponsored retail traps.' },
-    { id: 'MIDDAY_CHURN2', time: '14:02', label: 'Midday Churn Monitoring', description: 'Evaluating live midday density ratios to flag un-sponsored retail traps.' },
     { id: 'POWER_HOUR', time: '15:00', label: 'Power Hour Reconnaissance', description: 'Final options pinning and gamma acceleration pressure matrix adjustments.' }
 ];
 
@@ -18,7 +18,7 @@ const initialState = {
     nyCurrentTimeStr: '',
     activeTaskId: 'MARKET_CLOSED',
     currentActiveProfile: { label: 'Market Closed Standby', description: 'System loops idling. Awaiting morning pre-flight triggers.' },
-    nextTask: { id: 'PRE_FLIGHT', time: '08:30', label: 'Pre-Flight Hydration' },
+    nextTask: { id: 'PRE_FLIGHT', time: '09:25', label: 'Pre-Flight Hydration' },
     msToNextTask: 0
 };
 
@@ -87,7 +87,7 @@ export const startBackgroundSessionTicker = createAsyncThunk(
             }));
         };
 
-        if (isWeekend(new Date()))
+        if (!isWeekend(new Date()))
         {
             executeClockTickPass();
             masterClockIntervalId = setInterval(executeClockTickPass, 1000);

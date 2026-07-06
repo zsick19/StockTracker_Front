@@ -57,7 +57,7 @@ function StockInfoView({ plan })
                     <h3 style={{ margin: '0 0 4px 0', color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>
                         {stockData.Symbol} <span style={{ fontSize: '13px', color: '#6272a4', fontWeight: 'normal' }}>| {stockData.CompanyName}</span>
                     </h3>
-                    <div style={{ fontSize: '11px', color: '#00ffff' }}>{stockData.Sector} ──► {stockData.Industry}</div>
+                    <div style={{ fontSize: '11px', color: '#00ffff' }}>{stockData.Sector} ──► {stockData.Industry} ──► {stockData.Website} </div>
                 </div>
                 <div style={{ textAlign: 'right', background: '#181922', padding: '6px 12px', borderRadius: '3px', border: '1px solid #222' }}>
                     <div style={{ fontSize: '9px', color: '#6272a4' }}>INSTITUTIONAL OWNERSHIP</div>

@@ -23,8 +23,8 @@ function FirstHourReview({ plan })
     let firstHour = new Date()
     if (isWeekend(marketOpen))
     {
-        marketOpen = previousThursday(new Date())
-        firstHour = previousThursday(new Date())
+        marketOpen = previousFriday(new Date())
+        firstHour = previousFriday(new Date())
     }
     marketOpen.setHours(9, 30, 0, 0)
     firstHour.setHours(10, 30, 0, 0)
@@ -34,12 +34,7 @@ function FirstHourReview({ plan })
     const openHourCandles = useMemo(() =>
     {
         if (plan.todaysCandles.length === 0) return []
-        let results = plan.todaysCandles.filter(candle =>
-        {
-            if (isAfter(candle.Timestamp, marketOpen.toISOString()) && isBefore(candle.Timestamp, firstHour))
-                return candle
-        });
-        return results
+        return plan.todaysCandles.filter(candle => { if (isAfter(candle.Timestamp, marketOpen.toISOString()) && isBefore(candle.Timestamp, firstHour)) return candle });        
     }, [plan.todaysCandles])
 
     const todaysVolOverFiveMinInc = useMemo(() =>

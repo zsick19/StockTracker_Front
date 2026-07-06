@@ -3,7 +3,9 @@ import React from 'react'
 function ScoreBreakDown({ plan })
 {
     return (
-        <div>ScoreBreakDown</div>
+        <div>
+            Score Break Down
+        </div>
     )
 }
 

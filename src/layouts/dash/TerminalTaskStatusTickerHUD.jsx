@@ -9,9 +9,10 @@ export const TerminalTaskStatusTickerHUD = () =>
     const clockState = useSelector((state) => state.sessionClock);
     const { nyCurrentTimeStr, currentActiveProfile, nextTask, msToNextTask } = clockState;
 
-
     const isReadyForHydration = currentActiveProfile.id === 'OPEN_CROSS'
     const { isSuccess: isOpenCrossSuccess, isUninitialized, refetch } = useFetchEngineOpenCrossDataQuery(undefined, { skip: !isReadyForHydration, refetchOnMountOrArgChange: true })
+
+    //here goes any additional api request pulls
 
 
 
@@ -26,7 +27,7 @@ export const TerminalTaskStatusTickerHUD = () =>
     };
 
     return (
-        <div style={{ background: '#111219', padding: '16px 20px', borderRadius: '4px', border: '1px solid #222', fontFamily: 'monospace', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', width: '100%' }}>
+        <div style={{ background: '#111219', padding: '16px 20px', borderRadius: '4px', border: '1px solid #222', fontFamily: 'monospace', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', height: 150 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <div style={{ background: 'rgba(0, 255, 255, 0.08)', border: '1px solid #00ffff', padding: '8px 12px', borderRadius: '3px' }}>
                     <div style={{ fontSize: '9px', color: '#6272a4' }}>NY TIME</div>

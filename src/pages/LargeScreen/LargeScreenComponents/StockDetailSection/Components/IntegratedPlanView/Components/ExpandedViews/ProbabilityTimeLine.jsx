@@ -7,7 +7,6 @@ function ProbabilityTimeLine({ plan })
 {
   const extentProb = plan.metricConfig.extentProb
   const volDistribution = plan.metricConfig.volumeDistribution
-  console.log(volDistribution)
   // const extremesBy5Min = plan.metricConfig.extremeProbByFiveMin
   const morningMetrics = plan.metricConfig.morningMetrics
   const morningVolMetrics = plan.metricConfig.morningVolume
@@ -53,7 +52,13 @@ function ProbabilityTimeLine({ plan })
 
         <div id='volDistributionVisual'>
           <h3>Volume Distribution</h3>
-          <VolDistributionChart volDis={volDistribution.fiveMinAvgVolume} lowestIndexStart={volDistribution.fiveMinAvgLowestVolume.startingIndex} />
+
+
+
+          <VolDistributionChart volDis={volDistribution.fiveMinAvgVolume} lowestIndexStart={volDistribution.fiveMinAvgLowestVolume?.startingIndex} />
+
+
+
           <div>
             <div>
               <p>{volDistribution.fiveMinAvgVolumeShare.firstHour}% Of Volume</p>
@@ -68,6 +73,9 @@ function ProbabilityTimeLine({ plan })
               <p>Close</p>
             </div>
           </div>
+
+
+
         </div>
       </div>
 
