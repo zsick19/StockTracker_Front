@@ -568,10 +568,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     }, [candleData, minPrice, maxPrice, excludedPeriods, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
 
-
+    //plot morning metrics if provided
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !lastCandleData || !dailyCalculatedValues || !morningMetrics) return
+        if (preDimensionsAndCandleCheck() || !dailyCalculatedValues || !morningMetrics) return
         const morningOpenLines = stockCandleSVG.select('.morningOpen')
         morningOpenLines.selectAll('.line_group').remove()
 
@@ -584,7 +584,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         let basePriceOpen
         if ((new Date() > openTime) && dailyCalculatedValues.TodayOpenPrice)
         { basePriceOpen = dailyCalculatedValues.TodayOpenPrice }
-        else { basePriceOpen = lastCandleData.ClosePrice }
+        else { basePriceOpen = mostRecentPrice }
 
         let upsidePercentVsOpen = basePriceOpen + (basePriceOpen * (morningMetrics.upSide.averageInitialRallyStretch / 100))
         let downSidePercentVsOpen = basePriceOpen - (basePriceOpen * (morningMetrics.downSide.averageInitialDropStretch / 100))
@@ -629,7 +629,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     {
 
         if (preDimensionsAndCandleCheck() || !lastCandleData) return
-        console.log(lastCandleData)
         let centerTextOnPriceLinePixel = 4
         let centerRectOnPriceLinePixel = 15
         let priceOnYScale = priceScaleSVG.select('.currentPrice')
@@ -1497,7 +1496,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             patternSelect.append('line').attr('class', 'patternPrice')
                 .attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('y1', stopLossPrice).attr('y2', stopLossPrice)
-                .attr('stroke', 'red').attr('stroke-width', 1).attr('opacity', 0.75)
+                .attr('stroke', 'red').attr('stroke-width', 2).attr('opacity', 0.75)
         }
         if (patternConfig.options)
         {

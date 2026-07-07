@@ -7,3 +7,8 @@
 #PlanStatusHUD p {
   font-size: var(--fs-100);
 }
+
+.IntegratedChartWrapper {
+  display: flex;
+  flex-direction: column;
+}

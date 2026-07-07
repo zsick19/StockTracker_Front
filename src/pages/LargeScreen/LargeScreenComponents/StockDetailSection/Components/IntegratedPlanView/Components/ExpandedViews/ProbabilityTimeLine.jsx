@@ -7,9 +7,10 @@ function ProbabilityTimeLine({ plan })
 {
   const extentProb = plan.metricConfig.extentProb
   const volDistribution = plan.metricConfig.volumeDistribution
-  // const extremesBy5Min = plan.metricConfig.extremeProbByFiveMin
   const morningMetrics = plan.metricConfig.morningMetrics
   const morningVolMetrics = plan.metricConfig.morningVolume
+
+  const extremesBy5Min = plan.metricConfig.extremeProbByFiveMin
 
   const greatestProb = useMemo(() =>
   {
@@ -25,8 +26,37 @@ function ProbabilityTimeLine({ plan })
     }
   }, [plan.id])
 
+
+  const openCandleHighLow = (extremes) =>
+  {
+    let highProbInFirst10Mins = (extremes[0].highProb + extremes[1].highProb) / 2
+    let lowProbInFirst10Mins = (extremes[0].lowProb + extremes[1].lowProb) / 2
+    let numberOfTimeHighHitAfterFirst10Mins = 0
+    let numberOfTimeLowHitAfterFirst10Mins = 0
+    for (let index = 2; index < extremes.length; index++)
+    {
+      if (extremes[index].highProb > highProbInFirst10Mins) numberOfTimeHighHitAfterFirst10Mins += 1
+      if (extremes[index].lowProb > lowProbInFirst10Mins) numberOfTimeLowHitAfterFirst10Mins += 1
+    }
+
+    let highProb = 'Highly Likely'
+    if (numberOfTimeHighHitAfterFirst10Mins > 3) highProb = 'Not Likely'
+    else if (numberOfTimeHighHitAfterFirst10Mins > 1) highProb = 'Somewhat Likely'
+
+    let lowProb = 'Highly Likely'
+    if (numberOfTimeLowHitAfterFirst10Mins > 3) lowProb = 'Not Likely'
+    else if (numberOfTimeLowHitAfterFirst10Mins > 1) lowProb = 'Somewhat Likely'
+
+    return {
+      highProb, lowProb
+    }
+  }
+
+  const results = openCandleHighLow(extremesBy5Min)
+
   const [currentTimeForTrace, setCurrentTimeForTrace] = useState(new Date())
   const movingBarIntervalRef = useRef()
+
   useEffect(() =>
   {
     movingBarIntervalRef.current = setInterval(() => { setCurrentTimeForTrace(new Date()) }, [300000])
@@ -92,10 +122,27 @@ function ProbabilityTimeLine({ plan })
       </div>
 
       <div>
-        <h4>Details</h4>
-        <p>Daily High Most Likely: {greatestProb.greatestHighSession}</p>
-        <p>Daily Low Most Likely: {greatestProb.greatestLowSession}</p>
-        <p>Last Calculated:{ }</p>
+        <h3>Probability Details</h3>
+        <p>Daily High Most Likely: {greatestProb.greatestHighSession} Session</p>
+        <p>Daily Low Most Likely: {greatestProb.greatestLowSession} Session</p>
+        <br />
+
+        <p>Morning Liquidity Concentration: {(volDistribution.fiveMinAvgVolumeShare.firstHour / volDistribution.fiveMinAvgVolumeShare.lastHour).toFixed(2)}</p>
+        <p>Greater than 2, much higher volume needed in afternoon trading session for convection</p>
+        <br />
+
+        <h3>High Print At Open</h3>
+        <p>{results.highProb}</p>
+
+        <br />
+        <h3>Low Print At Open</h3>
+        <p>{results.lowProb}</p>
+        <br />
+
+        <p>Slippage Buffer For lowest volume:</p>
+        <p>+$0.04 to be calculated</p>
+
+        <p>Last Calculated:{plan.planConfig.datesLastCalculated.morningMetrics}</p>
       </div>
 
     </div>

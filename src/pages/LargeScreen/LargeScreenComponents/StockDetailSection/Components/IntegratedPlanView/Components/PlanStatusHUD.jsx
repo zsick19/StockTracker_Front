@@ -8,12 +8,14 @@ function PlanStatusHUD({ plan })
     const currentScore = plan.centralScoreProfile.matchScorePercent
     const currentStatus = plan.centralScoreProfile.status
 
+    const decimalPlaces = plan.mostRecentPrice < 4 ? 3 : 2
+    
     return (
         <div id='PlanStatusHUD'>
             <div>
                 <div className='flex'>
                     <h2>{plan.id}</h2>
-                    <h2>{plan.mostRecentPrice.toFixed(2)}</h2>
+                    <h2>{plan.mostRecentPrice.toFixed(decimalPlaces)}</h2>
                 </div>
                 <div className='flex'>
                     <p>{dollarChange.toFixed(3)}</p>

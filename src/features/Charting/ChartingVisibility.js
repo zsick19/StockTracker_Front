@@ -13,6 +13,7 @@ const chartingVisibilitySlice = createSlice({
                 enterExitText: false,
                 anyEnterExits: true, enterExits: true, previousEnterExits: true,
 
+                morningMetrics: true,
 
                 anyFreeLines: true, freeLines: true, previousFreeLines: true,
                 anyTrendLines: true, trendLines: true, previousTrendLines: true,

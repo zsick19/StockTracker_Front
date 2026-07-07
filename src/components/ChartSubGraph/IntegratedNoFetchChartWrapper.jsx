@@ -37,8 +37,10 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
     }, [])
 
     return (
-        <div className="ChartGraphWrapper">
-
+        <div className="IntegratedChartWrapper">
+            <div className='flex' >
+                <button>VP</button>
+            </div>
             <ChartGraph ticker={ticker}
                 candleData={candleData}
                 uuid={uuid}

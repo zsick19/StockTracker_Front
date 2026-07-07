@@ -49,5 +49,37 @@
 /* First Hour */
 #ExpandedFirstHour {
   display: grid;
-  grid-template-columns: 1fr 40%;
+  grid-template-columns: 35% 1fr;
+  height: 100%;
+  gap: 1rem;
+}
+#ExpandedFirstHour > div:first-of-type {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+#ExpandedFirstHour svg {
+  background-color: black;
+  width: 100%;
+}
+
+#FirstHourHistoricalCompare > div {
+  border-radius: 5px;
+  font-size: var(--fs-100);
+  /* height: 250px; */
+}
+#FirstHourHistoricalCompare > div p {
+  padding: 5px;
+}
+
+.focusFirstHour {
+  border: 4px solid rgb(13, 218, 6);
+}
+.offFocusFirstHour {
+  border: 4px solid gray;
+}
+
+#FirstHourLive {
+  display: grid;
+  grid-template-rows: 1fr 40%;
 }

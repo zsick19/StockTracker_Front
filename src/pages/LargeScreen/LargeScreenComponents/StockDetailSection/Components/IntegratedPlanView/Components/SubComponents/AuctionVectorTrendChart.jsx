@@ -6,7 +6,8 @@ export const AuctionVectorTrendChart = ({ planData }) =>
 {
     const d3ChartSvgRef = useRef(null);
     const vectorDataMatrix = compileAuctionVectorChartData(planData);
-    console.log(vectorDataMatrix)
+
+
     useEffect(() =>
     {
         if (!d3ChartSvgRef.current || vectorDataMatrix.length === 0) return;

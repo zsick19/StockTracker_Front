@@ -1,5 +1,6 @@
 import React from 'react'
 import BaseScoreCard from '../ScoreCards/BaseScoreCard'
+import { AuditSectionLedgerContainer } from '../ScoreCards/AuditSectionLedgerContainer'
 
 function ScoreBreakDown({ plan, scoreCardView, setScoreCardView })
 {
@@ -11,11 +12,10 @@ function ScoreBreakDown({ plan, scoreCardView, setScoreCardView })
         {
 
             case 0: return <div>overall score</div>
-            case 1: return <BaseScoreCard baseScoreDetail={auditLedger.BASE} />
-            case 2: return <BaseScoreCard baseScoreDetail={auditLedger.TIME} />
-            // case 2: return <div>Time</div>
-            case 3: return <div>Strategy</div>
-            case 4: return <div>Penalties</div>
+            case 1: return <AuditSectionLedgerContainer auditRulesArray={auditLedger.BASE} />
+            case 2: return <AuditSectionLedgerContainer auditRulesArray={auditLedger.TIME} />
+            case 3: return <AuditSectionLedgerContainer auditRulesArray={auditLedger.STRATEGY} />
+            case 4: return <AuditSectionLedgerContainer auditRulesArray={auditLedger.PENALTIES} />
         }
     }
 

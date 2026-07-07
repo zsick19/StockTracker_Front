@@ -15,7 +15,6 @@ export const ExecutionUrgencyHud = ({ planData, currentSessionMinutesPostOpen })
     const baselineOneMinVol = planData.planConfig.dailyCalculatedValues?.baselineAvgOneMinVolume || 5000;
     const isLiveVolumeClimax = activeCandle.Volume >= (baselineOneMinVol * 3.5);
 
-    // console.log(activeCandle.Volume, baselineOneMinVol)
 
 
     // Track the time-of-day opening climax window (First 15 minutes of the bell) [INDEX]

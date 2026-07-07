@@ -39,7 +39,7 @@ export const VolumeAccelerationChart = ({ todaysCandles, upTimeToPeak, downTimeT
 
         const maxVal = d3.max(accelerationData, d => Math.abs(d.accelerationValue)) || 10000;
         const yScale = d3.scaleLinear()
-            .domain([-maxVal * 1.1, maxVal * 1.1])
+            .domain([0, maxVal * 1.1])
             .range([height, 0]);
 
         // Draw Axes
@@ -55,7 +55,7 @@ export const VolumeAccelerationChart = ({ todaysCandles, upTimeToPeak, downTimeT
         // 📈 PLOT STRATION: DRAW THE SECOND DERIVATIVE MOMENTUM WAVE [INDEX]
         const lineGenerator = d3.line()
             .x(d => xScale(d.timeLabel))
-            .y(d => yScale(d.accelerationValue))
+            .y(d => yScale(Math.abs(d.accelerationValue)))
             .curve(d3.curveMonotoneX);
 
         svg.append("path")

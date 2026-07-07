@@ -11,8 +11,9 @@ import React from 'react';
 export const AuditSectionLedgerContainer = ({ auditRulesArray = [], sectionTitleStr }) =>
 {
 
+
     // In-memory running sum accumulator to dynamically calculate the section total [INDEX]
-    const cumulativeSectionPointsSum = auditRulesArray.reduce((acc, rule) => acc + (rule.score || 0), 0);
+    const cumulativeSectionPointsSum = auditRulesArray.reduce((acc, rule) => acc + (rule.pointsApplied || 0), 0);
 
     const isNegativePointsRegime = cumulativeSectionPointsSum < 0;
 
@@ -71,7 +72,7 @@ export const AuditSectionLedgerContainer = ({ auditRulesArray = [], sectionTitle
                 ) : (
                     auditRulesArray.map((rule, elementIndex) =>
                     {
-                        const rowStyle = getBadgeStyleProperties(rule.score);
+                        const rowStyle = getBadgeStyleProperties(rule.pointsApplied);
                         const isLastItemRow = elementIndex === auditRulesArray.length - 1;
 
                         return (
@@ -91,10 +92,10 @@ export const AuditSectionLedgerContainer = ({ auditRulesArray = [], sectionTitle
                                 {/* LEFT QUADRANT: LITERAL DESCRIPTIVE MARKERS */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1', paddingRight: '20px' }}>
                                     <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff' }}>
-                                        {rule.name}
+                                        {rule.ruleName}
                                     </div>
                                     <div style={{ fontSize: '10px', color: '#888', lineHeight: '1.3' }}>
-                                        {rule.description || 'Systemic condition verified by background server algorithms.'}
+                                        {rule.details || 'Systemic condition verified by background server algorithms.'}
                                     </div>
                                 </div>
 
@@ -110,7 +111,8 @@ export const AuditSectionLedgerContainer = ({ auditRulesArray = [], sectionTitle
                                     minWidth: '55px',
                                     textAlign: 'center'
                                 }}>
-                                    {rowStyle.prefixStr}{rule.score}
+                                    {rowStyle.prefixStr}{rule.pointsApplied
+                                    }
                                 </div>
                             </div>
                         );

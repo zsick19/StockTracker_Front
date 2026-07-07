@@ -13,7 +13,7 @@ export const SCORING_WEIGHTS = {
         clvMildBounce: 10,                 // Price closed in lower-middle wick tier (CLV >= 0.30)
         clvExtremeBounce: 5,               // Price closed in absolute lower wick tier (CLV >= 0.65)
         priceAboveOpen: 5,                 // Price has crossed and sits above today's regular session open
-        volumeClimaxWall: 15               // Today's total volume crosses 2.0x average historical candle volume
+        volumeClimaxWall: 25               // Today's total volume crosses 2.0x average historical candle volume
     },
 
     // 2. Structural Magnets & Hourly Lines
@@ -112,14 +112,16 @@ export const SCORING_WEIGHTS = {
         standardChannel: {
             insideStrikeBufferBonus: 25,   // Price sitting between entryStrikeBuffer and channelBottom
             floorSweepReclaimBonus: 15,    // Live lower wicks swept beneath channelBottom and closed back above
-            asymmetricRunwayBonus: 10      // Immediate overhead resistance shelf is rated "MILD_VELOCITY_SHELF"
+            asymmetricRunwayBonus: 10,      // Immediate overhead resistance shelf is rated "MILD_VELOCITY_SHELF"
+            heightVolatilityBonus:10
         },
 
         // TOOL 2: THE PENNY STOCK CHANNEL SCALPER (1-MINUTE HIGH VELOCITY TAPE)
         pennyChannel: {
             insideStrikeBufferBonus: 25,   // Price sitting inside the high-resolution buying buffer bracket
             stopRunReclaimBonus: 15,       // A 1-minute lower wick sweeps beneath channelBottom and instantly reclaims it
-            volumetricAbsorptionWall: 10   // Active 1-minute candle volume >= 3.5x baselineAvgOneMinVolume
+            volumetricAbsorptionWall: 10,   // Active 1-minute candle volume >= 3.5x baselineAvgOneMinVolume
+            heightVolatilityBonus:10
         },
 
         // TOOL 4: THE CONTINUATION MOMENTUM

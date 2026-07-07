@@ -80,7 +80,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     planConfig.greatestCorrelation = enterExit.plan.greatestCorrelation
                     planConfig.spyBetaValue = planConfig.plan.spyBetaValue
                     planConfig.dailyCalculatedValues = enterExit.plan.dailyTickerValues
-
+                    planConfig.datesLastCalculated = {
+                        morningMetrics: enterExit.plan.dateMorningMetricsLastCalculated
+                    }
 
 
                     let metricConfig = {}
