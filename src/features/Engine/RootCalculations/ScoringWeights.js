@@ -43,7 +43,6 @@ export const SCORING_WEIGHTS = {
         coiledPullbackBonus: 15,           // Price trading above 200 MA, but within a tight 2% cushion of 20 MA line
         extremeOversoldReversalBonus: 10,  // DailyRsi <= 30.0 (High-probability short-term capitulation exhaustion)
 
-        yearlyStructuralDriftBonus: 15,
 
 
 

@@ -119,24 +119,13 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
         {
             const stockBeta = spyBetaValue || 1.0;
             const broadCorrelation = correlationValues.SPY?.correlation90Day || 0;
-            if (stockBeta >= 1.40 && broadCorrelation >= 0.70)
-            {
-                baseScore += W.systemicGammaGates.highBetaVulnerabilityPenalty; // Severe -40 point protection pass
-                const UIDescription = `Broad market is in a negative gamma regime; asset is high-beta and strongly correlated to SPY.`
-                if (provideDescriptions) logRuleTrack(auditLedger, 'Systemic Gamma Gates', W.systemicGammaGates.highBetaVulnerabilityPenalty, CATEGORYNAME, UIDescription);
-            } else if (correlationValues.SPY?.isCurrentlyDecoupled || stockBeta <= 0.85)
+            if (correlationValues.SPY?.isCurrentlyDecoupled || stockBeta <= 0.85)
             {
                 baseScore += W.systemicGammaGates.idiosyncraticSafeHavenBonus; // Reward decoupling low-beta assets
                 const UIDescription = `Asset exhibits a low beta or is currently actively decoupled from broad market index liquidations.`
                 if (provideDescriptions) logRuleTrack(auditLedger, 'Systemic Gamma Gates', W.systemicGammaGates.idiosyncraticSafeHavenBonus, CATEGORYNAME, UIDescription);
             }
 
-            if (planEntity.planConfig.patternClassification === "continuation")
-            {
-                baseScore += W.systemicGammaGates.momentumContinuationRiskPenalty; // Penalize momentum setups
-                const UIDescription = `Momentum breakout setup penalized due to high broad market volatility risk.`
-                if (provideDescriptions) logRuleTrack(auditLedger, 'Systemic Gamma Gates', W.volumeProfileShelves.highCriticalCliff, CATEGORYNAME, UIDescription);
-            }
         }
     }
 
@@ -181,13 +170,7 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
         } // Assign Time Squeeze multiplier
 
 
-        // Audit 52-Week Structural Drift Location
-        if (stockAnalysisInfo.PositionInRangePercent <= 15.0)
-        {
-            baseScore += W.stockSpecificCatalysts.yearlyStructuralDriftBonus;
-            const UIDescription = `Current asset price is trading within the bottom 15% of its annual range.`
-            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.yearlyStructuralDriftBonus, CATEGORYNAME, UIDescription);
-        } // Severe structural weakness penalty
+
         if (stockAnalysisInfo.PositionInRangePercent >= 90.0)
         {
             baseScore += W.stockSpecificCatalysts.positionInRangeTopBonus;
@@ -204,26 +187,15 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
             const UIDescription = `Stock has gapped down more than 3.0% below yesterday's session close.`
             if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.gapTrapReversalPenalty, CATEGORYNAME, UIDescription);
         }
-
-
-
-        //Audit Market Cap Liquidity Framework
         const rawMarketCap = stockAnalysisInfo.MarketCap || 0;
-        if (rawMarketCap > 0)
+        if (rawMarketCap >= 10000000000)
         {
-            if (rawMarketCap < 250000000)
-            {
-                baseScore += W.stockSpecificCatalysts.microCapSlippagePenalty;
-                const UIDescription = `Total equity valuation sits beneath a 250-million-dollar micro-cap ceiling.`
-                if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.microCapSlippagePenalty, CATEGORYNAME, UIDescription);
-            } // Micro-Cap Slippage Penalty
-            else if (rawMarketCap >= 10000000000)
-            {
-                baseScore += W.stockSpecificCatalysts.largeCapInstitutionalBonus;
-                const UIDescription = `Asset is a liquid large-cap giant exceeding 10 billion dollars.`
-                if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.largeCapInstitutionalBonus, CATEGORYNAME, UIDescription);
-            } // Large-Cap Institutional Bonus
-        }
+            baseScore += W.stockSpecificCatalysts.largeCapInstitutionalBonus;
+            const UIDescription = `Asset is a liquid large-cap giant exceeding 10 billion dollars.`
+            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.largeCapInstitutionalBonus, CATEGORYNAME, UIDescription);
+        } // Large-Cap Institutional Bonus
+
+
 
         //Audit Daily RSI Mean Reversion Exhaustion
         if (stockAnalysisInfo.DailyRsi <= 30.0 && planEntity.patternConfig.patternClassification === "channel")
@@ -320,7 +292,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
 
 
 
-
     // COMPUTE CAP-WEIGHTED VS EQUAL-WEIGHTED BREADTH DECAY (SPY vs RSP)
     // if (liveSpyPlan && liveRSPPlan)
     // {
@@ -370,14 +341,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
     }
 
 
-
-
-
-
-
-
-
-
     // =========================================================================
     // ⏱️ 6. OPTION EXPIRATION TIME-DECAY CYCLES & SEASONAL EVENTS
     // =========================================================================
@@ -404,7 +367,6 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
         }
     }
 
-
     return baseScore;
 }
 
@@ -417,9 +379,10 @@ export function compileSharedBaseEnvironmentMetrics(planEntity, todaysLiveCandle
  * @param {Array} todaysLiveCandles - Today's streaming regular session candle array [INDEX]
  * @returns {number} The finalized cumulative Base Environment Score (Max 50 points base layout)
  */
-function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
+function compileTimeDependentMetrics(planEntity, todaysLiveCandles, provideDescriptions, auditLedger)
 {
     let timeScore = 0;
+    const CATEGORYNAME = 'TIME'
     const { extentProb, morningMetrics, morningVolume, extremeProbByFiveMin } = planEntity.metricConfig
     let livePrice = planEntity.mostRecentPrice
 
@@ -437,7 +400,6 @@ function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
     // =========================================================================
     if (minutesElapsedSinceOpen >= 0 && minutesElapsedSinceOpen <= 60)
     {
-
         // 1. RECON A: THE POWER-HOUR REVERSAL TIME ALIGNMENT CHECK
         const downSideMetrics = morningMetrics?.downSide;
         if (downSideMetrics && downSideMetrics.averageTimeToBottom)
@@ -449,13 +411,31 @@ function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
             // If the current regular session clock is within a tight 5-minute cushion of the historical low print time
             const isInsideHistoricalReversalWindow = Math.abs(minutesElapsedSinceOpen - targetMinutesSinceOpen) <= 5;
 
-            if (isInsideHistoricalReversalWindow && downSideMetrics.reboundProbability >= 0.65) timeScore += 15; // Award Power-Hour Time Alignment Bonus!
+            if (isInsideHistoricalReversalWindow && downSideMetrics.reboundProbability >= 0.65) 
+            {
+                timeScore += 15;
+                if (provideDescriptions)
+                {
+                    const UIDescription = `Current price bottom timing is aligned within historical average time to bottom on down days.`
+                    logRuleTrack(auditLedger, 'Open Hour', 15, CATEGORYNAME, UIDescription)
+                }
+            } // Award Power-Hour Time Alignment Bonus!
         }
 
         // 2. RECON B: HORIZONTAL EXTENT PROBABILITY SEGMENTATION
         // If today's open price is down from yesterday, track your openL probability threshold
         if (livePrice < sessionOpenPrice && extentProb)
-            if (extentProb.openL >= 0.70) timeScore += 10; // Award Opening Low Statistical Cushion Bonus
+        {
+            if (extentProb.openL >= 0.70)
+            {
+                timeScore += 10;
+                if (provideDescriptions)
+                {
+                    const UIDescription = `Daily low is highly likely to establish itself in the opening hour.`
+                    logRuleTrack(auditLedger, 'Open Hour', 10, CATEGORYNAME, UIDescription)
+                }
+            }// Award Opening Low Statistical Cushion Bonus
+        }
 
         // 3. RECON C: THE 5-MINUTE CANDLE INTERVAL LOW PRINT PROBABILITY
         // Calculate today's active 5-minute block index index (0 = 09:30, 1 = 09:35, 2 = 09:40...)
@@ -463,7 +443,15 @@ function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
         if (extremeProbByFiveMin && extremeProbByFiveMin[activeFiveMinBlockIndex])
         {
             const liveBlockProbability = extremeProbByFiveMin[activeFiveMinBlockIndex].lowProb || 0;
-            if (liveBlockProbability >= 0.65) timeScore += 20; // Award Statistical Floor Probability Multiplier!
+            if (liveBlockProbability >= 0.65) 
+            {
+                timeScore += 20;
+                if (provideDescriptions)
+                {
+                    const UIDescription = `High historical probability of daily low established in this time period.`
+                    logRuleTrack(auditLedger, 'Open Hour', 20, CATEGORYNAME, UIDescription)
+                }
+            }// Award Statistical Floor Probability Multiplier!
         }
 
         // 4. RECON D: MORNING VOLUME VELOCITY RUNWAY COUNTER
@@ -474,7 +462,13 @@ function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
             // If we are only 20 minutes into the session, but volume already clears 60% of the full first-hour norm
             if (minutesElapsedSinceOpen <= 25 && todaysRunningSessionVolume >= (morningVolume.avgDownTotalVolToFirstHour * 0.60))
             {
-                timeScore += 15; // Award Volume Velocity Explosion Bonus!
+                timeScore += 15;
+                if (provideDescriptions)
+                {
+                    const UIDescription = `Above average volume in first 25 mins.`
+                    logRuleTrack(auditLedger, 'Open Hour', 15, CATEGORYNAME, UIDescription)
+                }
+                // Award Volume Velocity Explosion Bonus!
             }
         }
     }
@@ -486,12 +480,24 @@ function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
         // Severe penalty applied because institutional liquidity vanishes. 
         // Breakout continuations will fake out, and mean-reversion channels will break lower.
         timeScore -= 20;
-
+        if (provideDescriptions)
+        {
+            const UIDescription = `Midday institutional liquidity vanishes.`
+            logRuleTrack(auditLedger, 'Midday Churn', -20, CATEGORYNAME, UIDescription)
+        }
         // Cross-check your whole-day trading stats from your schema mapping entries
         if (extentProb)
         {
             // If the stock's midday low probability is weak, increase the penalty safely
-            if (extentProb.midL <= 0.35) timeScore -= 5;
+            if (extentProb.midL <= 0.35)
+            {
+                timeScore -= 5;
+                if (provideDescriptions)
+                {
+                    const UIDescription = `Daily High/Low is historically unlikely to print in this period.`
+                    logRuleTrack(auditLedger, 'Midday Churn', -5, CATEGORYNAME, UIDescription)
+                }
+            }
         }
     }
     // =========================================================================
@@ -501,18 +507,32 @@ function compileTimeDependentMetrics(planEntity, todaysLiveCandles)
     {
         // Inward institutional volume returns to execute market-on-close (MOC) allocations
         timeScore += W.structuralMagnets.powerHourTimeBonus; // Award +15 Points Power Hour Bonus
-
+        if (provideDescriptions)
+        {
+            const UIDescription = `Institutional volume returns to execute market-on-close (MOC) allocations.`
+            logRuleTrack(auditLedger, 'Closing Hour', W.structuralMagnets.powerHourTimeBonus, CATEGORYNAME, UIDescription)
+        }
         if (extentProb)
         {
             // If today's price is positive, check if the stock tends to close near its high
             if (livePrice > sessionOpenPrice && extentProb.closeH >= 0.70)
             {
                 timeScore += 10; // Boost score for high-probability closing runners
+                if (provideDescriptions)
+                {
+                    const UIDescription = `Daily High is historically likely to print in this period.`
+                    logRuleTrack(auditLedger, 'Closing Hour', 10, CATEGORYNAME, UIDescription)
+                }
             }
             // If running a mean-reversion play, verify the close-low historical cushion
             else if (livePrice < sessionOpenPrice && extentProb.closeL >= 0.65)
             {
                 timeScore += 10;
+                if (provideDescriptions)
+                {
+                    const UIDescription = `Daily low is historically unlikely to print in this period.`
+                    logRuleTrack(auditLedger, 'Closing Hour', 10, CATEGORYNAME, UIDescription)
+                }
             }
         }
     }
@@ -538,6 +558,7 @@ function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPl
     let totalPenalties = 0;
     const CATEGORYNAME = 'PENALTIES'
     const { dailyCalculatedValues, correlationValues, greatestCorrelation, spyBetaValue, patternClassification } = planEntity.planConfig;
+    console.log(dailyCalculatedValues, correlationValues)
     const stockAnalysisInfo = planEntity.stockInfo
 
     if (!todaysLiveCandles || todaysLiveCandles.length === 0) return 0;
@@ -558,12 +579,16 @@ function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPl
         const RULENAME = 'Stock Info'
         if (stockAnalysisInfo.EarningsDate)
         {
-
             const daysTillEarnings = differenceInBusinessDays(new Date(), stockAnalysisInfo.EarningsDate)
             // A. Corporate Earnings Quiet Window Sentry (T-Minus 5 Days)
             if (daysTillEarnings <= 5 && daysTillEarnings > 0)
             {
                 totalPenalties += W.systemicDeductions.preEarningsQuietWindowPenalty; // -15 Points
+                if (provideDescriptions)
+                {
+                    const UIDescription = `Stock is within 5 days of releasing earnings report`
+                    logRuleTrack(auditLedger, RULENAME, W.systemicDeductions.preEarningsQuietWindowPenalty, CATEGORYNAME, UIDescription)
+                }
             }
         }
 
@@ -571,23 +596,41 @@ function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPl
         if (stockAnalysisInfo.HasOptions === false && patternClassification !== "continuation")
         {
             totalPenalties += W.stockSpecificCatalysts.illiquidStructurePenalty;
-            const UIDescription = `Asset does not support listed options contracts.`
-            if (provideDescriptions) logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.illiquidStructurePenalty, CATEGORYNAME, UIDescription);
+            if (provideDescriptions) 
+            {
+                const UIDescription = `Asset does not support listed options contracts.`
+                logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.illiquidStructurePenalty, CATEGORYNAME, UIDescription);
+            }
         } // Apply Illiquid Structure Penalty
+
+
+        // Audit 52-Week Structural Drift Location
+        if (stockAnalysisInfo.PositionInRangePercent <= 15.0)
+        {
+            baseScore += W.systemicDeductions.structuralWeaknessPenalty;
+            if (provideDescriptions)
+            {
+                const UIDescription = `Current asset price is trading within the bottom 15% of its annual range.`
+                logRuleTrack(auditLedger, RULENAME, W.systemicDeductions.structuralWeaknessPenalty, CATEGORYNAME, UIDescription);
+            }
+        } // Severe structural weakness penalty
+
 
         // C. Micro-Cap Order Book Slippage Friction
         const rawMarketCap = stockAnalysisInfo.MarketCap || 0;
         if (rawMarketCap > 0 && rawMarketCap < 250000000)
         {
-            totalPenalties += W.systemicDeductions.microCapSlippagePenalty; // -10 Points
-        }
-
-        // D. 52-Week Structural Weakness Trap (Scrubbed unified field name)
-        if (stockAnalysisInfo.PositionInRangePercent <= 15.0)
-        {
-            totalPenalties += W.systemicDeductions.structuralWeaknessPenalty; // -15 Points
-        }
+            totalPenalties += W.stockSpecificCatalysts.microCapSlippagePenalty;
+            if (provideDescriptions)
+            {
+                const UIDescription = `Total equity valuation sits beneath a 250-million-dollar micro-cap ceiling.`
+                logRuleTrack(auditLedger, RULENAME, W.stockSpecificCatalysts.microCapSlippagePenalty, CATEGORYNAME, UIDescription);
+            }
+        } // Micro-Cap Slippage Penalty
     }
+
+
+
 
     // =========================================================================
     // 🛡️ TRACK 2: BROAD INDEX DISTORTION & LIQUIDITY DRIFTS
@@ -600,34 +643,173 @@ function compileSystemicMacroDeductions(planEntity, todaysLiveCandles, liveSpyPl
         {
             const stockBeta = spyBetaValue || 1.0;
             const broadCorrelation = correlationValues.SPY?.correlation90Day || 0;
-
-            // Large Cap High-Beta Inflow Crash Risk
             if (stockBeta >= 1.40 && broadCorrelation >= 0.70)
             {
-                totalPenalties += W.systemicDeductions.highBetaVulnerabilityPenalty; // -40 Points
+                totalPenalties += W.systemicGammaGates.highBetaVulnerabilityPenalty; // Severe -40 point protection pass
+                const UIDescription = `Broad market is in a negative gamma regime; asset is high-beta and strongly correlated to SPY.`
+                if (provideDescriptions) logRuleTrack(auditLedger, 'Systemic Gamma Gates', W.systemicGammaGates.highBetaVulnerabilityPenalty, CATEGORYNAME, UIDescription);
             }
 
             // High Flying Continuation Setup Vulnerability
-            if (planEntity.patternConfig.patternClassification === "continuation")
+            if (planEntity.planConfig.patternClassification === "continuation")
             {
-                totalPenalties += W.systemicDeductions.momentumContinuationRiskPenalty; // -25 Points
+                totalPenalties += W.systemicGammaGates.momentumContinuationRiskPenalty; // Penalize momentum setups
+                const UIDescription = `Momentum breakout setup penalized due to high broad market volatility risk.`
+                if (provideDescriptions) logRuleTrack(auditLedger, 'Systemic Gamma Gates', W.volumeProfileShelves.highCriticalCliff, CATEGORYNAME, UIDescription);
             }
         }
 
-        // Broad Market Index Option Put Wall Breach
+
+
+        // =========================================================================
+        // ⏱️ 6. OPTION EXPIRATION TIME-DECAY CYCLES & SEASONAL EVENTS (UPGRADED)
+        // =========================================================================
+        // if (liveSpyPlan && liveSpyPlan.planData?.putWall)
+        // {
+        //     const weeklyPutWall = liveSpyPlan.planData?.putWall;
+        //     const isSpyAtWeeklyWall = Math.abs(liveSpyPlan.mostRecentPrice - weeklyPutWall) / weeklyPutWall <= 0.0015;
+        //     if (isSpyAtWeeklyWall)
+        //     {
+        //         const currentDayIndex = new Date().getDay();
+        //         if (currentDayIndex === 1 || currentDayIndex === 2) totalPenalties += W.optionsExpectedMoves.earlyCycleWeeklyLowerSDPenalty;
+        //         else if (currentDayIndex === 4 || currentDayIndex === 5) totalPenalties += W.optionsExpectedMoves.lateCycleWeeklyLowerSDPinBonus;
+        //     }
+        // }
+
+
         if (liveSpyPlan && liveSpyPlan.planData?.putWall)
         {
-            const weeklyPutWall = liveSpyPlan.planData?.putWall;
+            const spyPutWallFloor = liveSpyPlan.planData?.putWall;
+            // Verify if the broad market index is trading within a tight 0.15% cushion of its put wall [INDEX]
+            const isSpyAtWeeklyPutWall = Math.abs(liveSpyPlan.mostRecentPrice - spyPutWallFloor) / spyPutWallFloor <= 0.0015;
 
-            const isSpyAtWeeklyWall = Math.abs(liveSpyPlan.mostRecentPrice - weeklyPutWall) / weeklyPutWall <= 0.0015;
-
-            if (isSpyAtWeeklyWall)
+            if (isSpyAtWeeklyPutWall)
             {
-                const currentDayIndex = getDay(new Date());
-                if (currentDayIndex === 1 || currentDayIndex === 2) totalPenalties += W.optionsExpectedMoves.earlyCycleWeeklyLowerSDPenalty;
-                else if (currentDayIndex === 4 || currentDayIndex === 5) totalPenalties += W.optionsExpectedMoves.lateCycleWeeklyLowerSDPinBonus;
+                // Core time calculations using native Date prototype methods to prevent ReferenceErrors
+                const currentDayIndex = new Date().getDay(); // 1 = Monday, 2 = Tuesday, ..., 5 = Friday
+                const isEarlyCycle = currentDayIndex === 1 || currentDayIndex === 2;
+                const isLateCycle = currentDayIndex === 4 || currentDayIndex === 5;
+
+                // Isolate asset-level metrics out of your pre-validated schema profiles
+                const stockBeta = stockAnalysisInfo?.Beta1Y || spyBetaValue || 1.0;
+                const broadCorrelation = correlationValues?.SPY?.correlation90Day || 0;
+                const isCurrentlyDecoupled = correlationValues?.SPY?.isCurrentlyDecoupled || false;
+                const liquidityFracture = staticPreCompiledIndicators?.liquidityFractureRatio || 1.0;
+
+                // Isolate individual stock options wall metrics [INDEX]
+                const stockPutWall = optionsExpectedMoves?.weekly?.putWall || 0;
+                const isStockAtItsOwnPutWall = stockPutWall > 0 && (Math.abs(livePrice - stockPutWall) / stockPutWall <= 0.0035);
+
+                // ─────────────────────────────────────────────────────────────────────
+                // CONDITION 1: THE IDIOSYNCRATIC VELOCITY SHIELD (LOW BETA EXEMPTION) [INDEX]
+                // ─────────────────────────────────────────────────────────────────────
+                const isIdiosyncraticHaven = isCurrentlyDecoupled || stockBeta <= 0.85;
+
+                if (isIdiosyncraticHaven)
+                {
+                    // Asset is insulated from broad index liquidations. Award protection bonus straight to strategyTotal! [INDEX]
+                    strategyTotal += 15;
+                    if (provideDescriptions)
+                    {
+                        logRuleTrack(auditLedger, 'Index Put Wall Sentry', 15, 'STRATEGY', 'Idiosyncratic Shield: Low-Beta Asset Insulated from Index Volatility [INDEX]');
+                    }
+                    // If it is early in the week, this shield completely bypasses the macro penalty!
+                }
+
+                // ─────────────────────────────────────────────────────────────────────
+                // TIMING CORRIDOR ROUTING GATE
+                // ─────────────────────────────────────────────────────────────────────
+                if (isEarlyCycle)
+                {
+                    // If the stock is flagged as a safe haven, bypass the early-cycle penalty entirely [INDEX]
+                    if (isIdiosyncraticHaven)
+                    {
+                        if (provideDescriptions)
+                        {
+                            logRuleTrack(auditLedger, 'Index Put Wall Sentry', 0, 'PENALTY', 'Early-Cycle SPY Put Wall Penalty Bypassed via Idiosyncratic Haven Shield [INDEX]');
+                        }
+                    } else
+                    {
+                        // Check if the stock is a high-beta momentum name with an expanding liquid spread [INDEX]
+                        const isHighBetaVulnerabilityActive = stockBeta >= 1.40 && broadCorrelation >= 0.70 && liquidityFracture >= 3.5;
+
+                        if (isHighBetaVulnerabilityActive)
+                        {
+                            // CONDITION 3: HIGH-BETA LIQUIDITY FRACTURE RISK (THE AVALANCHE WARNING)
+                            // Double the standard early-cycle penalty to protect capital from cascading flushes
+                            totalPenalties += 80;
+                            if (provideDescriptions)
+                            {
+                                logRuleTrack(auditLedger, 'Index Put Wall Sentry', 80, 'PENALTY', 'CRITICAL AVALANCHE WARNING: High-Beta + Fractured Order Book During Index Put Wall Test');
+                            }
+                        } else
+                        {
+                            // Standard early-cycle index vulnerability penalty
+                            totalPenalties += 40;
+                            if (provideDescriptions)
+                            {
+                                logRuleTrack(auditLedger, 'Index Put Wall Sentry', 40, 'PENALTY', 'Early-Cycle SPY Put Wall Test: Vulnerable Broad Market Structure [INDEX]');
+                            }
+                        }
+                    }
+                }
+                else if (isLateCycle)
+                {
+                    // Thursday or Friday: Time-decay leverage forces a defensive pinning floor [INDEX]
+                    let lateCyclePinningBonus = 15; // Baseline institutional backing value
+
+                    // ─────────────────────────────────────────────────────────────────────
+                    // CONDITION 2: THE COALIGNED PUT WALL CONVERGENCE (DUAL-WALL LOCK) [INDEX]
+                    // ─────────────────────────────────────────────────────────────────────
+                    if (isStockAtItsOwnPutWall)
+                    {
+                        // Both stock and index strike options support walls simultaneously. Double the reward asymmetry! [INDEX]
+                        lateCyclePinningBonus += 15; // Total cumulative bonus scales to +30 points [INDEX]
+
+                        strategyTotal += lateCyclePinningBonus; // FIXED: Routed directly to strategyTotal instead of penalties! [INDEX]
+                        if (provideDescriptions)
+                        {
+                            logRuleTrack(auditLedger, 'Index Put Wall Sentry', lateCyclePinningBonus, 'STRATEGY', 'DUAL-WALL LOCK: SPY and Individual Stock striking Put Walls Simultaneously [INDEX]');
+                        }
+                    } else
+                    {
+                        // Standard late-week market maker pinning support
+                        strategyTotal += lateCyclePinningBonus; // FIXED: Routed directly to strategyTotal instead of penalties! [INDEX]
+                        if (provideDescriptions)
+                        {
+                            logRuleTrack(auditLedger, 'Index Put Wall Sentry', lateCyclePinningBonus, 'STRATEGY', 'Late-Cycle SPY Put Wall Pinning: Market-Maker Institutional Floor Support [INDEX]');
+                        }
+                    }
+                }
             }
         }
+
+
+
+
+
+
+
+        //this is where we left off
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     // =========================================================================

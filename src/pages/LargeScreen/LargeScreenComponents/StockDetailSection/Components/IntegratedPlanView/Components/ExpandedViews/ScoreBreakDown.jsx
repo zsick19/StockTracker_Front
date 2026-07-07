@@ -1,27 +1,19 @@
 import React from 'react'
+import BaseScoreCard from '../ScoreCards/BaseScoreCard'
 
 function ScoreBreakDown({ plan, scoreCardView, setScoreCardView })
 {
     const auditLedger = plan.centralScoreProfile.auditLedger
-    console.log(auditLedger.BASE)
+
     function provideCurrentScoreCardView()
     {
         switch (scoreCardView)
         {
 
             case 0: return <div>overall score</div>
-            case 1: return <div>
-
-                {auditLedger.BASE.map((t, i) =>
-                    <div className='flex'>
-                        <p>{t.ruleName}</p>
-                        <p>{t.pointsApplied}</p>
-                        <p>{t.details}</p>
-                    </div>
-                )}
-
-            </div>
-            case 2: return <div>Time</div>
+            case 1: return <BaseScoreCard baseScoreDetail={auditLedger.BASE} />
+            case 2: return <BaseScoreCard baseScoreDetail={auditLedger.TIME} />
+            // case 2: return <div>Time</div>
             case 3: return <div>Strategy</div>
             case 4: return <div>Penalties</div>
         }
