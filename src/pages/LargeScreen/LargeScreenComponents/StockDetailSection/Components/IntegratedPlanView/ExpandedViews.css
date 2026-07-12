@@ -49,37 +49,138 @@
 /* First Hour */
 #ExpandedFirstHour {
   display: grid;
-  grid-template-columns: 35% 1fr;
+  grid-template-columns: 25% 1fr;
   height: 100%;
   gap: 1rem;
 }
 #ExpandedFirstHour > div:first-of-type {
+  display: grid;
+  grid-template-rows: 1fr 40% 40%;
+  gap: 0.5rem;
+}
+
+#FirstHourHistoricalCompare > div {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  align-items: center;
+
+  border-radius: 5px;
+  font-size: var(--fs-100);
 }
 #ExpandedFirstHour svg {
   background-color: black;
   width: 100%;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
 }
 
-#FirstHourHistoricalCompare > div {
-  border-radius: 5px;
-  font-size: var(--fs-100);
-  /* height: 250px; */
+.focusFirstHourPositive {
+  border: 4px solid rgb(218, 221, 8);
+  background-color: rgba(16, 114, 7, 0.3);
 }
-#FirstHourHistoricalCompare > div p {
-  padding: 5px;
+.focusFirstHourNegative {
+  border: 4px solid rgb(114, 7, 7);
+  background-color: rgba(165, 7, 7, 0.25);
 }
 
-.focusFirstHour {
-  border: 4px solid rgb(13, 218, 6);
-}
 .offFocusFirstHour {
-  border: 4px solid gray;
+  background-color: gray;
+}
+
+.volAccumulation {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.UpOrDownVisualPositive {
+  flex: 1;
+  border: 4px solid rgb(16, 114, 7);
+  background-color: rgba(16, 114, 7, 0.25);
+}
+.UpOrDownVisualNegative {
+  flex: 1;
+  border: 4px solid rgb(114, 7, 7);
+  background-color: rgba(165, 7, 7, 0.25);
 }
 
 #FirstHourLive {
   display: grid;
   grid-template-rows: 1fr 40%;
+  gap: 0.5rem;
+}
+#FirstHourLiveAction {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.PriceOutSideOfFirstHourRange {
+  border: 1px solid red;
+  flex: 1;
+  padding: 0.5rem;
+}
+
+.FirstHourLiveStats {
+  display: flex;
+  justify-content: space-between;
+  border: 3px solid rgb(24, 55, 114);
+  background-color: rgb(24, 55, 114, 0.25);
+  padding: 0.5rem;
+  border-radius: 5px;
+}
+
+#FirstHourVelAclCharts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+#FirstHourVelAclCharts svg {
+  height: 100%;
+}
+
+/* MACRO REVIEW */
+#MacroReviewExpand {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 150px;
+}
+
+#MacroDualCharts {
+  display: grid;
+  grid-template-columns: 1fr 150px 1fr;
+
+  gap: 1rem;
+}
+#MacroDualCharts > div {
+  border: 1px solid white;
+}
+
+/* News */
+.HeadLineContainer {
+  overflow-y: scroll;
+  height: 400px;
+}
+
+#NewsExpandedReview div:first-of-type {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+}
+.NewsHeadline {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+
+
+/* Pattern Review */
+#PatternReviewExpanded{
+  
 }

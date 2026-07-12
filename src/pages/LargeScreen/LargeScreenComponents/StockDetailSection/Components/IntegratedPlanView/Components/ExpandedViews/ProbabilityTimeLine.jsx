@@ -26,7 +26,6 @@ function ProbabilityTimeLine({ plan })
     }
   }, [plan.id])
 
-
   const openCandleHighLow = (extremes) =>
   {
     let highProbInFirst10Mins = (extremes[0].highProb + extremes[1].highProb) / 2

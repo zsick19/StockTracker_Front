@@ -1,17 +1,21 @@
 import React from 'react'
 import BaseScoreCard from '../ScoreCards/BaseScoreCard'
 import { AuditSectionLedgerContainer } from '../ScoreCards/AuditSectionLedgerContainer'
+import { useSelector } from 'react-redux'
+import { selectDetailedScoreBreakDownBySymbol } from '../../../../../../../../features/Engine/EnginePlanApiSlice'
+import AllScoresContainer from '../ScoreCards/AllScoresContainer'
 
 function ScoreBreakDown({ plan, scoreCardView, setScoreCardView })
 {
-    const auditLedger = plan.centralScoreProfile.auditLedger
+    const { centralScoreProfile } = useSelector((state) => selectDetailedScoreBreakDownBySymbol(state, plan.id))
+    const auditLedger = centralScoreProfile.auditLedger
 
     function provideCurrentScoreCardView()
     {
         switch (scoreCardView)
         {
 
-            case 0: return <div>overall score</div>
+            case 0: return <AllScoresContainer auditLedger={auditLedger} />
             case 1: return <AuditSectionLedgerContainer auditRulesArray={auditLedger.BASE} />
             case 2: return <AuditSectionLedgerContainer auditRulesArray={auditLedger.TIME} />
             case 3: return <AuditSectionLedgerContainer auditRulesArray={auditLedger.STRATEGY} />

@@ -1,14 +1,14 @@
 import { differenceInMinutes } from 'date-fns';
 import React from 'react';
+import { useSelector } from 'react-redux';
+import { selectLastCandleByTicker } from '../../../../../../../features/Engine/EnginePlanApiSlice';
 
-export const ExecutionUrgencyHud = ({ planData, currentSessionMinutesPostOpen }) =>
+export const ExecutionUrgencyHud = ({ planData, scoreData, mostRecentPrice }) =>
 {
     const metadata = planData.metricConfig || {};
-    const liveCandles = planData.todaysCandles || [];
-    const activeCandle = liveCandles[liveCandles.length - 1] || {};
+    const activeCandle = useSelector(state => selectLastCandleByTicker(state, planData.id))
 
-    const avgWindowMinutes = metadata.absorptionWindow.averageMinutesInStrikeZone || 15.0;
-    const velocityProfile = metadata.absorptionWindow.executionVelocityRating || "STABLE_ACCUMULATION";
+    const currentStatus = scoreData.status
 
 
     // Evaluate if real-time 1-minute volume is spiking past your 3-day baseline [INDEX]
@@ -16,38 +16,47 @@ export const ExecutionUrgencyHud = ({ planData, currentSessionMinutesPostOpen })
     const isLiveVolumeClimax = activeCandle.Volume >= (baselineOneMinVol * 3.5);
 
 
+    const avgWindowMinutes = metadata.absorptionWindow.averageMinutesInStrikeZone || 15.0;
 
-    // Track the time-of-day opening climax window (First 15 minutes of the bell) [INDEX]
+    const patternConfig = planData.patternConfig
+    const stopLossPrice = planData.planConfig.plan.stopLossPrice
 
-    const isOpeningCrossActive = currentSessionMinutesPostOpen >= 0 && currentSessionMinutesPostOpen <= 15;
-    const marketTimeMark = currentSessionMinutesPostOpen < 0 ? 'Pre Market' :
-        (currentSessionMinutesPostOpen >= 0 && currentSessionMinutesPostOpen <= 15) ? 'Opening Cross' :
-            (currentSessionMinutesPostOpen > 15 && currentSessionMinutesPostOpen <= 60) ? 'Opening Hour' : 'MidDay'
+    const priceSits = mostRecentPrice > patternConfig.channelTop ? 'Out Of Range' :
+        mostRecentPrice > patternConfig.entryStrikeBuffer ? 'Above Strike' :
+            mostRecentPrice > patternConfig.channelBottom ? 'Inside Strike' :
+                mostRecentPrice > stopLossPrice ? 'Below Floor' : 'Below Stop'
+
+    const priceColor = mostRecentPrice > patternConfig.channelTop ? 'Red' :
+        mostRecentPrice > patternConfig.entryStrikeBuffer ? 'Yellow' :
+            mostRecentPrice > patternConfig.channelBottom ? 'Green' :
+                mostRecentPrice > stopLossPrice ? 'Orange' : 'Red'
+
+    const waitOrEnter = mostRecentPrice > patternConfig.channelTop ? 'Missed Trade Do Not Enter' :
+        mostRecentPrice > patternConfig.entryStrikeBuffer ? 'Wait For Better Price' :
+            mostRecentPrice > patternConfig.channelBottom ? 'Inside Price Zone' :
+                mostRecentPrice > stopLossPrice ? 'Caution Below Floor Above Stop' : 'Below Stop Do Not Enter'
+
+
+
 
     return (
-        <div style={{ borderRadius: '4px', border: '1px solid #222', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ borderRadius: '4px', display: 'flex', flexDirection: 'column', textAlign: 'center' }}>
 
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                {/* TIMEFRAME ABSORPTION CARD */}
-                <div style={{
-                    background: '#181922', padding: '12px', borderRadius: '3px',
-                    borderLeft: velocityProfile === "HYPER_VELOCITY_SPRING" ? '3px solid #ff5555' : '3px solid #50fa7b'
-                }}>
-                    <div style={{ fontSize: '10px', color: '#6272a4', marginBottom: '2px' }}>ABSORPTION WINDOW</div>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff' }}>{avgWindowMinutes} <span style={{ fontSize: '12px', color: '#6272a4' }}>MIN</span></div>
-                    <div style={{ fontSize: '9px', color: '#888', marginTop: '4px' }}>{velocityProfile.replace('_', ' ')}</div>
+            <div style={{ background: '#181922', border: `2px solid ${priceColor}`, borderRadius: '5px', paddingTop: '0.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }} >
+                    <div style={{ paddingInline: '12px' }}>
+                        <div style={{ fontSize: '20px', color: `${priceColor}` }}>{avgWindowMinutes} <span style={{ fontSize: '12px' }}>MIN</span></div>
+                        <div style={{ fontSize: '10px', color: '#6272a4', marginBottom: '2px' }}>ABSORPTION WINDOW</div>
+                    </div>
+                    <div style={{ paddingInline: '12px', borderRadius: '3px', }}>
+                        <div style={{ fontSize: '20px', color: `${priceColor}` }}>
+                            {priceSits}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#6272a4', marginBottom: '2px' }}>RANGE POSITION</div>
+                    </div>
                 </div>
-
-                {/* AUCTION TIME PROFILE CARD */}
-                <div style={{ background: '#181922', padding: '12px', borderRadius: '3px', borderLeft: isOpeningCrossActive ? '3px solid #ffb86c' : '3px solid #333' }}>
-                    <div style={{ fontSize: '10px', color: '#6272a4', marginBottom: '2px' }}>SESSION TIMING</div>
-                    <div style={{ fontSize: '15px', fontWeight: 'bold', color: isOpeningCrossActive ? '#ffb86c' : '#fff', marginTop: '4px' }}>
-                        {marketTimeMark}
-                    </div>
-                    <div style={{ fontSize: '9px', color: '#888', marginTop: '8px' }}>
-                        {marketTimeMark === 'Opening Cross' ? "High probability reversal node active." : "Volume velocity is currently relaxed."}
-                    </div>
+                <div style={{ color: `${priceColor}`, padding: '0.5rem' }}>
+                    <p>{waitOrEnter}</p>
                 </div>
             </div>
 
@@ -56,11 +65,9 @@ export const ExecutionUrgencyHud = ({ planData, currentSessionMinutesPostOpen })
                     <p style={{
                         fontSize: '10px', background: 'rgba(0,255,255,0.1)', color: '#00ffff', borderRadius: '2px',
                         fontWeight: 'bold', animation: 'pulse 1s infinite'
-                    }}>
-                        ⚡ LIQUIDITY ABSORPTION BLOCK ACTIVE
-                    </p>)}
+                    }}>⚡ LIQUIDITY ABSORPTION BLOCK ACTIVE</p>)}
             </div>
 
-        </div>
+        </div >
     );
 };

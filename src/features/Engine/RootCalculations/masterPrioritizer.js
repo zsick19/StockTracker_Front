@@ -31,8 +31,8 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
         return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM", metrics: {} };
     }
 
-    const lowerAllowedBoundary = planEntity.planConfig.plan.stopLossPrice;
-    const upperAllowedBoundary = planEntity.planConfig.plan.exitPrice * 1.02;
+    const lowerAllowedBoundary = planEntity.planConfig.plan.stopLossPrice * 0.98;
+    const upperAllowedBoundary = planEntity.patternConfig.channelTop;
     if (livePrice < lowerAllowedBoundary || livePrice > upperAllowedBoundary)
     {
         let reason
@@ -43,7 +43,8 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
 
         return {
             matchScorePercent: 0,
-            status: "RADAR_STANDBY: OFF_TARGET_ZONE",
+            status: "OUTSIDE OF PLANNED ZONES",
+            withinPlan: false,
             metrics: {
                 baseEnvironmentScore: 0,
                 patternSpecificScore: 0,
@@ -111,6 +112,9 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     return {
         matchScorePercent: finalizedAlphaScore,
         status: finalizedAlphaScore >= 75 ? "HIGH CONVICTION" : "MONITORING",
+        viableTrade: true,
+        withinPlan: true,
+        insideStrike: planEntity.mostRecentPrice < planEntity.patternConfig.entryStrikeBuffer,
         metrics: {
             baseEnvironmentScore,
             timeDependentScore,

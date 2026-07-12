@@ -32,9 +32,15 @@ export const NewsFeedApiSlice = apiSlice.injectEndpoints({
       providesTags: (result, error, args) => [{ type: 'activeTradeNews' }],
     }),
 
-
+    getTickerNewsWithAnalysis: builder.query({
+      query: (args) => ({
+        url: `/news?tickerForSearch=${args.tickersToSearch}`,
+        validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+      }),
+      keepUnusedDataFor: 300000
+    })
 
   }),
 });
 
-export const { useGetMajorMacroNewsQuery, useGetActiveTradeNewsQuery } = NewsFeedApiSlice;
+export const { useGetMajorMacroNewsQuery, useGetActiveTradeNewsQuery, useGetTickerNewsWithAnalysisQuery } = NewsFeedApiSlice;

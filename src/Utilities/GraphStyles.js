@@ -21,4 +21,4 @@ export const defaultChartingStyles = {
 
 export const lineGroupClassName = '.line_group'
 export const allPossibleClassNames = ['.freeLines', '.linesH', '.trendLines', '.supportResistance', '.keyLevels',
-    '.lowVolumeNodes', '.highVolumeNodes', '.enterExits', '.dailyTickerValues', '.emaDailyHorizontals']
+    '.lowVolumeNodes', '.highVolumeNodes', '.enterExits', '.dailyTickerValues', '.emaDailyHorizontals', '.patternPriceLevels', '.morningOpen']

@@ -2,10 +2,10 @@ import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
-import { differenceInBusinessDays, isWeekend, isWithinInterval, set, getDay, isBefore } from "date-fns";
+import { differenceInBusinessDays, isWeekend, isWithinInterval, set, getDay, isBefore, isToday, isAfter, previousFriday } from "date-fns";
 import { toZonedTime } from 'date-fns-tz'
 
-import { filterRegularSessionCandles } from "./RootCalculations/filterRegularSessionCandles";
+import { filterFirstHourSessionCandles, filterRegularSessionCandles } from "./RootCalculations/filterRegularSessionCandles";
 import { calculateMacroThirtyMinMacd } from "./RootCalculations/macro30MinMACD";
 import { compileHistoricalOneMinPennyBaselines } from "./RootCalculations/HistoricalCandleAnalytics/pennyStockPatternAnalytics";
 import { compileHistoricalStandardChannelBaselines } from "./RootCalculations/HistoricalCandleAnalytics/horizontalChannelAnalytics";
@@ -42,7 +42,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     let enterExitPlanPrices = enterExit.plan.plan
                     let patternClassification = enterExit.plan.patternClassification
 
-
                     let patternConfig
                     let baseLineIndicators = {}
                     if (patternClassification === 'channel')
@@ -78,7 +77,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     planConfig.dateAdded = enterExit.plan.dateAdded
                     planConfig.correlationValues = enterExit.plan.correlationValues
                     planConfig.greatestCorrelation = enterExit.plan.greatestCorrelation
-                    planConfig.spyBetaValue = planConfig.plan.spyBetaValue
+                    planConfig.spyBetaValue = enterExit.plan.dailyTickerValues.spyBetaValue || 1
                     planConfig.dailyCalculatedValues = enterExit.plan.dailyTickerValues
                     planConfig.datesLastCalculated = {
                         morningMetrics: enterExit.plan.dateMorningMetricsLastCalculated
@@ -100,19 +99,12 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                     let currentPriceStats = {}
                     let mostRecentPrice = enterExit.snapShot.LatestTrade.Price
+                    currentPriceStats.snapShot = enterExit.snapShot
                     currentPriceStats.dailyBar = enterExit.snapShot.DailyBar
                     currentPriceStats.prevDailyBar = enterExit.snapShot.PrevDailyBar
 
-
                     currentPriceStats.yesterdayClose = enterExit.snapShot.PrevDailyBar.ClosePrice
                     currentPriceStats.changeFromYesterdayClose = mostRecentPrice - currentPriceStats.yesterdayClose
-                    currentPriceStats.currentRiskVReward = {
-                        risk: ((mostRecentPrice - enterExitPlanPrices.stopLossPrice) * 100 / mostRecentPrice),
-                        reward: ((enterExitPlanPrices.exitPrice - mostRecentPrice) * 100 / mostRecentPrice),
-                    }
-                    currentPriceStats.sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / mostRecentPrice)
-                    currentPriceStats.with1000DollarsCurrentGain = (enterExitPlanPrices.exitPrice - mostRecentPrice) * currentPriceStats.sharesToBuyWith1000DollarsCurrent
-                    currentPriceStats.with1000DollarsCurrentRisk = (enterExitPlanPrices.stopLossPrice - mostRecentPrice) * currentPriceStats.sharesToBuyWith1000DollarsCurrent
 
                     let optionsConfig = {}
                     optionsConfig = enterExit.plan?.optionsExpectedMoves || undefined
@@ -122,10 +114,29 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     if (enterExit.tradeData) tradeTapeConfig.liveTapeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
                     else tradeTapeConfig.liveTapeMetrics = undefined
 
+                    let firstHourCandles = {
+                        candles: [],
+                        metrics: {
+                            high: undefined,
+                            low: undefined,
+                            volume: undefined
+                        },
+                        peakMetrics: {
+                            high: undefined,
+                            volumeToPeak: undefined
+                        },
+                        bottomMetrics: {
+                            low: undefined,
+                            volumeToBottom: undefined
+                        },
+                        mostRecentCandle: { ClosePrice: enterExit.snapShot.LatestTrade.Price }
+                    }
+
                     return {
                         id: enterExit.plan.tickerSymbol,
                         stockInfo: enterExit.plan.stockId,
                         mostRecentPrice,
+                        mostRecentPriceUpDown: undefined,
                         planConfig,
                         patternConfig,
                         optionsConfig,
@@ -133,8 +144,10 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         tradeTapeConfig,
                         currentPriceStats,
                         historicCandle: regularSessionCandles,
+                        firstHourCandles,
                         todaysCandles: [],
                         combinedCandleData: regularSessionCandles,
+                        snapShot: enterExit.snapShot,
                         liveAuctionMetrics: {
                             lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
                             auditedRollingVolume: 0,
@@ -208,14 +221,8 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         if (!activePlan) return
 
                         // --- PATH A: THE REAL-TIME PRICE PATCH (ALL ASSETS) ---
-                        let currentPrice = parseFloat(data.trade.Price.toFixed(2))
+                        let currentPrice = parseFloat(data.trade.Price)
                         streamingPriceBuffer[data.tickerSymbol] = currentPrice
-
-
-                        // entityToUpdate.percentFromEnter = ((entityToUpdate.plan.enterPrice - data.tradePrice) / entityToUpdate.plan.enterPrice) * 100
-                        // entityToUpdate.changeFromYesterdayClose = entityToUpdate.mostRecentPrice - entityToUpdate.yesterdayClose
-                        // entityToUpdate.currentDayPercentGain = (entityToUpdate.changeFromYesterdayClose / entityToUpdate.yesterdayClose) * 100
-
 
 
                         // --- PATH B: THE PENNY TAPE VELOCITY COLLECTOR ---
@@ -224,6 +231,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             if (!pennyVelocityTimestampsMap[activePlan.id]) { pennyVelocityTimestampsMap[activePlan.id] = []; }
                             pennyVelocityTimestampsMap[activePlan.id].push(Date.now()); // Store only the integer millisecond timestamp of the transaction [INDEX]
                         }
+
                         // CRITICAL STAGE B: THE 500MS SYSTEM BATCH THROTTLER (ONE REDUX PASS)
                         throttledUIUpdateClock = setInterval(() =>
                         {
@@ -260,6 +268,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             const symbolsWithActivePriceUpdates = Object.keys(streamingPriceBuffer);
                             const symbolsWithActiveVelocityUpdates = Object.keys(currentCalculatedMetrics);
                             if (symbolsWithActivePriceUpdates.length === 0 && symbolsWithActiveVelocityUpdates.length === 0) { return; }
+
                             // FIRE ONE SINGLE MUTATION FOR THE ENTIRE WATCHLIST COMPILATION PASS
                             updateCachedData((draft) =>
                             {
@@ -273,16 +282,11 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                     let price = streamingPriceBuffer[symbol]
 
                                     activePlan.liveAuctionMetrics = { ...activePlan.liveAuctionMetrics, lastTradePrice: price };
+                                    activePlan.mostRecentPriceUpDown = price >= activePlan.mostRecentPrice
                                     activePlan.mostRecentPrice = price
 
+                                    activePlan.firstHourCandles.mostRecentPrice = price
                                     activePlan.currentPriceStats.changeFromYesterdayClose = price - activePlan.currentPriceStats.yesterdayClose
-                                    activePlan.currentPriceStats.currentRiskVReward = {
-                                        risk: ((price - activePlan.planConfig.plan.stopLossPrice) * 100 / price),
-                                        reward: ((activePlan.planConfig.plan.exitPrice - price) * 100 / price),
-                                    }
-                                    activePlan.currentPriceStats.sharesToBuyWith1000DollarsCurrent = Math.floor(1000 / price)
-                                    activePlan.currentPriceStats.with1000DollarsCurrentGain = (activePlan.planConfig.plan.exitPrice - price) * activePlan.currentPriceStats.sharesToBuyWith1000DollarsCurrent
-                                    activePlan.currentPriceStats.with1000DollarsCurrentRisk = (activePlan.planConfig.plan.stopLossPrice - price) * activePlan.currentPriceStats.sharesToBuyWith1000DollarsCurrent
 
                                 });
 
@@ -301,7 +305,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                                 for (const prop in streamingPriceBuffer) { delete streamingPriceBuffer[prop]; }
                             });
-                        }, 500)
+                        }, 3000)
                     })
                 }
 
@@ -333,7 +337,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             symbolsWithActiveTicks.forEach(symbol => { macroStreamingPriceBuffer[symbol] = null })
 
                         })
-                    }, 500);
+                    }, 3000);
                 }
 
 
@@ -369,18 +373,98 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshCandleData } = await queryFulfilled;
-
+                    console.log(freshCandleData)
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
                         if (freshCandleData?.planData) Object.keys(freshCandleData.planData).forEach(symbol =>
                         {
+                            const entityToUpdate = draft.plans.entities[symbol]
+
                             if (!draft.plans.entities[symbol]) return
                             let liveCandles = freshCandleData.planData[symbol]
                             if (!liveCandles || liveCandles.length === 0) return
 
                             const cleanCandlesToday = filterRegularSessionCandles(liveCandles)
+
+
                             draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
+                            let lastCandle = cleanCandlesToday[cleanCandlesToday.length - 1].ClosePrice
+                            entityToUpdate.mostRecentPriceUpDown = lastCandle >= entityToUpdate.mostRecentPrice
+                            entityToUpdate.mostRecentPrice = lastCandle
+
+
+                            if (isBefore(new Date(), set(new Date(), { hours: 10, minutes: 30 })) || entityToUpdate.firstHourCandles.candles.length === 0)
+                            {
+                                let firstHourCandles = filterFirstHourSessionCandles(cleanCandlesToday)
+
+                                let firstHourHigh = firstHourCandles[0].HighPrice
+                                let firstHourLow = firstHourCandles[0].LowPrice
+                                let firstHourVolume = 0
+
+                                let peak = entityToUpdate.metricConfig.morningMetrics.upSide.averageTimeToPeak
+                                let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
+                                let volumeToPeak = 0
+                                let highToPeak = firstHourCandles[0].HighPrice
+                                let lowToPeak = firstHourCandles[0].LowPrice
+
+                                let bottom = entityToUpdate.metricConfig.morningMetrics.downSide.averageTimeToBottom
+                                let bottomTime = isWeekend(new Date()) ?
+                                    previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
+                                    set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
+
+                                let volumeToBottom = 0
+                                let highToBottom = firstHourCandles[0].HighPrice
+                                let lowToBottom = firstHourCandles[0].LowPrice
+
+                                firstHourCandles.forEach((t) =>
+                                {
+
+                                    if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
+                                    if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
+                                    firstHourVolume += t.Volume
+
+                                    if (isBefore(t.Timestamp, peakTime))
+                                    {
+                                        volumeToPeak += t.Volume
+                                        if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
+                                        if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
+                                    }
+                                    if (isBefore(t.Timestamp, bottomTime))
+                                    {
+
+                                        volumeToBottom += t.Volume
+                                        if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
+                                        if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
+                                    }
+                                })
+
+                                let candleUpdate = {
+                                    candles: firstHourCandles,
+                                    mostRecentCandle: firstHourCandles.at(-1),
+                                    metrics: {
+                                        high: firstHourHigh,
+                                        low: firstHourLow,
+                                        volume: firstHourVolume
+                                    },
+                                    peakMetrics: {
+                                        high: highToPeak,
+                                        low: lowToPeak,
+                                        volumeToPeak,
+                                        peakTime
+                                    },
+                                    bottomMetrics: {
+                                        high: highToBottom,
+                                        low: lowToBottom,
+                                        volumeToBottom,
+                                        bottomTime
+                                    },
+                                    mostRecentPrice: lastCandle
+                                }
+                                entityToUpdate.firstHourCandles = candleUpdate
+                            }
+
+
 
                             if (draft.plans.entities[symbol].maintainLiveCandles || args.oneMinOrFivMinBars === 'regularSession')
                             {
@@ -438,11 +522,89 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         if (!draft) return
                         if (freshCandleData?.planData) Object.keys(freshCandleData.planData).forEach(symbol =>
                         {
-                            if (!draft.plans.entities[symbol]) return
+                            const entityToUpdate = draft.plans.entities[symbol]
+                            if (!entityToUpdate) return
+
 
                             let liveCandles = freshCandleData.planData[symbol]
                             if (!liveCandles || liveCandles.length === 0) return
                             const cleanCandlesToday = filterRegularSessionCandles(liveCandles)
+                            let lastCandle = cleanCandlesToday[cleanCandlesToday.length - 1].ClosePrice
+
+
+                            entityToUpdate.mostRecentPriceUpDown = lastCandle >= draft.mostRecentPrice
+                            entityToUpdate.mostRecentPrice = lastCandle
+
+                            if (entityToUpdate.firstHourCandles.candles.length === 0)
+                            {
+                                let firstHourCandles = filterFirstHourSessionCandles(cleanCandlesToday)
+
+                                let firstHourHigh = firstHourCandles[0].HighPrice
+                                let firstHourLow = firstHourCandles[0].LowPrice
+                                let firstHourVolume = 0
+
+                                let peak = entityToUpdate.metricConfig.morningMetrics.upSide.averageTimeToPeak
+                                let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
+                                let volumeToPeak = 0
+                                let highToPeak = firstHourCandles[0].HighPrice
+                                let lowToPeak = firstHourCandles[0].LowPrice
+
+                                let bottom = entityToUpdate.metricConfig.morningMetrics.downSide.averageTimeToBottom
+                                let bottomTime = isWeekend(new Date()) ?
+                                    previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
+                                    set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
+
+                                let volumeToBottom = 0
+                                let highToBottom = firstHourCandles[0].HighPrice
+                                let lowToBottom = firstHourCandles[0].LowPrice
+
+                                firstHourCandles.forEach((t) =>
+                                {
+                                    if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
+                                    if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
+                                    firstHourVolume += t.Volume
+
+                                    if (isBefore(t.Timestamp, peakTime))
+                                    {
+                                        volumeToPeak += t.Volume
+                                        if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
+                                        if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
+                                    }
+                                    if (isBefore(t.Timestamp, bottomTime))
+                                    {
+
+                                        volumeToBottom += t.Volume
+                                        if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
+                                        if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
+                                    }
+                                })
+
+                                let candleUpdate = {
+                                    candles: firstHourCandles,
+                                    mostRecentCandle: firstHourCandles.at(-1),
+                                    metrics: {
+                                        high: firstHourHigh,
+                                        low: firstHourLow,
+                                        volume: firstHourVolume
+                                    },
+                                    peakMetrics: {
+                                        high: highToPeak,
+                                        low: lowToPeak,
+                                        volumeToPeak,
+                                        peakTime
+                                    },
+                                    bottomMetrics: {
+                                        high: highToBottom,
+                                        low: lowToBottom,
+                                        volumeToBottom,
+                                        bottomTime
+                                    },
+                                    mostRecentPrice: lastCandle
+                                }
+                                entityToUpdate.firstHourCandles = candleUpdate
+                            }
+
+
 
                             draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
                             draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
@@ -551,6 +713,14 @@ const selectApiCacheData = createSelector([selectHistoricalQueryCache], (queryRe
 const planSelectors = enginePlanAdapter.getSelectors((state) => selectApiCacheData(state)?.plans || enginePlanAdapter.getInitialState());
 const macroSelectors = engineMacroAdapter.getSelectors((state) => selectApiCacheData(state)?.macros || engineMacroAdapter.getInitialState());
 
+export const selectPlansMacroCorrelations = createSelector(
+    [macroSelectors.selectEntities, (state, symbol) => symbol],
+    (macroEntities, symbol) =>
+    {
+        return macroEntities[symbol] || {}
+
+    }
+)
 
 export const selectPrioritizedWatchlist = createSelector(
     [planSelectors.selectIds, planSelectors.selectEntities, macroSelectors.selectIds, macroSelectors.selectEntities],
@@ -576,6 +746,8 @@ export const selectPrioritizedWatchlist = createSelector(
                 sector: planEntity.planConfig.sector,
                 alphaConvictionScore: centralScoreProfile.matchScorePercent,
                 executionStatus: centralScoreProfile.status,
+                withinPlan: centralScoreProfile.viableTrade,
+                insideStrike: centralScoreProfile.insideStrike,
                 livePriceMetrics: centralScoreProfile.metrics
             };
         }).filter(Boolean);
@@ -664,9 +836,103 @@ export const selectDetailedScoreBreakDownBySymbol = createSelector(
 
         const centralScoreProfile = calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, liveSectorPlan, true);
 
-        return { ...planEntity, centralScoreProfile }
+        return {
+            mostRecentPrice: planEntity.mostRecentPrice,
+            mostRecentPriceUpDown: planEntity.mostRecentPriceUpDown,
+            centralScoreProfile
+        }
     }
 );
+
+
+
+export const selectLastCandleByTicker = createSelector(
+    [planSelectors.selectEntities, (state, symbol) => symbol],
+    (stockEntities, symbol) =>
+    {
+        const planEntity = stockEntities[symbol]
+        if (!planEntity) return {}
+
+        const todaysCandlesLength = planEntity.todaysCandles.length
+        if (todaysCandlesLength === 0) return {}
+
+        return planEntity.todaysCandles[todaysCandlesLength - 1]
+    }
+)
+
+
+export const makeSelectPlansFirstHourCandlesByTicker = () =>
+{
+
+    return createSelector(
+        [planSelectors.selectEntities, (state, symbol) => symbol],
+        (stockEntities, symbol) =>
+        {
+            const planEntity = stockEntities[symbol]
+            if (!planEntity) return {}
+            if (isAfter(new Date(), set(new Date(), { hours: 10, minutes: 30 })))
+            {
+                return { ...planEntity.firstHourCandles }
+
+            } else
+            {
+
+                return planEntity.firstHourCandles
+            }
+        }
+    )
+}
+
+
+export const selectCombinedCandlesByTicker = createSelector(
+    [planSelectors.selectEntities, (state, symbol) => symbol],
+    (stockEntities, symbol) =>
+    {
+        const planEntity = stockEntities[symbol]
+        if (!planEntity) return []
+        return planEntity.combinedCandleData
+    }
+)
+export const selectTodaysCandlesByTicker = createSelector(
+    [planSelectors.selectEntities, (state, symbol) => symbol],
+    (stockEntities, symbol) =>
+    {
+        const planEntity = stockEntities[symbol]
+        if (!planEntity) return []
+        return planEntity.todaysCandles
+    }
+)
+
+
+
+
+
+
+const selectTickerSymbolParam = (_, tickerSymbol) => tickerSymbol
+export const selectPlanForStaticDetails = () =>
+{
+    return createSelector(
+        [planSelectors.selectEntities, selectTickerSymbolParam],
+        (stockEntities, symbol) =>
+        {
+            const planEntity = stockEntities[symbol]
+            if (!planEntity) return null
+
+            return {
+                id: planEntity.id,
+                planConfig: planEntity.planConfig,
+                patternConfig: planEntity.patternConfig,
+                metricConfig: planEntity.metricConfig,
+                stockInfo: planEntity.stockInfo,
+                optionsConfig: planEntity.optionsConfig,
+                snapShot: planEntity.snapShot
+            }
+        }
+    )
+}
+
+
+
 export const selectPlanAndPatternChartingBySymbol = createSelector(
     [planSelectors.selectEntities, (state, symbol) => symbol],
     (stockEntities, symbol) =>
@@ -681,13 +947,24 @@ export const selectPlanAndPatternChartingBySymbol = createSelector(
             lowestHour = { start: new Date(`${today} ${startTime}`), end: new Date(`${today} ${endTime}`) };
         }
 
+        const currentDayCandles = isToday(planEntity?.currentPriceStats.snapShot.DailyBar.Timestamp)
         return {
             pattern: planEntity?.patternConfig || undefined,
             plan: planEntity?.planConfig.plan || undefined,
             options: planEntity?.optionsConfig || undefined,
-            lowestHour,
-            supportResistance: planEntity?.metricConfig.vpSupportResistance || undefined
 
+            lowestHour,
+            supportResistance: planEntity?.metricConfig.vpSupportResistance || undefined,
+            dailyCalculatedValues: planEntity?.planConfig.dailyCalculatedValues ? {
+                ema9: planEntity?.planConfig.dailyCalculatedValues.ema9,
+                ema50: planEntity?.planConfig.dailyCalculatedValues.ema50,
+                ema200: planEntity?.planConfig.dailyCalculatedValues.ema200,
+                atr: planEntity?.planConfig.dailyCalculatedValues.atr
+            } : undefined,
+            snapShot: planEntity?.currentPriceStats.snapShot ? {
+                yesterday: currentDayCandles ? planEntity?.currentPriceStats.snapShot.PrevDailyBar : planEntity?.currentPriceStats.snapShot.DailyBar,
+                today: currentDayCandles ? planEntity?.currentPriceStats.snapShot.DailyBar : undefined
+            } : undefined
         }
     }
 )

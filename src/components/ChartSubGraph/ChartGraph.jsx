@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addEnterExitToCharting, addHorizontalLine, addLine, addSupportResistance, addVolumeNode, makeSelectChartingByTicker, removeChartingElement, updateEnterExitToCharting, updateHorizontalLine, updateLine, updateSupportResistance, updateVolumeNode } from '../../features/Charting/chartingElements'
 import { useResizeObserver } from '../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay, addHours, addMinutes, differenceInBusinessDays, set } from 'date-fns'
+import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay, addHours, addMinutes, differenceInBusinessDays, set, isWeekend, previousFriday } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis, timeFormat } from 'd3'
 import { pixelBuffer } from './GraphChartConstants'
 import { makeSelectKeyLevelsByTicker } from '../../features/KeyLevels/KeyLevelGraphElements'
@@ -52,6 +52,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const selectedStudyVisualStateMemo = useMemo(makeSelectGraphStudyByUUID, [])
     const studyVisualController = useSelector((state) => selectedStudyVisualStateMemo(state, uuid))
 
+
+
     const selectDisplayMarketHoursMemo = useMemo(makeSelectGraphHoursByUUID, [])
     const displayMarketHours = useSelector((state) => selectDisplayMarketHoursMemo(state, uuid))
 
@@ -64,6 +66,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
     const selectGraphingVisibilityMemo = useMemo(makeSelectGraphVisibilityByUUID, [])
     const graphElementVisibility = useSelector((state) => selectGraphingVisibilityMemo(state, uuid))
+
 
 
     //context menu show and positioning
@@ -568,17 +571,29 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     }, [candleData, minPrice, maxPrice, excludedPeriods, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
 
+    const isCurrentlyWeekend = isWeekend(new Date())
+    const timesForConstantDisplay = {
+        first5Mins: isCurrentlyWeekend ? previousFriday(set(new Date(), { hours: 9, minutes: 35, milliseconds: 0 })) : set(new Date(), { hours: 9, minutes: 35, milliseconds: 0 }),
+        firstHour: isCurrentlyWeekend ? previousFriday(set(new Date(), { hours: 10, minutes: 30, milliseconds: 0 })) : set(new Date(), { hours: 10, minutes: 30, milliseconds: 0 }),
+        lastHour: isCurrentlyWeekend ? previousFriday(set(new Date(), { hours: 15, minutes: 0, milliseconds: 0 })) : set(new Date(), { hours: 15, minutes: 0, milliseconds: 0 })
+    }
+
+
     //plot morning metrics if provided
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !dailyCalculatedValues || !morningMetrics) return
         const morningOpenLines = stockCandleSVG.select('.morningOpen')
         morningOpenLines.selectAll('.line_group').remove()
+        if (!graphElementVisibility.morningMetricsVisuals) return
 
-        const upSideTime = new Date()
-        upSideTime.setHours(morningMetrics.upSide.averageTimeToPeak.hour, morningMetrics.upSide.averageTimeToPeak.minute)
-        const downSideTime = new Date()
-        downSideTime.setHours(morningMetrics.downSide.averageTimeToBottom.hour, morningMetrics.downSide.averageTimeToBottom.minute)
+
+        const upSideTime = isCurrentlyWeekend ? previousFriday(set(new Date(), { hours: morningMetrics.upSide.averageTimeToPeak.hour, minutes: morningMetrics.upSide.averageTimeToPeak.minute }))
+            : set(new Date(), { hours: morningMetrics.upSide.averageTimeToPeak.hour, minutes: morningMetrics.upSide.averageTimeToPeak.minute })
+
+
+        const downSideTime = isCurrentlyWeekend ? previousFriday(set(new Date(), { hours: morningMetrics.downSide.averageTimeToBottom.hour, minutes: morningMetrics.downSide.averageTimeToBottom.minute }))
+            : set(new Date(), { hours: morningMetrics.downSide.averageTimeToBottom.hour, minutes: morningMetrics.downSide.averageTimeToBottom.minute })
 
 
         let basePriceOpen
@@ -594,31 +609,31 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
         const pixelUpTime = createDateScale({ dateToPixel: upSideTime })
         const pixelDownTime = createDateScale({ dateToPixel: downSideTime })
-        const pixelFiveMin = createDateScale({ dateToPixel: set(new Date(), { hours: 9, minutes: 35, milliseconds: 0 }) })
-        const pixelFirstHour = createDateScale({ dateToPixel: set(new Date(), { hours: 10, minutes: 30, milliseconds: 0 }) })
-        const pixelLastHour = createDateScale({ dateToPixel: set(new Date(), { hours: 15, minutes: 0, milliseconds: 0 }) })
+        const pixelFiveMin = createDateScale({ dateToPixel: timesForConstantDisplay.first5Mins })
+        const pixelFirstHour = createDateScale({ dateToPixel: timesForConstantDisplay.firstHour })
+        const pixelLastHour = createDateScale({ dateToPixel: timesForConstantDisplay.lastHour })
 
-        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'cyan').attr('stroke-width', 1)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'cyan').attr('stroke-width', 1)
             .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelUpSide).attr('y2', pixelUpSide).attr('opacity', 0.5)
-        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'orange').attr('stroke-width', 1)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'orange').attr('stroke-width', 1)
             .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelDownSide).attr('y2', pixelDownSide).attr('opacity', 0.5)
-        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'cyan').attr('stroke-width', 1)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'cyan').attr('stroke-width', 1)
             .attr('x1', pixelUpTime).attr('x2', pixelUpTime).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
-        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'orange').attr('stroke-width', 1)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'orange').attr('stroke-width', 1)
             .attr('x1', pixelDownTime).attr('x2', pixelDownTime).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
 
-        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', 1)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'blue').attr('stroke-width', 1)
             .attr('x1', pixelFiveMin).attr('x2', pixelFiveMin).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
             .attr("stroke-dasharray", '2 2 2')
 
-        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', 1)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'blue').attr('stroke-width', 1)
             .attr('x1', pixelFirstHour).attr('x2', pixelFirstHour).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
-        morningOpenLines.append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', 1)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'blue').attr('stroke-width', 1)
             .attr('x1', pixelLastHour).attr('x2', pixelLastHour).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
 
 
 
-    }, [mostRecentPrice, excludedPeriods, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
+    }, [mostRecentPrice, graphElementVisibility, excludedPeriods, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
 
 
@@ -817,7 +832,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 dailyLines.append('line').attr('class', 'line_group').attr('stroke', 'green').attr('stroke-width', 2).attr('stroke-dasharray', '5 2 5')
                     .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPriceOpen).attr('y2', pixelPriceOpen)
             }
-
             if (EnterExitPlan?.dailyTickerValues.ema9)
             {
                 let pixelPrice = createPriceScale({ priceToPixel: EnterExitPlan.dailyTickerValues.ema9 })
@@ -841,7 +855,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         } else
         {
             stockCandleSVG.select('.dailyTickerValues').selectAll('text').remove()
-
             if (EnterExitPlan?.dailyTickerValues.rsi)
             {
                 dailyLines.append('text').attr('class', 'line_group').text(`RSI: ${EnterExitPlan.dailyTickerValues.rsi.toFixed()}`).attr("x", 75).attr("y", 75).attr('fill', 'white');
@@ -859,11 +872,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !dailyCalculatedValues) return
-        let dailyLines = stockCandleSVG.select('.dailyTickerValues')
-        let emaDailyLines = stockCandleSVG.select('.emaDailyHorizontals')
-
         if (timeFrame.intraDay)
         {
+            let dailyLines = stockCandleSVG.select('.dailyTickerValues')
+            let emaDailyLines = stockCandleSVG.select('.emaDailyHorizontals')
+
             stockCandleSVG.select('.dailyTickerValues').selectAll('line').remove()
             stockCandleSVG.select('.emaDailyHorizontals').selectAll('line').remove()
             if (dailyCalculatedValues.dailyEMA)
@@ -932,7 +945,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !mostRecentPrice || isLivePrice) return
-
+        console.log(mostRecentPrice)
         let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
         stockCandleSVG.select('.currentPrice').selectAll('line').data([mostRecentPrice.Price]).join(enter =>
             enter.append('line').attr('x1', 0).attr('x2', candleDimensions.width)
@@ -947,8 +960,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
     const names = ['stopLossLine', 'enterLine', 'enterBufferLine', 'exitBufferLine', 'exitLine', 'moonLine']
     const lineColors = ['green', 'yellow', 'red', 'yellow', 'green', 'black']
-
-
 
     //plot user charting  
     useEffect(() =>
@@ -1447,6 +1458,13 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     }, [ticker, chartId, charting, EnterExitPlan, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
+
+
+
+
+
+
+    //plot any plan/pattern extracted values
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck()) return
@@ -1456,7 +1474,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         patternSelect.selectAll('rect').remove()
         patternSelect.selectAll('text').remove()
 
-        if (patternConfig.pattern)
+        if (patternConfig.pattern && graphElementVisibility.patternVisuals)
         {
             const patternClassification = patternConfig.pattern.patternClassification
 
@@ -1466,39 +1484,39 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 const channelBottom = createPriceScale({ priceToPixel: patternConfig.pattern.channelBottom })
                 const entryStrikePrice = createPriceScale({ priceToPixel: patternConfig.pattern.entryStrikeBuffer })
 
-                patternSelect.append('line').attr('class', 'patternPrice')
+                patternSelect.append('line').attr('class', 'patternVisual')
                     .attr('x1', 0).attr('x2', candleDimensions.width)
                     .attr('y1', channelTop).attr('y2', channelTop)
                     .attr('stroke', 'orange').attr('stroke-width', 4).attr('opacity', 0.3)
 
-                patternSelect.append('rect').attr('class', 'patternEntryZone')
+                patternSelect.append('rect').attr('class', 'patternVisual')
                     .attr('x', 0).attr('y', entryStrikePrice)
                     .attr('width', candleDimensions.width)
                     .attr('height', channelBottom - entryStrikePrice).attr('fill', 'green').attr('opacity', 0.1)
 
-                patternSelect.append('line').attr('class', 'patternPrice')
+                patternSelect.append('line').attr('class', 'patternVisual')
                     .attr('x1', 0).attr('x2', candleDimensions.width)
                     .attr('y1', entryStrikePrice).attr('y2', entryStrikePrice)
                     .attr('stroke', 'green').attr('stroke-width', 2).attr('opacity', 0.5)
 
-                patternSelect.append('line').attr('class', 'patternPrice')
+                patternSelect.append('line').attr('class', 'patternVisual')
                     .attr('x1', 0).attr('x2', candleDimensions.width)
                     .attr('y1', channelBottom).attr('y2', channelBottom)
                     .attr('stroke', 'orange').attr('stroke-width', 4).attr('opacity', 0.3)
             }
 
         }
-        if (patternConfig.plan)
+        if (patternConfig.plan && graphElementVisibility.patternVisuals)
         {
             const stopLossPrice = createPriceScale({ priceToPixel: patternConfig.plan.stopLossPrice })
-            const patternSelect = stockCandleSVG.select('.patternPriceLevels')
+            // const patternSelect = stockCandleSVG.select('.patternPriceLevels')
 
-            patternSelect.append('line').attr('class', 'patternPrice')
+            patternSelect.append('line').attr('class', 'patternVisual')
                 .attr('x1', 0).attr('x2', candleDimensions.width)
                 .attr('y1', stopLossPrice).attr('y2', stopLossPrice)
                 .attr('stroke', 'red').attr('stroke-width', 2).attr('opacity', 0.75)
         }
-        if (patternConfig.options)
+        if (patternConfig.options && graphElementVisibility.optionsVisual)
         {
             const lowerEM = patternConfig.options.weekly.lowerExpectedBounds === 0 ?
                 patternConfig.options.monthly.lowerExpectedBounds : patternConfig.options.weekly.lowerExpectedBounds
@@ -1554,7 +1572,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 //add text if so desired
             }
         }
-        if (patternConfig.supportResistance)
+        if (patternConfig.supportResistance && graphElementVisibility.calculatedPriceLevels)
         {
             const overHeadResistance = patternConfig.supportResistance.overHeadResistance
             const belowSupportLevels = patternConfig.supportResistance.underlyingSupport
@@ -1564,7 +1582,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 let priceLevelPixel = createPriceScale({ priceToPixel: t.priceLevel })
                 let textDescription = t.frictionRating === 'HIGH_CRITICAL_CLIFF' ? 'CLIFF' : 'MILD'
 
-                patternSelect.append('line').attr('class', 'patternPrice')
+                patternSelect.append('line').attr('class', 'calculatedSRPrice')
                     .attr('x1', 0).attr('x2', candleDimensions.width)
                     .attr('y1', priceLevelPixel).attr('y2', priceLevelPixel)
                     .attr('stroke', 'red').attr('stroke-width', () =>
@@ -1573,11 +1591,11 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                         else if (t.volumePct > 20) return 4
                         else return 2
                     }).attr('opacity', 0.25)
-                patternSelect.append('text').attr('class', 'keyLevelSubText')
+                patternSelect.append('text').attr('class', 'keyLevelSubText calculatedSRPrice')
                     .text(`${t.priceLevel} - ${t.volumePct}%`)
                     .attr('x', candleDimensions.width - 80)
                     .attr('y', priceLevelPixel).attr('dy', 10)
-                patternSelect.append('text').attr('class', 'keyLevelSubText')
+                patternSelect.append('text').attr('class', 'keyLevelSubText calculatedSRPrice')
                     .text(`${textDescription}`)
                     .attr('x', candleDimensions.width - 80)
                     .attr('y', priceLevelPixel).attr('dy', -5)
@@ -1588,7 +1606,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 let priceLevelPixel = createPriceScale({ priceToPixel: t.priceLevel })
                 let textDescription = t.frictionRating === 'HIGH_CRITICAL_CLIFF' ? 'CLIFF' : 'MILD'
 
-                patternSelect.append('line').attr('class', 'patternPrice')
+                patternSelect.append('line').attr('class', 'calculatedSRPrice')
                     .attr('x1', 0).attr('x2', candleDimensions.width)
                     .attr('y1', priceLevelPixel).attr('y2', priceLevelPixel)
                     .attr('stroke', 'blue').attr('stroke-width', () =>
@@ -1596,27 +1614,114 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                         if (t.volumePct > 30) return 5
                         else return 2
                     }).attr('opacity', 0.25)
-                patternSelect.append('text').attr('class', 'keyLevelSubText')
+                patternSelect.append('text').attr('class', 'keyLevelSubText calculatedSRPrice')
                     .text(`${t.priceLevel} - ${t.volumePct}%`)
                     .attr('x', candleDimensions.width - 80)
                     .attr('y', priceLevelPixel).attr('dy', 10)
-                patternSelect.append('text').attr('class', 'keyLevelSubText')
+                patternSelect.append('text').attr('class', 'keyLevelSubText calculatedSRPrice')
                     .text(`${textDescription}`)
                     .attr('x', candleDimensions.width - 80)
                     .attr('y', priceLevelPixel).attr('dy', -5)
             })
         }
-        if (patternConfig.lowestHour)
+        if (patternConfig.lowestHour && graphElementVisibility.lowestHourVisuals)
         {
             const startPixel = createDateScale({ dateToPixel: patternConfig.lowestHour.start })
             const endPixel = createDateScale({ dateToPixel: patternConfig.lowestHour.end })
 
-            patternSelect.append('rect').attr('class', 'patternEntryZone')
+            patternSelect.append('rect').attr('class', 'metricVisual')
                 .attr('x', startPixel).attr('y', 0)
                 .attr('width', endPixel - startPixel)
                 .attr('height', candleDimensions.height).attr('fill', 'red').attr('opacity', 0.05)
         }
-    }, [ticker, patternConfig, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+        if (patternConfig.dailyCalculatedValues && graphElementVisibility.calculatedDailyEMAs)
+        {
+            const lowerEMPixel = createPriceScale({ priceToPixel: patternConfig.dailyCalculatedValues.ema9 })
+            patternSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', lowerEMPixel).attr('y2', lowerEMPixel)
+                .attr('stroke', 'blue').attr('stroke-dasharray', '5 5')
+
+            patternSelect.append('text').attr('class', 'dailyEMALines keyLevelSubText')
+                .text(`EMA9 - ${patternConfig.dailyCalculatedValues.ema9}`)
+                .attr('x', candleDimensions.width - 80)
+                .attr('y', lowerEMPixel).attr('dy', -7)
+
+            const ema50Pixel = createPriceScale({ priceToPixel: patternConfig.dailyCalculatedValues.ema50 })
+            patternSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', ema50Pixel).attr('y2', ema50Pixel)
+                .attr('stroke', 'purple').attr('stroke-dasharray', '5 5')
+
+            patternSelect.append('text').attr('class', 'dailyEMALines keyLevelSubText')
+                .text(`EMA50 - ${patternConfig.dailyCalculatedValues.ema50}`)
+                .attr('x', candleDimensions.width - 80)
+                .attr('y', ema50Pixel).attr('dy', -7)
+
+            const ema200Pixel = createPriceScale({ priceToPixel: patternConfig.dailyCalculatedValues.ema200 })
+            patternSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', ema200Pixel).attr('y2', ema200Pixel)
+                .attr('stroke', 'red').attr('stroke-dasharray', '5 5')
+
+            patternSelect.append('text').attr('class', 'dailyEMALines keyLevelSubText')
+                .text(`EMA200 - ${patternConfig.dailyCalculatedValues.ema200}`)
+                .attr('x', candleDimensions.width - 80)
+                .attr('y', ema200Pixel).attr('dy', -7)
+
+            //calc ATR prices high and low
+            // const atrPixel = createPriceScale({ priceToPixel: patternConfig.dailyCalculatedValues.atr })
+            // patternSelect.append('line').attr('class', 'dailyEMALines')
+            //     .attr('x1', 0).attr('x2', candleDimensions.width)
+            //     .attr('y1', ema200Pixel).attr('y2', ema200Pixel)
+            //     .attr('stroke', 'red').attr('stroke-dasharray', '5 5')
+
+            // patternSelect.append('text').attr('class', 'dailyEMALines keyLevelSubText')
+            //     .text(`EMA200 - ${patternConfig.dailyCalculatedValues.ema200}`)
+            //     .attr('x', candleDimensions.width - 80)
+            //     .attr('y', ema200Pixel).attr('dy', -7)
+        }
+        if (patternConfig.snapShot?.today && graphElementVisibility.todayOCLHVisuals)
+        {
+            const todayOpenPixel = createPriceScale({ priceToPixel: patternConfig.snapShot.today.OpenPrice })
+            patternSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', todayOpenPixel).attr('y2', todayOpenPixel)
+                .attr('stroke', 'black').attr('stroke-dasharray', '2 2')
+
+            patternSelect.append('text').attr('class', 'dailyEMALines keyLevelSubText')
+                .text(`EMA9 - ${patternConfig.snapShot.today.OpenPrice}`)
+                .attr('x', candleDimensions.width - 80)
+                .attr('y', todayOpenPixel).attr('dy', -7)
+        }
+        if (patternConfig.snapShot && graphElementVisibility.yesterdayOCLHVisuals)
+        {
+            const yesterdayClosePixel = createPriceScale({ priceToPixel: patternConfig.snapShot.yesterday.ClosePrice })
+            const yesterdayHighPixel = createPriceScale({ priceToPixel: patternConfig.snapShot.yesterday.HighPrice })
+
+            patternSelect.append('line').attr('class', 'yesterdayOCHL')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', yesterdayClosePixel).attr('y2', yesterdayClosePixel)
+                .attr('stroke', 'orange').attr('stroke-dasharray', '2 2')
+            patternSelect.append('text').attr('class', 'yesterdayOCHL keyLevelSubText')
+                .text(`YC - ${patternConfig.snapShot.yesterday.ClosePrice}`)
+                .attr('x', candleDimensions.width - 80)
+                .attr('y', yesterdayClosePixel).attr('dy', -7)
+
+            patternSelect.append('line').attr('class', 'yesterdayOCHL')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', yesterdayHighPixel).attr('y2', yesterdayHighPixel)
+                .attr('stroke', 'orange').attr('stroke-dasharray', '2 2')
+
+            patternSelect.append('text').attr('class', 'yesterdayOCHL keyLevelSubText')
+                .text(`YH - ${patternConfig.snapShot.yesterday.HighPrice}`)
+                .attr('x', candleDimensions.width - 80)
+                .attr('y', yesterdayHighPixel).attr('dy', -7)
+
+
+        }
+
+    }, [ticker, graphElementVisibility, patternConfig, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
 
@@ -1961,9 +2066,9 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck() || !graphElementVisibility) return
-
         if (graphElementVisibility.showAll && !graphElementVisibility.showOnlyEnterExit)
         {
+
             graphElementVisibility.anyFreeLines ?
                 toggleAnyVisible(allPossibleClassNames[0], graphElementVisibility.previousFreeLines) :
                 toggleSelectToHidden(allPossibleClassNames[0])
@@ -2003,6 +2108,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             graphElementVisibility.anyDailyCalculatedValues ?
                 toggleAnyVisible(allPossibleClassNames[9], graphElementVisibility.previousDailyCalculatedValues) :
                 toggleSelectToHidden(allPossibleClassNames[9])
+
+            graphElementVisibility.patternVisuals ? toggleAnyVisibleSubClass(allPossibleClassNames[10], '.patternVisual') : toggleSelectToHiddenSubClass(allPossibleClassNames[10], '.patternVisual')
+            graphElementVisibility.morningMetricsVisuals ? toggleAnyVisible(allPossibleClassNames[11]) : toggleSelectToHidden(allPossibleClassNames[11])
+            graphElementVisibility.calculatedPriceLevels ? toggleAnyVisibleSubClass(allPossibleClassNames[10], '.calculatedSRPrice') : toggleSelectToHiddenSubClass(allPossibleClassNames[10], '.calculatedSRPrice')
+
+        }
+        else if (graphElementVisibility.showOnlyPattern)
+        {
+            toggleAnyVisible(allPossibleClassNames[10])
+            allPossibleClassNames.map((singleClass, i) => { if (singleClass !== '.patternVisual') toggleSelectToHidden(singleClass) })
+
         }
         else if (graphElementVisibility.showOnlyEnterExit)
         {
@@ -2022,7 +2138,17 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         function toggleAnyVisible(className, showPreviousSpecific)
         {
             stockCandleSVG.select(className).selectAll(lineGroupClassName).attr('visibility', () => 'visible')
-            stockCandleSVG.select(className).selectAll('.previous').attr('visibility', () => { showPreviousSpecific ? 'visible' : 'hidden' })
+            if (showPreviousSpecific !== undefined) stockCandleSVG.select(className).selectAll('.previous').attr('visibility', () => { showPreviousSpecific ? 'visible' : 'hidden' })
+        }
+
+        function toggleAnyVisibleSubClass(className, subClassName)
+        {
+            stockCandleSVG.select(className).selectAll(subClassName).attr('visibility', () => 'visible')
+        }
+        function toggleSelectToHiddenSubClass(className, subClassName)
+        {
+            console.log(className, subClassName)
+            stockCandleSVG.select(className).selectAll(subClassName).attr('visibility', 'hidden')
         }
 
         function toggleSelectToHidden(className)
@@ -2416,25 +2542,25 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                 <svg ref={candleSVG}>
                     <defs>
                         <linearGradient id="fadeLowVolume" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="blue" stop-opacity="0" />
-                            <stop offset="75%" stop-color="blue" stop-opacity="1" />
-                            <stop offset="100%" stop-color="blue" stop-opacity="1" />
+                            <stop offset="0%" stopColor="blue" stopOpacity="0" />
+                            <stop offset="75%" stopColor="blue" stopOpacity="1" />
+                            <stop offset="100%" stopColor="blue" stopOpacity="1" />
                         </linearGradient>
                         <linearGradient id="fadeHighVolume" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="green" stop-opacity="0" />
-                            <stop offset="75%" stop-color="green" stop-opacity="1" />
-                            <stop offset="100%" stop-color="green" stop-opacity="1" />
+                            <stop offset="0%" stopColor="green" stopOpacity="0" />
+                            <stop offset="75%" stopColor="green" stopOpacity="1" />
+                            <stop offset="100%" stopColor="green" stopOpacity="1" />
                         </linearGradient>
 
                         <linearGradient id="zoneBearish" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="yellow" stop-opacity="1" />
-                            <stop offset="80%" stop-color="yellow" stop-opacity=".75" />
-                            <stop offset="100%" stop-color="red" stop-opacity="1" />
+                            <stop offset="0%" stopColor="yellow" stopOpacity="1" />
+                            <stop offset="80%" stopColor="yellow" stopOpacity=".75" />
+                            <stop offset="100%" stopColor="red" stopOpacity="1" />
                         </linearGradient>
                         <linearGradient id="zoneBullish" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="blue" stop-opacity="1" />
-                            <stop offset="90%" stop-color="yellow" stop-opacity="1" />
-                            <stop offset="100%" stop-color="yellow" stop-opacity="1" />
+                            <stop offset="0%" stopColor="blue" stopOpacity="1" />
+                            <stop offset="90%" stopColor="yellow" stopOpacity="1" />
+                            <stop offset="100%" stopColor="yellow" stopOpacity="1" />
                         </linearGradient>
                     </defs>
                     <g className='x-axis' />

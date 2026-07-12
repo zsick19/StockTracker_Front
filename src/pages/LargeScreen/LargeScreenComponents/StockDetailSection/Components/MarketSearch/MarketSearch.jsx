@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import './MarketSearch.css'
 import './FoundPatternStageStyles.css'
 import MarketSearchFilterBar from './Components/MarketSearchFilterBar'
@@ -12,6 +12,7 @@ function MarketSearch({ currentMarketSearchPage, setCurrentMarketSearchPage, mar
     const [paginationInfo, setPaginationInfo] = useState(null)
 
     const { data, isSuccess, isLoading, isError, error, refetch } = useGetMarketSearchStockDataQuery({ currentPage: currentMarketSearchPage, resultsPerPage: 9, searchFilter: marketSearchFilter })
+
 
 
     let searchResults

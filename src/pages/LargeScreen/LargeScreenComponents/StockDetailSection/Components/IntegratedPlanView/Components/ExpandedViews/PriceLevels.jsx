@@ -1,4 +1,6 @@
 import React from 'react'
+import { useSelector } from 'react-redux'
+import { selectDetailedScoreBreakDownBySymbol } from '../../../../../../../../features/Engine/EnginePlanApiSlice'
 
 function PriceLevels({ plan })
 {
@@ -9,6 +11,7 @@ function PriceLevels({ plan })
   const patternBottomPrice = plan.patternConfig.channelBottom
   const patternTopPrice = plan.patternConfig.channelTop
 
+  // const { mostRecentPrice } = useSelector((state) => selectDetailedScoreBreakDownBySymbol(state, plan.id))
 
   return (
     <div id='ExpandedSupportResistance'>
@@ -25,7 +28,7 @@ function PriceLevels({ plan })
         <p>Entry: ${patternEntryPrice}</p>
         <p>Bottom: ${patternBottomPrice}</p>
         <p>Ceiling: ${patternTopPrice}</p>
-        <p>Current Price: ${plan.mostRecentPrice}</p>
+        {/* <p>Current Price: ${mostRecentPrice}</p> */}
       </div>
       <br />
       <div>
@@ -37,7 +40,7 @@ function PriceLevels({ plan })
         </div>))}
       </div>
 
-      <p>Days anaylised: 5</p>
+      <p>Days Analysed: 10</p>
     </div>
   )
 }

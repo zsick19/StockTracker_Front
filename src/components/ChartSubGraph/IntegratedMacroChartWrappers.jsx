@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
-import { clearGraphStudyControl, setGraphVolumeControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
+import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../features/Charting/GraphStudiesVisualElement'
 import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
 import { clearGraphVisibility, setIndividualAnyVisibility, setInitialGraphVisibility } from '../../features/Charting/ChartingVisibility'
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import ChartGraph from './ChartGraph'
 
-function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPrice, timeFrame, dailyCalculatedValues, morningMetrics })
+function IntegratedMacroChartWrappers({ ticker, candleData, uuid, mostRecentPrice, timeFrame, dailyCalculatedValues })
 {
 
     const dispatch = useDispatch()
@@ -23,7 +23,6 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
             dispatch(setInitialGraphVisibility({ uuid }))
         }
 
-
         return (() =>
         {
             if (uuid)
@@ -37,17 +36,16 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
         })
     }, [])
 
-    const [showEMA, setShowEMA] = useState(true)
     return (
         <div className="IntegratedChartWrapper">
             <div className='IntegratedChartShowHideButtons' >
-                <button onClick={() => dispatch(setIndividualAnyVisibility({ uuid: uuid, chartingElement: 'morningMetricsVisuals' }))}>MM</button>
+                {/* <button onClick={() => dispatch(setIndividualAnyVisibility({ uuid: uuid, chartingElement: 'morningMetricsVisuals' }))}>MM</button>
                 <button onClick={() => dispatch(setIndividualAnyVisibility({ uuid: uuid, chartingElement: 'patternVisuals' }))}>Pattern</button>
                 <button onClick={() => dispatch(setIndividualAnyVisibility({ uuid: uuid, chartingElement: 'calculatedPriceLevels' }))} >PL</button>
-                <button onClick={() => dispatch(setGraphVolumeControl({ uuid: uuid }))}>Volume</button>
 
                 <button disabled onClick={() => dispatch(setIndividualAnyVisibility({ uuid: uuid, chartingElement: 'calculatedPriceLevels' }))} >Today</button>
                 <button disabled onClick={() => dispatch(setIndividualAnyVisibility({ uuid: uuid, chartingElement: 'calculatedPriceLevels' }))} >Yesterday</button>
+                */}
 
                 <button onClick={() => setShowEMA(prev => !prev)}>EMA</button>
             </div>
@@ -55,7 +53,7 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
                 candleData={candleData}
                 uuid={uuid}
                 mostRecentPrice={mostRecentPrice}
-                // lastCandleData={{ ClosePrice: mostRecentPrice }}
+
                 isInteractive={false}
                 isZoomAble={true}
                 isLivePrice={true}
@@ -63,9 +61,8 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
                 timeFrame={timeFrame}
 
                 dailyCalculatedValues={dailyCalculatedValues}
-                morningMetrics={morningMetrics}
 
-                showEMAs={showEMA}
+                showEMAs={false}
 
             // chartId={chartId}
             // lastCandleData={lastCandleData}
@@ -79,4 +76,5 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
         </div>)
 }
 
-export default IntegratedNoFetchChartWrapper
+
+export default IntegratedMacroChartWrappers

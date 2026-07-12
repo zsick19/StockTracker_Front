@@ -46,6 +46,7 @@ export const sectorColors = {
 }
 export const sectorToTicker = {
     'Healthcare': 'XLV',
+    'US Small Caps': "IWM",
     'Consumer Staples': 'XLP',
     'Industrials': 'XLI',
     'Communication Services': 'XLC',
@@ -66,7 +67,10 @@ export const sectorToTicker = {
     'XLB': "Materials",
     'XLE': "Energy",
     'XLY': "Consumer Discretionary",
-    'XLRE': "Real Estate"
+    'XLRE': "Real Estate",
+    "IWM": 'US Small Caps',
+    "QQQ": "Nasdaq-100",
+    "Nasdaq-100": 'QQQ'
 }
 
 export const allSectorTickers = ['XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE']

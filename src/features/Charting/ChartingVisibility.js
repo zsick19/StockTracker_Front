@@ -13,7 +13,14 @@ const chartingVisibilitySlice = createSlice({
                 enterExitText: false,
                 anyEnterExits: true, enterExits: true, previousEnterExits: true,
 
-                morningMetrics: true,
+                morningMetricsVisuals: true,
+                patternVisuals: true,
+                calculatedPriceLevels: true,
+                optionsVisuals: true,
+                lowestHourVisuals: true,
+                calculatedDailyEMAs: true,
+                todayOCLHVisuals: true,
+                yesterdayOCLHVisuals: true,
 
                 anyFreeLines: true, freeLines: true, previousFreeLines: true,
                 anyTrendLines: true, trendLines: true, previousTrendLines: true,
@@ -51,6 +58,7 @@ const chartingVisibilitySlice = createSlice({
         {
             if (!action.payload.uuid || !action.payload.chartingElement) return
 
+            console.log(action.payload)
             switch (action.payload.chartingElement)
             {
                 case 'linesH': state[action.payload.uuid].anyLinesH = !state[action.payload.uuid].anyLinesH; break;
@@ -59,6 +67,9 @@ const chartingVisibilitySlice = createSlice({
                 case 'freeLines': state[action.payload.uuid].anyFreeLines = !state[action.payload.uuid].anyFreeLines; break;
                 case 'trendLines': state[action.payload.uuid].anyTrendLines = !state[action.payload.uuid].anyTrendLines; break;
                 case 'keyLevels': state[action.payload.uuid].anyKeyLevels = !state[action.payload.uuid].anyKeyLevels; break;
+                case 'morningMetricsVisuals': state[action.payload.uuid].morningMetricsVisuals = !state[action.payload.uuid].morningMetricsVisuals; break;
+                case 'patternVisuals': state[action.payload.uuid].patternVisuals = !state[action.payload.uuid].patternVisuals; break;
+                case 'calculatedPriceLevels': state[action.payload.uuid].calculatedPriceLevels = !state[action.payload.uuid].calculatedPriceLevels; break;
             }
         },
         setIndividualPreviousVisibility: (state, action) =>

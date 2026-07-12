@@ -36,12 +36,18 @@ function OpeningVolCompareChart({ baseLineVolData, upOrDown, todaysVol, peakOrBo
             .attr("height", (d) => chartDimensions.height - yScale(d))
             .attr("fill", upOrDown ? "green" : 'red')
 
+
         svg.selectAll('liveLine').data([todaysVol]).enter()
             .append("path").attr('class', 'liveLine')
             .attr("d", (d, i) => liveVolLineGenerator(d, i))
             .attr("fill", "none").attr("stroke", "white").attr("stroke-width", 3)
             .attr('transform', `translate(${xScale.bandwidth()},0)`)
-        // .attr('visibility', () => (isMorningUp && !upOrDown) ? 'visible' : 'hidden')
+
+            .attr('visibility', () => upOrDown ?
+                isMorningUp ? 'visible' : 'hidden' :
+                isMorningUp ? 'hidden' : 'visible'
+            )
+
 
         svg.append('line')
             .attr('x1', 0).attr('x2', chartDimensions.width)
