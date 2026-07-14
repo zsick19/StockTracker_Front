@@ -282,7 +282,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     {
         if (preDimensionsAndCandleCheck()) return
 
-        const yScale = scaleLinear().domain([minVol, maxVol]).range([candleDimensions.height - pixelBuffer.yDirectionPixelBuffer, candleDimensions.height * .75])
+        const yScale = scaleLinear().domain([0, maxVol]).range([candleDimensions.height - pixelBuffer.yDirectionPixelBuffer, candleDimensions.height * .75])
 
         if (pixelToVolume !== undefined) return Math.round(yScale.invert(pixelToVolume) * 100) / 100
         else if (volumeToPixel !== undefined) return yScale(volumeToPixel)

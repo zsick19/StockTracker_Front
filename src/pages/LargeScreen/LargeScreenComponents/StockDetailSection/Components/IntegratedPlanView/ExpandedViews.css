@@ -178,9 +178,27 @@
   margin-bottom: 1rem;
 }
 
-
-
 /* Pattern Review */
-#PatternReviewExpanded{
-  
+#PatternReviewExpanded {
+  font-size: var(--fs-100);
+  display: flex;
+  flex-direction: column;
+}
+#PatternReviewExpanded > div:first-of-type {
+  flex: 1;
+}
+
+#EntryPainGainChartWrapper {
+  display: flex;
+  justify-content: space-around;
+}
+
+#EntryPainGainChartWrapper > div {
+  background-color: blue;
+}
+
+#PatternBackTest {
+  display: grid;
+  grid-template-columns: min-content 1fr;
+  gap: 1rem;
 }

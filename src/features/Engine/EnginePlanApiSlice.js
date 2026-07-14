@@ -79,6 +79,10 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     planConfig.greatestCorrelation = enterExit.plan.greatestCorrelation
                     planConfig.spyBetaValue = enterExit.plan.dailyTickerValues.spyBetaValue || 1
                     planConfig.dailyCalculatedValues = enterExit.plan.dailyTickerValues
+                    planConfig.backTestedValues = {
+                        entryPrice: enterExit.plan.relevantDateBackTests,
+                        floorPrice: enterExit.plan.relevantDateBackTestsUsingFloor
+                    }
                     planConfig.datesLastCalculated = {
                         morningMetrics: enterExit.plan.dateMorningMetricsLastCalculated
                     }
@@ -373,7 +377,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshCandleData } = await queryFulfilled;
-                    console.log(freshCandleData)
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
@@ -396,6 +399,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                             if (isBefore(new Date(), set(new Date(), { hours: 10, minutes: 30 })) || entityToUpdate.firstHourCandles.candles.length === 0)
                             {
+
                                 let firstHourCandles = filterFirstHourSessionCandles(cleanCandlesToday)
 
                                 let firstHourHigh = firstHourCandles[0].HighPrice
@@ -471,6 +475,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
                             } else
                             {
+                                console.log('chunking 5 min candles')
                                 let chunked5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
                                 draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...chunked5MinCandles]
                             }
@@ -517,6 +522,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshCandleData } = await queryFulfilled;
+
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
@@ -529,15 +535,19 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             let liveCandles = freshCandleData.planData[symbol]
                             if (!liveCandles || liveCandles.length === 0) return
                             const cleanCandlesToday = filterRegularSessionCandles(liveCandles)
+
+                            if (cleanCandlesToday.length === 0) return
                             let lastCandle = cleanCandlesToday[cleanCandlesToday.length - 1].ClosePrice
 
 
                             entityToUpdate.mostRecentPriceUpDown = lastCandle >= draft.mostRecentPrice
                             entityToUpdate.mostRecentPrice = lastCandle
 
-                            if (entityToUpdate.firstHourCandles.candles.length === 0)
+                            if (isAfter(new Date(), set(new Date(), { hours: 10, minutes: 30 })) &&
+                                entityToUpdate.firstHourCandles.candles.length === 0)
                             {
                                 let firstHourCandles = filterFirstHourSessionCandles(cleanCandlesToday)
+
 
                                 let firstHourHigh = firstHourCandles[0].HighPrice
                                 let firstHourLow = firstHourCandles[0].LowPrice
@@ -876,7 +886,7 @@ export const makeSelectPlansFirstHourCandlesByTicker = () =>
 
             } else
             {
-
+                console.log(planEntity.firstHourCandles.candles.length)
                 return planEntity.firstHourCandles
             }
         }

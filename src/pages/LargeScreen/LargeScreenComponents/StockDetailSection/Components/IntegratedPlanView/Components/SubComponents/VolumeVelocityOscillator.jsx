@@ -7,6 +7,7 @@ import { eachMinuteOfInterval, set } from 'date-fns';
 export const VolumeVelocityOscillator = ({ todaysCandles, ticksFirstHour }) =>
 {
     const oscillatorRef = useRef(null);
+    console.log(todaysCandles)
     const velocityMatrix = compileVolumeDerivative(todaysCandles);
 
     const preDimensionsAndCandleCheck = () => { return !chartDimensions }
@@ -22,6 +23,7 @@ export const VolumeVelocityOscillator = ({ todaysCandles, ticksFirstHour }) =>
     {
         if (preDimensionsAndCandleCheck()) return
         if (!oscillatorRef.current || velocityMatrix.length === 0) return;
+        select(oscillatorRef.current).selectAll(".velocity-bar").remove()
 
         // Clear out old frames to prevent layout ghosting
         select(oscillatorRef.current).selectAll("*").remove();

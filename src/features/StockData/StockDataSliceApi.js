@@ -251,7 +251,15 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
           body: args.tickers
         })
       }
-    })
+    }),
+    getStockDataUsingStartAndEndDateWithTimeFrame: builder.query({
+      query: (args) => ({
+        url: `/stockData/dateRange/${args.ticker}`,
+        method: "POST",
+        body: { timeFrameIncrement: args.timeFrameIncrement, start: args.startDate, end: args.endDate }
+      }),
+      validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+    }),
   }),
 });
 
@@ -260,6 +268,6 @@ export const { useGetStockDataUsingTimeFrameQuery,
   useGetGroupedBy12StockDataInfiniteQuery,
   useGetStockAverageTrueRangeQuery,
   useGetWatchListFiveMinChartsQuery,
-  useGetAllMacroStocksDataQuery
-
+  useGetAllMacroStocksDataQuery,
+  useGetStockDataUsingStartAndEndDateWithTimeFrameQuery
 } = StockDataApiSlice;

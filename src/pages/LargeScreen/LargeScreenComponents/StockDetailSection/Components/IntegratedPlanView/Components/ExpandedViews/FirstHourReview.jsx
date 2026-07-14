@@ -38,7 +38,7 @@ function FirstHourReview({ plan })
 
     const openHourCandles = firstHourCandles.candles
 
-
+    console.log(openHourCandles.length)
 
     const isUpMorning = firstHourCandles.mostRecentPrice ?
         firstHourCandles.mostRecentPrice > firstHourCandles.candles[0].OpenPrice :

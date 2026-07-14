@@ -55,11 +55,6 @@ function Prefetch()
     {
       const { isWeekend, isMorningPowerHour, isRegularSessionActive } = getMarketTimeContext();
 
-      if (!isSystemHydrated)
-      {
-        store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineOneMinCandleBarData.initiate(undefined, { subscribe: true, forceRefetch: true }))
-        store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
-      }
 
       // WEEKEND GATEWAY: Shut down loop immediately if Saturday or Sunday
       if (isWeekend)
@@ -75,6 +70,9 @@ function Prefetch()
 
       // Clean, explicit interval assignments: 1-min for Opening Hour, 5-min for typical session
       const targetIntervalMS = isMorningPowerHour ? 60000 : 300000;
+
+      //First hour-maintains initial main request every 1 minute with openSession param requesting 1 min ticker data
+      //Post first hour-switches polling main request to every 5 mins with regularSession param requesting 5 min ticker data
       if (!pollingClockRef.current || currentIntervalMS.current !== targetIntervalMS)
       {
         if (pollingClockRef.current) { clearInterval(pollingClockRef.current); }
@@ -82,17 +80,15 @@ function Prefetch()
         pollingClockRef.current = setInterval(() =>
         {
           const clock = getMarketTimeContext();
-          if (clock.isRegularSessionActive && !clock.isWeekend)
+          if (clock.isRegularSessionActive && !clock.isWeekend && liveSubscriptionRef)
           {
-            if (liveSubscriptionRef) { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: clock.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true })) }
-            //if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
-            //tradeSyncTimeoutRef.current = setTimeout(() => { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true })) }, 45000)
+            store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: clock.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true }))
           }
-
-          manageDynamicIntervalLoop();
+          manageDynamicIntervalLoop()
         }, targetIntervalMS);
       }
 
+      //Outside of first hour, initiates intervale for live trade data and for trade data
       if (!isMorningPowerHour && !isWeekend)
       {
         if (!oneMinPollingClockRef.current)
@@ -109,14 +105,16 @@ function Prefetch()
             }
           }, 60000)
         }
-
       }
+      //Inside first hour, initiates only trade data as ticker data is control by above
       else if (isMorningPowerHour && !isWeekend)
       {
         if (!oneMinPollingClockRef.current)
         {
+          if (oneMinPollingClockRef.current) clearInterval(oneMinPollingClockRef.current)
           oneMinPollingClockRef.current = setInterval(() =>
           {
+            console.log('From inside morning power intervale')
             if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
             tradeSyncTimeoutRef.current = setTimeout(() => { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true })) }, 45000)
           }, 60000)
@@ -151,20 +149,27 @@ function Prefetch()
         liveSubscriptionRef = store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineCandleBarData.initiate({ oneMinOrFivMinBars: timeContext.isMorningPowerHour ? 'openingSession' : 'regularSession' }, { subscribe: true, forceRefetch: true }))
         return liveSubscriptionRef.unwrap()
       })
+      .then(() =>
+      {
+        const oneMinFetch = store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineOneMinCandleBarData.initiate(undefined, { subscribe: true, forceRefetch: true }))
+        return oneMinFetch.unwrap()
+      })
+      .then(() =>
+      {
+        const initialTradeFetch = store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true }))
+        return initialTradeFetch.unwrap()
+      })
       .then((data) =>
       {
         setIsSystemHydrated(true);
         manageDynamicIntervalLoop()
-
         console.log("✅ RTK Query Global Prefetch: Store fully hydrated. Workspace unlocked.");
       })
       .catch((error) =>
       {
-
         console.error("❌ Critical RTK Query Root Ingestion Failure:", error);
         setPrefetchError(error.message || "Failed to load historical data.");
       });
-
 
 
 
