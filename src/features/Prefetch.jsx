@@ -114,7 +114,6 @@ function Prefetch()
           if (oneMinPollingClockRef.current) clearInterval(oneMinPollingClockRef.current)
           oneMinPollingClockRef.current = setInterval(() =>
           {
-            console.log('From inside morning power intervale')
             if (tradeSyncTimeoutRef.current) clearTimeout(tradeSyncTimeoutRef.current)
             tradeSyncTimeoutRef.current = setTimeout(() => { store.dispatch(EnginePlanPlanApiSlice.endpoints.fetchEngineTradeData.initiate(undefined, { subscribe: true, forceRefetch: true })) }, 45000)
           }, 60000)

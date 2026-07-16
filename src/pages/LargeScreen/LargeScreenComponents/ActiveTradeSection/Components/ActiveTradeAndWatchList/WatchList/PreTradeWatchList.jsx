@@ -7,6 +7,8 @@ import './WatchListStyles.css'
 import HighImportanceWatchListContainer from './Components/HighImportanceWatchListContainer'
 import WatchForTomorrowContainer from './Components/WatchForTomorrowContainer'
 import { isWeekend } from 'date-fns'
+import { useSelector } from 'react-redux'
+import { selectDeepDiscountByReviewedStatus } from '../../../../../../../features/Engine/EnginePlanApiSlice'
 
 function PreTradeWatchList()
 {
@@ -63,9 +65,13 @@ function PreTradeWatchList()
         }
     }
 
+
+
     return (
         <div id='LSH-PreTradeWatchAsList' onDoubleClick={() => { refetch(); refetchEnterExitPlan() }} >
             {provideWatchList()}
+
+
         </div >
     )
 }

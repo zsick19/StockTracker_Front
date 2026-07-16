@@ -3,6 +3,17 @@
   gap: 1rem;
 }
 
+#DiscountAndWatchList {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 45% 1fr;
+}
+
+
+
+
+
+
 #LSH-MacroWatchLists {
   width: 25%;
   height: 100%;

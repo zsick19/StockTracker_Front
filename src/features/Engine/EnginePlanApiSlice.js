@@ -63,10 +63,8 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         patternConfig = enterExit.plan.cascadePattern
                         baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(patternConfig, regularSessionCandles)
                     }
-                    patternConfig.maintainLiveCandles = enterExit.plan?.maintainLiveCandles === true
+                    patternConfig.maintainLiveCandles = enterExit.plan?.maintainLiveCandles || false
                     patternConfig.patternClassification = patternClassification
-
-
 
                     let planConfig = {}
                     planConfig.trackingDays = differenceInBusinessDays(new Date(), new Date(enterExit.plan.dateAdded))
@@ -113,6 +111,11 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     let optionsConfig = {}
                     optionsConfig = enterExit.plan?.optionsExpectedMoves || undefined
 
+                    let discountConfig = {}
+                    discountConfig.isReviewed = enterExit.plan.deepDiscounts.reviewed
+                    discountConfig.backTestedDiscounts = enterExit.plan.deepDiscounts.reviewed ? enterExit.plan.deepDiscounts.backTestedDiscounts : []
+
+
 
                     let tradeTapeConfig = {}
                     if (enterExit.tradeData) tradeTapeConfig.liveTapeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
@@ -145,6 +148,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         patternConfig,
                         optionsConfig,
                         metricConfig,
+                        discountConfig,
                         tradeTapeConfig,
                         currentPriceStats,
                         historicCandle: regularSessionCandles,
@@ -377,6 +381,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshCandleData } = await queryFulfilled;
+
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
@@ -396,10 +401,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             entityToUpdate.mostRecentPriceUpDown = lastCandle >= entityToUpdate.mostRecentPrice
                             entityToUpdate.mostRecentPrice = lastCandle
 
-
                             if (isBefore(new Date(), set(new Date(), { hours: 10, minutes: 30 })) || entityToUpdate.firstHourCandles.candles.length === 0)
                             {
-
+                                console.log('updating the first hour candles')
                                 let firstHourCandles = filterFirstHourSessionCandles(cleanCandlesToday)
 
                                 let firstHourHigh = firstHourCandles[0].HighPrice
@@ -446,36 +450,20 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 let candleUpdate = {
                                     candles: firstHourCandles,
                                     mostRecentCandle: firstHourCandles.at(-1),
-                                    metrics: {
-                                        high: firstHourHigh,
-                                        low: firstHourLow,
-                                        volume: firstHourVolume
-                                    },
-                                    peakMetrics: {
-                                        high: highToPeak,
-                                        low: lowToPeak,
-                                        volumeToPeak,
-                                        peakTime
-                                    },
-                                    bottomMetrics: {
-                                        high: highToBottom,
-                                        low: lowToBottom,
-                                        volumeToBottom,
-                                        bottomTime
-                                    },
+                                    metrics: { high: firstHourHigh, low: firstHourLow, volume: firstHourVolume },
+                                    peakMetrics: { high: highToPeak, low: lowToPeak, volumeToPeak, peakTime },
+                                    bottomMetrics: { high: highToBottom, low: lowToBottom, volumeToBottom, bottomTime },
                                     mostRecentPrice: lastCandle
                                 }
                                 entityToUpdate.firstHourCandles = candleUpdate
                             }
 
-
-
-                            if (draft.plans.entities[symbol].maintainLiveCandles || args.oneMinOrFivMinBars === 'regularSession')
+                            if (draft.plans.entities[symbol].patternConfig.maintainLiveCandles || args.oneMinOrFivMinBars === 'regularSession')
                             {
+
                                 draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
                             } else
                             {
-                                console.log('chunking 5 min candles')
                                 let chunked5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
                                 draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...chunked5MinCandles]
                             }
@@ -522,7 +510,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshCandleData } = await queryFulfilled;
-
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
@@ -613,7 +600,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                 }
                                 entityToUpdate.firstHourCandles = candleUpdate
                             }
-
 
 
                             draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
@@ -886,7 +872,6 @@ export const makeSelectPlansFirstHourCandlesByTicker = () =>
 
             } else
             {
-                console.log(planEntity.firstHourCandles.candles.length)
                 return planEntity.firstHourCandles
             }
         }
@@ -914,6 +899,16 @@ export const selectTodaysCandlesByTicker = createSelector(
 )
 
 
+export const selectDeepDiscountByReviewedStatus = createSelector(
+
+    [planSelectors.selectAll, (state, onlyNonReviewedPlans) => onlyNonReviewedPlans],
+    (stockEntities, onlyNonReviewedPlans) =>
+    {
+        if (onlyNonReviewedPlans) return stockEntities.filter(t => !t.discountConfig.isReviewed).map(t => { return { id: t.id, reviewed: t.discountConfig.isReviewed } })
+        else return stockEntities.map(t => { return { id: t.id, reviewed: t.discountConfig.isReviewed } })
+    }
+)
+
 
 
 
@@ -935,7 +930,8 @@ export const selectPlanForStaticDetails = () =>
                 metricConfig: planEntity.metricConfig,
                 stockInfo: planEntity.stockInfo,
                 optionsConfig: planEntity.optionsConfig,
-                snapShot: planEntity.snapShot
+                snapShot: planEntity.snapShot,
+                discountConfig: planEntity.discountConfig
             }
         }
     )
@@ -977,4 +973,5 @@ export const selectPlanAndPatternChartingBySymbol = createSelector(
             } : undefined
         }
     }
+
 )

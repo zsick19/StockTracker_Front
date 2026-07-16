@@ -256,9 +256,9 @@ export const StockDataApiSlice = apiSlice.injectEndpoints({
       query: (args) => ({
         url: `/stockData/dateRange/${args.ticker}`,
         method: "POST",
-        body: { timeFrameIncrement: args.timeFrameIncrement, start: args.startDate, end: args.endDate }
+        body: { timeFrameIncrement: args.timeFrameIncrement, daily: args?.dailyCandles || false, start: args.startDate, end: args.endDate }
       }),
-      validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+      validateStatus: (response, result) => { return response.status === 200 && !result.isError },
     }),
   }),
 });

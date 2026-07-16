@@ -15,6 +15,7 @@ import ZonesInputForm from "./Components/MacroKeyInputs/ZonesInputForm";
 import { WatchlistPriorityGrid } from "./Components/WatchListEngine/WatchlistPriorityGrid";
 import { ScoringTestHUD } from "./Components/WatchListEngine/ScoringTestHUD";
 import { selectDetailedScoreBreakDownBySymbol } from "../../../../features/Engine/EnginePlanApiSlice";
+import DiscountAndReview from "./Components/DeepDiscountControlVisual/DiscountAndReview";
 
 function MacroControlSection()
 {
@@ -74,32 +75,40 @@ function MacroControlSection()
     }
   }
 
-
   return (
     <section id="LSH-MacroSection">
-      <WatchlistPriorityGrid />
-      <div id="LSH-MacroWatchLists">
-        <MacroWatchListContainer setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />
-        {showAddWatchlist ? <div className="LSH-AddWatchListForm">
-          <form onSubmit={(e) => attemptAddingMacroWatchList(e)}>
-            <input type="text" ref={addWatchListTitle} />
-            <button><CirclePlus /></button>
-          </form>
-          <button onClick={() => setShowAddWatchlist(false)}>Cancel</button>
-        </div> :
-          <div className="LSH-MacroOptionControlButtons">
-            <button onClick={() => setShowMacroKeyLevelDisplay(2)}><ListOrdered color="white" size={16} /></button>
-            <button onClick={() => setShowMacroKeyLevelDisplay(1)}><ChartLine color="white" size={16} /></button>
-            <button onClick={() => setShowAddWatchlist(true)}><CirclePlus color="white" size={16} /></button>
-          </div>}
+
+      <div id="DiscountAndWatchList">
+        <DiscountAndReview />
+        <div className="LSH-MacroOptionControlButtons">
+          <button onClick={() => setShowMacroKeyLevelDisplay(2)}><ListOrdered color="white" size={16} /></button>
+          <button onClick={() => setShowMacroKeyLevelDisplay(1)}><ChartLine color="white" size={16} /></button>
+          <button onClick={() => setShowAddWatchlist(true)}><CirclePlus color="white" size={16} /></button>
+        </div>
+        {/* <div id="LSH-MacroWatchLists">
+          <MacroWatchListContainer setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />
+          {showAddWatchlist ? <div className="LSH-AddWatchListForm">
+            <form onSubmit={(e) => attemptAddingMacroWatchList(e)}>
+              <input type="text" ref={addWatchListTitle} />
+              <button><CirclePlus /></button>
+            </form>
+            <button onClick={() => setShowAddWatchlist(false)}>Cancel</button>
+          </div> :
+            }
+
+          <div>
+            {errorMessage}
+            <form className="macroSecondarySearchForm">
+              <input type="text" ref={secondarySearchTicker} />
+              <button type="button" onClick={(e) => handleSecondaryChartSearch(e)}>Second Chart</button>
+            </form>
+          </div>
+        </div> */}
 
         <div>
-          {errorMessage}
-          <form className="macroSecondarySearchForm">
-            <input type="text" ref={secondarySearchTicker} />
-            <button type="button" onClick={(e) => handleSecondaryChartSearch(e)}>Second Chart</button>
-          </form>
+          simulated watch list display
         </div>
+
       </div>
 
       <div id="LSH-MacroCharts">

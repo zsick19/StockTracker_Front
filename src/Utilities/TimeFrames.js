@@ -82,6 +82,63 @@ export function generateTradingHours(timeFrame, displayMarketHours)
   return timeRanges;
 }
 
+export function generateMarketTradingHoursBetweenTwoDates(startDate, endDate)
+{
+  const timeRanges = [];
+  let currentDate = new Date(startDate);
+
+  let today = new Date(endDate)
+
+  while (currentDate <= today)
+  {
+    if (isFriday(currentDate))
+    {
+      const marketCloseTime = new Date(currentDate)
+      marketCloseTime.setHours(16, 0, 0, 0)
+      const mondayOpenTime = addDays(new Date(currentDate), 3)
+      mondayOpenTime.setHours(9, 30, 0)
+      timeRanges.push([marketCloseTime.getTime(), mondayOpenTime.getTime()])
+    } else if (!isSaturday(currentDate) && !isSunday(currentDate))
+    {
+      const marketCloseTime = new Date(currentDate);
+      marketCloseTime.setHours(16, 0, 0, 0);
+      const nextDayMarketOpenTime = add(new Date(currentDate), { days: 1 })
+      nextDayMarketOpenTime.setHours(9, 30)
+
+      timeRanges.push([marketCloseTime.getTime(), nextDayMarketOpenTime.getTime()]);
+    }
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return timeRanges;
+}
+
+export function generateIntraDayTickMarksBetweenTwoDates(startDate, endDate)
+{
+  const timeStamps = []
+  let currentDate = new Date(startDate)
+  let today = new Date(endDate)
+
+  while (currentDate <= today)
+  {
+    if (!isSaturday(currentDate) && !isSunday(currentDate))
+    {
+      timeStamps.push(new Date(currentDate).setHours(9, 30))
+    } else if (!isSaturday(currentDate) && !isSunday(currentDate))
+    {
+      timeStamps.push(new Date(currentDate).setHours(4))
+      timeStamps.push(new Date(currentDate).setHours(9, 30))
+      timeStamps.push(new Date(currentDate).setHours(16))
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  return timeStamps;
+}
+
+
+
+
 
 export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
 {
@@ -130,6 +187,11 @@ export function getBreaksBetweenDates(startDate, endDate, breakPeriod)
 
   return timeBreaks;
 }
+
+
+
+
+
 
 export function provideStartAndEndDatesForDateScale(timeFrame, focusDates)
 {

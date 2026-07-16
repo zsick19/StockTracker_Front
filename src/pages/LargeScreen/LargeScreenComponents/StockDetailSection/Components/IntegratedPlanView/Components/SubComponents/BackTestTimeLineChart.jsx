@@ -3,17 +3,17 @@ import { useResizeObserver } from '../../../../../../../../hooks/useResizeObserv
 import { axisBottom, extent, max, scaleLinear, scaleSqrt, scaleTime, select, selectAll, timeWeeks } from 'd3'
 import { discontinuitySkipUtcWeekends, discontinuitySkipWeekends, scaleDiscontinuous } from '@d3fc/d3fc-discontinuous-scale'
 
-function BackTestTimeLineChart({ backTests, relevantCandleDate, entry, exit, stopLoss, entryPriceDisplay, setPatternOrStockChart })
+function BackTestTimeLineChart({ backTests, relevantCandleDate, entry, exit, stopLoss, entryPriceDisplay, setPatternOrStockChart, backTestAverage, hideText })
 {
-
     const timeLineRef = useRef()
     const timeLineWrapper = useRef(null)
     const timeLineDimensions = useResizeObserver(timeLineWrapper)
 
     const preDimensionsAndData = () => { return !timeLineDimensions }
-
-
     const weekTicks = timeWeeks(new Date(relevantCandleDate), new Date())
+
+
+
     useEffect(() =>
     {
         if (preDimensionsAndData()) return
@@ -23,17 +23,14 @@ function BackTestTimeLineChart({ backTests, relevantCandleDate, entry, exit, sto
         timeLineSVG.select('.timeAxis').selectAll('*').remove()
         timeLineSVG.select('.painGain').selectAll('*').remove()
         timeLineSVG.select('.price').selectAll('*').remove()
+        timeLineSVG.select('.printOuts').selectAll('*').remove()
 
-
-        const toolTip = select("body").append("div").style("position", "absolute")
-            .style("visibility", "hidden").style("background-color", "rgba(0, 0, 0, 0.8)")
-            .style("color", "#fff").style("padding", "8px").style("border-radius", "4px")
-            .style("font-size", "12px").style("pointer-events", "none")
 
         const xScale = scaleDiscontinuous(scaleTime()).discontinuityProvider(discontinuitySkipUtcWeekends()).domain([new Date(relevantCandleDate), new Date()]).range([0, timeLineDimensions.width])
         const radiusScale = scaleSqrt().domain(extent(backTests, d => d.details.holdDays)).range([4, 10])
 
         const scaleHeight = Math.max(max(backTests, d => d.pain.maxPain), max(backTests, d => d.gain.maxGain))
+
         const yScale = scaleLinear().domain([-scaleHeight * 1.25, scaleHeight * 1.25]).range([0, timeLineDimensions.height])
 
 
@@ -45,8 +42,11 @@ function BackTestTimeLineChart({ backTests, relevantCandleDate, entry, exit, sto
             .attr('stroke', d => d.details.wasStopHit ? 'red' : 'green').attr("stroke-width", 2)
             .on('mouseover', function (e, d)
             {
-                toolTip.style('visibility', 'visible')
-                    .html(`
+                const toolTip = select("body").append("div").attr('class', 'toolTipBackTest').style("position", "absolute")
+                    .style("background-color", "rgba(0, 0, 0, 0.8)").style("color", "#fff").style("padding", "8px").style("border-radius", "4px")
+                    .style("font-size", "12px").style("pointer-events", "none")
+
+                toolTip.html(`
                         <p>Hold: ${d.details.holdDays}</p> 
                         <p>Gain: $${d.gain.maxGain}</p> 
                         <p>Pain: $${d.pain.maxPain}</p>                        
@@ -54,17 +54,8 @@ function BackTestTimeLineChart({ backTests, relevantCandleDate, entry, exit, sto
                     .style('top', (e.pageY + 5) + "px")
                     .style('left', (e.pageX + 5) + "px")
             })
-            .on("mousemove", function (e)
-            {
-                toolTip.style('visibility', 'visible')
-                    .style('top', (e.pageY + 5) + "px")
-                    .style('left', (e.pageX + 5) + "px")
-
-            })
-            .on("mouseout", function ()
-            {
-                toolTip.style("visibility", "hidden");
-            })
+            .on("mousemove", function (e) { select('body').select('.toolTipBackTest').style('top', (e.pageY + 5) + "px").style('left', (e.pageX + 5) + "px") })
+            .on("mouseout", function () { select("body").selectAll('.toolTipBackTest').remove() })
             .on('mousedown', (e, d) => setPatternOrStockChart(prev =>
             {
                 return {
@@ -83,6 +74,8 @@ function BackTestTimeLineChart({ backTests, relevantCandleDate, entry, exit, sto
 
         const exitPixel = yScale(Math.floor(1000 / entry) * (exit - entry))
         const stopLossPixel = yScale(Math.floor(1000 / entry) * (entry - stopLoss))
+
+
 
         timeLineSVG.select('.price').append('line')
             .attr('x1', 0).attr('x2', timeLineDimensions.width)
@@ -107,7 +100,19 @@ function BackTestTimeLineChart({ backTests, relevantCandleDate, entry, exit, sto
             .attr('stroke', 'red').attr('stroke-width', 4).attr('stroke-linecap', 'round')
 
 
+        backTests.length > 0 && !hideText &&
+            timeLineSVG.select('.printOuts').append('text')
+                .text(`Exit Line $${backTestAverage.positionReward} // Stop Line $${backTestAverage.positionRisk}
+            //  Max Gain: $${backTestAverage.patternMaxGain} at $${backTestAverage.highestPatternValue.toFixed(2)}
+            //  Max Pain: -$${backTestAverage.patternMaxPain} at $${backTestAverage.lowestPatternValue.toFixed(2)}
+            //  Average Gain ${backTestAverage.averageGainPercent}% vs Average Pain ${backTestAverage.averagePainPercent}% from $${entry.toFixed(2)} Entry
+            `).attr('x', 25).attr('y', timeLineDimensions.height - 10).style("fill", "white").style("font-size", "12px")
 
+        return (() =>
+        {
+
+            select("body").selectAll('.toolTipBackTest').remove()
+        })
 
     }, [timeLineDimensions, backTests])
 
@@ -122,8 +127,8 @@ function BackTestTimeLineChart({ backTests, relevantCandleDate, entry, exit, sto
 
 
     return (
-        <div ref={timeLineWrapper} style={{ border: `3px solid ${entryPriceDisplay ? 'blue' : 'orange'}` }}>
-            <svg ref={timeLineRef} style={{ width: '100%', height: '100px', backgroundColor: 'black' }} >
+        <div ref={timeLineWrapper} className='BackTestTimeLineWrapper' style={{ border: `3px solid ${entryPriceDisplay ? 'blue' : 'orange'}` }}>
+            <svg ref={timeLineRef} style={{ width: '100%', backgroundColor: 'black' }} >
                 <div className='info'
                     style={{ position: 'absolute', pointerEvents: 'none', zIndex: '100', visibility: 'hidden', color: 'white', fontSize: '10', backgroundColor: 'blue', height: '30', width: '30' }} >
                 </div>
@@ -131,6 +136,7 @@ function BackTestTimeLineChart({ backTests, relevantCandleDate, entry, exit, sto
                 <g className='backTests' />
                 <g className='painGain' />
                 <g className='price' />
+                <g className='printOuts' />
             </svg>
         </div>
     )

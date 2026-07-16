@@ -1,0 +1,63 @@
+#DiscountAndReview {
+  height: 700px;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  width: 250px;
+  gap: 1rem;
+}
+
+#DeepDiscountAlertHUD > div:first-of-type,
+.SingleDiscountAlert {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  text-align: center;
+  font-size: var(--fs-200);
+}
+
+.SingleDiscountAlert {
+  margin: 5px;
+  background-color: aqua;
+  border-radius: 5px;
+}
+
+#DeepDiscountAlertHUD > div:first-of-type {
+  background-color: gray;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+#DeepDiscountAlertHUD,
+#DiscountReviewStatus {
+  background-color: rgb(64, 64, 73);
+  border-radius: 10px;
+}
+
+#DiscountReviewStatus > div:first-of-type,
+.singleDeepDiscountStatus {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  text-align: center;
+}
+
+.singleDeepDiscountStatus {
+  font-size: var(--fs-100);
+}
+
+#DeepDiscountStatusList div:nth-child(even) {
+  background-color: rgb(50, 52, 53);
+}
+
+.singleDeepDiscountStatus:hover {
+  cursor: pointer; /* Changes the mouse arrow to a clickable hand icon */
+}
+
+#DiscountReviewStatus > div:first-of-type {
+  background-color: gray;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+#DiscountReviewStatus > div:last-of-type {
+  height: 275px;
+  overflow-y: scroll;
+}

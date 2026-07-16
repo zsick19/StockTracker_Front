@@ -1,0 +1,44 @@
+import React, { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
+import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
+import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
+import DailyChartWithStartToToday from './DailyChartWithStartToToday'
+
+function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndDate, pricePoints })
+{
+
+    const dispatch = useDispatch()
+
+    useEffect(() =>
+    {
+        if (uuid)
+        {
+            dispatch(setInitialGraphControl({ uuid }))
+            // dispatch(setInitialGraphStudyControl({ uuid }))
+            dispatch(setInitialGraphToSubGraphCrossHair({ uuid }))
+            dispatch(setInitialGraphHoursControl({ uuid }))
+            // dispatch(setInitialGraphVisibility({ uuid }))
+        }
+
+        return (() =>
+        {
+            if (uuid)
+            {
+                dispatch(clearGraphControl({ uuid }))
+                // dispatch(setInitialGraphStudyControl({ uuid }))
+                dispatch(clearGraphToSubGraphCrossHair({ uuid }))
+                dispatch(clearGraphHoursControl({ uuid }))
+                // dispatch(clearGraphVisibility({ uuid }))
+            }
+        })
+    }, [])
+
+    return (
+        <DailyChartWithStartToToday ticker={ticker} candleData={candleData}
+            uuid={uuid} chartStartDate={chartStartDate} isZoomAble={true} pricePoints={pricePoints}
+        />
+    )
+}
+
+export default DailyChartWrapper

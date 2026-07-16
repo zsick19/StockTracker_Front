@@ -1,0 +1,66 @@
+#DeepDiscount {
+  display: grid;
+  grid-template-rows: 1fr 250px 100px;
+  height: 100%;
+  gap: 1rem;
+}
+
+#CurrentChartAndBackTest {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#CurrentChartAndBackTest > #EntryPainGainChartWrapper {
+  flex: 1;
+}
+
+/* #CurrentChartAndBackTest > div:first-of-type {
+  flex: 1;
+} */
+
+#CurrentDeepDiscountBuild {
+  font-size: var(--fs-100);
+  display: grid;
+  grid-template-columns: 20% 1fr 10%;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 0.5rem;
+}
+
+/* #CurrentDeepDiscountBuild > div {
+  background-color: black;
+} */
+
+#DiscountActionControls {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-content: center;
+  align-items: center;
+}
+
+#DiscountActionControls > form {
+  display: flex;
+  flex-direction: column;
+}
+
+#DiscountActionControls > form input {
+  width: 50px;
+  text-align: center;
+  height: 30px;
+}
+
+#DeepDiscountParams {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: space-around;
+}
+
+#DiscountSelectionButtons {
+  padding: 0.5rem;
+  border: 1px solid white;
+  border-radius: 5px;
+  background-color: rgb(54, 56, 82);
+}

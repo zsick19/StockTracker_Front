@@ -1,5 +1,4 @@
 import React from 'react'
-import BaseScoreCard from '../ScoreCards/BaseScoreCard'
 import { AuditSectionLedgerContainer } from '../ScoreCards/AuditSectionLedgerContainer'
 import { useSelector } from 'react-redux'
 import { selectDetailedScoreBreakDownBySymbol } from '../../../../../../../../features/Engine/EnginePlanApiSlice'
@@ -25,7 +24,7 @@ function ScoreBreakDown({ plan, scoreCardView, setScoreCardView })
 
     return (
         <div id='ScoreCardVisual'>
-            {provideCurrentScoreCardView()}
+            {auditLedger ? provideCurrentScoreCardView() : <div>Error gathering auditLedger </div>}
             <div>
                 <button onClick={() => setScoreCardView(0)}>Over All</button>
                 <button onClick={() => setScoreCardView(1)}>Base Score</button>

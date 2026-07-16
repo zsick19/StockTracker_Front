@@ -40,10 +40,8 @@ function FirstHourReview({ plan })
 
     console.log(openHourCandles.length)
 
-    const isUpMorning = firstHourCandles.mostRecentPrice ?
-        firstHourCandles.mostRecentPrice > firstHourCandles.candles[0].OpenPrice :
-        firstHourCandles.candles[0]?.OpenPrice ?
-            firstHourCandles.mostRecentCandle.ClosePrice > firstHourCandles.candles[0].OpenPrice : true
+    const isUpMorning = firstHourCandles.mostRecentPrice ? firstHourCandles.mostRecentPrice > firstHourCandles.candles[0].OpenPrice :
+        firstHourCandles.candles[0]?.OpenPrice ? firstHourCandles.mostRecentCandle.ClosePrice > firstHourCandles.candles[0].OpenPrice : true
 
 
     const peakMetrics = firstHourCandles.peakMetrics
