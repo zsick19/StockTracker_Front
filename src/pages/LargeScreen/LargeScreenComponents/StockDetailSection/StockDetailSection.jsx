@@ -23,6 +23,7 @@ import SectorPlanView from './Components/SectorPlanView/SectorPlanView';
 import FinalPreTradeCheck from './Components/FinalPreTradeCheck/FinalPreTradeCheck';
 import IntegratedPlanView from './Components/IntegratedPlanView/IntegratedPlanView';
 import DeepDiscount from './Components/DeepDiscounts/DeepDiscount';
+import DeepDiscountTradeView from './Components/DeepDiscountTradeView/DeepDiscountTradeView';
 
 function StockDetailSection()
 {
@@ -65,6 +66,7 @@ function StockDetailSection()
       case 20: return <FinalPreTradeCheck />
       case 21: return <IntegratedPlanView tickerSymbol={currentStockDetail.ticker} />
       case 22: return <DeepDiscount tickerSymbol={currentStockDetail.ticker} />
+      case 23: return <DeepDiscountTradeView tickerSymbol={currentStockDetail.ticker} />
     }
   }
 

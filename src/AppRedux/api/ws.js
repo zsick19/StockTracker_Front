@@ -11,7 +11,8 @@ let listeners = {
     'activeTradePrice': [],
     'macroWatchListUpdate': [],
     'singleLiveChart': [],
-    'engineLivePrice': []
+    'engineLivePrice': [],
+    'quoteLivePrice':[]
 }
 let ws;
 let store;
@@ -38,6 +39,7 @@ export const setupWebSocket = () =>
                         store.dispatch(removeQuickAlert(payload))
                     }, 3000);
                 }
+                if (eventName === 'quoteStream') console.log(payload)
             })
 
             ws.on('disconnect', () =>

@@ -24,6 +24,8 @@ import priceAlertControlReducers from '../features/PriceAlerts/PriceAlertControl
 import preTradeCheckReducers from '../features/Trades/PreTradeCheckSlice'
 import sessionClockReducers from '../features/Scheduling/sessionClockSlice'
 import { injectStore } from "./api/ws";
+import { deepDiscountSentryListener } from "../features/DeepDiscountEngine/DeepDiscountListenerSlice";
+import interceptSentrySliceReducers from '../features/DeepDiscountEngine/DeepDiscountLocalSlice'
 
 export const store = configureStore({
   reducer: {
@@ -47,6 +49,7 @@ export const store = configureStore({
     priceAlertControl: priceAlertControlReducers,
     preTradeCheck: preTradeCheckReducers,
     sessionClock: sessionClockReducers,
+    interceptSentrySlice: interceptSentrySliceReducers,
     auth: authReducer,
     test: testReducer,
 
@@ -55,7 +58,9 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
       immutableCheck: false,
-    }).concat(apiSlice.middleware),
+    })
+      .prepend(deepDiscountSentryListener.middleware)
+      .concat(apiSlice.middleware),
   devTools: true,
 });
 

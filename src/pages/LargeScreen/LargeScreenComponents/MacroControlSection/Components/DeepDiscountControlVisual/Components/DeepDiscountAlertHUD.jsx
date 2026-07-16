@@ -1,12 +1,14 @@
 import React from 'react'
+import { useDispatch } from 'react-redux'
+import { setStockDetailStateWithTicker } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 
 function DeepDiscountAlertHUD()
 {
+    const dispatch = useDispatch()
+
     const sample = [
-        { ticker: 'ABC', window: '3mins', level: 3, spread: 2 },
-        { ticker: 'ABC', window: '3mins', level: 2, spread: 2 },
-        { ticker: 'ABC', window: '3mins', level: 1, spread: 2 },
-        { ticker: 'ABC', window: '3mins', level: 3, spread: 2 },
+        { ticker: 'ALT', window: '3mins', level: 3, spread: 2 },
+        { ticker: 'ABEV', window: '3mins', level: 2, spread: 2 },
     ]
 
     return (
@@ -18,7 +20,7 @@ function DeepDiscountAlertHUD()
                 <p>Spread</p>
             </div>
             <div className='hide-Scrollbar' id='DiscountAlertList'>
-                {sample.map((t, i) => <div className='SingleDiscountAlert'>
+                {sample.map((t, i) => <div className='SingleDiscountAlert' onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 23, ticker: t.ticker }))}>
                     <p>{t.ticker}</p>
                     <p>{t.window}</p>
                     <p>{t.level}</p>
