@@ -77,6 +77,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     planConfig.greatestCorrelation = enterExit.plan.greatestCorrelation
                     planConfig.spyBetaValue = enterExit.plan.dailyTickerValues.spyBetaValue || 1
                     planConfig.dailyCalculatedValues = enterExit.plan.dailyTickerValues
+                    planConfig.planId = enterExit.plan._id
                     planConfig.backTestedValues = {
                         entryPrice: enterExit.plan.relevantDateBackTests,
                         floorPrice: enterExit.plan.relevantDateBackTestsUsingFloor
@@ -111,9 +112,26 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     let optionsConfig = {}
                     optionsConfig = enterExit.plan?.optionsExpectedMoves || undefined
 
+
+
+
                     let discountConfig = {}
-                    discountConfig.isReviewed = enterExit.plan.deepDiscounts.reviewed
-                    discountConfig.backTestedDiscounts = enterExit.plan.deepDiscounts.reviewed ? enterExit.plan.deepDiscounts.backTestedDiscounts : []
+                    discountConfig.isReviewed = enterExit.plan.deepDiscounts?.dateReviewed ?
+                        differenceInBusinessDays(new Date(), enterExit.plan.deepDiscounts?.dateReviewed) < 5 ? true : false : false
+
+                    discountConfig.aboveStopLoss = enterExit.plan?.deepDiscounts?.aboveStopLoss
+                    discountConfig.belowStopLoss = enterExit.plan?.deepDiscounts?.belowStopLoss
+                    discountConfig.aboveMaxPain = enterExit.plan?.deepDiscounts?.aboveMaxPain
+
+                    discountConfig.dateReviewed = enterExit.plan.deepDiscounts?.dateReviewed
+
+                    discountConfig.prices = [enterExit.plan?.deepDiscounts?.aboveStopLoss?.price || 0,
+                    enterExit.plan?.deepDiscounts?.belowStopLoss?.price || 0,
+                    enterExit.plan?.deepDiscounts?.aboveMaxPain?.price || 0
+                    ]
+
+                    discountConfig.includesDiscount = Math.max(...discountConfig.prices)
+                    //provides 0 for no discounts set or the first discount to compare a live price against
 
 
 
@@ -904,7 +922,11 @@ export const selectDeepDiscountByReviewedStatus = createSelector(
     [planSelectors.selectAll, (state, onlyNonReviewedPlans) => onlyNonReviewedPlans],
     (stockEntities, onlyNonReviewedPlans) =>
     {
-        if (onlyNonReviewedPlans) return stockEntities.filter(t => !t.discountConfig.isReviewed).map(t => { return { id: t.id, reviewed: t.discountConfig.isReviewed } })
+        if (onlyNonReviewedPlans) return stockEntities.filter(t => !t.discountConfig.isReviewed).map(t =>
+        {
+            console.log(t.discountConfig)
+            return { id: t.id, reviewed: t.discountConfig.isReviewed }
+        })
         else return stockEntities.map(t => { return { id: t.id, reviewed: t.discountConfig.isReviewed } })
     }
 )

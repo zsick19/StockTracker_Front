@@ -1,53 +1,70 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import './DeepDiscountTradeView.css'
-import { usePopulateInitialDeepDiscountEngineQuery } from '../../../../../../features/DeepDiscountEngine/EngineDeepDiscountApiSlice'
+import { useClearDeepDiscountEngineLiveDataMutation, usePopulateInitialDeepDiscountEngineQuery } from '../../../../../../features/DeepDiscountEngine/EngineDeepDiscountApiSlice'
 import { format } from 'date-fns'
 import BidAskSpreadChart from './Components/BidAskSpreadChart'
-import { useSelector } from 'react-redux'
-import { deepInterceptionAdapter } from '../../../../../../features/DeepDiscountEngine/DeepDiscountLocalSlice'
+import { shallowEqual, useSelector } from 'react-redux'
+import { deepInterceptionAdapter, selectDeepDiscountWatchById } from '../../../../../../features/DeepDiscountEngine/DeepDiscountLocalSlice'
 import TradeHistory from './Components/TradeHistory'
 import { synthesizeTapeVelocityMetrics } from './Calculations/synthesizeTapeVelocityMetrics'
 import { SpreadElasticityRollingChart } from './Components/SpreadElasticityRollingChart'
 import { TradeVelocityScatterPlot } from './Components/TradeVelocityScatterPlot'
+import { selectPlanForStaticDetails } from '../../../../../../features/Engine/EnginePlanApiSlice'
+import IntegratedPlanChartWrapper from '../IntegratedPlanView/Components/IntegratedPlanChartWrapper'
 
 
-const { selectById } = deepInterceptionAdapter.getSelectors((state) => state.interceptSentrySlice)
 function DeepDiscountTradeView({ tickerSymbol })
 {
 
-    const liveAssetDataNode = useSelector((state) => selectById(state, tickerSymbol));
-    const latestAskBid = liveAssetDataNode.latestAskBid
+    const selectStaticFieldsInstance = useMemo(selectPlanForStaticDetails, [])
+    const selectedPlannedTicker = useSelector((state) => selectStaticFieldsInstance(state, tickerSymbol), shallowEqual);
 
-    const results = synthesizeTapeVelocityMetrics(liveAssetDataNode.tradeHistory, liveAssetDataNode.quotesHistory, liveAssetDataNode.latestAskBid.BidSize, liveAssetDataNode.latestAskBid.AskSize)
+    const [clearDeepDiscountEngineLiveData] = useClearDeepDiscountEngineLiveDataMutation()
+    async function attemptClearDeepDiscount()
+    {
+        try
+        {
+            const results = await clearDeepDiscountEngineLiveData({ tickerSymbol: tickerSymbol }).unwrap()
+            console.log('cleared')
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
+    const liveAssetDataNode = useSelector((state) => selectDeepDiscountWatchById(state, tickerSymbol));
+    const latestAskBid = liveAssetDataNode?.latestAskBid
+    const results = synthesizeTapeVelocityMetrics(liveAssetDataNode?.tradeHistory, liveAssetDataNode?.quotesHistory, liveAssetDataNode?.latestAskBid.BidSize, liveAssetDataNode?.latestAskBid.AskSize)
+
+
+
+
 
     return (
         <div id='DeepDiscountTradeView'>
-            <div>
-                <p>Volume: {results.volumetricBias}</p>
-                <p>Spread Status: {results.spreadStatus}</p>
-                <p>Order Book Pressure: {results.bookPressure}</p>
-                <p>Is Tide Turning: {results.isTideTurning ? 'Yes' : 'No'}</p>
+
+            <div id='ChartAndResultActions'>
+                <IntegratedPlanChartWrapper plan={selectedPlannedTicker} />
+                <div>
+                    <p>Volume: {results.volumetricBias}</p>
+                    <p>Spread Status: {results.spreadStatus}</p>
+                    <p>Order Book Pressure: {results.bookPressure}</p>
+                    <p>Is Tide Turning: {results.isTideTurning ? 'Yes' : 'No'}</p>
+                </div>
             </div>
 
-            <h2>Latest Quote</h2>
+
+
+
             <div className='flex'>
-                <div>
-                    <p>Ask ${latestAskBid.AskPrice}</p>
-                    <p>{latestAskBid.AskSize}</p>
-                </div>
-                <div >
-                    <p>Bid ${latestAskBid.BidPrice}</p>
-                    <p>{latestAskBid.BidSize}</p>
-                </div>
+                <SpreadElasticityRollingChart tickerSymbol={tickerSymbol} rawQuoteHistory={liveAssetDataNode.quotesHistory} currentSpread={latestAskBid} />
+                <BidAskSpreadChart quotesHistory={liveAssetDataNode.quotesHistory} />
             </div>
             <br />
             <div className='flex'>
-                <BidAskSpreadChart quotesHistory={liveAssetDataNode.quotesHistory} />
+                <TradeVelocityScatterPlot tickerSymbol={tickerSymbol} tradesHistory={liveAssetDataNode.tradeHistory} />
                 <TradeHistory tradeHistory={liveAssetDataNode.tradeHistory} />
             </div>
-
-            <SpreadElasticityRollingChart tickerSymbol={tickerSymbol} rawQuoteHistory={liveAssetDataNode.quotesHistory} currentSpread={latestAskBid} />
-            <TradeVelocityScatterPlot tickerSymbol={tickerSymbol} tradesHistory={liveAssetDataNode.tradeHistory} />
         </div>
     )
 }

@@ -8,13 +8,47 @@ export const deepInterceptionAdapter = createEntityAdapter({
 });
 
 const interceptSentrySlice = createSlice({
-    name: 'interceptSentry',
-    initialState: deepInterceptionAdapter.getInitialState({
-        // Optional global tracking states can be added here
-    }),
+    name: 'interceptSentrySlice',
+    // Optional global tracking states can be added here
+    initialState: deepInterceptionAdapter.getInitialState({}),
     reducers: {
-        // ✅ THE CORRECT PRODUCTION CACHE INGESTION REDUCER
-        // Triggered via dispatch from inside your mutation lifecycle to avoid errors
+        initiateDeepDiscountWatch: (state, action) =>
+        {
+            const { tickerSymbol, discountLevel } = action.payload;
+
+            if (!state.ids.includes(tickerSymbol))
+            {
+                deepInterceptionAdapter.addOne(state, {
+                    tickerSymbol,
+                    dailyCandles: [],
+                    currentSpread: 0,
+                    quotesHistory: [],
+                    tradeHistory: [],
+                    discountLevel,
+                    latestAskBid: { BidSize: 10, BidPrice: 10, AskSize: 0, AskPrice: 0 },
+                    muted: undefined,
+                    timeAdded: new Date()
+                })
+            }
+        },
+        updateDeepDiscountWatch: (state, action) =>
+        {
+            const { tickerSymbol } = action.payload
+            const existingNode = state.entities[tickerSymbol]
+            existingNode.discountLevel = action.payload.discountLevel
+        },
+        muteDeepDiscountWatch: (state, action) =>
+        {
+            const { tickerSymbol } = action.payload
+            const existingNode = state.entities[tickerSymbol]
+            existingNode.muted = new Date()
+        },
+        removeDeepDiscountWatch: (state, action) =>
+        {
+            const { tickerSymbol } = action.payload
+            deepInterceptionAdapter.removeOne(state, tickerSymbol)
+
+        },
         appendDailyCandles: (state, action) =>
         {
             const { tickerSymbol, dailyCandleData } = action.payload;
@@ -23,15 +57,15 @@ const interceptSentrySlice = createSlice({
 
             if (!existingNode)
             {
-                // Initialize an autonomous entity profile row on frame zero if missing
                 deepInterceptionAdapter.addOne(state, {
                     tickerSymbol,
                     dailyCandles: dailyCandleData,
                     currentSpread: undefined,
                     quotesHistory: [],
                     tradeHistory: [],
-                    latestAskBid: { BidSize: 0, BidPrice: 0, AskSize: 0, AskPrice: 0 }
-
+                    latestAskBid: { BidSize: 0, BidPrice: 0, AskSize: 0, AskPrice: 0 },
+                    muted: undefined,
+                    timeAdded: new Date()
                 });
             } else { existingNode.dailyCandles = dailyCandleData }
 
@@ -43,34 +77,20 @@ const interceptSentrySlice = createSlice({
             const existingNode = state.entities[tickerSymbol];
 
             if (!existingNode) return
-            // {
-            //     // Initialize an autonomous entity profile row on frame zero if missing
-            //     deepInterceptionAdapter.addOne(state, {
-            //         tickerSymbol,
-            //         dailyCandles: [],
-            //         currentSpread,
-            //         quotesHistory: [{ spread: currentSpread, time: tickEpoch }],
-            //         tradeHistory: []
-            //     });
-            // } else
-            // {
-            // Append high-velocity data points directly to your rolling memory matrix
             existingNode.currentSpread = currentSpread;
-            existingNode.quotesHistory.push({ spread: currentSpread, time: tickEpoch });
+            existingNode.quotesHistory.push({ spread: currentSpread, time: tickEpoch, BidPrice, BidSize, AskPrice, AskSize });
 
             // Self-cleaning time fence: instantly cull points older than 5 minutes
             const fiveMinutesAgo = tickEpoch - (5 * 60 * 1000);
             existingNode.quotesHistory = existingNode.quotesHistory.filter(q => q.time >= fiveMinutesAgo);
             existingNode.latestAskBid = { BidSize: BidSize, BidPrice: BidPrice, AskSize: AskSize, AskPrice: AskPrice }
-
         },
         appendInterceptTradeTick: (state, action) =>
         {
             const { tickerSymbol, trade } = action.payload
-            const existingNode = state.entities[tickerSymbol];
 
+            const existingNode = state.entities[trade.Symbol];
             if (!existingNode || existingNode.tickerSymbol !== trade.Symbol) return
-            console.log(existingNode.tickerSymbol, trade.Symbol)
 
             existingNode.tradeHistory.push(trade)
             existingNode.tradeHistory = existingNode.tradeHistory.filter(q => isAfter(q.Timestamp, subMinutes(new Date(), 3)));
@@ -78,5 +98,11 @@ const interceptSentrySlice = createSlice({
     }
 });
 
-export const { appendInterceptQuoteTick, appendDailyCandles, appendInterceptTradeTick } = interceptSentrySlice.actions;
+export const { initiateDeepDiscountWatch, muteDeepDiscountWatch, updateDeepDiscountWatch, removeDeepDiscountWatch, appendInterceptQuoteTick, appendDailyCandles, appendInterceptTradeTick } = interceptSentrySlice.actions;
 export default interceptSentrySlice.reducer;
+
+const deepInterceptionAdapterSelectors = deepInterceptionAdapter.getSelectors()
+
+
+export const selectAllDeepDiscountWatches = (state) => deepInterceptionAdapter.getSelectors().selectAll(state.interceptSentrySlice)
+export const selectDeepDiscountWatchById = (state, ticker) => deepInterceptionAdapterSelectors.selectById(state.interceptSentrySlice, ticker)

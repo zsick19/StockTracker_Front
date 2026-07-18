@@ -1,4 +1,13 @@
 #DeepDiscountTradeView {
   border: 1px solid white;
   height: 100%;
+  display: grid;
+  grid-template-rows: 50% 1fr;
+  gap: 1rem;
 }
+
+#ChartAndResultActions {
+  display: grid;
+  grid-template-columns: 70% 1fr;
+}
+

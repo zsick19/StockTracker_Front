@@ -7,7 +7,7 @@ import { getBreaksBetweenDates } from '../../Utilities/TimeFrames'
 import { pixelBuffer } from './GraphChartConstants'
 import { useDispatch } from 'react-redux'
 
-function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartDate, pricePoints, uuid, isZoomAble })
+function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartDate, pricePoints, uuid, isZoomAble, currentDiscount, discountPrices })
 {
     const dispatch = useDispatch()
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
@@ -319,6 +319,58 @@ function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartD
     }, [ticker, pricePoints, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
 
 
+    //plot any plan/pattern extracted values
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck() || !discountPrices) return
+
+        const discountSelect = stockCandleSVG.select('.discountPriceLevels')
+
+        discountSelect.selectAll('line').remove()
+        discountSelect.selectAll('rect').remove()
+        discountSelect.selectAll('text').remove()
+
+        if (currentDiscount === 'Above Stop' && discountPrices.aboveStopLoss)
+        {
+            const entryPricePixel = createPriceScale({ priceToPixel: discountPrices.aboveStopLoss })
+            discountSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', entryPricePixel).attr('y2', entryPricePixel)
+                .attr('stroke', 'blue').attr('stroke-dasharray', '5 5')
+
+            discountSelect.append('text').attr('class', 'keyLevelSubText')
+                .text(`Above Stop $${discountPrices.aboveStopLoss.toFixed(3)}`)
+                .attr('x', 20).attr('y', entryPricePixel).attr('dy', -7)
+        }
+        if (currentDiscount === 'Below Stop' && discountPrices.belowStopLoss)
+        {
+            const entryPricePixel = createPriceScale({ priceToPixel: discountPrices.belowStopLoss })
+            discountSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', entryPricePixel).attr('y2', entryPricePixel)
+                .attr('stroke', 'orange').attr('stroke-dasharray', '5 5')
+
+            discountSelect.append('text').attr('class', 'keyLevelSubText')
+                .text(`Below Stop $${discountPrices.belowStopLoss.toFixed(3)}`)
+                .attr('x', 20).attr('y', entryPricePixel).attr('dy', -7)
+        }
+        if (currentDiscount === 'Above Max Pain' && discountPrices.aboveMaxPain)
+        {
+            const entryPricePixel = createPriceScale({ priceToPixel: discountPrices.aboveMaxPain })
+            discountSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', entryPricePixel).attr('y2', entryPricePixel)
+                .attr('stroke', 'red').attr('stroke-dasharray', '5 5')
+
+            discountSelect.append('text').attr('class', 'keyLevelSubText')
+                .text(`Above Max Pain $${discountPrices.aboveMaxPain.toFixed(3)}`)
+                .attr('x', 20).attr('y', entryPricePixel).attr('dy', -7)
+        }
+
+
+
+    }, [ticker, currentDiscount, discountPrices, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
+
 
 
 
@@ -423,6 +475,7 @@ function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartD
                     <g className='x-axis' />
                     <g className='visualDateBreaks' />
                     <g className='patternPriceLevels' />
+                    <g className='discountPriceLevels' />
                     <g className='lowVolumeNodes' />
                     <g className='highVolumeNodes' />
                     <g className='keyLevels' />

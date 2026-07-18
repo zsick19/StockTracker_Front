@@ -12,7 +12,7 @@ let listeners = {
     'macroWatchListUpdate': [],
     'singleLiveChart': [],
     'engineLivePrice': [],
-    'quoteLivePrice':[]
+    'quoteLivePrice': []
 }
 let ws;
 let store;
@@ -30,16 +30,15 @@ export const setupWebSocket = () =>
             ws.onAny((eventName, payload) =>
             {
                 if (eventName in listeners) { listeners[eventName].map((fnSource, i) => { fnSource.fn(payload) }) }
-                if (eventName === 'coreSTDHit' && store) { store.dispatch(addSTDDaily(payload)) }
-                if (eventName === 'priceAlert' && store)
-                {
-                    store.dispatch(addPriceAlert(payload))
-                    setTimeout(() =>
-                    {
-                        store.dispatch(removeQuickAlert(payload))
-                    }, 3000);
-                }
-                if (eventName === 'quoteStream') console.log(payload)
+                // if (eventName === 'coreSTDHit' && store) { store.dispatch(addSTDDaily(payload)) }
+                // if (eventName === 'priceAlert' && store)
+                // {
+                //     store.dispatch(addPriceAlert(payload))
+                //     setTimeout(() =>
+                //     {
+                //         store.dispatch(removeQuickAlert(payload))
+                //     }, 3000);
+                // }
             })
 
             ws.on('disconnect', () =>

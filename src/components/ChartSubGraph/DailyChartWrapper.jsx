@@ -5,7 +5,7 @@ import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../featu
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import DailyChartWithStartToToday from './DailyChartWithStartToToday'
 
-function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndDate, pricePoints })
+function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndDate, pricePoints, currentDiscount, discountPrices })
 {
 
     const dispatch = useDispatch()
@@ -15,7 +15,6 @@ function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndD
         if (uuid)
         {
             dispatch(setInitialGraphControl({ uuid }))
-            // dispatch(setInitialGraphStudyControl({ uuid }))
             dispatch(setInitialGraphToSubGraphCrossHair({ uuid }))
             dispatch(setInitialGraphHoursControl({ uuid }))
             // dispatch(setInitialGraphVisibility({ uuid }))
@@ -26,7 +25,6 @@ function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndD
             if (uuid)
             {
                 dispatch(clearGraphControl({ uuid }))
-                // dispatch(setInitialGraphStudyControl({ uuid }))
                 dispatch(clearGraphToSubGraphCrossHair({ uuid }))
                 dispatch(clearGraphHoursControl({ uuid }))
                 // dispatch(clearGraphVisibility({ uuid }))
@@ -37,6 +35,7 @@ function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndD
     return (
         <DailyChartWithStartToToday ticker={ticker} candleData={candleData}
             uuid={uuid} chartStartDate={chartStartDate} isZoomAble={true} pricePoints={pricePoints}
+            currentDiscount={currentDiscount} discountPrices={discountPrices}
         />
     )
 }

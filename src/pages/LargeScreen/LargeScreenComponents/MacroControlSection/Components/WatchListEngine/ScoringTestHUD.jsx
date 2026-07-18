@@ -77,7 +77,7 @@ export const ScoringTestHUD = () =>
 
                                     {/* DYNAMIC CLOSE PRICE */}
                                     <td style={{ padding: '14px 10px', textAlign: 'center', color: '#8be9fd' }}>
-                                        ${plan?.mostRecentPrice.toFixed(2) || '0.00'}
+                                        ${plan?.mostRecentPrice.toFixed(3) || '0.00'}
                                     </td>
 
                                     {/* TIER 1 BASE (CAPPED 50) */}

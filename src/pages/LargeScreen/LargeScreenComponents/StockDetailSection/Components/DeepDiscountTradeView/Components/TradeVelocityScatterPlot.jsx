@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import * as d3 from 'd3';
+import { subMinutes } from 'date-fns';
 
 // Compile our selector tool once outside the rendering thread loop to save CPU cycles [INDEX]
 // const interceptSentrySelectors = deepInterceptionAdapter.getSelectors((state) => state.interceptSentry);
@@ -9,6 +10,7 @@ export const TradeVelocityScatterPlot = ({ tickerSymbol, tradesHistory }) =>
 {
     const svgRef = useRef(null);
 
+    console.log(tradesHistory)
     // 🟢 O(1) CONSTANT DICTIONARY POINTER EXTRACTION:
     // This hook extracts strictly the single asset document matching your string token [INDEX]!
     // const liveAssetNode = useSelector((state) => interceptSentrySelectors.selectById(state, tickerSymbol));
@@ -19,7 +21,11 @@ export const TradeVelocityScatterPlot = ({ tickerSymbol, tradesHistory }) =>
 
         // Extract your self-cleaning rolling 3-minute time & sales memory matrix array [INDEX]
         const dataPoints = tradesHistory || [];
-        if (dataPoints.length === 0) return;
+        if (dataPoints.length === 0)
+        {
+            d3.select(svgRef.current).selectAll("*").remove();
+            return;
+        }
 
         // 📐 CLEAR DRAWING CANVAS LAYER CODES: Clear previous nodes to prevent canvas memory leaks [INDEX]
         d3.select(svgRef.current).selectAll("*").remove();
@@ -38,16 +44,16 @@ export const TradeVelocityScatterPlot = ({ tickerSymbol, tradesHistory }) =>
         // 📐 REAL-TIME TIMELINE SCALING & BOUNDS [INDEX]
         // =====================================================================
         // X-Axis Scale maps absolute epoch timestamps over your rolling 3-minute horizon
-        const liveEndTime = dataPoints[dataPoints.length - 1].time;
-        const rollingStartTime = liveEndTime - (3 * 60 * 1000); // 3 Minute Rolling Delta Window
+        const liveEndTime = dataPoints[dataPoints.length - 1].Timestamp;
+        const rollingStartTime = subMinutes(liveEndTime, 3); // 3 Minute Rolling Delta Window
 
         const xScale = d3.scaleTime()
             .domain([new Date(rollingStartTime), new Date(liveEndTime)])
             .range([0, width]);
 
         // Y-Axis Scale maps the absolute execution prices, autoscaling to track raw tick wicks [INDEX]
-        const priceMin = d3.min(dataPoints, d => d.price) || 0;
-        const priceMax = d3.max(dataPoints, d => d.price) || 10;
+        const priceMin = d3.min(dataPoints, d => d.Price) || 0;
+        const priceMax = d3.max(dataPoints, d => d.Price) || 10;
 
         svg.append("g").attr("class", "grid-lines"); // Optional background grid support anchors
 
@@ -60,7 +66,7 @@ export const TradeVelocityScatterPlot = ({ tickerSymbol, tradesHistory }) =>
         // =====================================================================
         // Scale circle radius quadratically based on share size to highlight institutional blocks
         const radiusScale = d3.scaleSqrt()
-            .domain([1, d3.max(dataPoints, d => d.size) || 10000])
+            .domain([1, d3.max(dataPoints, d => d.Size) || 10000])
             .range([1.5, 14]); // Tiny retail lots are small dots; giant blocks expand to 14px nodes!
 
         // =====================================================================
@@ -71,9 +77,9 @@ export const TradeVelocityScatterPlot = ({ tickerSymbol, tradesHistory }) =>
             .enter()
             .append("circle")
             .attr("class", "trade-node")
-            .attr("cx", d => xScale(new Date(d.time)))
-            .attr("cy", d => yScale(d.price))
-            .attr("r", d => radiusScale(d.size))
+            .attr("cx", d => xScale(new Date(d.Timestamp)))
+            .attr("cy", d => yScale(d.Price))
+            .attr("r", d => radiusScale(d.Size))
             .attr("fill", d =>
             {
                 // Color mapping: Green for Ask fills (Buying Urgency), Red for Bid fills (Selling Panic)
@@ -83,11 +89,11 @@ export const TradeVelocityScatterPlot = ({ tickerSymbol, tradesHistory }) =>
             .attr("fill-opacity", d =>
             {
                 // Institutional opacity: Make larger blocks look more solid and pronounced on-screen
-                if (d.size >= 1000) return 0.75;
-                if (d.size >= 100) return 0.45;
+                if (d.Size >= 1000) return 0.75;
+                if (d.Size >= 100) return 0.45;
                 return 0.20; // Dim down background retail odd-lot noise
             })
-            .attr("stroke", d => d.size >= 5000 ? '#fff' : 'none') // Wrap giant blocks in a white rim
+            .attr("stroke", d => d.Size >= 5000 ? '#fff' : 'none') // Wrap giant blocks in a white rim
             .attr("stroke-width", 1);
 
         // =====================================================================

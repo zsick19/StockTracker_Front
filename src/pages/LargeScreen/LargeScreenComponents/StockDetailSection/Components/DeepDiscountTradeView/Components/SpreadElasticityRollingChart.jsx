@@ -21,7 +21,11 @@ export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQ
 
         // Extract your self-cleaning rolling 5-minute memory matrix array [INDEX]
         const dataPoints = rawQuoteHistory || [];
-        if (dataPoints.length < 2) return;
+        if (dataPoints.length < 2)
+        {
+            d3.select(svgRef.current).selectAll("*").remove();
+            return;
+        }
 
         // 📐 CLEAN DRAWING CANVAS LAYER CODES: Clear previous nodes to prevent canvas memory leaks [INDEX]
         d3.select(svgRef.current).selectAll("*").remove();
@@ -51,7 +55,7 @@ export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQ
         const maxSpreadObserved = d3.max(dataPoints, d => d.spread) || 0.05;
 
         const yScale = d3.scaleLinear()
-            .domain([0, maxSpreadObserved * 1.10]) // Add a clean 10% structural visual padding cushion
+            .domain([0, maxSpreadObserved * 1.25]) // Add a clean 10% structural visual padding cushion
             .range([height, 0]);
 
         // =====================================================================
@@ -140,7 +144,8 @@ export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQ
                     </span>
                 </div>
                 <div style={{ textTransform: 'uppercase', fontSize: '10px', color: '#00ffff', fontWeight: 'bold' }}>
-                    Live Corridor: ${(currentSpread.AskPrice - currentSpread.BidPice)?.toFixed(4) || "0.0000"}
+                    <p>Ask: ${currentSpread.AskPrice.toFixed(2)} Bid: ${currentSpread.BidPrice.toFixed(2)}</p>
+                    <p>Live Spread: ${(currentSpread.AskPrice - currentSpread.BidPrice)?.toFixed(4) || "0.0000"}</p>
                 </div>
             </div>
 

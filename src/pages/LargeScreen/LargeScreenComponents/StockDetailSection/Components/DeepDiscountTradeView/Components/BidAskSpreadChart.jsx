@@ -8,12 +8,18 @@ function BidAskSpreadChart({ tickerSymbol, quotesHistory })
 {
 
     return (
-        <div> Quotes:            {quotesHistory.length}
-            <div style={{ height: '400px', width: '400px', overflowY: 'scroll' }}>
-                {quotesHistory.map((t) => <div className='flex' >
-                    <p>Spread: {t.spread}</p>
-                    <p>Time: {format(t.time, "HH:mm:ss")}</p>
-                </div>)}
+        <div>
+            <h3>Past 5min Quotes</h3>
+            <div className='hide-scrollbar' style={{ height: '200px', width: '400px', overflowY: 'scroll', fontSize: 'var(--fs-100)' }}>
+                {quotesHistory.toReversed().map((t, i) =>
+                {
+                    if (i < 10) return <div className='flex' >
+                        <p>{format(t.time, "HH:mm:ss")}</p>
+                        <p>Bid: {t.BidPrice}</p>
+                        <p>Ask: {t.AskPrice}</p>
+                        <p>Spread: {t.spread}</p>
+                    </div>
+                })}
             </div>
         </div>
     )
