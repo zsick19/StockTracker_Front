@@ -310,7 +310,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                                     activePlan.liveAuctionMetrics = { ...activePlan.liveAuctionMetrics, lastTradePrice: price };
                                     activePlan.mostRecentPriceUpDown = price >= activePlan.mostRecentPrice
                                     activePlan.mostRecentPrice = price
-
+                                    console.log(symbol, activePlan.mostRecentPrice)
                                     activePlan.firstHourCandles.mostRecentPrice = price
                                     activePlan.currentPriceStats.changeFromYesterdayClose = price - activePlan.currentPriceStats.yesterdayClose
 
@@ -915,6 +915,15 @@ export const selectTodaysCandlesByTicker = createSelector(
         return planEntity.todaysCandles
     }
 )
+export const selectMostRecentPriceByTicker = createSelector(
+    [planSelectors.selectEntities, (state, symbol) => symbol],
+    (stockEntities, symbol) =>
+    {
+        const planEntity = stockEntities[symbol]
+        if (!planEntity) return undefined
+        else return planEntity.mostRecentPrice
+    }
+)
 
 
 export const selectDeepDiscountByReviewedStatus = createSelector(
@@ -922,11 +931,7 @@ export const selectDeepDiscountByReviewedStatus = createSelector(
     [planSelectors.selectAll, (state, onlyNonReviewedPlans) => onlyNonReviewedPlans],
     (stockEntities, onlyNonReviewedPlans) =>
     {
-        if (onlyNonReviewedPlans) return stockEntities.filter(t => !t.discountConfig.isReviewed).map(t =>
-        {
-            console.log(t.discountConfig)
-            return { id: t.id, reviewed: t.discountConfig.isReviewed }
-        })
+        if (onlyNonReviewedPlans) return stockEntities.filter(t => !t.discountConfig.isReviewed).map(t => { return { id: t.id, reviewed: t.discountConfig.isReviewed } })
         else return stockEntities.map(t => { return { id: t.id, reviewed: t.discountConfig.isReviewed } })
     }
 )

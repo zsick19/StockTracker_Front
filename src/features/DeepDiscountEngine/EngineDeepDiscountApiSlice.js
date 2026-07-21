@@ -6,6 +6,7 @@ import { set, isToday, isAfter } from "date-fns";
 
 import { enginePlanAdapter, EnginePlanPlanApiSlice } from "../Engine/EnginePlanApiSlice";
 import { appendDailyCandles, appendInterceptQuoteTick, appendInterceptTradeTick, removeDeepDiscountWatch } from "./DeepDiscountLocalSlice";
+import { setStockDetailState } from "../SelectedStocks/StockDetailControlSlice";
 
 
 const { getWebSocket, subscribe, unsubscribe, checkStreamAuthorization } = setupWebSocket();
@@ -71,7 +72,10 @@ export const EngineDeepDiscountApiSlice = apiSlice.injectEndpoints({
             }
         }),
         fetchDeepDiscountEngineLiveData: builder.query({
-
+            query: (args) => ({
+                url: `/engine/deedDiscount/trades?ticker=${args.tickerSymbol}`,
+            }),
+            keepUnusedDataFor: 30000,
         }),
         clearDeepDiscountEngineLiveData: builder.mutation({
             query: (args) => ({
@@ -79,20 +83,16 @@ export const EngineDeepDiscountApiSlice = apiSlice.injectEndpoints({
                 method: 'POST',
                 body: { ticker: args.tickerSymbol }
             }),
-            // async onQueryStarted(args, { dispatch, queryFulfilled })
-            // {
-            //     const patchResult = dispatch(
-            //         EnterExitPlanApiSlice.util.updateQueryData('getUsersEnterExitPlan', undefined, (draft) =>
-            //         {
-            //             enterBufferHitAdapter.removeOne(draft.enterBufferHit, args.tickerSymbol)
-            //             stopLossHitAdapter.removeOne(draft.stopLossHit, args.tickerSymbol)
-            //             enterExitAdapter.removeOne(draft.plannedTickers, args.tickerSymbol)
-            //         })
-            //     )
-            //     try { await queryFulfilled; }
-            //     catch { patchResult.undo(); }
-            // },
-
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    await queryFulfilled;
+                    dispatch(removeDeepDiscountWatch({ tickerSymbol: args.tickerSymbol }))
+                    dispatch(setStockDetailState({ detail: 1 }))
+                }
+                catch { }
+            },
         }),
         generateOrUpdateDeepDiscountAlert: builder.mutation({
             query: (args) => ({
@@ -109,7 +109,6 @@ export const EngineDeepDiscountApiSlice = apiSlice.injectEndpoints({
                     {
                         let entityToUpdate = draft.plans.entities[args.tickerSymbol]
 
-                        console.log(mutationResult)
                         entityToUpdate.discountConfig.aboveMaxPain = mutationResult?.aboveMaxPain || undefined
                         entityToUpdate.discountConfig.aboveStopLoss = mutationResult?.aboveStopLoss || undefined
                         entityToUpdate.discountConfig.belowStopLoss = mutationResult?.belowStopLoss || undefined
@@ -134,14 +133,11 @@ export const EngineDeepDiscountApiSlice = apiSlice.injectEndpoints({
             {
                 try
                 {
-                    console.log(args.tickerSymbol)
                     const { data: mutationResult } = await queryFulfilled;
-                    console.log(mutationResult)
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         let entityToUpdate = draft.plans.entities[args.tickerSymbol]
                         let priceUpdate = [...entityToUpdate.discountConfig.prices]
-                        console.log(priceUpdate)
 
                         if (mutationResult.discountToRemove === 1)
                         {
@@ -159,9 +155,55 @@ export const EngineDeepDiscountApiSlice = apiSlice.injectEndpoints({
                             priceUpdate[2] = 0
                         }
 
-                        console.log(priceUpdate)
                         entityToUpdate.discountConfig.prices = priceUpdate
                         entityToUpdate.discountConfig.includesDiscount = Math.max(...priceUpdate)
+                    }))
+                } catch (error)
+                {
+                    // Handle potential mutation errors here
+
+                }
+            }
+        }),
+        generateOrUpdateExitAlert: builder.mutation({
+            query: (args) => ({
+                url: 'engine/exitAlert',
+                method: 'POST',
+                body: { ...args }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: mutationResult } = await queryFulfilled;
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        let entityToUpdate = draft.plans.entities[args.tickerSymbol]
+
+                        entityToUpdate.planConfig.plan.exitAlertPrice = mutationResult.exitAlertPrice
+                    }))
+                } catch (error)
+                {
+                    // Handle potential mutation errors here
+                }
+            }
+        }),
+        removeExitPriceAlert: builder.mutation({
+            query: (args) => ({
+                url: 'engine/exitAlert',
+                method: 'DELETE',
+                body: { ...args }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: mutationResult } = await queryFulfilled;
+
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        let entityToUpdate = draft.plans.entities[args.tickerSymbol]
+                        entityToUpdate.planConfig.plan = mutationResult
                     }))
                 } catch (error)
                 {
@@ -180,14 +222,11 @@ export const EngineDeepDiscountApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: mutationResult } = await queryFulfilled;
-                    console.log(mutationResult)
-                    // Update a specific cache entry (e.g., your "getPlanDetails" query)
+
                     dispatch(
                         EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                         {
-                            console.log(draft)
                             let entityToUpdate = draft.plans.entities[args.tickerSymbol]
-                            console.log(entityToUpdate)
                             entityToUpdate.discountConfig.dateReviewed = mutationResult.dateReviewed
                             entityToUpdate.discountConfig.isReviewed = true
                         }))
@@ -200,7 +239,6 @@ export const EngineDeepDiscountApiSlice = apiSlice.injectEndpoints({
 
             }
         })
-
     })
 });
 
@@ -210,6 +248,8 @@ export const {
     useClearDeepDiscountEngineLiveDataMutation,
     useGenerateOrUpdateDeepDiscountAlertMutation,
     useRemoveDeepDiscountAlertMutation,
+    useGenerateOrUpdateExitAlertMutation,
+    useRemoveExitPriceAlertMutation,
     useMarkPlanDiscountsReviewedMutation
 } = EngineDeepDiscountApiSlice;
 

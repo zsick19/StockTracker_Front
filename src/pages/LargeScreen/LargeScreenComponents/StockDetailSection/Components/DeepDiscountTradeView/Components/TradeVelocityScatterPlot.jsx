@@ -10,11 +10,6 @@ export const TradeVelocityScatterPlot = ({ tickerSymbol, tradesHistory }) =>
 {
     const svgRef = useRef(null);
 
-    console.log(tradesHistory)
-    // 🟢 O(1) CONSTANT DICTIONARY POINTER EXTRACTION:
-    // This hook extracts strictly the single asset document matching your string token [INDEX]!
-    // const liveAssetNode = useSelector((state) => interceptSentrySelectors.selectById(state, tickerSymbol));
-
     useEffect(() =>
     {
         if (!svgRef.current || !tradesHistory) return;
@@ -31,8 +26,8 @@ export const TradeVelocityScatterPlot = ({ tickerSymbol, tradesHistory }) =>
         d3.select(svgRef.current).selectAll("*").remove();
 
         const margin = { top: 15, right: 25, bottom: 25, left: 45 };
-        const width = 600 - margin.left - margin.right;
-        const height = 220 - margin.top - margin.bottom;
+        const width = 325 - margin.left - margin.right;
+        const height = 250 - margin.top - margin.bottom;
 
         const svg = d3.select(svgRef.current)
             .attr("width", width + margin.left + margin.right)
@@ -113,17 +108,12 @@ export const TradeVelocityScatterPlot = ({ tickerSymbol, tradesHistory }) =>
     }, [tradesHistory, tickerSymbol]);
 
     return (
-        <div style={{ background: '#0e0f15', padding: '20px', borderRadius: '4px', border: '1px solid #222', boxSizing: 'border-box', width: '100%' }}>
+        <div style={{ background: '#0e0f15', padding: '20px', borderRadius: '4px', border: '1px solid #222', boxSizing: 'border-box', width: '350px', height: '300px' }}>
             {/* HUD CHART METRIC STATUS HEADER */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontFamily: 'monospace' }}>
-                <div>
-                    <span style={{ fontSize: '11px', color: '#6272a4', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                        🛰️ ROLLING 3-MIN TIME & SALES VELOCITY PLOT
-                    </span>
-                </div>
-                <div style={{ fontSize: '10px', color: '#6272a4', fontStyle: 'italic' }}>
-                    Node Size ∝ Share Volume Size Block
-                </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'monospace' }}>
+                <p style={{ fontSize: '11px', color: '#ff5555', fontWeight: 'bold', letterSpacing: '0.5px' }}>SALES VELOCITY</p>
+                <p style={{ fontSize: '10px', color: '#ff5555', fontStyle: 'italic' }}>Size ∝ Share Volume Size Block</p>
             </div>
 
             {/* CORE SVG ELEMENT LAYER */}

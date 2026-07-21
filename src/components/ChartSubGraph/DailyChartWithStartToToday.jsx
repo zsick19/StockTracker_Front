@@ -5,9 +5,10 @@ import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMont
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis, timeFormat } from 'd3'
 import { getBreaksBetweenDates } from '../../Utilities/TimeFrames'
 import { pixelBuffer } from './GraphChartConstants'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectMostRecentPriceByTicker } from '../../features/Engine/EnginePlanApiSlice'
 
-function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartDate, pricePoints, uuid, isZoomAble, currentDiscount, discountPrices })
+function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartDate, pricePoints, uuid, isZoomAble, currentDiscount, discountPrices, exitAlertPrice })
 {
     const dispatch = useDispatch()
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
@@ -19,6 +20,9 @@ function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartD
     let candleDimensions = useResizeObserver(candleSVGWrapper)
     const stockCandleSVG = select(candleSVG.current)
     const priceScaleSVG = select(priceSVG.current)
+
+    const mostRecentPrice = useSelector(state => selectMostRecentPriceByTicker(state, ticker))
+    console.log(mostRecentPrice)
 
 
     //chart zoom states    
@@ -365,13 +369,59 @@ function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartD
             discountSelect.append('text').attr('class', 'keyLevelSubText')
                 .text(`Above Max Pain $${discountPrices.aboveMaxPain.toFixed(3)}`)
                 .attr('x', 20).attr('y', entryPricePixel).attr('dy', -7)
+
+        }
+        if (exitAlertPrice)
+        {
+            const entryPricePixel = createPriceScale({ priceToPixel: exitAlertPrice })
+            discountSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', entryPricePixel).attr('y2', entryPricePixel)
+                .attr('stroke', 'green').attr('stroke-dasharray', '2 5')
+
+            discountSelect.append('text').attr('class', 'keyLevelSubText')
+                .text(`Exit Alert $${exitAlertPrice.toFixed(3)}`)
+                .attr('x', 20).attr('y', entryPricePixel).attr('dy', -7)
+
+        }
+
+
+    }, [ticker, currentDiscount, discountPrices, exitAlertPrice, candleDimensions, chartZoomState?.x, chartZoomState?.y])
+
+    //plotMostRecentPrice
+    useEffect(() =>
+    {
+
+        const mostRecentPriceSelect = stockCandleSVG.select('.lastCandleUpdate')
+        const priceScale = priceScaleSVG.select('.currentPrice')
+        mostRecentPriceSelect.selectAll('line').remove()
+        priceScale.selectAll('text').remove()
+        priceScale.selectAll('rect').remove()
+        if (preDimensionsAndCandleCheck() || !mostRecentPrice) return
+
+        let centerTextOnPriceLinePixel = 4
+        let centerRectOnPriceLinePixel = 15
+        if (mostRecentPrice)
+        {
+            const mostRecentPricePixel = createPriceScale({ priceToPixel: mostRecentPrice })
+
+            mostRecentPriceSelect.append('line').attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', mostRecentPricePixel).attr('y2', mostRecentPricePixel)
+                .attr('stroke', 'green').attr('stroke-dasharray', '2 2')
+
+
+            priceScale.append('rect').attr('class', 'livePriceRect')
+                .attr('y', mostRecentPricePixel - centerRectOnPriceLinePixel + centerTextOnPriceLinePixel)
+                .attr('x', 0).attr('width', '49px').attr('height', '20px').attr('fill', 'blue').attr('rx', 7)
+
+            priceScale.append('text').attr('class', 'livePriceText').attr('color', 'white')
+                .attr("x", 3).attr("y", mostRecentPricePixel + centerTextOnPriceLinePixel).attr("dy", "-1px")
+                .text(`$${mostRecentPrice.toFixed(2)}`)
         }
 
 
 
-    }, [ticker, currentDiscount, discountPrices, candleDimensions, chartZoomState?.x, chartZoomState?.y,])
-
-
+    }, [ticker, mostRecentPrice, candleDimensions, chartZoomState?.x, chartZoomState?.y])
 
 
 

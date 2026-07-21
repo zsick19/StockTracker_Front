@@ -40,21 +40,23 @@ export function synthesizeTapeVelocityMetrics(tradesArray, quotesArray, latestBi
         }
     });
 
-    let calculatedBiasString = "NEUTRAL_CHURN";
+    let calculatedBiasString = { status: "NEUTRAL_CHURN", actionDirection: 0 }; //neutral
+
+
     if (aggressiveBuyVolume > 0 && aggressiveSellVolume === 0)
     {
-        calculatedBiasString = "ACCUMULATION_SWEEP";
+        calculatedBiasString = { status: "ACCUMULATION_SWEEP", actionDirection: 1 } //positive
     } else if (aggressiveBuyVolume > 0 && (aggressiveBuyVolume / (aggressiveSellVolume || 1)) >= 2.5)
     {
-        calculatedBiasString = "ACCUMULATION_SWEEP"; // Institutional buyers dominate the tape [INDEX]
+        calculatedBiasString = { status: "ACCUMULATION_SWEEP", actionDirection: 1 } // Institutional buyers dominate the tape [INDEX] //positive
     } else if (aggressiveSellVolume > 0 && (aggressiveSellVolume / (aggressiveBuyVolume || 1)) >= 2.5)
     {
-        calculatedBiasString = "WATERFALL_SELLING";
+        calculatedBiasString = { status: "WATERFALL_SELLING", actionDirection: -1 } //negative
     }
 
     // 📐 REGIME 2: EVALUATE SPREAD COMPRESSION (QUOTE ARRAY OVERVIEW) [INDEX]
     const totalQuotePoints = quotesArray.length;
-    let spreadStatusString = "VARIABLE_CHOP";
+    let spreadStatusString = { status: "VARIABLE_CHOP", actionDirection: 0 } //neutral
 
     if (totalQuotePoints >= 10)
     {
@@ -67,29 +69,28 @@ export function synthesizeTapeVelocityMetrics(tradesArray, quotesArray, latestBi
 
         if (latestSpreadNode <= averageTrailingSpread * 0.40)
         {
-            spreadStatusString = "LOCKED_CORRIDOR"; // Spread has completely compressed [INDEX]
+            spreadStatusString = { status: "LOCKED_CORRIDOR", actionDirection: 1 } // Spread has completely compressed [INDEX] //positive
         } else if (latestSpreadNode >= averageTrailingSpread * 1.60)
         {
-            spreadStatusString = "SPREAD_DILATION_RISK";
+            spreadStatusString = { status: "SPREAD_DILATION_RISK", actionDirection: -1 } //negative
         }
     }
 
     // 📐 REGIME 3: EVALUATE BOOK DENSITY PRESSURE
-    let bookPressureString = "BALANCED_POOL";
+    let bookPressureString = {status:"BALANCED_POOL",actionDirection:0} //neutral
     const rawImbalanceRatio = latestAskSize > 0 ? (latestBidSize / latestAskSize) : 1.0;
 
     if (rawImbalanceRatio >= 2.5)
     {
-        bookPressureString = "BID_FLOOR_SUPPORT"; // Ironclad buy wall deployed beneath the price [INDEX]
+        bookPressureString = {status:"BID_FLOOR_SUPPORT",actionDirection:1}; // Ironclad buy wall deployed beneath the price [INDEX] //positive
     } else if (rawImbalanceRatio <= 0.35)
     {
-        bookPressureString = "ASK_CEILING_OVERHEAD";
+        bookPressureString = {status:"ASK_CEILING_OVERHEAD",actionDirection:-1}; //negative
     }
 
     // 🟢 COGNITIVE SYNCHRONICITY: Determine if all three checkboxes confirm the reversal [INDEX]
-    const isTideTurning = calculatedBiasString === "ACCUMULATION_SWEEP" &&
-        spreadStatusString === "LOCKED_CORRIDOR" &&
-        bookPressureString === "BID_FLOOR_SUPPORT";
+    const isTideTurning = calculatedBiasString.status === "ACCUMULATION_SWEEP" && 
+    spreadStatusString.status === "LOCKED_CORRIDOR" && bookPressureString.status === "BID_FLOOR_SUPPORT";
 
     return {
         volumetricBias: calculatedBiasString,

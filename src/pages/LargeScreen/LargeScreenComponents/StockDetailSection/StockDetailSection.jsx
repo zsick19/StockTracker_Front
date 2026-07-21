@@ -24,6 +24,7 @@ import FinalPreTradeCheck from './Components/FinalPreTradeCheck/FinalPreTradeChe
 import IntegratedPlanView from './Components/IntegratedPlanView/IntegratedPlanView';
 import DeepDiscount from './Components/DeepDiscounts/DeepDiscount';
 import DeepDiscountTradeView from './Components/DeepDiscountTradeView/DeepDiscountTradeView';
+import MacroEventOverlap from './Components/MacroEventOverlap/MacroEventOverlap';
 
 function StockDetailSection()
 {
@@ -67,6 +68,7 @@ function StockDetailSection()
       case 21: return <IntegratedPlanView tickerSymbol={currentStockDetail.ticker} />
       case 22: return <DeepDiscount tickerSymbol={currentStockDetail.ticker} />
       case 23: return <DeepDiscountTradeView tickerSymbol={currentStockDetail.ticker} />
+      case 24: return <MacroEventOverlap tickerSymbol={currentStockDetail.ticker} />
     }
   }
 

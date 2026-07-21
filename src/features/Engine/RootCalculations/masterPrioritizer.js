@@ -25,25 +25,26 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     // =========================================================================
     // 🛑 DYNAMIC GATING RADAR SENTRY: OMIT OFF-TARGET UI OVER-STIMULATION
     // =========================================================================
-    if (!planEntity.todaysCandles || planEntity.todaysCandles.length === 0)
-    {
-        logRuleTrack(auditLedger, 'Missing Information', 0, 'OFF_RADAR', 'Missing Intra Day Candles')
-        return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM", metrics: {} };
-    }
+
 
     const lowerAllowedBoundary = planEntity.planConfig.plan.stopLossPrice * 0.98;
     const upperAllowedBoundary = planEntity.patternConfig.channelTop;
     if (livePrice < lowerAllowedBoundary || livePrice > upperAllowedBoundary)
     {
         let reason
+        let priceAbovePlan = false
         if (livePrice < lowerAllowedBoundary) reason = `Price $${livePrice} is below the stoploss price $${lowerAllowedBoundary.toFixed(2)}.`
-        else if (livePrice > upperAllowedBoundary) reason = `Price $${livePrice} has exceeded the planned exit price $${upperAllowedBoundary.toFixed(2)}.`
+        else if (livePrice > upperAllowedBoundary) 
+        {
+            priceAbovePlan = true
+            reason = `Price $${livePrice} has exceeded the planned exit price $${upperAllowedBoundary.toFixed(2)}.`
+        }
 
         logRuleTrack(auditLedger, 'Out Of Target Range', 0, 'OFF_RADAR', reason)
 
         return {
             matchScorePercent: 0,
-            status: "OUTSIDE OF PLANNED ZONES",
+            status: priceAbovePlan ? "ABOVE PLANNED ZONES" : "BELOW STOPLOSS PRICE",
             withinPlan: false,
             metrics: {
                 baseEnvironmentScore: 0,
@@ -56,6 +57,11 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
         };
     }
 
+    if (!planEntity.todaysCandles || planEntity.todaysCandles.length === 0)
+    {
+        logRuleTrack(auditLedger, 'Missing Information', 0, 'OFF_RADAR', 'Missing Intra Day Candles')
+        return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM", metrics: {} };
+    }
 
 
 

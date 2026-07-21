@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectPrioritizedWatchlist } from '../../../../../../features/Engine/EnginePlanApiSlice';
 import { setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice';
+import { isBefore, set } from 'date-fns';
 
 export const ScoringTestHUD = () =>
 {
@@ -13,6 +14,10 @@ export const ScoringTestHUD = () =>
 
     const [showAll, setShowAll] = useState(0)
 
+    useEffect(() =>
+    {
+        if (isBefore(new Date(), set(new Date(), { hours: 9, minutes: 30 }))) setShowAll(2)
+    }, [])
 
     return (
         <div style={{ padding: '20px', background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', maxHeight: '600px' }}>

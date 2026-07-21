@@ -10,11 +10,6 @@ export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQ
 {
     const svgRef = useRef(null);
 
-    // 🟢 SURGICAL ID EXTRACTION VALVE:
-    // Pulls strictly your target asset's data node in O(1) constant dictionary time [INDEX].
-    // Component remains completely insulated from quote noise flooding into other tickers [INDEX]!
-    // const liveAssetNode = useSelector((state) => interceptSentrySelectors.selectById(state, tickerSymbol));
-
     useEffect(() =>
     {
         if (!svgRef.current || !rawQuoteHistory) return;
@@ -31,8 +26,8 @@ export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQ
         d3.select(svgRef.current).selectAll("*").remove();
 
         const margin = { top: 15, right: 20, bottom: 25, left: 45 };
-        const width = 600 - margin.left - margin.right;
-        const height = 220 - margin.top - margin.bottom;
+        const width = 325 - margin.left - margin.right;
+        const height = 250 - margin.top - margin.bottom;
 
         const svg = d3.select(svgRef.current)
             .attr("width", width + margin.left + margin.right)
@@ -135,21 +130,13 @@ export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQ
     }, [rawQuoteHistory, tickerSymbol]);
 
     return (
-        <div style={{ background: '#0e0f15', padding: '20px', borderRadius: '4px', border: '1px solid #222', boxSizing: 'border-box', width: '100%' }}>
-            {/* HUD CHART METRIC STATUS HEADER */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontFamily: 'monospace' }}>
-                <div>
-                    <span style={{ fontSize: '11px', color: '#6272a4', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                        📡 ROLLING 5-MIN SPREAD ELASTICITY FUNNEL
-                    </span>
-                </div>
-                <div style={{ textTransform: 'uppercase', fontSize: '10px', color: '#00ffff', fontWeight: 'bold' }}>
-                    <p>Ask: ${currentSpread.AskPrice.toFixed(2)} Bid: ${currentSpread.BidPrice.toFixed(2)}</p>
-                    <p>Live Spread: ${(currentSpread.AskPrice - currentSpread.BidPrice)?.toFixed(4) || "0.0000"}</p>
-                </div>
+        <div style={{ background: '#0e0f15', padding: '20px', borderRadius: '4px', border: '1px solid #222', boxSizing: 'border-box', width: '350px', height: '300px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', textTransform: 'uppercase', fontSize: '10px', color: '#00ffff', fontFamily: 'monospace' }}>
+                <p>Bid: ${currentSpread.BidPrice.toFixed(2)} - {currentSpread.BidSize}</p>
+                <p>Ask: ${currentSpread.AskPrice.toFixed(2)} - {currentSpread.AskSize}</p>
+                <p>Spread: ${(currentSpread.AskPrice - currentSpread.BidPrice)?.toFixed(4) || "0.0000"}</p>
             </div>
 
-            {/* CORE SVG ELEMENT LAYER */}
             <div style={{ display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
                 <svg ref={svgRef}></svg>
             </div>

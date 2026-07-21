@@ -4,19 +4,21 @@
   grid-template-rows: 1fr 1fr;
   width: 250px;
   gap: 1rem;
+  text-align: center;
 }
 
-#DeepDiscountAlertHUD > div:first-of-type,
 .SingleDiscountAlert {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 30px;
   text-align: center;
+  align-items: center;
   font-size: var(--fs-200);
 }
 
 .SingleDiscountAlert {
   margin: 5px;
-  background-color: aqua;
+  padding-inline: 5px;
+  background-color: rgb(97, 122, 122);
   border-radius: 5px;
 }
 
@@ -32,7 +34,6 @@
   border-radius: 10px;
 }
 
-#DiscountReviewStatus > div:first-of-type,
 .singleDeepDiscountStatus {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -41,9 +42,10 @@
 
 .singleDeepDiscountStatus {
   font-size: var(--fs-100);
+  padding-block: 0.25rem;
 }
 
-#DeepDiscountStatusList div:nth-child(even) {
+#DeepDiscountStatusList div:nth-child(odd) {
   background-color: rgb(50, 52, 53);
 }
 
@@ -52,12 +54,41 @@
 }
 
 #DiscountReviewStatus > div:first-of-type {
-  background-color: gray;
+  background-color: rgb(190, 39, 39);
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  cursor: pointer; /* Changes the mouse arrow to a clickable hand icon */
 }
+
+
+
 
 #DiscountReviewStatus > div:last-of-type {
   height: 275px;
   overflow-y: scroll;
+}
+
+
+
+
+.mutedAlert {
+}
+
+.unmutedAlert {
+  animation: slowPulse 2s ease-in-out infinite;
+}
+
+@keyframes slowPulse {
+  0% {
+    opacity: 1;
+    background-color: rgb(1, 153, 9);
+  }
+  50% {
+    opacity: 0.9; /* Optional: slightly fades out */
+    background-color: rgb(27, 82, 30);
+  }
+  100% {
+    opacity: 1;
+    background-color: rgb(1, 153, 9);
+  }
 }

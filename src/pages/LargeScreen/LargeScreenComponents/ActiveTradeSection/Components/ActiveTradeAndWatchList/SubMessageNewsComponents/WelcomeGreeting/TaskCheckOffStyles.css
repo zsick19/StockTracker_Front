@@ -1,0 +1,30 @@
+#TaskCheckOffWrapper {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 0.5rem;
+}
+
+.DailyTaskCheckList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 250px;
+  height: 300px;
+  overflow-y: scroll;
+}
+
+.singleMorningCheck {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-100);
+  padding: 0.25rem;
+  border: 1px solid white;
+  border-radius: 5px;
+}
+
+.completedToday {
+  background-color: rgb(36, 80, 36);
+}
+.notCompletedToday {
+  background-color: rgba(87, 40, 40, 0.507);
+}

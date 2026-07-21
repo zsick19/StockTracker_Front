@@ -6,8 +6,7 @@ const stockDetailControlSlice = createSlice({
     reducers: {
         setStockDetailState: (state, action) =>
         {
-            console.log(action.payload)
-            state.detailSelected = action.payload
+            state.detailSelected = action.payload?.detail || action.payload
         },
         setStockDetailStateWithTicker: (state, action) =>
         {

@@ -11,13 +11,19 @@
   height: 100%;
 }
 
-#CurrentChartAndBackTest > #EntryPainGainChartWrapper {
-  flex: 1;
+#CurrentChartAndBackTest > div:first-of-type {
+  background-color: gray;
+  padding-inline: 1rem;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
 }
 
-/* #CurrentChartAndBackTest > div:first-of-type {
+#CurrentChartAndBackTest > div:nth-of-type(2) {
   flex: 1;
-} */
+  margin-bottom: 1rem;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
 
 #CurrentDeepDiscountBuild {
   font-size: var(--fs-100);
@@ -28,9 +34,11 @@
   padding: 0.5rem;
 }
 
-/* #CurrentDeepDiscountBuild > div {
-  background-color: black;
-} */
+
+
+
+
+
 
 #DiscountActionControls {
   display: flex;
@@ -63,4 +71,27 @@
   border: 1px solid white;
   border-radius: 5px;
   background-color: rgb(54, 56, 82);
+}
+
+.pulsingNeedMarkedReviewed {
+  /* border: 5px solid white; */
+  border-radius: 10px;
+  background-color: rgb(1, 153, 9);
+  animation: slowPulse 3s ease-in-out infinite;
+  font-size: var(--fs-100);
+}
+
+@keyframes slowPulse {
+  0% {
+    opacity: 1;
+    background-color: rgb(1, 153, 9);
+  }
+  50% {
+    opacity: 0.9; /* Optional: slightly fades out */
+    background-color: rgb(27, 82, 30);
+  }
+  100% {
+    opacity: 1;
+    background-color: rgb(1, 153, 9);
+  }
 }

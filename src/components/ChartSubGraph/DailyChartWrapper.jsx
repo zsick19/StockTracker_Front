@@ -5,10 +5,11 @@ import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../featu
 import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
 import DailyChartWithStartToToday from './DailyChartWithStartToToday'
 
-function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndDate, pricePoints, currentDiscount, discountPrices })
+function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndDate, pricePoints, currentDiscount, discountPrices, exitAlertPrice })
 {
 
     const dispatch = useDispatch()
+    
 
     useEffect(() =>
     {
@@ -35,7 +36,7 @@ function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndD
     return (
         <DailyChartWithStartToToday ticker={ticker} candleData={candleData}
             uuid={uuid} chartStartDate={chartStartDate} isZoomAble={true} pricePoints={pricePoints}
-            currentDiscount={currentDiscount} discountPrices={discountPrices}
+            currentDiscount={currentDiscount} discountPrices={discountPrices} exitAlertPrice={exitAlertPrice}
         />
     )
 }

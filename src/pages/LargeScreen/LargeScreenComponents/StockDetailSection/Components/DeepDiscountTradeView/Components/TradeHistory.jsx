@@ -19,7 +19,7 @@ function TradeHistory({ tradeHistory })
     return (
         <div>
             TradeHistory: {tradeHistory.length}
-            <div style={{ height: '400px', width: '400px', overflowY: 'scroll' }}>
+            <div className='hide-scrollbar' style={{ height: '150px', width: '200px', overflowY: 'scroll', fontSize: 'var(--fs-100)' }}>
                 {tradeHistory.map((t) => <div className='flex'>
                     <p>{t.Price}</p>
                     <p>{t.Size}</p>

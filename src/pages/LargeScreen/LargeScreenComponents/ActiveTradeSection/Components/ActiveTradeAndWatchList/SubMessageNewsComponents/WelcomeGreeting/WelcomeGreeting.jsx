@@ -7,38 +7,18 @@ import { useGetActiveTradeNewsQuery } from '../../../../../../../../features/New
 import { StockCsvUpload } from './StockCsvUpload'
 import ExpectedMoveUpload from './ExpectedMoveUpload'
 import { TerminalTaskStatusTickerHUD } from '../../../../../../../../layouts/dash/TerminalTaskStatusTickerHUD'
+import MorningCheckList from './DailyCheckListContainer'
+import TaskCheckOffContainer from './TaskCheckOffContainer'
 
 function WelcomeGreeting()
 {
-    const { data, isSuccess } = useGetActiveTradeNewsQuery(undefined)
-
-    const [refreshStreamTickers] = useRefreshStreamTickersMutation()
-    const [showRefreshDelivered, setShowRefreshDelivered] = useState(false)
-    async function attemptStreamTickerRefresh()
-    {
-        try
-        {
-            await refreshStreamTickers().unwrap()
-            setShowRefreshDelivered(true)
-
-            setTimeout(() => { setShowRefreshDelivered(false) }, [2000])
-        } catch (error)
-        {
-            console.log(error)
-        }
-    }
+    // const { data, isSuccess } = useGetActiveTradeNewsQuery(undefined)
 
 
 
     return (
         <div id='welcomeGreeting'>
-            <div>
-                <h1>Welcome!</h1>
-                <p>Refresh Backend Stream</p>
-                {showRefreshDelivered ? <p>Stream Refreshed <Check color="green" /></p> : <button onClick={() => attemptStreamTickerRefresh()}>Refresh Stream</button>}
-                <button onClick={() => window.location.reload()}>Refresh Page</button>
-            </div>
-
+            <TaskCheckOffContainer />
             <TerminalTaskStatusTickerHUD />
             <StockCsvUpload />
             {/* <div>
@@ -46,9 +26,7 @@ function WelcomeGreeting()
                 <br />
                 <ExpectedMoveUpload Process={'Zone Doc'} />
             </div> */}
-
             {/* <PositionListDailyMoves /> */}
-
         </div>
     )
 }

@@ -72,6 +72,22 @@ function DashNav()
   const [centerInformationDisplay, setShowCenterInformationDisplay] = useState(0)
 
 
+  const [refreshStreamTickers] = useRefreshStreamTickersMutation()
+  const [showRefreshDelivered, setShowRefreshDelivered] = useState(false)
+  async function attemptStreamTickerRefresh()
+  {
+    try
+    {
+      await refreshStreamTickers().unwrap()
+      setShowRefreshDelivered(true)
+
+      setTimeout(() => { setShowRefreshDelivered(false) }, [2000])
+    } catch (error)
+    {
+      console.log(error)
+    }
+  }
+
 
   return (
     <nav id="DashNav">
@@ -119,7 +135,8 @@ function DashNav()
 
       <PriceAlertNotification />
 
-      <div className="flex">
+      <div className="flex" style={{ fontSize: 'var(--fs-100)' }}>
+        {showRefreshDelivered ? <p>Stream Refreshed <Check color="green" /></p> : <button onClick={() => attemptStreamTickerRefresh()}>Refresh Stream Login</button>}
         <button onClick={() => window.location.reload()}>Refresh Page</button>
         <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(1)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessKing color="green" /></button>
         <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(2)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessQueen color="green" /></button>

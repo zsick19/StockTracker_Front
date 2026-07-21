@@ -7,10 +7,11 @@ export const deepInterceptionAdapter = createEntityAdapter({
     selectId: (entity) => entity.tickerSymbol
 });
 
+
 const interceptSentrySlice = createSlice({
     name: 'interceptSentrySlice',
     // Optional global tracking states can be added here
-    initialState: deepInterceptionAdapter.getInitialState({}),
+    initialState: deepInterceptionAdapter.getInitialState(),
     reducers: {
         initiateDeepDiscountWatch: (state, action) =>
         {
@@ -19,6 +20,7 @@ const interceptSentrySlice = createSlice({
             if (!state.ids.includes(tickerSymbol))
             {
                 deepInterceptionAdapter.addOne(state, {
+                    id: tickerSymbol,
                     tickerSymbol,
                     dailyCandles: [],
                     currentSpread: 0,
@@ -26,7 +28,8 @@ const interceptSentrySlice = createSlice({
                     tradeHistory: [],
                     discountLevel,
                     latestAskBid: { BidSize: 10, BidPrice: 10, AskSize: 0, AskPrice: 0 },
-                    muted: undefined,
+                    muted: false,
+                    moreThanOneLevel: true,
                     timeAdded: new Date()
                 })
             }
@@ -41,11 +44,18 @@ const interceptSentrySlice = createSlice({
         {
             const { tickerSymbol } = action.payload
             const existingNode = state.entities[tickerSymbol]
-            existingNode.muted = new Date()
+            existingNode.muted = true
+        },
+        unMuteDeepDiscountWatch: (state, action) =>
+        {
+            const { tickerSymbol } = action.payload
+            const existingNode = state.entities[tickerSymbol]
+            existingNode.muted = false
         },
         removeDeepDiscountWatch: (state, action) =>
         {
             const { tickerSymbol } = action.payload
+            console.log(action.payload)
             deepInterceptionAdapter.removeOne(state, tickerSymbol)
 
         },
@@ -95,10 +105,40 @@ const interceptSentrySlice = createSlice({
             existingNode.tradeHistory.push(trade)
             existingNode.tradeHistory = existingNode.tradeHistory.filter(q => isAfter(q.Timestamp, subMinutes(new Date(), 3)));
         }
+    },
+    extraReducers: (builder) =>
+    {
+        builder.addMatcher(
+            EngineDeepDiscountApiSlice.endpoints.fetchDeepDiscountEngineLiveData.matchFulfilled,
+            (state, action) =>
+            {
+                const ticker = action.meta.arg.originalArgs.tickerSymbol
+                const existingNode = state.entities[ticker];
+                if (!existingNode) return
+
+                const quoteData = action.payload.quotes
+
+                existingNode.quotesHistory = quoteData.map((t, i) =>
+                {
+                    const currentSpreadWidth = parseFloat((t.AskPrice - t.BidPrice).toFixed(4));
+                    const tickEpoch = new Date(t.Timestamp).getTime();
+                    return { spread: currentSpreadWidth, time: tickEpoch, BidPrice: t.BidPrice, BidSize: t.BidSize, AskPrice: t.AskPrice, AskSize: t.AskSize }
+                })
+
+                const mostRecent = quoteData[quoteData.length - 1]
+                const bidAskImbalance = mostRecent.AskSize > 0 ? parseFloat((mostRecent.BidSize / mostRecent.AskSize).toFixed(2)) : 1.0;
+                const currentSpreadWidth = parseFloat((mostRecent.AskPrice - mostRecent.BidPrice).toFixed(4));
+
+
+                existingNode.tradeHistory = action.payload.trades
+                existingNode.currentSpread = currentSpreadWidth;
+                existingNode.latestAskBid = { BidSize: mostRecent.BidSize, BidPrice: mostRecent.BidPrice, AskSize: mostRecent.AskSize, AskPrice: mostRecent.AskPrice }
+            }
+        )
     }
 });
 
-export const { initiateDeepDiscountWatch, muteDeepDiscountWatch, updateDeepDiscountWatch, removeDeepDiscountWatch, appendInterceptQuoteTick, appendDailyCandles, appendInterceptTradeTick } = interceptSentrySlice.actions;
+export const { initiateDeepDiscountWatch, muteDeepDiscountWatch, unMuteDeepDiscountWatch, updateDeepDiscountWatch, removeDeepDiscountWatch, appendInterceptQuoteTick, appendDailyCandles, appendInterceptTradeTick } = interceptSentrySlice.actions;
 export default interceptSentrySlice.reducer;
 
 const deepInterceptionAdapterSelectors = deepInterceptionAdapter.getSelectors()

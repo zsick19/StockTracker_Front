@@ -8,8 +8,10 @@ import CustomPriceBackTestWrapper from './Components/CustomPriceBackTestWrapper'
 import * as short from 'short-uuid'
 import DailyChartWrapper from '../../../../../../components/ChartSubGraph/DailyChartWrapper';
 import EntryGainPainChartWrapper from '../IntegratedPlanView/Components/SubComponents/EntryGainPainChartWrapper';
-import { useMarkPlanDiscountsReviewedMutation } from '../../../../../../features/DeepDiscountEngine/EngineDeepDiscountApiSlice';
+import { useGenerateOrUpdateExitAlertMutation, useMarkPlanDiscountsReviewedMutation, useRemoveExitPriceAlertMutation } from '../../../../../../features/DeepDiscountEngine/EngineDeepDiscountApiSlice';
 import { differenceInBusinessDays } from 'date-fns';
+import GraphLoadingSpinner from '../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner';
+import GraphLoadingError from '../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError';
 
 function DeepDiscount({ tickerSymbol })
 {
@@ -50,14 +52,49 @@ function DeepDiscount({ tickerSymbol })
     }
 
 
+
     const daysSinceLastReview = discountConfig?.dateReviewed ? differenceInBusinessDays(new Date(), discountConfig.dateReviewed) : undefined
+
+
+    const [exitAlertPrice, setExitAlertPrice] = useState(planConfig.plan?.exitAlertPrice || patternConfig.channelTop)
+    const [exitAlertIncrement, setExitAlertIncrement] = useState(0.01)
+    const hasExitAlert = planConfig.plan?.exitAlertPrice
+    const [generateOrUpdateExitAlert] = useGenerateOrUpdateExitAlertMutation()
+    const [removeExitPriceAlert] = useRemoveExitPriceAlertMutation()
+    async function attemptGenerateOrUpdateExitPriceAlert()
+    {
+        try
+        {
+            const results = await generateOrUpdateExitAlert({ planId: planConfig.planId, tickerSymbol, exitPrice: exitAlertPrice }).unwrap()
+            console.log(results)
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+    async function attemptRemovingExitPriceAlert()
+    {
+        try
+        {
+            const results = await removeExitPriceAlert({ planId: planConfig.planId, tickerSymbol }).unwrap()
+            console.log(results)
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
+
+
+
 
     const [discountPrices, setDiscountPrices] = useState({
         aboveStopLoss: discountConfig?.aboveStopLoss?.price || planConfig.plan.stopLossPrice * 1.02,
         belowStopLoss: discountConfig?.belowStopLoss?.price || planConfig.plan.stopLossPrice * 0.98,
         aboveMaxPain: discountConfig?.aboveMaxPain?.price || maxPainFromPattern * 1.02
     })
-    console.log(discountConfig)
+
+
 
     let dailyChart
     let customChartDiscount
@@ -65,38 +102,32 @@ function DeepDiscount({ tickerSymbol })
     {
         dailyChart = <DailyChartWrapper ticker={tickerSymbol} candleData={data} uuid={dailyChartUUID}
             chartStartDate={planConfig.relevantCandleDate} chartEndDate={new Date()}
-            pricePoints={{ entryPrice: patternConfig.entryStrikeBuffer, floorPrice: patternConfig.channelBottom, exitPrice: patternConfig.channelTop, stopLossPrice: planConfig.plan.stopLossPrice }} 
-            currentDiscount={currentDiscount} discountPrices={discountPrices}
-            />
+            pricePoints={{ entryPrice: patternConfig.entryStrikeBuffer, floorPrice: patternConfig.channelBottom, exitPrice: patternConfig.channelTop, stopLossPrice: planConfig.plan.stopLossPrice }}
+            currentDiscount={currentDiscount} discountPrices={discountPrices} exitAlertPrice={exitAlertPrice}
+        />
 
-        customChartDiscount = <CustomPriceBackTestWrapper
-            discountPrices={discountPrices}
-            setDiscountPrices={setDiscountPrices}
-            exitPrice={patternConfig.channelTop}
-            entryPrice={planConfig.plan.stopLossPrice}
-            stopLossPrice={planConfig.plan.stopLossPrice}
-            maxPainPrice={entryBackTestAverage.lowestPatternValue}
-            planId={planConfig.planId}
-            tickerSymbol={tickerSymbol}
-            currentDiscount={currentDiscount} setCurrentDiscount={setCurrentDiscount}
-            relevantCandleDate={planConfig.relevantCandleDate} dateAdded={planConfig.dateAdded} candleData={data}
-            patternOrStockChart={patternOrStockChart} setPatternOrStockChart={setPatternOrStockChart}
+        customChartDiscount = <CustomPriceBackTestWrapper candleData={data} discountPrices={discountPrices} setDiscountPrices={setDiscountPrices} tickerSymbol={tickerSymbol}
+            currentDiscount={currentDiscount} setCurrentDiscount={setCurrentDiscount} patternOrStockChart={patternOrStockChart} setPatternOrStockChart={setPatternOrStockChart}
+
+            exitPrice={patternConfig.channelTop} entryPrice={planConfig.plan.stopLossPrice} stopLossPrice={planConfig.plan.stopLossPrice}
+            maxPainPrice={entryBackTestAverage.lowestPatternValue} planId={planConfig.planId} relevantCandleDate={planConfig.relevantCandleDate}
+            dateAdded={planConfig.dateAdded}
         />
     }
     else if (isLoading)
     {
-        dailyChart = <div>Loading Daily Candles</div>
+        dailyChart = <GraphLoadingSpinner />
         customChartDiscount = <div>Loading..</div>
 
     } else if (isError)
     {
-        dailyChart = <div>Error Fetching Daily Candles</div>
+        dailyChart = <GraphLoadingError refetch={refetch} />
         customChartDiscount = <div>Error Fetching Data</div>
     }
 
 
-
     const borderColor = currentDiscount === 'Above Stop' ? 'blue' : currentDiscount === 'Below Stop' ? 'orange' : 'red'
+
     return (
         <div id='DeepDiscount'>
 
@@ -131,30 +162,51 @@ function DeepDiscount({ tickerSymbol })
 
 
             <div id='DiscountSelectionButtons' className='flex'>
-                <div style={{ border: `3px solid red`, borderRadius: '5px' }}>
-                    {discountConfig?.aboveMaxPain?.price && <p>Max Pain Discount: ${discountConfig.aboveMaxPain.price}</p>}
+                <div style={{ backgroundColor: 'red', borderRadius: '5px' }}>
+                    {discountConfig?.aboveMaxPain?.price && <p>${discountConfig.aboveMaxPain.price}</p>}
                     <button onClick={() => { setCurrentDiscount('Above Max Pain'); setPatternOrStockChart({ display: false }) }}>Above Max Pain</button>
                 </div>
-                <div style={{ border: `3px solid blue`, borderRadius: '5px' }}>
-                    {discountConfig?.aboveStopLoss?.price && <p>Above Stop Discount: ${discountConfig.aboveStopLoss.price}</p>}
+                <div style={{ backgroundColor: 'blue', borderRadius: '5px' }}>
+                    {discountConfig?.aboveStopLoss?.price && <p>${discountConfig.aboveStopLoss.price}</p>}
                     <button onClick={() => { setCurrentDiscount('Above Stop'); setPatternOrStockChart({ display: false }) }}>Above Stop</button>
                 </div>
-                <div style={{ border: `3px solid orange`, borderRadius: '5px' }}>
-                    {discountConfig?.belowStopLoss?.price && <p>Below Stop Discount: ${discountConfig.belowStopLoss.price}</p>}
+                <div style={{ backgroundColor: 'orange', borderRadius: '5px' }}>
+                    {discountConfig?.belowStopLoss?.price && <p>${discountConfig.belowStopLoss.price}</p>}
                     <button onClick={() => { setCurrentDiscount('Below Stop'); setPatternOrStockChart({ display: false }) }}>Below Stop</button>
                 </div>
 
 
                 {discountConfig?.dateReviewed ? <div>
                     <p>Days Since Last Reviewed: {daysSinceLastReview}</p>
-                    {daysSinceLastReview > 5 && <button onClick={() => attemptMarkingPlanFullyReviewed()}>Marked Reviewed</button>}
+                    {daysSinceLastReview > 5 &&
+                        <button className='pulsingNeedMarkedReviewed' onClick={() => attemptMarkingPlanFullyReviewed()}>Marked Reviewed</button>}
 
                 </div> :
-                    <button onClick={() => attemptMarkingPlanFullyReviewed()}>Marked Reviewed</button>
+                    <div>
+                        <button className='pulsingNeedMarkedReviewed' onClick={() => attemptMarkingPlanFullyReviewed()}>Marked Reviewed</button>
+
+                    </div>
                 }
-                <br />
+
+
                 <div>
-                    <p>Exit Alert Input:</p>
+                    <div className='flex'>
+                        <p>Exit Alert: ${exitAlertPrice} </p>
+                        <button onClick={() => setExitAlertPrice(prev => parseFloat((prev - exitAlertIncrement).toFixed(3)))}>Down ${exitAlertIncrement}</button>
+                        <button onClick={() => setExitAlertPrice(prev => parseFloat((prev + exitAlertIncrement).toFixed(3)))}>Up ${exitAlertIncrement}</button>
+                    </div>
+                    <div className='flex'>
+                        <div>
+                            <button onClick={() => setExitAlertIncrement(0.01)}>1c</button>
+                            <button onClick={() => setExitAlertIncrement(0.05)}>5c</button>
+                            <button onClick={() => setExitAlertIncrement(0.25)}>25c</button>
+                            <button onClick={() => setExitAlertIncrement(1)}>$1</button>
+                        </div>
+                        <div>
+                            <button onClick={() => attemptGenerateOrUpdateExitPriceAlert()}>{hasExitAlert ? 'Update' : 'Initiate'} Exit Alert</button>
+                            {hasExitAlert && <button onClick={() => attemptRemovingExitPriceAlert()}>Remove</button>}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
