@@ -103,7 +103,7 @@ function DashNav()
       )}
 
       <p>Stock Tracker</p>
-      <SDTNotificationControl />
+      {/* <SDTNotificationControl /> */}
 
       {centerInformationDisplay === 1 ? <div className="flex">
 
@@ -133,7 +133,7 @@ function DashNav()
       {/* <button onClick={() => attemptPopulatingMacros()} disabled>Populate Macros</button> */}
       {/* <button onClick={() => attemptResettingUser()}>Dev Reset User</button> */}
 
-      <PriceAlertNotification />
+      {/* <PriceAlertNotification /> */}
 
       <div className="flex" style={{ fontSize: 'var(--fs-100)' }}>
         {showRefreshDelivered ? <p>Stream Refreshed <Check color="green" /></p> : <button onClick={() => attemptStreamTickerRefresh()}>Refresh Stream Login</button>}

@@ -6,15 +6,18 @@ import { isWeekend } from 'date-fns';
 // =============================================================================
 const TIMELINE_EVENTS = [
     { id: 'PRE_FLIGHT', time: '09:22', label: 'Pre-Flight Hydration', description: 'Ingesting morning CSV metadata arrays & Alpaca options chains.' },
-    { id: 'DAILY_MACRO', time: '09:26', label: 'Macro Ticker Hydration', description: 'Input daily SPY values and core expected moves.' },
-    { id: 'OPEN_CROSS', time: '09:34', label: 'Frontend Ingestion Wave', description: 'RTK Query fetching optimized pre-compiled opening cross watchlist data.' },
+    { id: 'DAILY_MACRO', time: '09:20', label: 'Macro Ticker Hydration', description: 'Input daily SPY values and core expected moves.' },
+    { id: 'MORNING_DATA_PULL', time: '09:28', label: 'Morning Metrics Hydration', description: 'RTK Query fetching calculated morning metrics and morning options info.' },
+    { id: 'OPEN_CROSS_DATA_PULL', time: '09:34', label: 'Frontend Ingestion Wave', description: 'RTK Query fetching optimized pre-compiled opening cross watchlist data.' },
     { id: 'PRIME_SWEET', time: '09:35', label: 'Prime Execution Window', description: 'Opening bell cool-down safety gates unlocked. Live volume climax tracking active.' },
-
     { id: 'MIDDAY_CHURN', time: '11:30', label: 'Midday Churn Monitoring', description: 'Evaluating live midday density ratios to flag un-sponsored retail traps.' },
+    { id: 'MIDDAY_DATA_PULL', time: '13:08', label: 'Midday Options Hydration', description: 'RTK Query fetching calculated midday options info.' },
     { id: 'POWER_HOUR', time: '15:00', label: 'Power Hour Reconnaissance', description: 'Final options pinning and gamma acceleration pressure matrix adjustments.' },
     { id: 'LAST_FIVE_MIN', time: '15:55', label: 'Institutional Closing Influx', description: 'Intense final minutes of the trading day.' },
-    { id: 'MARKET_CLOSED', time: '16:00', label: 'Post Market Breakdown', description: 'Hopefully it was a green day.' }
+    { id: 'MARKET_CLOSED', time: '16:00', label: 'Post Market Breakdown', description: 'Hopefully it was a green day.' },
+    { id: 'POST_CLOSE_DATA_PULL', time: '16:10', label: 'Post Close Hydration', description: 'RTK Query fetching calculated channel absorb, daily values, volume profile, back tests, retail vs institution.' },
 ];
+
 
 const initialState = {
     nyCurrentTimeStr: '',

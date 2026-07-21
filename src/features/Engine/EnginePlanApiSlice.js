@@ -684,6 +684,36 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 }
             }
         }),
+
+        fetchEngineMorningData: builder.query({
+            query: () => ({
+                url: `/engine/today/morning`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshMorningData } = await queryFulfilled;
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        freshMorningData.planAndTrackedStocks.map((t, i) =>
+                        {
+                            if (!draft.plans.entities[t.tickerSymbol]) return
+                            const entityToUpdate = draft.plans.entities[t.tickerSymbol]
+
+                            if (t?.extentProb) entityToUpdate.metricConfig.extentProb = t.extentProb
+                            if (t?.extremeProbByFiveMin) entityToUpdate.metricConfig.extremeProbByFiveMin = t.extremeProbByFiveMin
+                            if (t?.morningMetrics) entityToUpdate.metricConfig.morningMetrics = t.morningMetrics
+                            if (t?.morningVolumeMetrics) entityToUpdate.metricConfig.morningVolume = t.morningVolumeMetrics
+                            if (t?.volumeDistributionMetrics) entityToUpdate.metricConfig.volumeDistribution = t.volumeDistributionMetrics
+                            if (t?.optionsExpectedMoves) entityToUpdate.optionsConfig = t.optionsExpectedMoves
+                        })
+                    }))
+                } catch (error) { console.log(error) }
+            }
+        }),
         fetchEngineOpenCrossData: builder.query({
             query: () => ({
                 url: `/engine/today/openCross`,
@@ -700,15 +730,76 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         freshOpenCrosses.planAndTrackedStocks.map((t, i) =>
                         {
                             if (!draft.plans.entities[t.tickerSymbol]) return
-                            draft.plans.entities[t.tickerSymbol].metricConfig.openCross = t.openCrossMetrics
+                            if (t?.openCrossMetrics) draft.plans.entities[t.tickerSymbol].metricConfig.openCross = t.openCrossMetrics
                         })
                     }))
-                } catch (error)
+                } catch (error) { console.log(error) }
+            }
+        }),
+        fetchEngineMidDayData: builder.query({
+            query: () => ({
+                url: `/engine/today/midday`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
                 {
-                    console.log(error)
-                }
+                    const { data: freshMidDayData } = await queryFulfilled;
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        freshMidDayData.planAndTrackedStocks.map((t, i) =>
+                        {
+                            if (!draft.plans.entities[t.tickerSymbol]) return
+                            const entityToUpdate = draft.plans.entities[t.tickerSymbol]
+                            if (t?.optionsExpectedMoves) entityToUpdate.optionsConfig = t.optionsExpectedMoves
+                        })
+                    }))
+                } catch (error) { console.log(error) }
+            }
+        }),
+        fetchEnginePostCloseData: builder.query({
+            query: () => ({
+                url: `/engine/today/postClose`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshPostCloseData } = await queryFulfilled;
+
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        freshPostCloseData.planAndTrackedStocks.map((t, i) =>
+                        {
+                            if (!draft.plans.entities[t.tickerSymbol]) return
+
+                            const entityToUpdate = draft.plans.entities[t.tickerSymbol]
+                            if (t?.channelPattern || t?.cascadePattern || t?.continuationPattern)
+                            {
+                                if (entityToUpdate.patternConfig.patternClassification === 'channel') { entityToUpdate.patternConfig = t.channelPattern }
+                                else if (entityToUpdate.patternConfig.patternClassification === 'continuation') { entityToUpdate.patternConfig = t.continuationPattern }
+                                else if (entityToUpdate.patternConfig.patternClassification === 'cascade') { entityToUpdate.patternConfig = t.cascadePattern }
+                            }
+
+                            if (t?.correlationValues) entityToUpdate.planConfig.correlationValues = t.correlationValues
+                            if (t?.greatestCorrelation) entityToUpdate.planConfig.greatestCorrelation = t.greatestCorrelation
+                            if (t?.dailyTickerValues) entityToUpdate.planConfig.dailyCalculatedValues = t.dailyTickerValues
+                            if (t?.relevantDateBackTests && t?.relevantDateBackTestsUsingFloor) entityToUpdate.planConfig.backTestedValues = { entryPrice: t.relevantDateBackTests, floorPrice: t.relevantDateBackTestsUsingFloor }
+
+                            if (t?.absorptionWindowMetrics) entityToUpdate.metricConfig.absorptionWindow = t.absorptionWindowMetrics
+                            if (t?.retailVsInstitutionMetrics) entityToUpdate.metricConfig.retailVsInstitution = t.retailVsInstitutionMetrics
+                            if (t?.volumeProfileMetrics) entityToUpdate.metricConfig.vpSupportResistance = t.volumeProfileMetrics
+                        })
+                    }))
+                } catch (error) { console.log(error) }
             }
         })
+
+
     })
 });
 
@@ -717,7 +808,10 @@ export const {
     useFetchEngineCandleBarDataQuery,
     useFetchEngineTradeDataQuery,
     useFetchEngineOneMinCandleBarDataQuery,
-    useFetchEngineOpenCrossDataQuery
+    useFetchEngineMorningDataQuery,
+    useFetchEngineOpenCrossDataQuery,
+    useFetchEngineMidDayDataQuery,
+    useFetchEnginePostCloseDataQuery
 } = EnginePlanPlanApiSlice;
 
 

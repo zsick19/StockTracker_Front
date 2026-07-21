@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { useFetchEngineOpenCrossDataQuery, useFetchEngineTradeDataQuery } from '../../features/Engine/EnginePlanApiSlice';
+import { useFetchEngineMidDayDataQuery, useFetchEngineMorningDataQuery, useFetchEngineOpenCrossDataQuery, useFetchEnginePostCloseDataQuery, useFetchEngineTradeDataQuery } from '../../features/Engine/EnginePlanApiSlice';
 import { differenceInSeconds } from 'date-fns';
 
 export const TerminalTaskStatusTickerHUD = () =>
@@ -9,10 +9,17 @@ export const TerminalTaskStatusTickerHUD = () =>
     const clockState = useSelector((state) => state.sessionClock);
     const { nyCurrentTimeStr, currentActiveProfile, nextTask, msToNextTask } = clockState;
 
-    const isReadyForHydration = currentActiveProfile.id === 'OPEN_CROSS'
-    const { isSuccess: isOpenCrossSuccess, isUninitialized, refetch } = useFetchEngineOpenCrossDataQuery(undefined, { skip: !isReadyForHydration, refetchOnMountOrArgChange: true })
+    const isReadyForMorningDataPull = currentActiveProfile.id === 'MORNING_DATA_PULL'
+    const isReadyForOpenCrossHydration = currentActiveProfile.id === 'OPEN_CROSS_DATA_PULL'
+    const isReadyForMidDayDataPull = currentActiveProfile.id === 'MIDDAY_DATA_PULL'
+    const isReadyForPostCloseDataPull = currentActiveProfile.id === 'POST_CLOSE_DATA_PULL'
 
-    //here goes any additional api request pulls
+    const { isSuccess: isMorningSuccess, isError: isMorningError, refetch: refetchMorning } = useFetchEngineMorningDataQuery(undefined, { skip: !isReadyForMorningDataPull, refetchOnMountOrArgChange: true })
+    const { isSuccess: isOpenCrossSuccess, isError: isOpenCrossError, refetch } = useFetchEngineOpenCrossDataQuery(undefined, { skip: !isReadyForOpenCrossHydration, refetchOnMountOrArgChange: true })
+    const { isSuccess: isMiddaySuccess, isError: isMiddayError, refetch: refetchMidDay } = useFetchEngineMidDayDataQuery(undefined, { skip: !isReadyForMidDayDataPull, refetchOnMountOrArgChange: true })
+    const { isSuccess: isPostCloseSuccess, isError: isPostCloseError, refetch: refetchPostClose } = useFetchEnginePostCloseDataQuery(undefined, { skip: !isReadyForPostCloseDataPull, refetchOnMountOrArgChange: true })
+
+
 
 
 
@@ -33,21 +40,53 @@ export const TerminalTaskStatusTickerHUD = () =>
                     <div style={{ fontSize: '9px', color: '#6272a4' }}>NY TIME</div>
                     <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#00ffff', marginTop: '2px' }}>{nyCurrentTimeStr || '00:00:00'}</div>
                 </div>
+
                 <div>
                     <div style={{ fontSize: '10px', color: '#6272a4', letterSpacing: '1px' }}>ACTIVE TERMINAL TASK STATUS</div>
                     <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', marginTop: '3px' }}>{currentActiveProfile.label}</div>
                     <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{currentActiveProfile.description}</div>
-                    {currentActiveProfile.label === 'Open Cross Fetch' && <div>
-                        {isOpenCrossSuccess ? "Successfully Updated Open Cross" : 'Error Updating Open Cross'}
-                        <button onClick={() => refetch()}>refetch</button>
+
+                    {isReadyForMorningDataPull && <div>
+                        {isMorningSuccess ? 'Successfully Pulled Morning Metrics' :
+                            isMorningError && <>
+                                <p>Error Pulling Morning Metrics</p>
+                                <button onClick={() => refetchMorning()}>Refetch</button>
+                            </>}
                     </div>}
+
+                    {isReadyForOpenCrossHydration && <div>
+                        {isOpenCrossSuccess ? "Successfully Pulled Open Cross" :
+                            isOpenCrossError && <>
+                                <p>Error Updating Open Cross</p>
+                                <button onClick={() => refetch()}>refetch</button>
+                            </>}
+                    </div>}
+
+                    {isReadyForMidDayDataPull && <div>
+                        {isMiddaySuccess ? 'Successfully Pulled Midday Metrics' :
+                            isMiddayError && <>
+                                <p>Error Pulling Midday Metrics</p>
+                                <button onClick={() => refetchMidDay()}>Refetch</button>
+                            </>}
+                    </div>}
+
+                    {isReadyForPostCloseDataPull && <div>
+                        {isPostCloseSuccess ? 'Successfully Pulled Post Closed Metrics' :
+                            isPostCloseError && <>
+                                <p>Error Pulling Post Close Metrics</p>
+                                <button onClick={() => refetchPostClose()}>Refetch</button>
+                            </>}
+                    </div>}
+
                 </div>
             </div>
+
             <div style={{ background: '#090a0f', padding: '8px 15px', borderRadius: '3px', border: '1px solid #1e1f29', minWidth: '150px', textAlign: 'right' }}>
                 <div style={{ fontSize: '9px', color: '#6272a4' }}>NEXT TASK: {nextTask?.time || '--:--'}</div>
                 <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffb86c', marginTop: '2px' }}>{formatCountdownString(msToNextTask)}</div>
                 <div style={{ fontSize: '8px', color: '#555', marginTop: '3px' }}>EVENT: {nextTask?.label}</div>
             </div>
+            
         </div>
     );
 };
