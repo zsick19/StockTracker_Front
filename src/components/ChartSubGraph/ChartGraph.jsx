@@ -1888,7 +1888,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             })
         }
 
-        if (KeyLevels.dailyZone)
+        if (KeyLevels.dailyZone && ticker !== "SPY")
         {
 
             let lowPixel = createPriceScale({ priceToPixel: KeyLevels.dailyZone.low })

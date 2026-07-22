@@ -83,7 +83,12 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         floorPrice: enterExit.plan.relevantDateBackTestsUsingFloor
                     }
                     planConfig.datesLastCalculated = {
-                        morningMetrics: enterExit.plan.dateMorningMetricsLastCalculated
+                        morningMetrics: enterExit.plan.dateMorningMetricsLastCalculated,
+                        volumeProfileMetrics: enterExit.plan.dateVolumeProfileLastCalculated,
+                        absorptionWindow: enterExit.plan.dateAbsorptionWindowLastCalculated,
+                        options: enterExit.plan.dateOptionsEMLastCalculated,
+                        pattern: enterExit.plan.datePatternLastCalculated,
+                        retailVsInstitution: enterExit.plan.dateRvILastCalculated
                     }
 
 
@@ -709,6 +714,10 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             if (t?.morningVolumeMetrics) entityToUpdate.metricConfig.morningVolume = t.morningVolumeMetrics
                             if (t?.volumeDistributionMetrics) entityToUpdate.metricConfig.volumeDistribution = t.volumeDistributionMetrics
                             if (t?.optionsExpectedMoves) entityToUpdate.optionsConfig = t.optionsExpectedMoves
+
+                            if (t?.dateOptionsEMLastCalculated) entityToUpdate.planConfig.datesLastCalculated.options = t.dateOptionsEMLastCalculated
+                            if (t?.dateMorningMetricsLastCalculated) entityToUpdate.planConfig.datesLastCalculated.morningMetrics = t.dateMorningMetricsLastCalculated
+
                         })
                     }))
                 } catch (error) { console.log(error) }
@@ -754,6 +763,8 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             if (!draft.plans.entities[t.tickerSymbol]) return
                             const entityToUpdate = draft.plans.entities[t.tickerSymbol]
                             if (t?.optionsExpectedMoves) entityToUpdate.optionsConfig = t.optionsExpectedMoves
+                            if (t?.dateOptionsEMLastCalculated) entityToUpdate.planConfig.datesLastCalculated.options = t.dateOptionsEMLastCalculated
+
                         })
                     }))
                 } catch (error) { console.log(error) }
@@ -793,6 +804,12 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             if (t?.absorptionWindowMetrics) entityToUpdate.metricConfig.absorptionWindow = t.absorptionWindowMetrics
                             if (t?.retailVsInstitutionMetrics) entityToUpdate.metricConfig.retailVsInstitution = t.retailVsInstitutionMetrics
                             if (t?.volumeProfileMetrics) entityToUpdate.metricConfig.vpSupportResistance = t.volumeProfileMetrics
+
+                            if (t?.dateVolumeProfileLastCalculated) entityToUpdate.planConfig.datesLastCalculated.volumeProfileMetrics = t.dateVolumeProfileLastCalculated
+                            if (t?.datePatternLastCalculated) entityToUpdate.planConfig.datesLastCalculated.pattern = t.datePatternLastCalculated
+                            if (t?.dateRvILastCalculated) entityToUpdate.planConfig.datesLastCalculated.retailVsInstitution = t.dateRvILastCalculated
+                            if (t?.dateAbsorptionWindowLastCalculated) entityToUpdate.planConfig.datesLastCalculated.absorptionWindow = t.dateAbsorptionWindowLastCalculated
+
                         })
                     }))
                 } catch (error) { console.log(error) }

@@ -10,9 +10,9 @@ function StockInfoView({ plan })
     // =========================================================================
     // 🏛️ THRESHOLD RULE A: DYNAMIC EARNINGS RISK CLAMPS
     // =========================================================================
-    const earningsDateRaw = stockData.NextEarnings || stockData.EarningsDate;
+    const earningsDateRaw = stockData?.NextEarnings || stockData?.EarningsDate || stockData?.LastEarnings || undefined;
     let earningsRiskStatus = { label: "SAFE WINDOW", isCritical: false, text: "No imminent earnings volatility gaps present." };
-
+    console.log(earningsDateRaw)
     if (earningsDateRaw)
     {
         const daysToEarnings = differenceInCalendarDays(new Date(earningsDateRaw), today);
@@ -36,16 +36,16 @@ function StockInfoView({ plan })
     // =========================================================================
     // 📐 THRESHOLD BINDINGS MATRIX
     // =========================================================================
-    const betaValue = stockData.Beta1Y || 1.0;
+    const betaValue = stockData?.Beta1Y || 1.0;
     const isHighBeta = betaValue >= 1.30; // Threshold: High-velocity market amplifier
 
-    const rangePosition = stockData.PositionInRangePercent || 0;
+    const rangePosition = stockData?.PositionInRangePercent || 0;
     const isDeepValueFloor = rangePosition <= 15.0; // Threshold: Bottom 15% of annual channel
 
-    const shortPctFloat = stockData.ShortPercentOfFloat || 0;
+    const shortPctFloat = stockData?.ShortPercentOfFloat || 0;
     const isShortPowderKeg = shortPctFloat >= 15.0; // Threshold: Heavy short crowd overcrowding
 
-    const daysToCover = stockData.ShortRatioDaysToCover || 0;
+    const daysToCover = stockData?.ShortRatioDaysToCover || 0;
     const isHighDaysToCover = daysToCover >= 4.0; // Threshold: Squeeze potential duration metrics
 
     return (

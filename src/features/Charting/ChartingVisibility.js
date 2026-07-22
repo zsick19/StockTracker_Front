@@ -58,7 +58,6 @@ const chartingVisibilitySlice = createSlice({
         {
             if (!action.payload.uuid || !action.payload.chartingElement) return
 
-            console.log(action.payload)
             switch (action.payload.chartingElement)
             {
                 case 'linesH': state[action.payload.uuid].anyLinesH = !state[action.payload.uuid].anyLinesH; break;

@@ -13,33 +13,22 @@ export const ScoringTestHUD = () =>
     function handleNavigateToSinglePlan(tickerSymbol) { dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: tickerSymbol })) }
 
     const [showAll, setShowAll] = useState(0)
+    const [headerOrShowSelect, setHeaderOrShowSelect] = useState(true)
 
-    useEffect(() =>
-    {
-        if (isBefore(new Date(), set(new Date(), { hours: 9, minutes: 30 }))) setShowAll(2)
-    }, [])
+    useEffect(() => { if (isBefore(new Date(), set(new Date(), { hours: 9, minutes: 30 }))) setShowAll(2) }, [])
+
+
+
 
     return (
         <div style={{ padding: '20px', background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', maxHeight: '600px' }}>
-            <div className='flex' style={{ borderBottom: '1px solid #222', paddingBottom: '10px', margin: '0 0 20px 0' }}>
-                <h2 style={{ color: '#00ffff' }}>
-                    CORE ENGINE MATRIX TEST SCRATCHPAD
-                </h2>
-                <button onClick={() => setShowAll(0)}>Monitor</button>
-                <button onClick={() => setShowAll(1)}>Strike</button>
-                <button onClick={() => setShowAll(2)}>All</button>
-            </div>
 
-            {prioritizedWatchlist.length === 0 ? (
-                <div style={{ color: '#666', padding: '20px', border: '1px dashed #333', textAlign: 'center' }}>
-                    ⏳ Awaiting data ingestion... Populate your 6 test plans to run live calculations.
-                </div>
-            ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+            {headerOrShowSelect ?
+                <table style={{ width: '100%', height: '65px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }} onContextMenu={(e) => { e.preventDefault(); setHeaderOrShowSelect(prev => !prev) }}>
                     <thead>
                         <tr style={{ background: '#111', color: '#888', borderBottom: '2px solid #222' }}>
-                            <th style={{ padding: '12px 10px' }}>SYMBOL</th>
-                            <th style={{ padding: '12px 10px' }}>PATTERN STATUS</th>
+                            <th style={{ padding: '12px 10px', width: '75px' }}>SYMBOL</th>
+                            <th style={{ padding: '12px 10px', width: '125px' }}>PATTERN STATUS</th>
                             <th style={{ padding: '12px 10px', textAlign: 'center' }}>LIVE PRICE</th>
                             <th style={{ padding: '12px 10px', textAlign: 'center', color: '#50fa7b' }}>TIER 1 (BASE)</th>
                             <th style={{ padding: '12px 10px', textAlign: 'center', color: '#50fa7b' }}>TIER 1 (TIME)</th>
@@ -48,72 +37,96 @@ export const ScoringTestHUD = () =>
                             <th style={{ padding: '12px 10px', textAlign: 'right', color: '#00ffff' }}>ALPHA SCORE</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {prioritizedWatchlist.map((plan) =>
-                        {
-                            // Extract our headless pre-compiled metrics
-                            const baseScore = plan.livePriceMetrics?.baseEnvironmentScore || 0;
-                            const timeScore = plan.livePriceMetrics?.timeDependentScore || 0
-                            const strategyScore = plan.livePriceMetrics?.patternSpecificScore || 0;
-                            const penaltiesApplied = plan.livePriceMetrics?.systemicPenaltiesApplied || 0;
-                            const finalScore = plan.alphaConvictionScore;
-                            const status = plan.executionStatus
-                            const withinPlan = plan.withinPlan
-                            const insideStrike = plan.insideStrike
-                            if (!withinPlan && (showAll === 1 || showAll === 0)) return
-                            if (!insideStrike && showAll === 1) return
+                </table> :
+                <div style={{ width: '100%', padding: '12px 10px', height: '65px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }} onContextMenu={(e) => { e.preventDefault(); setHeaderOrShowSelect(prev => !prev) }}>
+                    <button onClick={() => { setShowAll(0); setHeaderOrShowSelect(true) }}>Monitor</button>
+                    <button onClick={() => { setShowAll(1); setHeaderOrShowSelect(true) }}>Strike</button>
+                    <button onClick={() => { setShowAll(2); setHeaderOrShowSelect(true) }}>All</button>
+                </div>
+            }
+            {prioritizedWatchlist.length === 0 ? (
+                <div style={{ color: '#666', padding: '20px', border: '1px dashed #333', textAlign: 'center' }}>
+                    ⏳ Awaiting data ingestion... Populate your 6 test plans to run live calculations.
+                </div>
+            ) : (
+                <div className='hide-scrollbar' style={{ height: '400px', overflowY: 'scroll' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                        <thead>
+                            <tr style={{ background: '#111', color: '#888', borderBottom: '2px solid #222', height: '1px' }} >
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody >
+                            {prioritizedWatchlist.map((plan) =>
+                            {
+                                // Extract our headless pre-compiled metrics
+                                const baseScore = plan.livePriceMetrics?.baseEnvironmentScore || 0;
+                                const timeScore = plan.livePriceMetrics?.timeDependentScore || 0
+                                const strategyScore = plan.livePriceMetrics?.patternSpecificScore || 0;
+                                const penaltiesApplied = plan.livePriceMetrics?.systemicPenaltiesApplied || 0;
+                                const finalScore = plan.alphaConvictionScore;
+                                const status = plan.executionStatus
+                                const withinPlan = plan.withinPlan
+                                const insideStrike = plan.insideStrike
+                                if (!withinPlan && (showAll === 1 || showAll === 0)) return
+                                if (!insideStrike && showAll === 1) return
 
-                            return (
-                                <tr onClick={() => handleNavigateToSinglePlan(plan.tickerSymbol)} key={plan.tickerSymbol}
-                                    style={{
-                                        borderBottom: '1px solid #1c1c24',
-                                        background: finalScore >= 75 ? 'rgba(0,255,255,0.02)' : 'transparent',
-                                        opacity: insideStrike ? 1 : withinPlan ? '0.50' : '0.20'
-                                    }}>
-                                    {/* TICKER */}
-                                    <td style={{ padding: '14px 10px', fontWeight: 'bold', color: finalScore >= 75 ? '#00ffff' : '#fff', fontSize: '15px' }}>
-                                        {plan.tickerSymbol}
-                                    </td>
+                                return (
+                                    <tr onClick={() => handleNavigateToSinglePlan(plan.tickerSymbol)} key={plan.tickerSymbol}
+                                        style={{ borderBottom: '1px solid #1c1c24', background: finalScore >= 75 ? 'rgba(0,255,255,0.02)' : 'transparent', opacity: insideStrike ? 1 : withinPlan ? '0.50' : '0.20' }}>
+                                            
+                                        {/* TICKER */}
+                                        <td style={{ width: "75px", padding: '14px 10px', fontWeight: 'bold', color: finalScore >= 75 ? '#00ffff' : '#fff', fontSize: '15px' }}>
+                                            {plan.tickerSymbol}
+                                        </td>
 
-                                    {/* STRATEGY PATTERN TRACK */}
-                                    <td style={{ padding: '14px 10px', color: '#aaa' }}>
-                                        {insideStrike ? 'Within Strike Zone' : status}
-                                    </td>
+                                        {/* STRATEGY PATTERN TRACK */}
+                                        <td style={{ width: '125px', padding: '14px 10px', color: '#aaa' }}>
+                                            {insideStrike ? 'Within Strike Zone' : status}
+                                        </td>
 
-                                    {/* DYNAMIC CLOSE PRICE */}
-                                    <td style={{ padding: '14px 10px', textAlign: 'center', color: '#8be9fd' }}>
-                                        ${plan?.mostRecentPrice.toFixed(3) || '0.00'}
-                                    </td>
+                                        {/* DYNAMIC CLOSE PRICE */}
+                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#8be9fd' }}>
+                                            ${plan?.mostRecentPrice.toFixed(3) || '0.00'}
+                                        </td>
 
-                                    {/* TIER 1 BASE (CAPPED 50) */}
-                                    <td style={{ padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
-                                        +{baseScore}
-                                    </td>
+                                        {/* TIER 1 BASE (CAPPED 50) */}
+                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
+                                            +{baseScore}
+                                        </td>
 
-                                    {/* TIER 1 BASE (CAPPED 50) */}
-                                    <td style={{ padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
-                                        +{timeScore}
-                                    </td>
+                                        {/* TIER 1 BASE (CAPPED 50) */}
+                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
+                                            +{timeScore}
+                                        </td>
 
-                                    {/* TIER 2 STRATEGY (CAPPED 50) */}
-                                    <td style={{ padding: '14px 10px', textAlign: 'center', color: '#de50fa', fontWeight: 'bold' }}>
-                                        +{strategyScore}
-                                    </td>
+                                        {/* TIER 2 STRATEGY (CAPPED 50) */}
+                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#de50fa', fontWeight: 'bold' }}>
+                                            +{strategyScore}
+                                        </td>
 
-                                    {/* ACTIVE RISK PENALTIES */}
-                                    <td style={{ padding: '14px 10px', textAlign: 'center', color: '#ff5555', fontWeight: 'bold' }}>
-                                        {penaltiesApplied}
-                                    </td>
+                                        {/* ACTIVE RISK PENALTIES */}
+                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#ff5555', fontWeight: 'bold' }}>
+                                            {penaltiesApplied}
+                                        </td>
 
-                                    {/* COMPENSATED FINAL MATCHING SCORE PERCENTAGE */}
-                                    <td style={{ padding: '14px 10px', textAlign: 'right', fontWeight: 'bold', fontSize: '16px', color: finalScore >= 75 ? '#50fa7b' : '#fff' }}>
-                                        {finalScore}%
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                                        {/* COMPENSATED FINAL MATCHING SCORE PERCENTAGE */}
+                                        <td style={{ padding: '14px 10px', textAlign: 'right', fontWeight: 'bold', fontSize: '16px', color: finalScore >= 75 ? '#50fa7b' : '#fff' }}>
+                                            {finalScore}%
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );

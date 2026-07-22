@@ -36,12 +36,12 @@ function MessageNewsCenter()
         <section id='MessageNewsCenterSection'>
             <fieldset onChange={(e) => dispatch(setMessageNewsDetailState(e.target.id))} id='NewsCenterDisplayNav' className='fieldSetWithTabs'>
                 <input type="radio" name="messageDisplay" id="general" readOnly checked={provideChecked('general')} className='hidden-radio' />
-                <label htmlFor="general">General</label>
+                <label htmlFor="general">Welcome</label>
                 <input type="radio" name="messageDisplay" id="account" readOnly className='hidden-radio' checked={provideChecked('account')} />
                 <label htmlFor="account">Account</label>
                 <input type="radio" name="messageDisplay" id="tickerInfo" readOnly className='hidden-radio' checked={provideChecked('tickerInfo')} />
                 <label htmlFor="tickerInfo">Ticker Info</label>
-                <input type="radio" name="messageDisplay" id="macroZoneConditions" readOnly className='hidden-radio' checked={provideChecked('macroZoneConditions')} />
+                <input disabled type="radio" name="messageDisplay" id="macroZoneConditions" readOnly className='hidden-radio' checked={provideChecked('macroZoneConditions')} />
                 <label htmlFor="macroZoneConditions">Macro</label>
                 <input type="radio" name="messageDisplay" id="standardDeviation" readOnly className='hidden-radio' checked={provideChecked('standardDeviation')} />
                 <label htmlFor="standardDeviation">STD</label>

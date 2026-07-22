@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { useUploadStockDataCsvMutation } from '../../../../../../../../features/Utility/UtilityApiSlice';
+import { useUploadExpectedCoreMovesFromAsherBotMutation, useUploadStockDataCsvMutation, useUploadZoneDocumentMutation } from '../../../../../../../../features/Utility/UtilityApiSlice';
 
-export const StockCsvUpload = () =>
+export const StockCsvUpload = ({ process }) =>
 {
     const [activeFile, setActiveFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -26,7 +26,7 @@ export const StockCsvUpload = () =>
         if (files && files.length > 0)
         {
             // Confirm the asset is genuinely a .csv text file before loading
-            if (files[0].name.endsWith('.csv'))
+            if (files[0].name.endsWith('.csv') || files[0].name.endsWith('.txt') || files[0].name.endsWith('.pdf'))
             {
                 setActiveFile(files[0]);
                 setUploadStatus({ state: 'FILE_LOADED', message: `Target Loaded: ${files[0].name}` });
@@ -48,29 +48,49 @@ export const StockCsvUpload = () =>
     };
 
 
+
     const [uploadStockDataCsv] = useUploadStockDataCsvMutation()
-    async function attemptExecuteUploadPipeline()
+    const [uploadExpectedCoreMovesFromAsherBot] = useUploadExpectedCoreMovesFromAsherBotMutation()
+    const [uploadZoneDocument] = useUploadZoneDocumentMutation()
+
+    const [expectedMovesTimePeriod, setExpectedMovesTimePeriod] = useState('DAILY')
+
+    async function attemptExecuteUpload(e)
     {
-        if (!activeFile) return;
-
-        setUploadStatus({ state: 'PROCESSING', message: 'Streaming records and parsing headers...' });
-
-        // Package the file binary inside a native multipart form container
-        const formPayload = new FormData();
-        formPayload.append('csvFile', activeFile);
-
-
-
-
+        e.preventDefault();
+        if (!activeFile)
+        {
+            setUploadStatus({ state: 'ERROR', message: 'File Missing' });
+            return;
+        }
         try
         {
-            const response = await uploadStockDataCsv({ formData: formPayload }).unwrap()
+            let response
+            setUploadStatus({ state: 'PROCESSING', message: 'Streaming records...' });
 
-            setUploadStatus({
-                state: 'SUCCESS',
-                message: `🎯 Success! Processed and aligned ${response.recordsProcessed} stocks in your database.`
-            });
+            const formPayLoad = new FormData();
+            switch (process)
+            {
+                case 'DAILY CSV':
+
+                    formPayLoad.append('csvFile', activeFile);
+                    response = await uploadStockDataCsv({ formData: formPayLoad }).unwrap()
+                    setUploadStatus({ state: 'SUCCESS', message: `Success! Processed ${response.recordsProcessed} stocks.` });
+                    break;
+                case 'CORE EM':
+                    formPayLoad.append('expectedMovesCoreFile', activeFile);
+                    response = await uploadExpectedCoreMovesFromAsherBot({ formData: formPayLoad, timePeriod: expectedMovesTimePeriod }).unwrap()
+                    setUploadStatus({ state: 'SUCCESS', message: `Success! Processed ${response.recordsProcessed} stocks.` });
+                    break;
+                case 'ZONE DOC':
+                    formPayLoad.append('zonePDF', activeFile);
+                    response = await uploadZoneDocument({ formData: formPayLoad }).unwrap()
+                    setUploadStatus({ state: 'SUCCESS', message: `Success! Processed ${response.recordsProcessed} stocks.` });
+                    break;
+            }
+
             setActiveFile(null);
+            setTimeout(() => { setUploadStatus({ state: 'IDLE', message: '' }) }, [5000])
 
         } catch (error)
         {
@@ -79,14 +99,15 @@ export const StockCsvUpload = () =>
         }
     };
 
+
     return (
-        <div className="csv-uploader-wrapper" style={{ padding: '20px', maxWidth: '500px', fontFamily: 'monospace' }}>
+        <div className="csv-uploader-wrapper" style={{ padding: '20px', width: '200px', height: '100px', fontFamily: 'monospace' }}>
             <div className="dropzone-area"
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 style={{
-                    height: '180px',
+                    padding: '5px',
                     border: isDragging ? '2px dashed #00FFFF' : '2px dashed #333',
                     background: isDragging ? 'rgba(0, 255, 255, 0.02)' : '#111',
                     borderRadius: '6px',
@@ -94,45 +115,54 @@ export const StockCsvUpload = () =>
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    cursor: 'pointer',
                     transition: 'all 0.2s ease'
                 }}>
-                <input type="file" id="filePicker" accept=".csv" onChange={handleFileSelect} style={{ display: 'none' }} />
+                <input type="file" id="filePicker" accept=".csv" onClick={(e) => e.preventDefault()} onChange={handleFileSelect} style={{ display: 'none' }} />
                 <label htmlFor="filePicker" style={{ cursor: 'pointer', textAlign: 'center', color: '#888' }}>
-                    <span style={{ color: '#00FFFF', fontWeight: 'bold', fontSize: '15px' }}>⚡ DRAG DAILY CSV HERE</span>
-                    <br /><span style={{ fontSize: '11px' }}>or click to browse local files</span>
+                    <span style={{ color: `${process === 'DAILY CSV' ? '#00FFFF' : process === 'CORE EM' ? "purple" : "#00ff55"}`, fontWeight: 'bold', fontSize: '15px' }}>DRAG {process} HERE</span>
+                    {process === 'CORE EM' && <div>
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'DAILY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('DAILY')}>D</button>
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'WEEKLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('WEEKLY')}>W</button>
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'MONTHLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('MONTHLY')}>M</button>
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'QUARTERLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('QUARTERLY')}>Q</button>
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'YEARLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('DAILY')}>Y</button>
+                    </div>}
                 </label>
-            </div>
+            </div >
 
-            {uploadStatus.message && (
-                <div className="status-readout" style={{
-                    marginTop: '15px',
-                    fontSize: '12px',
-                    color: uploadStatus.state === 'ERROR' ? '#FF0055' : (uploadStatus.state === 'SUCCESS' ? '#00FFCC' : '#fff'),
-                    background: '#1a1a1a',
-                    padding: '10px',
-                    borderRadius: '4px'
-                }}>
-                    {uploadStatus.message}
-                </div>
-            )}
-
-            {activeFile && uploadStatus.state !== 'PROCESSING' && (
-                <button onClick={attemptExecuteUploadPipeline}
-                    style={{
+            {
+                uploadStatus.message && (
+                    <div className="status-readout" style={{
                         marginTop: '15px',
-                        width: '100%',
+                        fontSize: '12px',
+                        color: uploadStatus.state === 'ERROR' ? '#FF0055' : (uploadStatus.state === 'SUCCESS' ? '#00FFCC' : '#fff'),
+                        background: '#1a1a1a',
                         padding: '10px',
-                        background: '#00FFFF',
-                        color: '#000',
-                        border: 'none',
-                        fontWeight: 'bold',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
+                        borderRadius: '4px'
                     }}>
-                    SYNC DATA TO MONGODB
-                </button>
-            )}
-        </div>
+                        {uploadStatus.message}
+                    </div>
+                )
+            }
+
+            {
+                activeFile && uploadStatus.state !== 'PROCESSING' && (
+                    <button onClick={attemptExecuteUpload}
+                        style={{
+                            marginTop: '15px',
+                            width: '100%',
+                            padding: '10px',
+                            background: '#00FFFF',
+                            color: '#000',
+                            border: 'none',
+                            fontWeight: 'bold',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                        }}>
+                        SYNC DATA TO MONGODB
+                    </button>
+                )
+            }
+        </div >
     );
 };
