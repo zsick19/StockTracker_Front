@@ -4,7 +4,7 @@ import { defaultTimeFrames } from '../../../../../../../Utilities/TimeFrames'
 import IntegratedNoFetchChartWrapper from '../../../../../../../components/ChartSubGraph/IntegratedNoFetchChartWrapper'
 import { useDispatch, useSelector } from 'react-redux'
 import { setFocusStartFinishDate } from '../../../../../../../features/Charting/GraphMarketHourElement'
-import { selectCombinedCandlesByTicker } from '../../../../../../../features/Engine/EnginePlanApiSlice'
+import { selectCombinedCandlesByTicker, selectDetailedScoreBreakDownBySymbol } from '../../../../../../../features/Engine/EnginePlanApiSlice'
 
 function IntegratedPlanChartWrapper({ plan, timeFrameView })
 {
@@ -23,6 +23,7 @@ function IntegratedPlanChartWrapper({ plan, timeFrameView })
     }
     const morningMetrics = plan.metricConfig.morningMetrics
 
+    const { mostRecentPrice } = useSelector((state) => selectDetailedScoreBreakDownBySymbol(state, plan.id))
 
 
 
@@ -30,7 +31,9 @@ function IntegratedPlanChartWrapper({ plan, timeFrameView })
         <>
             <IntegratedNoFetchChartWrapper
                 ticker={plan.id} candleData={candleData}
-                uuid={uuid} mostRecentPrice={plan.mostRecentPrice}
+                uuid={uuid}
+                mostRecentPrice={mostRecentPrice || plan.mostRecentPrice}
+                
                 timeFrame={defaultTimeFrames.oneDayOneMin}
                 dailyCalculatedValues={dailyCalculatedValues}
                 morningMetrics={morningMetrics}

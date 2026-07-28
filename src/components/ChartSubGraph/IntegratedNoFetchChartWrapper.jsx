@@ -37,7 +37,8 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
         })
     }, [])
 
-    const [showEMA, setShowEMA] = useState(true)
+    const [showEMA, setShowEMA] = useState(false)
+
     return (
         <div className="IntegratedChartWrapper">
             <div className='IntegratedChartShowHideButtons' >
@@ -54,7 +55,7 @@ function IntegratedNoFetchChartWrapper({ ticker, candleData, uuid, mostRecentPri
             <ChartGraph ticker={ticker}
                 candleData={candleData}
                 uuid={uuid}
-                mostRecentPrice={mostRecentPrice}
+                mostRecentPrice={{ Price: mostRecentPrice }}
                 // lastCandleData={{ ClosePrice: mostRecentPrice }}
                 isInteractive={false}
                 isZoomAble={true}

@@ -11,7 +11,7 @@ import { makeSelectGraphCrossHairsByUUID } from '../../../features/Charting/Grap
 import { makeSelectGraphHoursByUUID } from '../../../features/Charting/GraphMarketHourElement'
 import { pixelBuffer } from '../GraphChartConstants'
 
-function MACDSubChart({ candleData, uuid, timeFrame, hideTimeLine })
+function MACDSubChart({ candleData, uuid, timeFrame, hideTimeLine, chartZoomState, setChartZoomState })
 {
     const YSVGWrapper = useRef()
     const YSVG = useRef()
@@ -26,8 +26,8 @@ function MACDSubChart({ candleData, uuid, timeFrame, hideTimeLine })
 
 
 
-    const selectedChartZoomStateMemo = useMemo(makeSelectZoomStateByUUID, [])
-    const chartZoomState = useSelector(state => selectedChartZoomStateMemo(state, uuid))
+    // const selectedChartZoomStateMemo = useMemo(makeSelectZoomStateByUUID, [])
+    // const chartZoomState = useSelector(state => selectedChartZoomStateMemo(state, uuid))
 
 
     const selectCurrentXCrossHair = useMemo(makeSelectGraphCrossHairsByUUID, [])

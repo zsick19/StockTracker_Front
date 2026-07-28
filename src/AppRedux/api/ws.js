@@ -4,6 +4,7 @@ import { addSTDDaily } from '../../features/STDs/StockDetailControlSlice';
 import { addPriceAlert, removeQuickAlert } from '../../features/PriceAlerts/PriceAlertControlSlice';
 import { toZonedTime } from 'date-fns-tz';
 import { isWeekend, isWithinInterval, set } from 'date-fns';
+import { setMonitorDisconnectionMessage } from '../../features/Initializations/StreamMostRecentSlice';
 
 // Create a singleton to manage the single WebSocket connection
 let listeners = {
@@ -39,6 +40,7 @@ export const setupWebSocket = () =>
                 //         store.dispatch(removeQuickAlert(payload))
                 //     }, 3000);
                 // }
+                if (eventName === 'monitorError' && store) { store.dispatch(setMonitorDisconnectionMessage(payload)) }
             })
 
             ws.on('disconnect', () =>

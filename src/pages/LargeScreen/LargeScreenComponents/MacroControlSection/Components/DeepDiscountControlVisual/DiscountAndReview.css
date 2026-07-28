@@ -1,8 +1,6 @@
 #DiscountAndReview {
-  height: 700px;
   display: grid;
-  grid-template-rows: 1fr 1fr;
-  width: 250px;
+  grid-template-rows: 35% 1fr;
   gap: 1rem;
   text-align: center;
 }
@@ -23,7 +21,7 @@
 }
 
 #DeepDiscountAlertHUD > div:first-of-type {
-  background-color: gray;
+  background-color: rgb(54, 39, 27);
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
 }
@@ -60,16 +58,10 @@
   cursor: pointer; /* Changes the mouse arrow to a clickable hand icon */
 }
 
-
-
-
-#DiscountReviewStatus > div:last-of-type {
-  height: 275px;
+#DeepDiscountStatusList {
   overflow-y: scroll;
+  max-height: 475px;
 }
-
-
-
 
 .mutedAlert {
 }

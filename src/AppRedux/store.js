@@ -26,6 +26,7 @@ import sessionClockReducers from '../features/Scheduling/sessionClockSlice'
 import { injectStore } from "./api/ws";
 import { deepDiscountSentryListener } from "../features/DeepDiscountEngine/DeepDiscountListenerSlice";
 import interceptSentrySliceReducers from '../features/DeepDiscountEngine/DeepDiscountLocalSlice'
+import streamMostRecentReducers from '../features/Initializations/StreamMostRecentSlice'
 
 export const store = configureStore({
   reducer: {
@@ -52,6 +53,7 @@ export const store = configureStore({
     interceptSentrySlice: interceptSentrySliceReducers,
     auth: authReducer,
     test: testReducer,
+    streamMostRecent: streamMostRecentReducers
 
   },
   middleware: (getDefaultMiddleware) =>

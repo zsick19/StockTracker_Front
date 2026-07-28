@@ -69,6 +69,7 @@ function StockDetailSection()
       case 22: return <DeepDiscount tickerSymbol={currentStockDetail.ticker} />
       case 23: return <DeepDiscountTradeView tickerSymbol={currentStockDetail.ticker} />
       case 24: return <MacroEventOverlap tickerSymbol={currentStockDetail.ticker} />
+      case 25: return <div>Calander</div>
     }
   }
 

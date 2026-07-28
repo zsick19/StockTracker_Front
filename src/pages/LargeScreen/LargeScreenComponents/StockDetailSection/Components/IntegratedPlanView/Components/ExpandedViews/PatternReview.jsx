@@ -39,7 +39,6 @@ function PatternReview({ plan })
                 <div>
                     <button onClick={() => setShowEntryOrFloor(0)}><ArrowDownToLine color='blue' />Entry</button>
                     <button onClick={() => setShowEntryOrFloor(1)}><ArrowDownToLine color='orange' />Floor</button>
-                    <button disabled onClick={() => setShowEntryOrFloor(2)}>Custom</button>
                 </div>
                 {showEntryOrFloor !== 2 ?
                     <BackTestTimeLineChart backTests={showEntryOrFloor === 0 ? entryBackTests : floorBackTests}

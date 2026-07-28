@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import HorizontalPlanDiagram from '../../../../ActiveTradeSection/Components/ActiveTradeAndWatchList/WatchList/Components/PlanPricingDiagram/HorizontalPlanDiagram'
 import { useRemoveSingleEnterExitPlanMutation, useToggleEnterExitPlanImportantMutation } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { CircleAlert, SquareArrowOutUpRight, SquareArrowUpLeft, Trash, Trash2, X } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setSingleChartTickerTimeFrameChartIdPlanIdForTrade } from '../../../../../../../features/SelectedStocks/SelectedStockSlice'
 import { setStockDetailState } from '../../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import HorizontalPlanDiagram from '../../../../ActiveTradeSection/Components/WatchList/Components/PlanPricingDiagram/HorizontalPlanDiagram'
 
 
 function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
@@ -52,6 +52,7 @@ function SinglePlanView({ plan, selectedPlan, setSelectedPlan })
                 `}
             onClick={() => setSelectedPlan(plan)}>
             <div>
+
                 <p>{plan.tickerSymbol}</p>
                 <p>${plan.mostRecentPrice.toFixed(2)}</p>
             </div>

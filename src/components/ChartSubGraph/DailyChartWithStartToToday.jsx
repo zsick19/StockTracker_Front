@@ -22,7 +22,7 @@ function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartD
     const priceScaleSVG = select(priceSVG.current)
 
     const mostRecentPrice = useSelector(state => selectMostRecentPriceByTicker(state, ticker))
-    console.log(mostRecentPrice)
+
 
 
     //chart zoom states    

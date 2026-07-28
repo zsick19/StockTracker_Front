@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { shallowEqual, useSelector } from 'react-redux'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { selectPlanForStaticDetails } from '../../../../../../features/Engine/EnginePlanApiSlice';
 import './DeepDiscount.css'
 import { useGetStockDataUsingStartAndEndDateWithTimeFrameQuery } from '../../../../../../features/StockData/StockDataSliceApi';
@@ -12,9 +12,11 @@ import { useGenerateOrUpdateExitAlertMutation, useMarkPlanDiscountsReviewedMutat
 import { differenceInBusinessDays } from 'date-fns';
 import GraphLoadingSpinner from '../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingSpinner';
 import GraphLoadingError from '../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError';
+import { setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice';
 
 function DeepDiscount({ tickerSymbol })
 {
+    const dispatch = useDispatch()
     const selectStaticFieldsInstance = useMemo(selectPlanForStaticDetails, [])
     const selectedPlannedTicker = useSelector((state) => selectStaticFieldsInstance(state, tickerSymbol), shallowEqual);
     const planConfig = selectedPlannedTicker.planConfig
@@ -132,8 +134,9 @@ function DeepDiscount({ tickerSymbol })
         <div id='DeepDiscount'>
 
             <div id='CurrentChartAndBackTest'>
-                <div>
+                <div className='flex'>
                     <h3>{tickerSymbol}</h3>
+                    <button onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: tickerSymbol }))}>Integrated View</button>
                 </div>
                 {patternOrStockChart.display ?
                     <EntryGainPainChartWrapper plan={{ id: tickerSymbol }} entryDate={patternOrStockChart.entryDate} pricePoints={{

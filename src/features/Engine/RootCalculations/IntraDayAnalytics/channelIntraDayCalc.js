@@ -24,7 +24,7 @@ export function processStandardChannelLiveDelta(planEntity, todaysLiveCandles)
     // 1. Evaluate your pre-compiled historical support density backing
     if (metrics.staticHistoryTouchCount >= 4 && metrics.isChannelHeightViable)
     {
-        liveCumulativeScore += W.patterns.channel.heightVolatilityBonus; // +10 Points
+        liveCumulativeScore += W.patterns.standardChannel.heightVolatilityBonus; // +10 Points
     }
 
     // 2. Track real-time live floor sweeps (Lower shadow absorption walls)
@@ -34,7 +34,7 @@ export function processStandardChannelLiveDelta(planEntity, todaysLiveCandles)
 
     if (isLiveWickSweepingFloor && isLiveBodyReclaimingFloor)
     {
-        liveCumulativeScore += W.patterns.channel.floorSweepReclaimBonus; // +15 Points
+        liveCumulativeScore += W.patterns.standardChannel.floorSweepReclaimBonus; // +15 Points
     }
 
     return liveCumulativeScore;

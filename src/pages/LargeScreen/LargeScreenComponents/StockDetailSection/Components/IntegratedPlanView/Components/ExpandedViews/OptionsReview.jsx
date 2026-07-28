@@ -38,11 +38,12 @@ function OptionsReview({ plan, livePrice = 2.95 })
 
 
     const optionsData = plan.optionsConfig || {};
-    if (!optionsData) return <div>Plan Has No Options</div>
-    const weeklyMetrics = optionsData.weekly.putWall === 0 ? optionsData.monthly : optionsData.weekly
-
-    const targetExpirationStr = optionsData.metadata?.targetExpirationDate || "2026-07-10";
     const hasOptionsFlag = plan.stockInfo.HasOptions !== false;
+    if (!optionsData) return <div>Plan Has No Options</div>
+
+
+    const weeklyMetrics = optionsData.weekly.putWall === 0 ? { ...optionsData.monthly, isMonthly: true } : { ...optionsData.weekly, isMonthly: false }
+    const targetExpirationStr = optionsData.metadata?.targetExpirationDate || "2026-07-10";
 
     // Local price mapping variables to generate real-time execution proximity badges [INDEX]
     const isPriceAtPutWall = Math.abs(livePrice - weeklyMetrics.putWall) / weeklyMetrics.putWall <= 0.0035;
@@ -50,9 +51,9 @@ function OptionsReview({ plan, livePrice = 2.95 })
 
     // Placeholder data mapping matrix for your upcoming Alpaca options chain integration [INDEX]
     const placeholderOptionsChainData = [
-        { strike: 2.50, callBid: 0.45, callAsk: 0.48, callOI: 120, putBid: 0.01, putAsk: 0.03, putOI: 4500 },
-        { strike: 3.00, callBid: 0.12, callAsk: 0.14, callOI: 8500, putBid: 0.14, putAsk: 0.16, putOI: 9200 },
-        { strike: 3.50, callBid: 0.02, callAsk: 0.04, callOI: 6200, putBid: 0.55, putAsk: 0.60, putOI: 140 }
+        // { strike: 2.50, callBid: 0.45, callAsk: 0.48, callOI: 120, putBid: 0.01, putAsk: 0.03, putOI: 4500 },
+        // { strike: 3.00, callBid: 0.12, callAsk: 0.14, callOI: 8500, putBid: 0.14, putAsk: 0.16, putOI: 9200 },
+        // { strike: 3.50, callBid: 0.02, callAsk: 0.04, callOI: 6200, putBid: 0.55, putAsk: 0.60, putOI: 140 }
     ];
 
     return (
@@ -63,7 +64,7 @@ function OptionsReview({ plan, livePrice = 2.95 })
                 <div>
                     <div style={{ fontSize: '10px', color: '#6272a4', letterSpacing: '1px' }}>DERIVATIVES CHAIN EXPIRATION TARGET</div>
                     <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', marginTop: '3px' }}>
-                        📅 {targetExpirationStr} <span style={{ fontSize: '11px', color: '#6272a4', fontWeight: 'normal' }}>(Weekly Cycle)</span>
+                        📅 {targetExpirationStr} <span style={{ fontSize: '11px', color: '#6272a4', fontWeight: 'normal' }}>{weeklyMetrics.isMonthly ? "(Monthly Cycle)" : "(Weekly Cycle)"}</span>
                     </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -94,11 +95,11 @@ function OptionsReview({ plan, livePrice = 2.95 })
                     <div style={{ fontSize: '10px', color: '#6272a4', fontWeight: 'bold' }}>🌊 IMPLIED VOLATILITY BOUNDS (1-SD)</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', borderBottom: '1px solid #1e1f29', paddingBottom: '4px' }}>
                         <span style={{ color: '#ffb86c' }}>LOWER EXPECTED MOVE:</span>
-                        <span style={{ fontWeight: 'bold', color: isPriceAtLowerBound ? '#00ffff' : '#fff' }}>${weeklyMetrics?.lowerExpectedMoveBound?.toFixed(2)}</span>
+                        <span style={{ fontWeight: 'bold', color: isPriceAtLowerBound ? '#00ffff' : '#fff' }}>${weeklyMetrics?.lowerExpectedBounds?.toFixed(2)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                         <span style={{ color: '#ffb86c' }}>UPPER EXPECTED MOVE:</span>
-                        <span style={{ fontWeight: 'bold', color: '#fff' }}>${weeklyMetrics.upperExpectedMoveBound?.toFixed(2)}</span>
+                        <span style={{ fontWeight: 'bold', color: '#fff' }}>${weeklyMetrics.upperExpectedBounds?.toFixed(2)}</span>
                     </div>
                 </div>
 
@@ -134,6 +135,7 @@ function OptionsReview({ plan, livePrice = 2.95 })
 
                 {/* INTERACTIVE ROWS SCROLLING RAIL CONTAINER */}
                 <div style={{ display: 'flex', flexDirection: 'column', height: '250px', overflowY: 'scroll' }} className=''>
+
                     {placeholderOptionsChainData.map((row, index) =>
                     {
                         // Highlight rows if they coalign directly with your structural system walls [INDEX]
@@ -170,10 +172,10 @@ function OptionsReview({ plan, livePrice = 2.95 })
                                 {/* Wire useGetAlpacaLiveOptionsChainQuery(Symbol) to this layout layer container to stream live multi-tier contract deltas [INDEX].  */}
                             </div>
                         )
-                    }
-                    )
-                    }
+                    })}
+
                 </div>
+
             </div>
         </div >
     )

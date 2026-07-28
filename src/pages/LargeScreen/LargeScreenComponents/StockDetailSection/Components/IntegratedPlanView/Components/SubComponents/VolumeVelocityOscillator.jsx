@@ -7,7 +7,6 @@ import { eachMinuteOfInterval, set } from 'date-fns';
 export const VolumeVelocityOscillator = ({ todaysCandles, ticksFirstHour }) =>
 {
     const oscillatorRef = useRef(null);
-    console.log(todaysCandles)
     const velocityMatrix = compileVolumeDerivative(todaysCandles);
 
     const preDimensionsAndCandleCheck = () => { return !chartDimensions }

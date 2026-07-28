@@ -9,6 +9,9 @@ import SDTNotificationControl from "./SDTNotification/SDTNotificationControl";
 import { useRefreshStreamTickersMutation } from "../../features/auth/authApiSlice";
 import PriceAlertNotification from "./PriceAlertNotification/PriceAlertNotification";
 import { startBackgroundSessionTicker } from "../../features/Scheduling/sessionClockSlice";
+import { useFetchPlanUpdatesMutation } from "../../features/Engine/EnginePlanApiSlice";
+import { selectMostRecentStream } from "../../features/Initializations/StreamMostRecentSlice";
+import StreamProof from "./StreamProof";
 
 function DashNav()
 {
@@ -24,8 +27,18 @@ function DashNav()
 
 
 
-
-
+  const [fetchPlanUpdates] = useFetchPlanUpdatesMutation()
+  async function attemptPlanRefetch()
+  {
+    try
+    {
+      const results = await fetchPlanUpdates().unwrap()
+      console.log(results)
+    } catch (error)
+    {
+      console.log(error)
+    }
+  }
 
 
 
@@ -102,7 +115,10 @@ function DashNav()
         </button>
       )}
 
-      <p>Stock Tracker</p>
+      <div>
+        <p>Stock Tracker</p>
+        <StreamProof />
+      </div>
       {/* <SDTNotificationControl /> */}
 
       {centerInformationDisplay === 1 ? <div className="flex">
@@ -136,10 +152,11 @@ function DashNav()
       {/* <PriceAlertNotification /> */}
 
       <div className="flex" style={{ fontSize: 'var(--fs-100)' }}>
+        <button onClick={() => attemptPlanRefetch()}>Plan Refresh</button>
         {showRefreshDelivered ? <p>Stream Refreshed <Check color="green" /></p> : <button onClick={() => attemptStreamTickerRefresh()}>Refresh Stream Login</button>}
         <button onClick={() => window.location.reload()}>Refresh Page</button>
         <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(1)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessKing color="green" /></button>
-        <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(2)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessQueen color="green" /></button>
+        {/* <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(2)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessQueen color="green" /></button> */}
       </div>
 
     </nav>

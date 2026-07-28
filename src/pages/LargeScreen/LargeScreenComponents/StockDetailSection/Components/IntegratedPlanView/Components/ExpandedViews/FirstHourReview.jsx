@@ -37,11 +37,10 @@ function FirstHourReview({ plan })
     const firstHourCandles = useSelector((state) => selectFirstHourValveInstance(state, plan.id), shallowEqual)
 
     const openHourCandles = firstHourCandles.candles
+    console.log(openHourCandles)
 
-    console.log(openHourCandles.length)
-
-    const isUpMorning = firstHourCandles.mostRecentPrice ? firstHourCandles.mostRecentPrice > firstHourCandles.candles[0].OpenPrice :
-        firstHourCandles.candles[0]?.OpenPrice ? firstHourCandles.mostRecentCandle.ClosePrice > firstHourCandles.candles[0].OpenPrice : true
+    const isUpMorning = firstHourCandles?.candles[0]?.OpenPrice ? firstHourCandles.mostRecentPrice ? firstHourCandles.mostRecentPrice > firstHourCandles?.candles[0].OpenPrice :
+        firstHourCandles?.candles[0]?.OpenPrice ? firstHourCandles.mostRecentCandle.ClosePrice > firstHourCandles?.candles[0].OpenPrice : true : false
 
 
     const peakMetrics = firstHourCandles.peakMetrics
@@ -232,7 +231,9 @@ function FirstHourReview({ plan })
 
 
                     <div className='FirstHourLiveStats' style={{ fontSize: '12px' }}>
-                        <p>Today's Open Cross: ${openCross.todaysOpenCross?.officialAuctionCrossPrice || 0} vs Yesterday: ${openCross.previousOpenCross.at(-1).officialAuctionCrossPrice}</p>
+                        {openCross &&
+                            <p>Today's Open Cross: ${openCross?.todaysOpenCross?.officialAuctionCrossPrice || 0} vs Yesterday: ${openCross?.previousOpenCross?.at(-1)?.officialAuctionCrossPrice || 0}</p>
+                        }
                         <p>Yesterday {new Date(plan?.snapShot?.PrevDailyBar.Timestamp).toDateString()} Close: ${yesterdayClose} </p>
                         <p>Opening Range: ${dropPrice.toFixed(2)} to ${rallyPrice.toFixed(2)}</p>
                     </div>

@@ -9,6 +9,10 @@ const graphMarketHoursElement = createSlice({
         {
             state[action.payload.uuid] = { showOnlyIntraDay: false, focusDates: undefined }
         },
+        setInitialGraphHoursControlForIntraDay: (state, action) =>
+        {
+            state[action.payload.uuid] = { showOnlyIntraDay: true, focusDates: undefined }
+        },
         setToggleShowOnlyMarketHours: (state, action) =>
         {
             if (!action.payload.uuid) return
@@ -36,7 +40,7 @@ const graphMarketHoursElement = createSlice({
                     startDate.setHours(4, 0, 0, 0)
                     endDate = new Date(startDate).setHours(20, 0, 0, 0)
                     break;
-                    
+
                 case 'MP1H':
                     if (isSaturday(startDate)) startDate = subDays(startDate, 1)
                     else if (isSunday(startDate)) startDate = subDays(startDate, 2)
@@ -182,6 +186,7 @@ const graphMarketHoursElement = createSlice({
 
 export const {
     setInitialGraphHoursControl,
+    setInitialGraphHoursControlForIntraDay,
     setToggleShowOnlyMarketHours,
     setFocusStartFinishDate,
     clearGraphHoursControl

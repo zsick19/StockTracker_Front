@@ -1,5 +1,5 @@
 import React from 'react'
-import HorizontalPlanDiagram from '../../../../../ActiveTradeSection/Components/ActiveTradeAndWatchList/WatchList/Components/PlanPricingDiagram/HorizontalPlanDiagram'
+import HorizontalPlanDiagram from '../../../../../ActiveTradeSection/Components/WatchList/Components/PlanPricingDiagram/HorizontalPlanDiagram'
 
 function PlanInfo({ plan })
 {
@@ -8,6 +8,7 @@ function PlanInfo({ plan })
     return (
         <div id='ExpandedPlanInfo'>
             <div>
+
                 <p>Current Price: ${plan.mostRecentPrice.toFixed(2)}</p>
                 <p>{plan.sector}</p>
                 <p>RvR {plan.plan.percents[0]} v  {plan.plan.percents[3]}</p>

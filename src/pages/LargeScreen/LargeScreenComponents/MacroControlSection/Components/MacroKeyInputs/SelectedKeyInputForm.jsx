@@ -10,12 +10,12 @@ function SelectedKeyInputForm({ selectedStock, setShowMacroKeyLevelDisplay, show
     const [selectedData, setSelectedData] = useState()
     const [errorMessage, setErrorMessage] = useState()
 
-    const [updateStockKeyLevels] = useUpdateStockKeyLevelsMutation()
     const { data, isSuccess, isLoading, isError, error } = useGetStockKeyLevelsQuery({ chartId: selectedStock._id })
 
 
     useEffect(() => { if (isSuccess) { setSelectedData(data) } }, [data])
 
+    const [updateStockKeyLevels] = useUpdateStockKeyLevelsMutation()
     async function attemptSelectedStockKeyValueUpdate(e)
     {
         e.preventDefault()

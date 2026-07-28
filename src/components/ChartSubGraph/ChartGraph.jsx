@@ -151,7 +151,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     const vpData = useMemo(() => 
     {
         let results = calculateVolumeProfile(candleData)
-        return { ...results, maxVol: max(results.profile, d => d.volume) }
+        if (results) return { ...results, maxVol: max(results.profile, d => d.volume) }
     }, [ticker, timeFrame])
 
     const createVPVolumeScale = useCallback((volumeToPixel) =>
@@ -944,8 +944,8 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
     //  plot most recent price for nonLive charts
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !mostRecentPrice || isLivePrice) return
-        console.log(mostRecentPrice)
+        if (preDimensionsAndCandleCheck() || !mostRecentPrice) return
+
         let pixelPrice = createPriceScale({ priceToPixel: mostRecentPrice.Price })
         stockCandleSVG.select('.currentPrice').selectAll('line').data([mostRecentPrice.Price]).join(enter =>
             enter.append('line').attr('x1', 0).attr('x2', candleDimensions.width)

@@ -214,10 +214,63 @@
 }
 
 #AveragePriceCompares {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+#AveragePriceCompares > div {
+  width: 100%;
+}
+#AveragePriceCompares > div:first-of-type {
+  border-right: 1px solid white;
 }
 
 #AveragePriceCompares h2 {
   text-align: center;
+}
+
+.EntryColor,
+#EntryPriceAverages > h2:first-of-type {
+  color: rgb(34, 34, 202);
+  text-decoration: underline;
+}
+
+.FloorColor,
+#FloorPriceAverages > h2:first-of-type {
+  color: orange;
+  text-decoration: underline;
+}
+.gainGreen {
+  color: green;
+}
+.painRed {
+  color: rgb(255, 21, 21);
+}
+.missedSavedOrange {
+  color: orange;
+}
+
+/* Charts */
+#ExpandedCharts {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#ExpandedCharts > div:first-of-type {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+#ExpandedCharts > div:last-of-type {
+  display: flex;
+  justify-content: space-between;
+}
+#ExpandedCharts > div:last-of-type button {
+  width: 150px;
+  height: 2rem;
+  border-radius: 5px;
+  border: none;
 }

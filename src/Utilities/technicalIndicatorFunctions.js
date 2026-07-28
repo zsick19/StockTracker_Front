@@ -3,6 +3,7 @@ import { differenceInBusinessDays, isToday } from "date-fns";
 
 export const calculateEMADataPoints = (candleData, period, lastCandleData) =>
 {
+    if (candleData.length === 0) return []
     let emaArray = []
     let results = []
     var k = 2 / (period + 1);

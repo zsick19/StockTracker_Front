@@ -14,11 +14,11 @@ export const InitializationApiSlice = apiSlice.injectEndpoints({
         response.userStockHistory.map((history) => { response.patternedTickers.push(history.symbol) })
 
         response.dailyTasksForComplete = {
-          preMarket: response.dailyTasks?.preMarket.map((t, i) => { if (!t?.status || !isToday(t.status)) return { status: undefined, ...t }; else return t }) || [],
-          firstHour: response.dailyTasks?.firstHour.map((t, i) => { if (!t?.status || !isToday(t.status)) return { status: undefined, ...t }; else return t }) || {},
-          midDay: response.dailyTasks?.midDay.map((t, i) => { if (!t?.status || !isToday(t.status)) return { status: undefined, ...t }; else return t }) || [],
-          powerHour: response.dailyTasks?.powerHour.map((t, i) => { if (!t?.status || !isToday(t.status)) return { status: undefined, ...t }; else return t }) || [],
-          postClose: response.dailyTasks?.postClose.map((t, i) => { if (!t?.status || !isToday(t.status)) return { status: undefined, ...t }; else return t }) || []
+          preMarket: response.dailyTasks?.preMarket.map((t, i) => { if (!t?.status || !isToday(t.status)) return { ...t, status: undefined }; else return t }) || [],
+          firstHour: response.dailyTasks?.firstHour.map((t, i) => { if (!t?.status || !isToday(t.status)) return { ...t, status: undefined }; else return t }) || {},
+          midDay: response.dailyTasks?.midDay.map((t, i) => { if (!t?.status || !isToday(t.status)) return { ...t, status: undefined }; else return t }) || [],
+          powerHour: response.dailyTasks?.powerHour.map((t, i) => { if (!t?.status || !isToday(t.status)) return { ...t, status: undefined }; else return t }) || [],
+          postClose: response.dailyTasks?.postClose.map((t, i) => { if (!t?.status || !isToday(t.status)) return { ...t, status: undefined }; else return t }) || []
         }
 
         return response

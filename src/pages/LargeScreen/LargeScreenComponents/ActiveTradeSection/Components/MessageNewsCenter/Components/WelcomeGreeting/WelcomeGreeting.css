@@ -1,0 +1,55 @@
+#welcomeGreeting {
+  display: flex;
+  gap: 1rem;
+}
+
+#ManualSPYInputForm input {
+  width: 75px;
+}
+
+#ManualSPYInputForm {
+  display: flex;
+  font-size: var(--fs-200);
+}
+
+#DailyInputsAndControls {
+  background-color: rgb(12, 12, 80);
+  width: 100%;
+}
+
+#DailyInputsAndControls > div:last-of-type {
+  padding: 1rem;
+}
+
+#DailyInputSelectionButtons {
+  display: flex;
+  gap: 0.5rem;
+  font-size: var(--fs-200);
+  padding: 0.5rem 0.5rem 0rem 0.5rem;
+  background-color: gray;
+}
+#DailyInputSelectionButtons button {
+  border: none;
+}
+
+#AutoSPYInputContainer {
+  display: grid;
+  grid-template-columns: 200px 1fr 1fr;
+}
+
+#AutoSPYInputContainer input {
+  background-color: rgb(38, 43, 46);
+  border: none;
+  border-radius: 5px;
+  height: 100px;
+  width: 100px;
+  /* padding: 0 1rem; */
+  text-align: center;
+  font-size: var(--fs-200);
+  line-height: 100px;
+}
+
+#AutoSPYInputContainer input::placeholder {
+  text-wrap: wrap;
+  line-height: 100px;
+}

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectPrioritizedWatchlist } from '../../../../../../features/Engine/EnginePlanApiSlice';
 import { setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice';
 import { isBefore, set } from 'date-fns';
+import { preSetDailyTimes } from '../../../../../../Utilities/TimeFrames';
 
 export const ScoringTestHUD = () =>
 {
@@ -15,33 +16,38 @@ export const ScoringTestHUD = () =>
     const [showAll, setShowAll] = useState(0)
     const [headerOrShowSelect, setHeaderOrShowSelect] = useState(true)
 
-    useEffect(() => { if (isBefore(new Date(), set(new Date(), { hours: 9, minutes: 30 }))) setShowAll(2) }, [])
+    useEffect(() => { if (isBefore(new Date(), preSetDailyTimes.marketOpen)) setShowAll(2) }, [])
 
 
-
+    const possiblePositions = ['Below Stoploss', 'Discount Area', 'Inside Strike Zone', 'Monitoring', 'Above Plan Exit']
 
     return (
-        <div style={{ padding: '20px', background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', maxHeight: '600px' }}>
+        <div style={{ background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', maxHeight: '600px' }}>
 
             {headerOrShowSelect ?
-                <table style={{ width: '100%', height: '65px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }} onContextMenu={(e) => { e.preventDefault(); setHeaderOrShowSelect(prev => !prev) }}>
+                <table style={{ width: '100%', height: '65px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }} onClick={(e) => { e.preventDefault(); setHeaderOrShowSelect(prev => !prev) }}>
                     <thead>
                         <tr style={{ background: '#111', color: '#888', borderBottom: '2px solid #222' }}>
                             <th style={{ padding: '12px 10px', width: '75px' }}>SYMBOL</th>
                             <th style={{ padding: '12px 10px', width: '125px' }}>PATTERN STATUS</th>
-                            <th style={{ padding: '12px 10px', textAlign: 'center' }}>LIVE PRICE</th>
-                            <th style={{ padding: '12px 10px', textAlign: 'center', color: '#50fa7b' }}>TIER 1 (BASE)</th>
-                            <th style={{ padding: '12px 10px', textAlign: 'center', color: '#50fa7b' }}>TIER 1 (TIME)</th>
-                            <th style={{ padding: '12px 10px', textAlign: 'center', color: '#de50fa' }}>TIER 2 (STRAT)</th>
-                            <th style={{ padding: '12px 10px', textAlign: 'center', color: '#ff5555' }}>PENALTIES</th>
+                            <th style={{ padding: '12px 10px', textAlign: 'center', width: '100px' }}>LIVE PRICE</th>
+                            <th style={{ padding: '12px 10px', textAlign: 'center', color: '#50fa7b', width: '100px' }}>TIER 1 (BASE)</th>
+                            <th style={{ padding: '12px 10px', textAlign: 'center', color: '#50fa7b', width: '100px' }}>TIER 1 (TIME)</th>
+                            <th style={{ padding: '12px 10px', textAlign: 'center', color: '#de50fa', width: '100px' }}>TIER 2 (STRAT)</th>
+                            <th style={{ padding: '12px 10px', textAlign: 'center', color: '#ff5555', width: '100px' }}>PENALTIES</th>
                             <th style={{ padding: '12px 10px', textAlign: 'right', color: '#00ffff' }}>ALPHA SCORE</th>
                         </tr>
                     </thead>
                 </table> :
-                <div style={{ width: '100%', padding: '12px 10px', height: '65px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }} onContextMenu={(e) => { e.preventDefault(); setHeaderOrShowSelect(prev => !prev) }}>
-                    <button onClick={() => { setShowAll(0); setHeaderOrShowSelect(true) }}>Monitor</button>
-                    <button onClick={() => { setShowAll(1); setHeaderOrShowSelect(true) }}>Strike</button>
-                    <button onClick={() => { setShowAll(2); setHeaderOrShowSelect(true) }}>All</button>
+                <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', padding: '12px 10px', height: '65px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }} onContextMenu={(e) => { e.preventDefault(); setHeaderOrShowSelect(prev => !prev) }}>
+                    <button onClick={() => { setShowAll(0); setHeaderOrShowSelect(true) }}>Below Stoploss</button>
+                    <button onClick={() => { setShowAll(1); setHeaderOrShowSelect(true) }}>Discount Area</button>
+                    <button onClick={() => { setShowAll(2); setHeaderOrShowSelect(true) }}>Inside Strike</button>
+                    <button onClick={() => { setShowAll(3); setHeaderOrShowSelect(true) }}>Monitoring</button>
+                    <button onClick={() => { setShowAll(4); setHeaderOrShowSelect(true) }}>Beyond Plan</button>
+                    <br />
+                    <button onClick={() => { setShowAll(6); setHeaderOrShowSelect(true) }}>Viable Entries</button>
+                    <button onClick={() => { setShowAll(5); setHeaderOrShowSelect(true) }}>All</button>
                 </div>
             }
             {prioritizedWatchlist.length === 0 ? (
@@ -49,10 +55,10 @@ export const ScoringTestHUD = () =>
                     ⏳ Awaiting data ingestion... Populate your 6 test plans to run live calculations.
                 </div>
             ) : (
-                <div className='hide-scrollbar' style={{ height: '400px', overflowY: 'scroll' }}>
+                <div className='hide-scrollbar' style={{ height: '500px', overflowY: 'scroll' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                         <thead>
-                            <tr style={{ background: '#111', color: '#888', borderBottom: '2px solid #222', height: '1px' }} >
+                            <tr style={{ background: '#111', color: '#888', }} >
                                 <th></th>
                                 <th></th>
                                 <th></th>
@@ -75,13 +81,24 @@ export const ScoringTestHUD = () =>
                                 const status = plan.executionStatus
                                 const withinPlan = plan.withinPlan
                                 const insideStrike = plan.insideStrike
-                                if (!withinPlan && (showAll === 1 || showAll === 0)) return
-                                if (!insideStrike && showAll === 1) return
+
+                                const position = plan.pricePosition
+
+                                if (showAll === 0 && position !== 0) return
+                                if (showAll === 1 && position !== 1) return
+                                if (showAll === 2 && position !== 2) return
+                                if (showAll === 3 && position !== 3) return
+                                if (showAll === 4 && position !== 4) return
+                                if (showAll === 6 && (position === 0 || position > 2)) return
 
                                 return (
                                     <tr onClick={() => handleNavigateToSinglePlan(plan.tickerSymbol)} key={plan.tickerSymbol}
-                                        style={{ borderBottom: '1px solid #1c1c24', background: finalScore >= 75 ? 'rgba(0,255,255,0.02)' : 'transparent', opacity: insideStrike ? 1 : withinPlan ? '0.50' : '0.20' }}>
-                                            
+                                        style={{
+                                            paddingInline: '1rem', borderBottom: '1px solid #1c1c24',
+                                            background: finalScore >= 75 ? 'rgba(0,255,255,0.05)' : 'transparent', 
+                                            opacity: insideStrike ? 1 : withinPlan ? '0.50' : '0.20'
+                                        }}>
+
                                         {/* TICKER */}
                                         <td style={{ width: "75px", padding: '14px 10px', fontWeight: 'bold', color: finalScore >= 75 ? '#00ffff' : '#fff', fontSize: '15px' }}>
                                             {plan.tickerSymbol}
@@ -89,31 +106,31 @@ export const ScoringTestHUD = () =>
 
                                         {/* STRATEGY PATTERN TRACK */}
                                         <td style={{ width: '125px', padding: '14px 10px', color: '#aaa' }}>
-                                            {insideStrike ? 'Within Strike Zone' : status}
+                                            {status === 'HIGH CONVICTION' ? status : possiblePositions[position]}
                                         </td>
 
                                         {/* DYNAMIC CLOSE PRICE */}
-                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#8be9fd' }}>
+                                        <td style={{ width: '100px', padding: '14px 10px', textAlign: 'center', color: '#8be9fd' }}>
                                             ${plan?.mostRecentPrice.toFixed(3) || '0.00'}
                                         </td>
 
                                         {/* TIER 1 BASE (CAPPED 50) */}
-                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
+                                        <td style={{ width: '100px', padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
                                             +{baseScore}
                                         </td>
 
                                         {/* TIER 1 BASE (CAPPED 50) */}
-                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
+                                        <td style={{ width: '100px', padding: '14px 10px', textAlign: 'center', color: '#50fa7b', fontWeight: 'bold' }}>
                                             +{timeScore}
                                         </td>
 
                                         {/* TIER 2 STRATEGY (CAPPED 50) */}
-                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#de50fa', fontWeight: 'bold' }}>
+                                        <td style={{ width: '100px', padding: '14px 10px', textAlign: 'center', color: '#de50fa', fontWeight: 'bold' }}>
                                             +{strategyScore}
                                         </td>
 
                                         {/* ACTIVE RISK PENALTIES */}
-                                        <td style={{ padding: '14px 10px', textAlign: 'center', color: '#ff5555', fontWeight: 'bold' }}>
+                                        <td style={{ width: '100px', padding: '14px 10px', textAlign: 'center', color: '#ff5555', fontWeight: 'bold' }}>
                                             {penaltiesApplied}
                                         </td>
 

@@ -1,6 +1,6 @@
 import './ActiveTradeSection.css'
-import ActiveTradeAndWatchList from './Components/ActiveTradeAndWatchList/ActiveTradeAndWatchList';
-import MessageNewsCenter from './Components/ActiveTradeAndWatchList/MessageNewsCenter/MessageNewsCenter';
+import ActiveTradeAndWatchList from './ActiveTradeAndWatchList';
+import MessageNewsCenter from './Components/MessageNewsCenter/MessageNewsCenter';
 
 
 function ActiveTradeSection()

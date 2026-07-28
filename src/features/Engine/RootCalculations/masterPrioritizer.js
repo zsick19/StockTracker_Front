@@ -29,11 +29,35 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
 
     const lowerAllowedBoundary = planEntity.planConfig.plan.stopLossPrice * 0.98;
     const upperAllowedBoundary = planEntity.patternConfig.channelTop;
+
+
+    let pricePosition
+    if (livePrice < planEntity.planConfig.plan.stopLossPrice)
+    {
+        pricePosition = 0
+    } else if (livePrice < planEntity.patternConfig.channelBottom)
+    {
+        pricePosition = 1
+    } else if (livePrice < planEntity.patternConfig.entryStrikeBuffer)
+    {
+        pricePosition = 2
+    } else if (livePrice < planEntity.patternConfig.channelTop)
+    {
+        pricePosition = 3
+    } else
+    {
+        pricePosition = 4
+    }
+
+
     if (livePrice < lowerAllowedBoundary || livePrice > upperAllowedBoundary)
     {
         let reason
         let priceAbovePlan = false
-        if (livePrice < lowerAllowedBoundary) reason = `Price $${livePrice} is below the stoploss price $${lowerAllowedBoundary.toFixed(2)}.`
+        if (livePrice < lowerAllowedBoundary) 
+        {
+            reason = `Price $${livePrice} is below the stoploss price $${lowerAllowedBoundary.toFixed(2)}.`
+        }
         else if (livePrice > upperAllowedBoundary) 
         {
             priceAbovePlan = true
@@ -45,6 +69,7 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
         return {
             matchScorePercent: 0,
             status: priceAbovePlan ? "ABOVE PLANNED ZONES" : "BELOW STOPLOSS PRICE",
+            pricePosition,
             withinPlan: false,
             metrics: {
                 baseEnvironmentScore: 0,
@@ -60,7 +85,7 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     if (!planEntity.todaysCandles || planEntity.todaysCandles.length === 0)
     {
         logRuleTrack(auditLedger, 'Missing Information', 0, 'OFF_RADAR', 'Missing Intra Day Candles')
-        return { matchScorePercent: 0, status: "AWAITING_INTRADAY_STREAM", metrics: {} };
+        return { matchScorePercent: 0, pricePosition, status: "AWAITING_INTRADAY_STREAM", metrics: {} };
     }
 
 
@@ -118,6 +143,7 @@ export function calculateCentralPlanScore(planEntity, liveSpyPlan, liveRSPPlan, 
     return {
         matchScorePercent: finalizedAlphaScore,
         status: finalizedAlphaScore >= 75 ? "HIGH CONVICTION" : "MONITORING",
+        pricePosition,
         viableTrade: true,
         withinPlan: true,
         insideStrike: planEntity.mostRecentPrice < planEntity.patternConfig.entryStrikeBuffer,

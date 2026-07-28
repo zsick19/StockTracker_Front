@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
-import { shallowEqual, useSelector } from 'react-redux'
-import { selectDetailedScoreBreakDownBySymbol, selectPlanForStaticDetails } from '../../../../../../features/Engine/EnginePlanApiSlice'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux'
+import { selectDetailedScoreBreakDownBySymbol, selectPlanForStaticDetails, useRemovePlanFromUserMutation } from '../../../../../../features/Engine/EnginePlanApiSlice'
 import './IntegratedPlanView.css'
 import './ActionGraph.css'
 import './ExpandedViews.css'
@@ -21,13 +21,15 @@ import FirstHourReview from './Components/ExpandedViews/FirstHourReview'
 import OpeningCrossReview from './Components/ExpandedViews/OpeningCrossReview'
 import PatternReview from './Components/ExpandedViews/PatternReview'
 import ChartReview from './Components/ExpandedViews/ChartReview'
+import IntegratedFetchChartWrapper from '../../../../../../components/ChartSubGraph/IntegratedFetchChartWrapper'
+import { setStockDetailState, setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 
 
 function IntegratedPlanView({ tickerSymbol })
 {
+    const dispatch = useDispatch()
     const selectStaticFieldsInstance = useMemo(selectPlanForStaticDetails, [])
     const selectedPlannedTicker = useSelector((state) => selectStaticFieldsInstance(state, tickerSymbol), shallowEqual);
-
     const planHasOptions = selectedPlannedTicker.optionsConfig
 
     const todayOpen = set(new Date(), { hours: 9, minutes: 30 })
@@ -57,19 +59,49 @@ function IntegratedPlanView({ tickerSymbol })
             case 11: return <ChartReview plan={selectedPlannedTicker} />
         }
     }
+    const [showMinuteOrDailyChart, setShowMinuteOrDailyChart] = useState(false)
+
+
+    const [showDoubleCheckBeforeRemove, setShowDoubleCheckBeforeRemove] = useState(false)
+    const [removePlanFromUser] = useRemovePlanFromUserMutation()
+    async function attemptRemovePlanFromUser()
+    {
+        try
+        {
+            const results = await removePlanFromUser({ tickerSymbol: tickerSymbol, planId: selectedPlannedTicker.planConfig.planId }).unwrap()
+            setTimeout(() => dispatch(setStockDetailState({ detail: 1 })), 1500)
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
 
     return (
         <div id='IntegratedPlanViewPage'>
             <div id='PlanChartAndActions'>
-                <IntegratedPlanChartWrapper plan={selectedPlannedTicker} timeFrameView={timeFrameView} />
+                {showMinuteOrDailyChart ? <IntegratedFetchChartWrapper /> :
+                    <IntegratedPlanChartWrapper plan={selectedPlannedTicker} timeFrameView={timeFrameView} />
+                }
 
                 <div id='PlanActions'>
-                    <PlanStatusHUD plan={selectedPlannedTicker} />
-                    <button>Record Trade</button>
+                    <PlanStatusHUD plan={selectedPlannedTicker} setShowMinuteOrDailyChart={setShowMinuteOrDailyChart} />
+                    {showDoubleCheckBeforeRemove ?
+                        <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: 'var(--fs-100)' }}>
+                            <button onClick={() => attemptRemovePlanFromUser()}>Confirm Removal</button>
+                            <button onClick={() => setShowDoubleCheckBeforeRemove(false)}>Cancel</button>
+                        </div> :
+                        <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: 'var(--fs-100)' }}>
+                            <button>Record Trade</button>
+                            <button onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 22, ticker: tickerSymbol }))}>Deep Discounts</button>
+                            <button onClick={() => setShowDoubleCheckBeforeRemove(true)}>Remove Plan</button>
+                        </div>
+                    }
                 </div>
             </div>
             <div id='ExpandedPlan'>
                 <div>
+                    <button className={expandedViewSelection === 11 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(11)}>Charts</button>
                     <button className={expandedViewSelection === 8 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(8)}>First Hour</button>
                     <button className={expandedViewSelection === 0 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(0)}>Probability</button>
                     <button className={expandedViewSelection === 6 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(6)}>Position Size</button>
@@ -81,7 +113,6 @@ function IntegratedPlanView({ tickerSymbol })
                     <button className={expandedViewSelection === 4 ? 'selectedExpand optionsTab' : 'optionsTab'} onClick={() => setExpandedViewSelection(4)} disabled={!planHasOptions}> Options</button>
                     <button className={expandedViewSelection === 7 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(7)}>News</button>
                     <button className={expandedViewSelection === 10 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(10)}>Pattern</button>
-                    <button className={expandedViewSelection === 11 ? 'selectedExpand' : ''} onClick={() => setExpandedViewSelection(11)}>Charts</button>
                 </div>
                 {provideCurrentExpandedView()}
             </div>

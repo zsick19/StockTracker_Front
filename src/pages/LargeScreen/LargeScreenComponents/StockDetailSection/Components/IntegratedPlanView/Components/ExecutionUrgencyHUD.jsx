@@ -42,7 +42,7 @@ export const ExecutionUrgencyHud = ({ planData, scoreData, mostRecentPrice }) =>
     return (
         <div style={{ borderRadius: '4px', display: 'flex', flexDirection: 'column', textAlign: 'center' }}>
 
-            <div style={{ background: '#181922', border: `2px solid ${priceColor}`, borderRadius: '5px', paddingTop: '0.5rem' }}>
+            <div style={{ background: '#111219', border: `2px solid ${priceColor}`, borderRadius: '5px', paddingTop: '0.5rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }} >
                     <div style={{ paddingInline: '12px' }}>
                         <div style={{ fontSize: '20px', color: `${priceColor}` }}>{avgWindowMinutes} <span style={{ fontSize: '12px' }}>MIN</span></div>

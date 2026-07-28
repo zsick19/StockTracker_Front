@@ -12,7 +12,7 @@ function MacroReview({ plan })
     const correlation = plan.planConfig.correlationValues
     const strongestCorrelation = plan.planConfig.greatestCorrelation
 
-
+    console.log(plan.planConfig)
 
     const beta = plan.planConfig.spyBetaValue || plan.stockInfo.Beta1Y || 1
     const sectorCorrelationValues = plan.planConfig.correlationValues.sector
@@ -80,7 +80,7 @@ function MacroReview({ plan })
                         <br />
                         <p>TACTICAL IMPLICATION: {pivotTranslation.desc}</p>
                     </div>
-                    
+
                     {/* DECOUPLING VECTOR TIER */}
                     <div style={{ textAlign: 'center', width: '100%', borderTop: '1px solid #222', paddingTop: '8px' }}>
                         <div style={{ fontSize: '7px', color: '#6272a4', letterSpacing: '0.2px' }}>VECTOR STATE</div>

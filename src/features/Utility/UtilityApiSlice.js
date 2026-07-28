@@ -32,7 +32,7 @@ export const UtilityApiSLice = apiSlice.injectEndpoints({
         }),
         uploadExpectedCoreMovesFromAsherBot: builder.mutation({
             query: (args) => ({
-                url: `util/expectedMovesCoreUpload?timePeriod=${args.timePeriod}`,
+                url: `util/expectedMovesCoreUpload?timePeriod=${args.timePeriod}&source=${args.emSource}`,
                 method: 'POST',
                 body: args.formData,
             }),

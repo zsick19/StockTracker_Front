@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useFetchEngineMidDayDataQuery, useFetchEngineMorningDataQuery, useFetchEngineOpenCrossDataQuery, useFetchEnginePostCloseDataQuery, useFetchEngineTradeDataQuery } from '../../features/Engine/EnginePlanApiSlice';
 import { differenceInSeconds } from 'date-fns';
 
-export const TerminalTaskStatusTickerHUD = () =>
+export const TerminalTaskStatusTickerHUD = ({ showExpandedClock, setShowExpandedClock }) =>
 {
     // Extract parameters instantly from the global store tree
     const clockState = useSelector((state) => state.sessionClock);
@@ -34,59 +34,51 @@ export const TerminalTaskStatusTickerHUD = () =>
     };
 
     return (
-        <div style={{ background: '#111219', padding: '16px 20px', borderRadius: '4px', border: '1px solid #222', fontFamily: 'monospace', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', height: 150 }}>
+        <div style={{ fontFamily: 'monospace', display: 'flex', justifyContent: 'space-between', position: 'relative', alignItems: 'center', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ background: 'rgba(0, 255, 255, 0.08)', border: '1px solid #00ffff', padding: '8px 12px', borderRadius: '3px' }}>
-                    <div style={{ fontSize: '9px', color: '#6272a4' }}>NY TIME</div>
+                <div style={{ background: 'rgba(0, 255, 255, 0.08)', border: '1px solid #00ffff', padding: '5px 8px', borderRadius: '3px' }}>
                     <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#00ffff', marginTop: '2px' }}>{nyCurrentTimeStr || '00:00:00'}</div>
                 </div>
 
                 <div>
-                    <div style={{ fontSize: '10px', color: '#6272a4', letterSpacing: '1px' }}>ACTIVE TERMINAL TASK STATUS</div>
                     <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', marginTop: '3px' }}>{currentActiveProfile.label}</div>
-                    <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{currentActiveProfile.description}</div>
 
-                    {isReadyForMorningDataPull && <div>
-                        {isMorningSuccess ? 'Successfully Pulled Morning Metrics' :
-                            isMorningError && <>
-                                <p>Error Pulling Morning Metrics</p>
-                                <button onClick={() => refetchMorning()}>Refetch</button>
-                            </>}
-                    </div>}
+                    {isReadyForMorningDataPull && isMorningError ? <div>
+                        <p>Error Pulling Morning Metrics</p>
+                        <button onClick={() => refetchMorning()}>Refetch</button>
+                    </div> : null}
 
-                    {isReadyForOpenCrossHydration && <div>
-                        {isOpenCrossSuccess ? "Successfully Pulled Open Cross" :
-                            isOpenCrossError && <>
-                                <p>Error Updating Open Cross</p>
-                                <button onClick={() => refetch()}>refetch</button>
-                            </>}
-                    </div>}
+                    {isReadyForOpenCrossHydration && isOpenCrossError ? <div>
+                        <p>Error Updating Open Cross</p>
+                        <button onClick={() => refetch()}>refetch</button>
+                    </div> : null}
 
-                    {isReadyForMidDayDataPull && <div>
-                        {isMiddaySuccess ? 'Successfully Pulled Midday Metrics' :
-                            isMiddayError && <>
-                                <p>Error Pulling Midday Metrics</p>
-                                <button onClick={() => refetchMidDay()}>Refetch</button>
-                            </>}
-                    </div>}
+                    {isReadyForMidDayDataPull && isMiddayError ? <div>
+                        <p>Error Pulling Midday Metrics</p>
+                        <button onClick={() => refetchMidDay()}>Refetch</button>
+                    </div> : null}
 
-                    {isReadyForPostCloseDataPull && <div>
-                        {isPostCloseSuccess ? 'Successfully Pulled Post Closed Metrics' :
-                            isPostCloseError && <>
-                                <p>Error Pulling Post Close Metrics</p>
-                                <button onClick={() => refetchPostClose()}>Refetch</button>
-                            </>}
-                    </div>}
+                    {isReadyForPostCloseDataPull && isPostCloseError ? <div>
+                        <p>Error Pulling Post Close Metrics</p>
+                        <button onClick={() => refetchPostClose()}>Refetch</button>
+                    </div> : null}
+
 
                 </div>
-            </div>
+            </div >
 
-            <div style={{ background: '#090a0f', padding: '8px 15px', borderRadius: '3px', border: '1px solid #1e1f29', minWidth: '150px', textAlign: 'right' }}>
-                <div style={{ fontSize: '9px', color: '#6272a4' }}>NEXT TASK: {nextTask?.time || '--:--'}</div>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffb86c', marginTop: '2px' }}>{formatCountdownString(msToNextTask)}</div>
-                <div style={{ fontSize: '8px', color: '#555', marginTop: '3px' }}>EVENT: {nextTask?.label}</div>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '5px 8px', minWidth: '150px', textAlign: 'right' }}>
+                <div style={{ fontSize: '12px', color: '#555', marginTop: '3px' }}>EVENT: {nextTask?.label}</div>
+                <p onClick={() => setShowExpandedClock(true)} style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffb86c', marginTop: '2px' }}>{formatCountdownString(msToNextTask)}</p>
             </div>
-            
-        </div>
+            {
+                showExpandedClock ? <div style={{ position: 'absolute', backgroundColor: 'black', bottom: '0', left: '0', width: '100%' }}>
+                    <button onClick={() => setShowExpandedClock(false)}>close</button>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', marginTop: '3px' }}>{currentActiveProfile.label}</div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', marginTop: '3px' }}>{currentActiveProfile.description}</div>
+
+                </div> : null
+            }
+        </div >
     );
 };

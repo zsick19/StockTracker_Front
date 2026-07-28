@@ -73,18 +73,18 @@ function ProbabilityTimeLine({ plan })
             currentTimeBar={currentTimeForTrace} />
           <div>
             <div>
-              <p className={extentProb.openH > 60 && 'highProbVisual'}>High Hit: <span>{extentProb.openH}%</span></p>
-              <p className={extentProb.openL > 60 && 'lowProbVisual'}>Low Hit: <span>{extentProb.openL}%</span></p>
+              <p className={extentProb.openH > 60 ? 'highProbVisual' : ''}>High Hit: <span>{extentProb.openH}%</span></p>
+              <p className={extentProb.openL > 60 ? 'lowProbVisual' : ''}>Low Hit: <span>{extentProb.openL}%</span></p>
               <p>Open</p>
             </div>
             <div>
-              <p className={extentProb.midH > 60 && 'highProbVisual'}>High Hit: <span>{extentProb.midH}%</span></p>
-              <p className={extentProb.midL > 60 && 'lowProbVisual'}>Low Hit: <span>{extentProb.midL}%</span></p>
+              <p className={extentProb.midH > 60 ? 'highProbVisual' : ''}>High Hit: <span>{extentProb.midH}%</span></p>
+              <p className={extentProb.midL > 60 ? 'lowProbVisual' : ''}>Low Hit: <span>{extentProb.midL}%</span></p>
               <p>Mid-Day</p>
             </div>
             <div>
-              <p className={extentProb.closeH > 60 && 'highProbVisual'}>High Hit: <span>{extentProb.closeH}%</span></p>
-              <p className={extentProb.closeL > 60 && 'lowProbVisual'}>Low Hit: <span>{extentProb.closeL}%</span></p>
+              <p className={extentProb.closeH > 60 ? 'highProbVisual' : ''}>High Hit: <span>{extentProb.closeH}%</span></p>
+              <p className={extentProb.closeL > 60 ? 'lowProbVisual' : ''}>Low Hit: <span>{extentProb.closeL}%</span></p>
               <p>Close</p>
             </div>
           </div>
