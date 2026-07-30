@@ -8,7 +8,7 @@ import { pixelBuffer } from './GraphChartConstants'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectMostRecentPriceByTicker } from '../../features/Engine/EnginePlanApiSlice'
 
-function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartDate, pricePoints, uuid, isZoomAble, currentDiscount, discountPrices, exitAlertPrice })
+function DailyChartWithStartToToday({ ticker, chartZoomState, setChartZoomState, candleData, timeFrame, chartStartDate, pricePoints, uuid, isZoomAble, currentDiscount, discountPrices, exitAlertPrice })
 {
     const dispatch = useDispatch()
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
@@ -26,7 +26,6 @@ function DailyChartWithStartToToday({ ticker, candleData, timeFrame, chartStartD
 
 
     //chart zoom states    
-    const [chartZoomState, setChartZoomState] = useState({ x: undefined, y: undefined })
     const [enableZoom, setEnableZoom] = useState(true)
 
     //chart scale creation

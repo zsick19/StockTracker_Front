@@ -7,6 +7,7 @@ import DailyChartWrapper from '../../../../../../../../components/ChartSubGraph/
 import * as short from 'short-uuid'
 import IntraDayChartWrapper from '../../../../../../../../components/ChartSubGraph/IntraDayChart/IntraDayChartWrapper'
 import MACDSubChart from '../../../../../../../../components/ChartSubGraph/SubCharts/MACDSubChart'
+import DailyChartWithRSIWrapper from '../../../../../../../../components/ChartSubGraph/DailyChart/DailyChartWrapper'
 
 function ChartReview({ plan })
 {
@@ -29,7 +30,7 @@ function ChartReview({ plan })
     {
         if (timeFrame.unitOfIncrement === 'D')
         {
-            chartContent = <DailyChartWrapper ticker={tickerSymbol} candleData={data.candleData} uuid={uuid}
+            chartContent = <DailyChartWithRSIWrapper ticker={tickerSymbol} candleData={data.candleData} uuid={uuid}
                 chartStartDate={timeFrame.selection === 0 ? patternStartDate : subBusinessDays(new Date(), 10)} chartEndDate={new Date()}
                 pricePoints={{ entryPrice: patternConfig.entryStrikeBuffer, floorPrice: patternConfig.channelBottom, exitPrice: patternConfig.channelTop, stopLossPrice: planConfig.plan.stopLossPrice }}
             // currentDiscount={currentDiscount} discountPrices={discountPrices} exitAlertPrice={exitAlertPrice}
@@ -62,9 +63,10 @@ function ChartReview({ plan })
             <div>
                 <button style={{ backgroundColor: timeFrame.selection === 0 ? 'blue' : '' }} onClick={() => setTimeFrame({ intraDay: false, start: startOfDay(patternStartDate), unitOfIncrement: 'D', increment: 1, selection: 0 })}>Pattern Daily</button>
                 <button style={{ backgroundColor: timeFrame.selection === 1 ? 'blue' : '' }} onClick={() => setTimeFrame({ intraDay: false, start: startOfDay(subBusinessDays(new Date(), 10)), unitOfIncrement: 'D', increment: 1, selection: 1 })}>Daily 10 Day</button>
-                <button style={{ backgroundColor: timeFrame.selection === 2 ? 'blue' : '' }} onClick={() => setTimeFrame({ intraDay: true, start: startOfDay(subBusinessDays(new Date(), 5)), unitOfIncrement: 'M', increment: 30, selection: 2 })}>5D:30M</button>
-                <button style={{ backgroundColor: timeFrame.selection === 3 ? 'blue' : '' }} onClick={() => setTimeFrame({ intraDay: true, start: startOfDay(subBusinessDays(new Date(), 5)), unitOfIncrement: 'M', increment: 15, selection: 3 })}>5D:15M</button>
+                <br />
                 <button style={{ backgroundColor: timeFrame.selection === 4 ? 'blue' : '' }} onClick={() => setTimeFrame({ intraDay: true, start: startOfDay(subBusinessDays(new Date(), 5)), unitOfIncrement: 'M', increment: 5, selection: 4 })}>5D:5M</button>
+                <button style={{ backgroundColor: timeFrame.selection === 3 ? 'blue' : '' }} onClick={() => setTimeFrame({ intraDay: true, start: startOfDay(subBusinessDays(new Date(), 5)), unitOfIncrement: 'M', increment: 15, selection: 3 })}>5D:15M</button>
+                <button style={{ backgroundColor: timeFrame.selection === 2 ? 'blue' : '' }} onClick={() => setTimeFrame({ intraDay: true, start: startOfDay(subBusinessDays(new Date(), 5)), unitOfIncrement: 'M', increment: 30, selection: 2 })}>5D:30M</button>
             </div>
         </div>
     )

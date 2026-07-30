@@ -23,6 +23,7 @@ import PatternReview from './Components/ExpandedViews/PatternReview'
 import ChartReview from './Components/ExpandedViews/ChartReview'
 import IntegratedFetchChartWrapper from '../../../../../../components/ChartSubGraph/IntegratedFetchChartWrapper'
 import { setStockDetailState, setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import { preSetDailyTimes } from '../../../../../../Utilities/TimeFrames'
 
 
 function IntegratedPlanView({ tickerSymbol })
@@ -32,12 +33,8 @@ function IntegratedPlanView({ tickerSymbol })
     const selectedPlannedTicker = useSelector((state) => selectStaticFieldsInstance(state, tickerSymbol), shallowEqual);
     const planHasOptions = selectedPlannedTicker.optionsConfig
 
-    const todayOpen = set(new Date(), { hours: 9, minutes: 30 })
-    const minutesPostOpen = differenceInMinutes(new Date(), todayOpen)
-    const marketOpenHour = set(new Date(), { hours: 10, minutes: 30 })
-
-    const [timeFrameView, setTimeFrameView] = useState(isBefore(marketOpenHour, new Date()) ? 1 : 0)
-    const [expandedViewSelection, setExpandedViewSelection] = useState(isBefore(new Date(), marketOpenHour) ? 8 : 0)
+    const [timeFrameView, setTimeFrameView] = useState(isBefore(preSetDailyTimes.firstHour, new Date()) ? 1 : 0)
+    const [expandedViewSelection, setExpandedViewSelection] = useState(11)
 
     const [scoreCardView, setScoreCardView] = useState(0)
 
@@ -59,7 +56,6 @@ function IntegratedPlanView({ tickerSymbol })
             case 11: return <ChartReview plan={selectedPlannedTicker} />
         }
     }
-    const [showMinuteOrDailyChart, setShowMinuteOrDailyChart] = useState(false)
 
 
     const [showDoubleCheckBeforeRemove, setShowDoubleCheckBeforeRemove] = useState(false)
@@ -80,12 +76,11 @@ function IntegratedPlanView({ tickerSymbol })
     return (
         <div id='IntegratedPlanViewPage'>
             <div id='PlanChartAndActions'>
-                {showMinuteOrDailyChart ? <IntegratedFetchChartWrapper /> :
-                    <IntegratedPlanChartWrapper plan={selectedPlannedTicker} timeFrameView={timeFrameView} />
-                }
+
+                <IntegratedPlanChartWrapper plan={selectedPlannedTicker} timeFrameView={timeFrameView} />
 
                 <div id='PlanActions'>
-                    <PlanStatusHUD plan={selectedPlannedTicker} setShowMinuteOrDailyChart={setShowMinuteOrDailyChart} />
+                    <PlanStatusHUD plan={selectedPlannedTicker} />
                     {showDoubleCheckBeforeRemove ?
                         <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: 'var(--fs-100)' }}>
                             <button onClick={() => attemptRemovePlanFromUser()}>Confirm Removal</button>

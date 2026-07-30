@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { clearGraphControl, setInitialGraphControl } from '../../features/Charting/GraphHoverZoomElement'
-import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../features/Charting/GraphMarketHourElement'
-import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../features/Charting/GraphToSubGraphCrossHairElement'
-import DailyChartWithStartToToday from './DailyChartWithStartToToday'
-import DailyRSISubChart from './DailyChart/SubCharts/DailyRSISubChart'
 
-function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndDate, pricePoints, currentDiscount, discountPrices, exitAlertPrice })
+import { clearGraphHoursControl, setInitialGraphHoursControl } from '../../../features/Charting/GraphMarketHourElement'
+import { clearGraphToSubGraphCrossHair, setInitialGraphToSubGraphCrossHair } from '../../../features/Charting/GraphToSubGraphCrossHairElement'
+
+import DailyRSISubChart from './SubCharts/DailyRSISubChart'
+import DailyChartWithStartToToday from '../DailyChartWithStartToToday'
+import { clearGraphStudyControl, setInitialGraphStudyControl } from '../../../features/Charting/GraphStudiesVisualElement'
+import { clearGraphControl, setInitialGraphControl } from '../../../features/Charting/GraphHoverZoomElement'
+
+function DailyChartWithRSIWrapper({ ticker, candleData, uuid, chartStartDate, chartEndDate, pricePoints, currentDiscount, discountPrices, exitAlertPrice })
 {
 
     const dispatch = useDispatch()
@@ -18,6 +21,7 @@ function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndD
         if (uuid)
         {
             dispatch(setInitialGraphControl({ uuid }))
+            
             dispatch(setInitialGraphToSubGraphCrossHair({ uuid }))
             dispatch(setInitialGraphHoursControl({ uuid }))
             // dispatch(setInitialGraphVisibility({ uuid }))
@@ -42,9 +46,11 @@ function DailyChartWrapper({ ticker, candleData, uuid, chartStartDate, chartEndD
                 uuid={uuid} chartStartDate={chartStartDate} isZoomAble={true} pricePoints={pricePoints}
                 currentDiscount={currentDiscount} discountPrices={discountPrices} exitAlertPrice={exitAlertPrice}
             />
-
+            <DailyRSISubChart candleData={candleData} uuid={uuid}
+                chartStartDate={chartStartDate} chartZoomState={chartZoomState}
+            />
         </>
     )
 }
 
-export default DailyChartWrapper
+export default DailyChartWithRSIWrapper

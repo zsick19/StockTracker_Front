@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { selectDetailedScoreBreakDownBySymbol } from '../../../../../../../features/Engine/EnginePlanApiSlice'
 
-function PlanStatusHUD({ plan, setShowMinuteOrDailyChart })
+function PlanStatusHUD({ plan })
 {
     const planConfig = plan.planConfig
     const { centralScoreProfile, mostRecentPrice, mostRecentPriceUpDown } = useSelector((state) => selectDetailedScoreBreakDownBySymbol(state, plan.id))
@@ -26,7 +26,7 @@ function PlanStatusHUD({ plan, setShowMinuteOrDailyChart })
     return (
         <div id='PlanActionContainer'>
 
-            <div id='StockPriceChange' onClick={() => setShowMinuteOrDailyChart(prev => !prev)}>
+            <div id='StockPriceChange' >
                 <div>
                     <h2>{plan.id}</h2>
 

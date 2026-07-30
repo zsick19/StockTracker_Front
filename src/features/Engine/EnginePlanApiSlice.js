@@ -544,7 +544,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             if (!liveCandles || liveCandles.length === 0) return
                             const cleanCandlesToday = filterRegularSessionCandles(liveCandles)
 
-                            if (symbol === 'ABEV') console.log(cleanCandlesToday.length)
                             if (cleanCandlesToday.length === 0) return
                             let lastCandle = cleanCandlesToday[cleanCandlesToday.length - 1].ClosePrice
 
@@ -1339,6 +1338,7 @@ export const selectDetailedScoreBreakDownBySymbol = createSelector(
         }
     }
 );
+
 
 
 

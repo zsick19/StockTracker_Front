@@ -74,7 +74,8 @@ export function compilePatternSpecificScore(planEntity, todaysLiveCandles, liveS
                 const isCurrentlyDecoupled = correlationValues?.SPY?.isCurrentlyDecoupled || false;
 
 
-                const liquidityFracture = staticPreCompiledIndicators?.liquidityFractureRatio || 1.0;
+                const liquidityFracture = 1 
+                // staticPreCompiledIndicators?.liquidityFractureRatio || 1.0;
 
                 // Isolate individual stock options wall metrics [INDEX]
                 const stockPutWall = planEntity.optionsConfig?.weekly?.putWall || 0;
