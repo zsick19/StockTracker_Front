@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePopulateMacroTickersMutation, useResetUserMutation } from "../../features/test/testApiSlice";
-import { Check, ChessKing, ChessQueen, RefreshCcwDot } from "lucide-react";
+import { CalendarDays, Check, ChessKing, ChessQueen, RefreshCcwDot } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectStandardDeviationState } from "../../features/STDs/StockDetailControlSlice";
 import SDTNotificationControl from "./SDTNotification/SDTNotificationControl";
@@ -13,12 +13,19 @@ import { useFetchPlanUpdatesMutation } from "../../features/Engine/EnginePlanApi
 import { selectMostRecentStream } from "../../features/Initializations/StreamMostRecentSlice";
 import StreamProof from "./StreamProof";
 import SearchResult from "./SearchResult";
+import { useFetchMacroCalendarQuery } from "../../features/MacroCalendarEvents/MacroCalendarApiSlice";
 
 function DashNav()
 {
   const dispatch = useDispatch()
   useEffect(() => { dispatch(startBackgroundSessionTicker()) }, [dispatch])
 
+  const { data, isSuccess: isMacroCalendarSuccess, isLoading: isMacroCalendarLoading, isError: isMacroCalendarError, error } = useFetchMacroCalendarQuery({ start: 'month' })
+
+  let calendarContent
+  if (isMacroCalendarSuccess) { calendarContent = <CalendarDays color="green" /> }
+  else if (isMacroCalendarLoading) { calendarContent = <CalendarDays color="gray" /> }
+  else if (isMacroCalendarError) { calendarContent = <CalendarDays color="red" /> }
 
 
 
@@ -127,9 +134,9 @@ function DashNav()
       </div>
 
       <div className="flex">
-        <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(1)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessKing color="green" /></button>
-        <button className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(2)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessQueen color="green" /></button>
-
+        <div className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(1)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessKing color="green" /></div>
+        <div className="buttonIcon" onMouseEnter={() => setShowCenterInformationDisplay(2)} onMouseLeave={() => setShowCenterInformationDisplay(0)}><ChessQueen color="green" /></div>
+        <CalendarDays color={isMacroCalendarSuccess ? 'green' : isMacroCalendarLoading ? 'gray' : 'red'} />
       </div>
 
       {centerInformationDisplay === 1 ? <div className="flex">
@@ -147,7 +154,6 @@ function DashNav()
       </div> :
         centerInformationDisplay === 2 ? <div className="flex">
           <p>GDX: Gold Miners</p>
-          <p>//</p>
           <p>SMH: Semi Conductors ETF</p>
           <p>XBI: BioTech ETF</p>
           <p>KRP: Oil & Gas ETF</p>
@@ -159,11 +165,9 @@ function DashNav()
               onBlur={(e) => { e.target.value = ''; }}
               type="text" onInput={(e) => e.target.value = e.target.value.toUpperCase()} id="centerSearch"
               placeholder="Tracker Search" ref={searchRef} autoComplete="off" />
-
           </div>}
 
       <StreamProof />
-      {searchThisTicker && <SearchResult tickerSymbol={searchThisTicker} handleNavigateClear={handleNavigateClear} />}
 
 
       <div className="flex" style={{ fontSize: 'var(--fs-100)' }}>
@@ -171,7 +175,7 @@ function DashNav()
         {showRefreshDelivered ? <p>Stream Refreshed <Check color="green" /></p> : <button onClick={() => attemptStreamTickerRefresh()}>Stream <RefreshCcwDot size={15} /></button>}
         <button onClick={() => window.location.reload()}>Page <RefreshCcwDot size={15} /></button>
       </div>
-
+      {searchThisTicker && <SearchResult tickerSymbol={searchThisTicker} handleNavigateClear={handleNavigateClear} />}
     </nav>
   );
 }

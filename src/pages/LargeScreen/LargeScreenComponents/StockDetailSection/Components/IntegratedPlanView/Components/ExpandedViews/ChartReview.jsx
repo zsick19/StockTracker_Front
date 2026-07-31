@@ -15,7 +15,7 @@ function ChartReview({ plan })
     const patternConfig = plan.patternConfig
     const planConfig = plan.planConfig
     const tickerSymbol = plan.id
-
+    const discountConfig = plan
 
     const [timeFrame, setTimeFrame] = useState({ start: startOfDay(patternStartDate), intraDay: false, unitOfIncrement: 'D', increment: 1, selection: 0 })
 
@@ -35,7 +35,6 @@ function ChartReview({ plan })
                 pricePoints={{ entryPrice: patternConfig.entryStrikeBuffer, floorPrice: patternConfig.channelBottom, exitPrice: patternConfig.channelTop, stopLossPrice: planConfig.plan.stopLossPrice }}
             // currentDiscount={currentDiscount} discountPrices={discountPrices} exitAlertPrice={exitAlertPrice}
             />
-            // MACDContent = <MACDSubChart candleData={data.candleData} uuid={uuid} timeFrame={timeFrame} />
         } else
         {
             chartContent = <IntraDayChartWrapper ticker={tickerSymbol} candleData={data.candleData} uuid={intraDayUUID}

@@ -19,7 +19,7 @@ function DailyRSISubChart({ candleData, chartZoomState, uuid, chartStartDate, ti
 
     const preDimensionsAndCandleCheck = () => { return (!chartDimensions) }
     const rsiData = useMemo(() => rsiCalc(candleData, periodBlock), [candleData])
-    console.log(rsiData)
+
 
     const dateBetweenStartAndFinishInterval = useMemo(() => eachWeekOfInterval({ start: subBusinessDays(chartStartDate, 5), end: addBusinessDays(new Date(), 5) }), [chartStartDate])
     const visualBreaksPeriods = useMemo(() => getBreaksBetweenDates(new Date(chartStartDate), new Date(), 'days'), [chartStartDate])

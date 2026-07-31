@@ -28,7 +28,7 @@ export const WatchListStreamingApiSlice = apiSlice.injectEndpoints({
                     watchList.tickersContained.map((ticker) =>
                     {
                         ticker.mostRecentPrice = normalizedTickerData[ticker.ticker]?.LatestTrade.Price
-                        ticker.dailyOpenPrice = normalizedTickerData[ticker.ticker]?.DailyBar.OpenPrice
+                        ticker.dailyOpenPrice = normalizedTickerData[ticker.ticker]?.PrevDailyBar.ClosePrice
 
                         let difference = ((ticker.mostRecentPrice - ticker.dailyOpenPrice) / ticker.dailyOpenPrice) * 100
 

@@ -9,6 +9,7 @@ import JournalRecord from './Components/JournalRecord/JournalRecord';
 import WelcomeGreeting from './Components/WelcomeGreeting/WelcomeGreeting';
 import QuickSearch from './Components/QuickSearch/QuickSearch';
 import { TerminalTaskStatusTickerHUD } from '../../../../../../layouts/dash/TerminalTaskStatusTickerHUD';
+import WeeksCalendar from './Components/MacroCalendar/WeeksCalendar';
 
 function MessageNewsCenter()
 {
@@ -25,7 +26,7 @@ function MessageNewsCenter()
             case 'expectedMoves': return <ExpectedMoves />
             case 'standardDeviation': return <StandardDeviationVisual />
             case 'journalRecord': return <JournalRecord />
-            case 'calendar': return <div>Add Calendar input here</div>
+            case 'calendar': return <WeeksCalendar />
             default: return <WelcomeGreeting />
         }
     }
