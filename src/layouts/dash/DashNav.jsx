@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePopulateMacroTickersMutation, useResetUserMutation } from "../../features/test/testApiSlice";
@@ -12,7 +12,7 @@ import { startBackgroundSessionTicker } from "../../features/Scheduling/sessionC
 import { useFetchPlanUpdatesMutation } from "../../features/Engine/EnginePlanApiSlice";
 import { selectMostRecentStream } from "../../features/Initializations/StreamMostRecentSlice";
 import StreamProof from "./StreamProof";
-import SearchResult from "./SearchResult";
+import SearchResult from "./SearchComponents/SearchResult";
 import { useFetchMacroCalendarQuery } from "../../features/MacroCalendarEvents/MacroCalendarApiSlice";
 
 function DashNav()
@@ -20,10 +20,14 @@ function DashNav()
   const dispatch = useDispatch()
   useEffect(() => { dispatch(startBackgroundSessionTicker()) }, [dispatch])
 
-  const { data, isSuccess: isMacroCalendarSuccess, isLoading: isMacroCalendarLoading, isError: isMacroCalendarError, error } = useFetchMacroCalendarQuery({ start: 'month' })
-
+  const { data, isSuccess: isMacroCalendarSuccess, isLoading: isMacroCalendarLoading, isError: isMacroCalendarError, error } = useFetchMacroCalendarQuery()
   let calendarContent
-  if (isMacroCalendarSuccess) { calendarContent = <CalendarDays color="green" /> }
+  if (isMacroCalendarSuccess)
+  {
+
+    console.log(data)
+    calendarContent = <CalendarDays color="green" />
+  }
   else if (isMacroCalendarLoading) { calendarContent = <CalendarDays color="gray" /> }
   else if (isMacroCalendarError) { calendarContent = <CalendarDays color="red" /> }
 
@@ -96,7 +100,15 @@ function DashNav()
 
   const searchRef = useRef()
   const [searchThisTicker, setSearchThisTicker] = useState(undefined)
-  function handleSearchChange(e) { setSearchThisTicker(searchRef.current.value) }
+  function handleSearchChange(e)
+  {
+    if (isNaN(searchRef.current.value)) setSearchThisTicker(searchRef.current.value)
+    else
+    {
+      searchRef.current.blur()
+      searchRef.current.value = ''
+    }
+  }
   useEffect(() =>
   {
 
@@ -105,7 +117,17 @@ function DashNav()
       if (event.key === 'Escape' && document.activeElement.id === 'centerSearch')
       {
         setSearchThisTicker(undefined)
+        searchRef.current.blur()
         searchRef.current.value = ''
+      }
+      else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd')
+      {
+        event.preventDefault();
+        if (searchRef.current)
+        {
+          setSearchThisTicker('search')
+          searchRef.current.focus()
+        }
       }
     }
 
@@ -117,9 +139,8 @@ function DashNav()
   {
     setSearchThisTicker(undefined)
     searchRef.current.value = ''
+
   }
-
-
 
   return (
     <nav id="DashNav" style={{ position: 'relative' }}>

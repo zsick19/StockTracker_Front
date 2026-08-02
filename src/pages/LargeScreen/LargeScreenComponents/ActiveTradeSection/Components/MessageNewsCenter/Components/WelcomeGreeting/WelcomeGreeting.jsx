@@ -43,7 +43,7 @@ function WelcomeGreeting()
                     <div>PreMarket</div>
                     <button onClick={() => setCurrentInputForm(0)}>Daily SPY Input</button>
                     <button onClick={() => setCurrentInputForm(1)}>Manual SPY Input</button>
-                    <button onClick={() => setCurrentInputForm(2)}>Expected Moves</button>
+                    <button onClick={() => setCurrentInputForm(2)}>File Uploads</button>
                     <br />
                     <div>Post Market</div>
                     <button onClick={() => setCurrentInputForm(3)}>SPY Classification</button>

@@ -25,6 +25,7 @@ import IntegratedPlanView from './Components/IntegratedPlanView/IntegratedPlanVi
 import DeepDiscount from './Components/DeepDiscounts/DeepDiscount';
 import DeepDiscountTradeView from './Components/DeepDiscountTradeView/DeepDiscountTradeView';
 import MacroEventOverlap from './Components/MacroEventOverlap/MacroEventOverlap';
+import PlanTradeExposure from './Components/Exposure/PlanTradeExposure';
 
 function StockDetailSection()
 {
@@ -70,6 +71,7 @@ function StockDetailSection()
       case 23: return <DeepDiscountTradeView tickerSymbol={currentStockDetail.ticker} />
       case 24: return <MacroEventOverlap tickerSymbol={currentStockDetail.ticker} />
       case 25: return <div>Calander</div>
+      case 26: return <PlanTradeExposure />
     }
   }
 

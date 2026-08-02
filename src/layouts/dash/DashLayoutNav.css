@@ -20,7 +20,6 @@
   width: 100%;
 }
 
-
 #centerSearch {
   width: 900px;
   border-radius: 10px;
@@ -31,11 +30,55 @@
 }
 
 .SearchResultDisplay {
-  top: 400px;
+  top: 175px;
   position: absolute;
-  width: 40%;
-  height: 600px;
+  width: 80%;
+  height: 900px;
   border-radius: 5px;
-  background-color: gray;
+  background-color: rgb(27, 55, 180);
   z-index: 100;
+  padding: 1rem;
+}
+
+.fullScreenUnderlay {
+  position: absolute;
+  top: 4vh;
+  height: 5000px;
+  width: 5000px;
+  background-color: rgba(61, 61, 66, 0.411);
+  z-index: 99;
+}
+#SearchMacroGraphArray {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr 30% 8%;
+  gap: 1rem;
+}
+#MajorMacroSearch {
+  display: flex;
+  justify-content: space-evenly;
+  gap: 1rem;
+}
+#MinorMacroSearch {
+  display: flex;
+  justify-content: space-evenly;
+  gap: 0.5rem;
+}
+
+.SingleMacroGraphArray > div {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.SingleMacroGraphArray {
+  border: 1px solid white;
+  border-radius: 10px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: black;
+}
+
+#ProgramJumpControls {
+  display: flex;
+  background-color: black;
 }

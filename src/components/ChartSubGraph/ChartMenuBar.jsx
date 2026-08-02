@@ -49,29 +49,29 @@ function ChartMenuBar({ ticker, keyBoardTimeFrameControl, setTimeFrame, timeFram
         setSubCharts(subChartSubmission.sort((a, b) => a.localeCompare(b)))
     }
 
-    useEffect(() =>
-    {
-        if (keyBoardTimeFrameControl) { document.addEventListener('keydown', (e) => changeTimeFrameFromKeyPress(e)) }
+    // useEffect(() =>
+    // {
+    //     if (keyBoardTimeFrameControl) { document.addEventListener('keydown', (e) => changeTimeFrameFromKeyPress(e)) }
 
-        function changeTimeFrameFromKeyPress(e)
-        {
-            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-            e.preventDefault()
-            switch (e.key)
-            {
-                case 'q': setTimeFrame(defaultTimeFrames.threeDayOneMin); break;
-                case 'w': setTimeFrame(defaultTimeFrames.threeDayFifteenMin); break;
-                case 'e': setTimeFrame(defaultTimeFrames.dailyHalfYear); break;
-                case 'r': setTimeFrame(defaultTimeFrames.dailyOneYear)
-            }
-        }
+    //     function changeTimeFrameFromKeyPress(e)
+    //     {
+    //         if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+    //         e.preventDefault()
+    //         switch (e.key)
+    //         {
+    //             case 'q': setTimeFrame(defaultTimeFrames.threeDayOneMin); break;
+    //             case 'w': setTimeFrame(defaultTimeFrames.threeDayFifteenMin); break;
+    //             case 'e': setTimeFrame(defaultTimeFrames.dailyHalfYear); break;
+    //             case 'r': setTimeFrame(defaultTimeFrames.dailyOneYear)
+    //         }
+    //     }
 
-        return (() =>
-        {
-            document.removeEventListener('keydown', changeTimeFrameFromKeyPress)
-        })
+    //     return (() =>
+    //     {
+    //         document.removeEventListener('keydown', changeTimeFrameFromKeyPress)
+    //     })
 
-    }, [keyBoardTimeFrameControl])
+    // }, [keyBoardTimeFrameControl])
 
 
 
@@ -86,7 +86,16 @@ function ChartMenuBar({ ticker, keyBoardTimeFrameControl, setTimeFrame, timeFram
         <div className='MenuBar'>
             <h3>{ticker}</h3>
             <div className='flex'>
-                <button className='timeFrameButton' onClick={() => { setShowTimeFrameSelect(prev => !prev); setShowStudiesSelect(false); setShowVisibilitySelect(false) }}>{timeFrame.increment}{timeFrame.unitOfIncrement}</button>
+                {timeFrame.intraDay ?
+
+                    <button className='timeFrameButton' onClick={() => { setTimeFrame(defaultTimeFrames.dailyHalfYear); dispatch(setResetXYZoomState({ uuid })) }}>Daily</button> :
+                    <button className='timeFrameButton' onClick={() => { setTimeFrame(defaultTimeFrames.oneDayOneMin); dispatch(setResetXYZoomState({ uuid })) }}>Intra</button>
+                }
+                <button className='timeFrameButton' onClick={() =>
+                {
+                    setShowTimeFrameSelect(prev => !prev);
+                    setShowStudiesSelect(false); setShowVisibilitySelect(false)
+                }}>{timeFrame.increment}{timeFrame.unitOfIncrement}</button>
                 {timeFrame.intraDay && <button className='iconButton' onClick={() => dispatch(setToggleShowOnlyMarketHours({ uuid }))}><CloudMoon size={18} /></button>}
             </div>
 

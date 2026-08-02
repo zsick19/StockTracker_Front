@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const messageNewsDetailControlSlice = createSlice({
     name: "messageNewsDetailControl",
-    initialState: 'general',
+    initialState: 'account',
     reducers: {
         setMessageNewsDetailState: (state, action) =>
         {

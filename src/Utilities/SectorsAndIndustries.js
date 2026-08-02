@@ -73,5 +73,6 @@ export const sectorToTicker = {
     "Nasdaq-100": 'QQQ'
 }
 
+export const majorMacroTickers = ['SPY', 'RSP', 'QQQ', 'IWM', 'DIA']
 export const allSectorTickers = ['XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE']
 export const macroAndSectorTickers = ['SPY', 'RSP', 'QQQ', 'IWM', 'DIA', 'XLV', 'XLP', 'XLI', 'XLC', 'XLU', 'XLK', 'XLF', "XLB", 'XLE', 'XLY', 'XLRE']

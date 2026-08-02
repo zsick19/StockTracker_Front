@@ -276,7 +276,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         else if (priceToPixel !== undefined) { return yScale(priceToPixel) }
         else return yScale
 
-    }, [candleData, KeyLevels?.monthlyEM, chartZoomState?.y, priceDimensions])
+    }, [timeFrame, candleData, KeyLevels?.monthlyEM, chartZoomState?.y, priceDimensions])
 
     const createVolumeScale = useCallback(({ volumeToPixel = undefined, pixelToVolume = undefined } = {}) =>
     {
@@ -287,7 +287,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         if (pixelToVolume !== undefined) return Math.round(yScale.invert(pixelToVolume) * 100) / 100
         else if (volumeToPixel !== undefined) return yScale(volumeToPixel)
         else return yScale
-    }, [candleData, candleDimensions])
+    }, [timeFrame, candleData, candleDimensions])
 
     //scaleRefs for user charting drag functionality
     const yScaleRef = useRef()
@@ -389,8 +389,33 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         }
     }, [candleDimensions, excludedPeriods, displayMarketHours, chartZoomState?.x, chartZoomState?.y, timeFrame])
 
+    //clean off chart from one timeframe to another
+    useEffect(() =>
+    {
+        stockCandleSVG.select('.x-axis').selectAll('*').remove()
+        stockCandleSVG.select('.tickerVal').selectAll('.candlePath').remove()
+        stockCandleSVG.select('.morningOpen').selectAll('*').remove()
+        stockCandleSVG.select('.lastCandleUpdate').selectAll('.veryLastCandle').remove()
+        stockCandleSVG.select('.vwap').selectAll("*").remove()
+        stockCandleSVG.select('.emaLines').selectAll("*").remove()
+        stockCandleSVG.select('.candleVolumeBars').selectAll('*').remove()
+        stockCandleSVG.select('.VP').selectAll('*').remove()
+        stockCandleSVG.select('.emaDailyHorizontals').selectAll('*').remove()
+        stockCandleSVG.select('.dailyTickerValues').selectAll('*').remove()
+        stockCandleSVG.select('.currentPrice').selectAll('*').remove()
+        stockCandleSVG.select('.enterExits').selectAll('*').remove()
+        stockCandleSVG.select('.freeLines').selectAll('.line_group').remove()
+        stockCandleSVG.select('.linesH').selectAll('.line_group').remove()
+        stockCandleSVG.select('.lowVolumeNodes').selectAll('.line_group').remove()
+        stockCandleSVG.select('.highVolumeNodes').selectAll('.line_group').remove()
+        stockCandleSVG.select('.supportResistance').selectAll('.support_Resistance').remove()
+        stockCandleSVG.select('.patternPriceLevels').selectAll('*').remove()
+        stockCandleSVG.select('.keyLevels').selectAll('*').remove()
+        stockCandleSVG.select('.EMNumbers').selectAll('*').remove()
+        priceScaleSVG.select('.currentPrice').selectAll("*").remove()
+    }, [timeFrame])
+
     //plot stock candles and scale axis
-    useEffect(() => { stockCandleSVG.select('.x-axis').selectAll('*').remove() }, [timeFrame])
     useEffect(() =>
     {
         if (preDimensionsAndCandleCheck()) return
@@ -701,8 +726,6 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
 
 
 
-
-
     //plot EMA and VWAP lines
     useEffect(() =>
     {
@@ -734,6 +757,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
             stockCandleSVG.select('.vwap').append('path').attr('class', 'vwapLine')
         }
     }, [studyVisualController, excludedPeriods, vwapData, displayMarketHours, candleDimensions, chartZoomState?.x, chartZoomState?.y, candleData])
+
+
+
+
 
     //plot volume bars
     useEffect(() =>

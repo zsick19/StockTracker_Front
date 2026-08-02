@@ -24,6 +24,7 @@ import ChartReview from './Components/ExpandedViews/ChartReview'
 import IntegratedFetchChartWrapper from '../../../../../../components/ChartSubGraph/IntegratedFetchChartWrapper'
 import { setStockDetailState, setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { preSetDailyTimes } from '../../../../../../Utilities/TimeFrames'
+import { useManageTradeRecordMutation } from '../../../../../../features/Trades/TradeSliceApi'
 
 
 function IntegratedPlanView({ tickerSymbol })
@@ -73,6 +74,37 @@ function IntegratedPlanView({ tickerSymbol })
     }
 
 
+
+    console.log(selectedPlannedTicker)
+
+
+
+    const [manageTradeRecord] = useManageTradeRecordMutation()
+    async function attemptManageTradeRecord(params)
+    {
+        try
+        {
+            const result = await manageTradeRecord({
+                tickerSymbol: tickerSymbol, positionSize: 10, purchasePrice: 20,
+                recordType: 'purchase', enterExitPlanId: selectedPlannedTicker.planConfig.planId
+            })
+            console.log(result)
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
     return (
         <div id='IntegratedPlanViewPage'>
             <div id='PlanChartAndActions'>
@@ -87,7 +119,7 @@ function IntegratedPlanView({ tickerSymbol })
                             <button onClick={() => setShowDoubleCheckBeforeRemove(false)}>Cancel</button>
                         </div> :
                         <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: 'var(--fs-100)' }}>
-                            <button>Record Trade</button>
+                            <button onClick={() => attemptManageTradeRecord()}>Record Trade</button>
                             <button onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 22, ticker: tickerSymbol }))}>Deep Discounts</button>
                             <button onClick={() => setShowDoubleCheckBeforeRemove(true)}>Remove Plan</button>
                         </div>

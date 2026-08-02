@@ -1,3 +1,9 @@
+#NewsCenterDisplayNav {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid white;
+}
+
 #MessageNewsCenterSection {
   display: grid;
   grid-template-rows: 30px 275px 50px;

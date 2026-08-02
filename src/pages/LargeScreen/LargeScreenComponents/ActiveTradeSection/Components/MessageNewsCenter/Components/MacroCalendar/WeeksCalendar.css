@@ -1,0 +1,28 @@
+#QuickViewCalendar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#WeeksCalendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 100%;
+  width: 100%;
+}
+
+#WeeksCalendar > div {
+  height: 150px;
+  border: 1px solid white;
+}
+
+#WeeksCalendar p {
+  font-size: var(--fs-200);
+}
+
+#WeeksCalendar p:first-of-type {
+  text-align: center;
+  background-color: gray;
+  border-bottom: 1px solid white;
+  font-size: var(--fs-400);
+}

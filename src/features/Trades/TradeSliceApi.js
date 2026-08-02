@@ -4,6 +4,7 @@ import { setupWebSocket } from '../../AppRedux/api/ws'
 import { enterBufferHitAdapter, enterExitAdapter, EnterExitPlanApiSlice, stopLossHitAdapter } from "../EnterExitPlans/EnterExitApiSlice";
 import { addMinutes, isToday } from "date-fns";
 import { chunkOneMinCandlesWithZeroFill, chunkOneMinToFiveMinCandles } from "../../Utilities/technicalIndicatorFunctions";
+import { EnginePlanPlanApiSlice } from "../Engine/EnginePlanApiSlice";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 const activeTradeAdapter = createEntityAdapter()
@@ -388,11 +389,60 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ['activeTrades', 'accountBalance', 'tradeHistory', 'tradingJournal']
         }),
+
+        manageTradeRecord: builder.mutation({
+            query: (args) => ({
+                url: '/trades/manage',
+                method: 'POST',
+                body: { ...args }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshTradeData } = await queryFulfilled;
+                    console.log(freshTradeData)
+
+                    const cacheUpdateRecipe = EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft || !draft.plans.entities) return;
+
+                        if (freshTradeData?.closedTrade)
+                        {
+                            draft.plans.entities[args.tickerSymbol].tradeConfig = undefined
+                            draft.trades.filter((t) => t.tickerSymbol !== freshTradeData.closedTrade.tickerSymbol)
+                        }
+                        else if (freshTradeData?.updatedTrade)
+                        {
+                            draft.plans.entities[args.tickerSymbol].tradeConfig = freshTradeData.updatedTrade
+
+                            let foundTrade = false
+                            draft.trades = draft.trades.map((t) =>
+                            {
+                                if (t.tickerSymbol === freshTradeData.updatedTrade.tickerSymbol)
+                                {
+                                    foundTrade = true
+                                    return freshTradeData
+                                } else return t
+                            })
+                            if (!foundTrade) { draft.trades.push(freshTradeData.updatedTrade) }
+                        }
+                    })
+
+                    dispatch(cacheUpdateRecipe)
+                } catch (error)
+                {
+                    console.log(error)
+                    // Handle potential mutation errors here
+                }
+            }
+        })
     })
 });
 
 export const {
     useGetUsersActiveTradesQuery,
+    useManageTradeRecordMutation,
     useGetUsersActiveTradesWithGraphQuery,
     useGetUsersTradeHistoryQuery,
     useInitiateTradeRecordMutation,

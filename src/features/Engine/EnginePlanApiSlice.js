@@ -14,7 +14,7 @@ import { compileHistoricalContinuationBaselines } from "./RootCalculations/Histo
 
 import { calculateCentralPlanScore } from "./RootCalculations/masterPrioritizer";
 import { processAuthoritativeTradesArray } from "./RootCalculations/TradeBookAnalytics/processAuthoritativeTrade";
-import { macroAndSectorTickers, sectorToTicker } from "../../Utilities/SectorsAndIndustries";
+import { defaultSectors, macroAndSectorTickers, sectorToTicker } from "../../Utilities/SectorsAndIndustries";
 import { symbol } from "d3";
 import { compileThreeTierPennyResistance } from "./RootCalculations/HistoricalCandleAnalytics/compilePennyStockOverheadResistance";
 import { compileThreeTierOverheadResistance } from "./RootCalculations/HistoricalCandleAnalytics/compileOverheadResistance";
@@ -35,10 +35,33 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                 validateStatus: (response, result) => { return response.status === 200 && !result.isError }
             }), transformResponse: (responseData) =>
             {
+                const sectorExposure = Object.fromEntries(defaultSectors.map(item => [`${item}`, 0]))
+                let industryExposure = Object.fromEntries(defaultSectors.map(item => [`${item}`, {}]))
+                let totalPlans = 0
 
+                let activeTrades = []
                 let planResults = []
                 if (responseData?.plans) planResults = responseData.plans.filter(t => t.plan?.patternClassification !== undefined).map((enterExit) =>
                 {
+
+
+
+                    if (enterExit.plan.stockId)
+                    {
+                        totalPlans += 1
+                        sectorExposure[enterExit.plan.stockId.Sector] += 1
+                        industryExposure[enterExit.plan.stockId.Sector][enterExit.plan.stockId.Industry] =
+                            (industryExposure[enterExit.plan.stockId.Sector][enterExit.plan.stockId.Industry] ?? 0) + 1
+                    }
+
+
+
+
+
+
+
+
+
                     let regularSessionCandles = filterRegularSessionCandles(enterExit.candleData)
                     let enterExitPlanPrices = enterExit.plan.plan
                     let patternClassification = enterExit.plan.patternClassification
@@ -90,6 +113,16 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         pattern: enterExit.plan.datePatternLastCalculated,
                         retailVsInstitution: enterExit.plan.dateRvILastCalculated
                     }
+
+                    let activeTradeConfig = undefined
+                    if (enterExit.plan.activeTradeId)
+                    {
+
+                        activeTradeConfig = enterExit.plan.activeTradeId
+                        activeTrades.push(enterExit.plan.activeTradeId)
+                    }
+
+
 
 
                     let metricConfig = {}
@@ -169,6 +202,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         mostRecentPriceUpDown: undefined,
                         planConfig,
                         patternConfig,
+                        activeTradeConfig,
                         optionsConfig,
                         metricConfig,
                         discountConfig,
@@ -228,7 +262,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                 return {
                     plans: enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), planResults),
-                    macros: engineMacroAdapter.setAll(engineMacroAdapter.getInitialState(), macroResults)
+                    macros: engineMacroAdapter.setAll(engineMacroAdapter.getInitialState(), macroResults),
+                    trades: activeTrades,
+                    exposureResults: { sectorExposure, industryExposure, totalPlans }
                 }
             },
             async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
@@ -1302,6 +1338,33 @@ export const selectPrioritizedWatchlist = createSelector(
         );
     })
 
+export const selectExposureResults = createSelector([selectApiCacheData], (cachedData) => cachedData.exposureResults)
+
+export const selectActiveTradeResults = createSelector([selectApiCacheData], (cachedData) => cachedData.trades)
+
+export const selectPlansByMacroSector = createSelector([planSelectors.selectIds, planSelectors.selectEntities, (state, sector) => sector],
+    (stockIds, stockEntities, sector) =>
+    {
+        return stockIds.flatMap(id =>
+        {
+            const planEntity = stockEntities[id]; if (!planEntity) return [];
+            if (sector === 'all') return planEntity
+            if (planEntity.stockInfo.Sector === sector) return planEntity
+            else return []
+        })
+    })
+export const selectPlansByMacroIndustry = createSelector([planSelectors.selectIds, planSelectors.selectEntities, (state, industry) => industry],
+    (stockIds, stockEntities, industry) =>
+    {
+        if (industry === 'all') return []
+        return stockIds.flatMap(id =>
+        {
+            const planEntity = stockEntities[id]; if (!planEntity) return [];
+
+            if (planEntity.stockInfo.Industry === industry) return planEntity
+            else return []
+        })
+    })
 
 
 
@@ -1484,3 +1547,10 @@ export const selectPlanAndPatternChartingBySymbol = createSelector(
     }
 
 )
+
+export const selectMacroTickers = createSelector([macroSelectors.selectEntities, (state, symbol) => symbol],
+    (macros, symbol) =>
+    {
+
+        return macros[symbol]
+    })
