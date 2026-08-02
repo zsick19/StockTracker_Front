@@ -119,7 +119,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     {
 
                         activeTradeConfig = enterExit.plan.activeTradeId
-                        activeTrades.push(enterExit.plan.activeTradeId)
+                        activeTrades.push({ ...enterExit.plan.activeTradeId, snapShot: enterExit.snapShot })
                     }
 
 
@@ -1504,7 +1504,7 @@ export const selectPlanForStaticDetails = () =>
                 optionsConfig: planEntity.optionsConfig,
                 snapShot: planEntity.snapShot,
                 discountConfig: planEntity.discountConfig,
-                activeTradeConfig:planEntity.activeTradeConfig
+                activeTradeConfig: planEntity.activeTradeConfig
             }
         }
     )

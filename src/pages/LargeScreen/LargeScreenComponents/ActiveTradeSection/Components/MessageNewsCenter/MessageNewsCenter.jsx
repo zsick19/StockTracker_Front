@@ -11,6 +11,7 @@ import QuickSearch from './Components/QuickSearch/QuickSearch';
 import { TerminalTaskStatusTickerHUD } from '../../../../../../layouts/dash/TerminalTaskStatusTickerHUD';
 import WeeksCalendar from './Components/MacroCalendar/WeeksCalendar';
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice';
+import AccountPLInfo from './Components/AccountPLInfo/AccountPLInfo';
 
 function MessageNewsCenter()
 {
@@ -22,7 +23,7 @@ function MessageNewsCenter()
         switch (currentMessageNewsDetail)
         {
             case 'macroZoneConditions': return <SectorZones />
-            case 'account': return <div>Account Details here <button onClick={() => dispatch(setStockDetailState(26))}>exposure</button></div>
+            case 'account': return <AccountPLInfo />
             case 'tickerInfo': return <QuickSearch />
             case 'expectedMoves': return <ExpectedMoves />
             case 'standardDeviation': return <StandardDeviationVisual />

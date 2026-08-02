@@ -4,7 +4,8 @@ import { useManageTradeRecordMutation } from '../../../../../../features/Trades/
 import { selectPlanForStaticDetails } from '../../../../../../features/Engine/EnginePlanApiSlice'
 import TradeSubmissionForm from './Components/TradeSubmissionForm'
 import './manageTrade.css'
-import { format } from 'date-fns'
+import { format, isToday } from 'date-fns'
+import TradeRecord from './Components/TradeRecord'
 
 function ManageTrade({ tickerSymbol })
 {
@@ -13,6 +14,8 @@ function ManageTrade({ tickerSymbol })
     const selectedPlannedTicker = useSelector((state) => selectStaticFieldsInstance(state, tickerSymbol), shallowEqual);
 
     const tradeRecords = selectedPlannedTicker.activeTradeConfig
+    const snapShotOpenPrice = (!isToday(selectedPlannedTicker?.snapShot?.DailyBar.Timestamp)) ? selectedPlannedTicker.snapShot.DailyBar.OpenPrice : undefined
+
 
 
     return (
@@ -25,18 +28,8 @@ function ManageTrade({ tickerSymbol })
                 <TradeSubmissionForm existingTrade={selectedPlannedTicker.activeTradeConfig} planId={selectedPlannedTicker.planConfig.planId} tickerSymbol={tickerSymbol} />
             </div>
             <div>
-                other stuff
+                {tradeRecords && <TradeRecord tickerSymbol={tickerSymbol} tradeRecord={selectedPlannedTicker.activeTradeConfig} todayOpenPrice={snapShotOpenPrice} />}
 
-                {tradeRecords && tradeRecords.purchaseRecords.map(t => 
-                {
-                    if (t.sharesRemaining > 0) return (
-                        <div className='flex'>
-                            <p>Price: ${t.purchasePrice.toFixed(2)}</p>
-                            <p>Size: {t.sharesRemaining}</p>
-                            <p>Date: {format(t.purchaseDate, 'MM/dd')}</p>
-                        </div>)
-                }
-                )}
             </div>
         </div>
     )
