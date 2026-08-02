@@ -18,7 +18,7 @@ function SearchResult({ tickerSymbol, handleNavigateClear })
         {
             if (event.key === 'Enter' && document.activeElement.id === 'centerSearch' && selectedPlannedTicker)
             {
-                dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: tickerSymbol }))
+                dispatch(setStockDetailStateWithTicker({ detail: 27, ticker: tickerSymbol }))
                 handleNavigateClear()
             } else if (event.key === '1' && tickerSymbol === 'search')
             {
@@ -48,6 +48,9 @@ function SearchResult({ tickerSymbol, handleNavigateClear })
 
                     <button onClick={() => { dispatch(setStockDetailStateWithTicker({ detail: 22, ticker: tickerSymbol })); handleNavigateClear() }}>
                         Deep Discounts
+                    </button>
+                    <button onClick={() => { dispatch(setStockDetailStateWithTicker({ detail: 27, ticker: tickerSymbol })); handleNavigateClear() }}>
+                        Trade
                     </button>
                 </>
                     :

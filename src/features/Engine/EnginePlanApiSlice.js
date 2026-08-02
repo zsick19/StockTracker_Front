@@ -1503,11 +1503,13 @@ export const selectPlanForStaticDetails = () =>
                 stockInfo: planEntity.stockInfo,
                 optionsConfig: planEntity.optionsConfig,
                 snapShot: planEntity.snapShot,
-                discountConfig: planEntity.discountConfig
+                discountConfig: planEntity.discountConfig,
+                activeTradeConfig:planEntity.activeTradeConfig
             }
         }
     )
 }
+
 
 
 
@@ -1548,9 +1550,7 @@ export const selectPlanAndPatternChartingBySymbol = createSelector(
 
 )
 
-export const selectMacroTickers = createSelector([macroSelectors.selectEntities, (state, symbol) => symbol],
-    (macros, symbol) =>
-    {
-
-        return macros[symbol]
-    })
+export const selectMacroTickers = createSelector(
+    [macroSelectors.selectEntities, (state, symbol) => symbol],
+    (macros, symbol) => { return macros[symbol] }
+)

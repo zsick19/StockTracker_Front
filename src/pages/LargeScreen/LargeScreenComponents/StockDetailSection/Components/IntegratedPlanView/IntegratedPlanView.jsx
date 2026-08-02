@@ -75,31 +75,7 @@ function IntegratedPlanView({ tickerSymbol })
 
 
 
-    console.log(selectedPlannedTicker)
-
-
-
-    const [manageTradeRecord] = useManageTradeRecordMutation()
-    async function attemptManageTradeRecord(params)
-    {
-        try
-        {
-            const result = await manageTradeRecord({
-                tickerSymbol: tickerSymbol, positionSize: 10, purchasePrice: 20,
-                recordType: 'purchase', enterExitPlanId: selectedPlannedTicker.planConfig.planId
-            })
-            console.log(result)
-        } catch (error)
-        {
-            console.log(error)
-        }
-    }
-
-
-
-
-
-
+  
 
 
 
@@ -119,7 +95,7 @@ function IntegratedPlanView({ tickerSymbol })
                             <button onClick={() => setShowDoubleCheckBeforeRemove(false)}>Cancel</button>
                         </div> :
                         <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: 'var(--fs-100)' }}>
-                            <button onClick={() => attemptManageTradeRecord()}>Record Trade</button>
+                            <button onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 27, ticker: tickerSymbol }))}>Record Trade</button>
                             <button onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 22, ticker: tickerSymbol }))}>Deep Discounts</button>
                             <button onClick={() => setShowDoubleCheckBeforeRemove(true)}>Remove Plan</button>
                         </div>

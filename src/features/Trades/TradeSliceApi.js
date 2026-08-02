@@ -401,7 +401,6 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     const { data: freshTradeData } = await queryFulfilled;
-                    console.log(freshTradeData)
 
                     const cacheUpdateRecipe = EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
@@ -409,12 +408,12 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
 
                         if (freshTradeData?.closedTrade)
                         {
-                            draft.plans.entities[args.tickerSymbol].tradeConfig = undefined
+                            draft.plans.entities[args.tickerSymbol].activeTradeConfig = undefined
                             draft.trades.filter((t) => t.tickerSymbol !== freshTradeData.closedTrade.tickerSymbol)
                         }
                         else if (freshTradeData?.updatedTrade)
                         {
-                            draft.plans.entities[args.tickerSymbol].tradeConfig = freshTradeData.updatedTrade
+                            draft.plans.entities[args.tickerSymbol].activeTradeConfig = freshTradeData.updatedTrade
 
                             let foundTrade = false
                             draft.trades = draft.trades.map((t) =>
@@ -422,7 +421,7 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                                 if (t.tickerSymbol === freshTradeData.updatedTrade.tickerSymbol)
                                 {
                                     foundTrade = true
-                                    return freshTradeData
+                                    return freshTradeData.updatedTrade
                                 } else return t
                             })
                             if (!foundTrade) { draft.trades.push(freshTradeData.updatedTrade) }

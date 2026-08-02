@@ -1,0 +1,12 @@
+#ManageTrade {
+  display: grid;
+  grid-template-rows: 40% 1fr;
+  height: 100%;
+}
+#GraphAndTradeSubmission {
+  display: flex;
+  width: 100%;
+}
+#GraphAndTradeSubmission > div:first-of-type {
+  flex: 1;
+}

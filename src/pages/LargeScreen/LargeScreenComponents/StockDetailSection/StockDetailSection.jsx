@@ -26,6 +26,7 @@ import DeepDiscount from './Components/DeepDiscounts/DeepDiscount';
 import DeepDiscountTradeView from './Components/DeepDiscountTradeView/DeepDiscountTradeView';
 import MacroEventOverlap from './Components/MacroEventOverlap/MacroEventOverlap';
 import PlanTradeExposure from './Components/Exposure/PlanTradeExposure';
+import ManageTrade from './Components/ManageTrade/ManageTrade';
 
 function StockDetailSection()
 {
@@ -72,6 +73,7 @@ function StockDetailSection()
       case 24: return <MacroEventOverlap tickerSymbol={currentStockDetail.ticker} />
       case 25: return <div>Calander</div>
       case 26: return <PlanTradeExposure />
+      case 27: return <ManageTrade tickerSymbol={currentStockDetail.ticker} />
     }
   }
 
