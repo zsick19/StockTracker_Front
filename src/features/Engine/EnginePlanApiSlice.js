@@ -200,6 +200,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         stockInfo: enterExit.plan.stockId,
                         mostRecentPrice,
                         mostRecentPriceUpDown: undefined,
+                        highImportance: enterExit.plan?.highImportance || undefined,
                         planConfig,
                         patternConfig,
                         activeTradeConfig,
@@ -1270,6 +1271,8 @@ export const selectPrioritizedWatchlist = createSelector(
 
             return {
                 tickerSymbol: planEntity.id,
+                planId: planEntity.planConfig.planId,
+                highImportance: planEntity.highImportance,
                 mostRecentPrice: planEntity.mostRecentPrice,
                 industry: planEntity.stockInfo?.Industry,
                 patternClassification: planEntity.patternConfig.patternClassification,
@@ -1470,6 +1473,26 @@ export const selectMostRecentPriceByTicker = createSelector(
     }
 )
 
+export const selectMostRecentPriceAndDailyChangeByTicker = createSelector(
+    [planSelectors.selectEntities, (state, symbol) => symbol],
+    (stockEntities, symbol) =>
+    {
+        const planEntity = stockEntities[symbol]
+        if (!planEntity) return undefined
+        let priceChange = 0
+        let percentChange = 0
+        if (isToday(planEntity.snapShot.DailyBar.Timestamp))
+        {
+            priceChange = planEntity.mostRecentPrice - planEntity.snapShot.DailyBar.OpenPrice
+            percentChange = (priceChange / planEntity.snapShot.DailyBar.OpenPrice) * 100
+        }
+
+        return {
+            mostRecentPrice: planEntity.mostRecentPrice, changeFromOpen: priceChange, percentChange: percentChange
+        }
+    }
+)
+
 
 export const selectDeepDiscountByReviewedStatus = createSelector(
 
@@ -1497,6 +1520,7 @@ export const selectPlanForStaticDetails = () =>
 
             return {
                 id: planEntity.id,
+                highImportance: planEntity.highImportance,
                 planConfig: planEntity.planConfig,
                 patternConfig: planEntity.patternConfig,
                 metricConfig: planEntity.metricConfig,
@@ -1509,6 +1533,29 @@ export const selectPlanForStaticDetails = () =>
         }
     )
 }
+
+
+//High Importance Selectors
+export const selectHighImportancePlanIds = createSelector(
+    [planSelectors.selectEntities, planSelectors.selectIds],
+    (entities, ids) =>
+    {
+        return ids.filter(id =>
+        {
+            const plan = entities[id];
+            return plan && plan.highImportance !== undefined && plan.highImportance !== null
+
+        }).map(id =>
+        {
+            const plan = entities[id]
+            return { tickerSymbol: id, planId: plan.planConfig.planId }
+        });
+    }
+);
+
+
+
+
 
 
 

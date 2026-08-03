@@ -67,6 +67,7 @@ function StockDetailSection()
       case 18: return <ActiveTradeWatchMany />
       case 19: return <SectorPlanView />
       case 20: return <FinalPreTradeCheck />
+      
       case 21: return <IntegratedPlanView tickerSymbol={currentStockDetail.ticker} />
       case 22: return <DeepDiscount tickerSymbol={currentStockDetail.ticker} />
       case 23: return <DeepDiscountTradeView tickerSymbol={currentStockDetail.ticker} />

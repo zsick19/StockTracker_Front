@@ -3,6 +3,7 @@ import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
 import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
 import { differenceInBusinessDays } from "date-fns";
+import { EnginePlanPlanApiSlice } from "../Engine/EnginePlanApiSlice";
 const { getWebSocket, subscribe, unsubscribe } = setupWebSocket();
 
 export const enterExitAdapter = createEntityAdapter({ sortComparer: (a, b) => b.percentFromEnter - a.percentFromEnter })
@@ -174,26 +175,31 @@ export const EnterExitPlanApiSlice = apiSlice.injectEndpoints({
         try
         {
           const { data: updatedEnterExitWithImportance } = await queryFulfilled;
+          // dispatch(
+          //   EnterExitPlanApiSlice.util.updateQueryData('getUsersEnterExitPlan', undefined, (draft) =>
+          //   {
+          //     let entityToMove
+          //     if (draft.enterBufferHit.ids.includes(args.tickerSymbol)) { entityToMove = draft.enterBufferHit.entities[args.tickerSymbol] }
+          //     else if (draft.stopLossHit.ids.includes(args.tickerSymbol)) { entityToMove = draft.stopLossHit.entities[args.tickerSymbol] }
+          //     else { entityToMove = draft.plannedTickers.entities[args.tickerSymbol] }
 
-          dispatch(
-            EnterExitPlanApiSlice.util.updateQueryData('getUsersEnterExitPlan', undefined, (draft) =>
-            {
-              let entityToMove
-              if (draft.enterBufferHit.ids.includes(args.tickerSymbol)) { entityToMove = draft.enterBufferHit.entities[args.tickerSymbol] }
-              else if (draft.stopLossHit.ids.includes(args.tickerSymbol)) { entityToMove = draft.stopLossHit.entities[args.tickerSymbol] }
-              else { entityToMove = draft.plannedTickers.entities[args.tickerSymbol] }
+          //     if (updatedEnterExitWithImportance?.highImportance && updatedEnterExitWithImportance.highImportance !== undefined)
+          //     {
+          //       entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
+          //       entityToMove.extentProb = updatedEnterExitWithImportance.extentProb
+          //       entityToMove.morningMetrics = updatedEnterExitWithImportance.morningMetrics
+          //     } else
+          //     {
+          //       entityToMove.highImportance = undefined
+          //     }
+          //   })
+          // )
 
-              if (updatedEnterExitWithImportance?.highImportance && updatedEnterExitWithImportance.highImportance !== undefined)
-              {
-                entityToMove.highImportance = updatedEnterExitWithImportance.highImportance
-                entityToMove.extentProb = updatedEnterExitWithImportance.extentProb
-                entityToMove.morningMetrics = updatedEnterExitWithImportance.morningMetrics
-              } else
-              {
-                entityToMove.highImportance = undefined
-              }
-            })
-          )
+          dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+          {
+            if (!draft.plans.entities[args.tickerSymbol]) return
+            draft.plans.entities[args.tickerSymbol].highImportance = updatedEnterExitWithImportance.highImportance
+          }))
 
         } catch (error)
         {

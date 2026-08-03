@@ -9,6 +9,7 @@ import AccountPLVisual from '../AccountPLVisual/AccountPLVisual'
 import { isWeekend } from 'date-fns'
 import { ScoringTestHUD } from '../../../MacroControlSection/Components/WatchListEngine/ScoringTestHUD'
 import { selectActiveTradeResults } from '../../../../../../features/Engine/EnginePlanApiSlice'
+import SingleActiveTradeBlock from './Components/SingleActiveTradeBlock'
 
 function CurrentTradePositionContainer()
 {
@@ -31,8 +32,16 @@ function CurrentTradePositionContainer()
     else if (isError) { tradeDisplayContent = <div><h2>Error Fetching Trades</h2><button onClick={() => refetch()}>Retry</button></div> }
 
     return (
+
         <div id='LSH-ActiveTradeContainer'>
-            {tradeDisplayContent}
+            {/* {tradeDisplayContent} */}
+            <div id='LSH-ActiveTradeBlockWrapper' className='hide-scrollbar' onDoubleClick={refetch} onContextMenu={(e) => { e.preventDefault(); dispatch(setStockDetailState(18)) }}>
+                {trades.length > 0 ?
+                    trades.map((activeTrade) => <SingleActiveTradeBlock trade={activeTrade} key={`activeTrade${activeTrade.tickerSymbol}`} />) :
+                    <div className='LSH-ActiveTradesMessage'><h2>No Active Trades</h2></div>
+                }
+            </div>
+
         </div>
     )
 }

@@ -25,6 +25,8 @@ import IntegratedFetchChartWrapper from '../../../../../../components/ChartSubGr
 import { setStockDetailState, setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { preSetDailyTimes } from '../../../../../../Utilities/TimeFrames'
 import { useManageTradeRecordMutation } from '../../../../../../features/Trades/TradeSliceApi'
+import { useToggleEnterExitPlanImportantMutation } from '../../../../../../features/EnterExitPlans/EnterExitApiSlice'
+import { Star } from 'lucide-react'
 
 
 function IntegratedPlanView({ tickerSymbol })
@@ -73,9 +75,20 @@ function IntegratedPlanView({ tickerSymbol })
         }
     }
 
-
-
-  
+    const [toggleEnterExitPlanImportant] = useToggleEnterExitPlanImportantMutation()
+    async function attemptToggleImportance()
+    {
+        try
+        {
+            const result = await toggleEnterExitPlanImportant({
+                tickerSymbol, planId: selectedPlannedTicker.planConfig.planId,
+                markImportant: selectedPlannedTicker.highImportance === undefined
+            })
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
 
 
 
@@ -98,6 +111,9 @@ function IntegratedPlanView({ tickerSymbol })
                             <button onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 27, ticker: tickerSymbol }))}>Record Trade</button>
                             <button onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 22, ticker: tickerSymbol }))}>Deep Discounts</button>
                             <button onClick={() => setShowDoubleCheckBeforeRemove(true)}>Remove Plan</button>
+                            <button onClick={() => attemptToggleImportance()} className='buttonIcon'>
+                                <Star fill={selectedPlannedTicker.highImportance ? 'gold' : 'gray'} color='' />
+                            </button>
                         </div>
                     }
                 </div>

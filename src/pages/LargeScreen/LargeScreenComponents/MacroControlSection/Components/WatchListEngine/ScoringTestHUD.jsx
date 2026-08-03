@@ -4,22 +4,30 @@ import { selectPrioritizedWatchlist } from '../../../../../../features/Engine/En
 import { setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice';
 import { isBefore, set } from 'date-fns';
 import { preSetDailyTimes } from '../../../../../../Utilities/TimeFrames';
+import { useToggleEnterExitPlanImportantMutation } from '../../../../../../features/EnterExitPlans/EnterExitApiSlice';
 
 export const ScoringTestHUD = () =>
 {
-    // Pull the live sorted watchlist straight from your master selector loop
     const dispatch = useDispatch()
     const prioritizedWatchlist = useSelector(selectPrioritizedWatchlist)
 
-    function handleNavigateToSinglePlan(tickerSymbol) { dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: tickerSymbol })) }
-
-    const [showAll, setShowAll] = useState(0)
+    const [showAll, setShowAll] = useState(6)
     const [headerOrShowSelect, setHeaderOrShowSelect] = useState(true)
-
-    useEffect(() => { if (isBefore(new Date(), preSetDailyTimes.marketOpen)) setShowAll(2) }, [])
-
-
     const possiblePositions = ['Below Stoploss', 'Discount Area', 'Inside Strike Zone', 'Monitoring', 'Above Plan Exit']
+
+
+    function handleNavigateToSinglePlan(tickerSymbol) { dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: tickerSymbol })) }
+    const [toggleEnterExitPlanImportant] = useToggleEnterExitPlanImportantMutation()
+    async function attemptToggleImportance(plan)
+    {
+        try
+        {
+            const result = await toggleEnterExitPlanImportant({ tickerSymbol: plan.tickerSymbol, planId: plan.planId, markImportant: plan.highImportance === undefined })
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
 
     return (
         <div style={{ background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', maxHeight: '600px' }}>
@@ -92,10 +100,14 @@ export const ScoringTestHUD = () =>
                                 if (showAll === 6 && (position === 0 || position > 2)) return
 
                                 return (
-                                    <tr onClick={() => handleNavigateToSinglePlan(plan.tickerSymbol)} key={plan.tickerSymbol}
+                                    <tr onClick={() => handleNavigateToSinglePlan(plan.tickerSymbol)} onContextMenu={(e) =>
+                                    {
+                                        e.preventDefault();
+                                        attemptToggleImportance(plan)
+                                    }} key={plan.tickerSymbol}
                                         style={{
                                             paddingInline: '1rem', borderBottom: '1px solid #1c1c24',
-                                            background: finalScore >= 75 ? 'rgba(0,255,255,0.05)' : 'transparent', 
+                                            background: finalScore >= 75 ? 'rgba(0,255,255,0.05)' : 'transparent',
                                             opacity: insideStrike ? 1 : withinPlan ? '0.50' : '0.20'
                                         }}>
 
