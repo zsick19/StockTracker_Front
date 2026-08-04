@@ -61,8 +61,8 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
 
 
-
-                    let regularSessionCandles = filterRegularSessionCandles(enterExit.candleData)
+                    let filteredCandles = filterRegularSessionCandles(enterExit.candleData)
+                    let regularSessionCandles = filteredCandles.regularSession
                     let enterExitPlanPrices = enterExit.plan.plan
                     let patternClassification = enterExit.plan.patternClassification
 
@@ -212,6 +212,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         historicCandle: regularSessionCandles,
                         firstHourCandles,
                         todaysCandles: [],
+                        preMarketCandles: [],
                         combinedCandleData: regularSessionCandles,
                         snapShot: enterExit.snapShot,
                         liveAuctionMetrics: {
@@ -247,6 +248,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                         planData: macroPlanData,
                         historicCandle: regularSessionCandles,
                         todaysCandles: [],
+                        preMarketCandles: [],
                         combinedCandleData: regularSessionCandles,
                         macroTideSentry: {
                             macdLine: computedMACDMetrics.macdLine,
@@ -452,7 +454,10 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             let liveCandles = freshCandleData.planData[symbol]
                             if (!liveCandles || liveCandles.length === 0) return
 
-                            const cleanCandlesToday = filterRegularSessionCandles(liveCandles)
+                            const filteredCandles = filterRegularSessionCandles(liveCandles)
+
+                            entityToUpdate.preMarketCandles = filteredCandles.preMarket
+                            const cleanCandlesToday = filteredCandles.regularSession
                             if (cleanCandlesToday.length === 0) return
 
                             draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
@@ -579,7 +584,11 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                             let liveCandles = freshCandleData.planData[symbol]
                             if (!liveCandles || liveCandles.length === 0) return
-                            const cleanCandlesToday = filterRegularSessionCandles(liveCandles)
+
+                            let filteredCandles = filterRegularSessionCandles(liveCandles)
+                            const cleanCandlesToday = filteredCandles.regularSession
+
+                            if (entityToUpdate.preMarketCandles.length === 0) entityToUpdate.preMarketCandles = filteredCandles.preMarket
 
                             if (cleanCandlesToday.length === 0) return
                             let lastCandle = cleanCandlesToday[cleanCandlesToday.length - 1].ClosePrice
@@ -1142,11 +1151,52 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
                         if (!draft) return
-                        freshOpenCrosses.planAndTrackedStocks.map((t, i) =>
+                        freshOpenCrosses.openCross.map((t, i) =>
                         {
                             if (!draft.plans.entities[t.tickerSymbol]) return
                             if (t?.openCrossMetrics) draft.plans.entities[t.tickerSymbol].metricConfig.openCross = t.openCrossMetrics
                         })
+
+                        if (freshOpenCrosses.snapShots)
+                        {
+                            freshOpenCrosses.snapShots.map((t, i) =>
+                            {
+                                let entityForUpdate = draft.plans.entities[t.symbol]
+                                if (entityForUpdate)
+                                {
+                                    entityForUpdate.snapShot = t
+
+
+                                    entityForUpdate.currentPriceStats.snapShot = t
+                                    entityForUpdate.currentPriceStats.dailyBar = t.DailyBar
+                                    entityForUpdate.currentPriceStats.prevDailyBar = t.PrevDailyBar
+
+                                    entityForUpdate.currentPriceStats.yesterdayClose = t.PrevDailyBar.ClosePrice
+                                    entityForUpdate.currentPriceStats.changeFromYesterdayClose = entityForUpdate.mostRecentPrice - t.PrevDailyBar.ClosePrice
+
+
+                                    if (entityForUpdate.activeTradeConfig)
+                                    {
+                                        let tradesCopy = [...draft.trades]
+                                        draft.trades = tradesCopy.map((k, i) =>
+                                        {
+                                            if (k.snapShot.symbol === t.symbol) return { ...k, snapShot: t }
+                                            else return k
+                                        })
+                                    }
+
+
+                                } else if (draft.macros.entities[t.symbol])
+                                {
+                                    entityForUpdate = draft.macros.entities[t.symbol]
+                                    entityForUpdate.snapShot = t
+                                }
+
+                            })
+
+                        }
+
+
                     }))
                 } catch (error) { console.log(error) }
             }
@@ -1463,15 +1513,28 @@ export const selectTodaysCandlesByTicker = createSelector(
         return planEntity.todaysCandles
     }
 )
+
+
 export const selectMostRecentPriceByTicker = createSelector(
-    [planSelectors.selectEntities, (state, symbol) => symbol],
-    (stockEntities, symbol) =>
+    [planSelectors.selectEntities, macroSelectors.selectEntities, (state, symbol) => symbol],
+    (stockEntities, macroEntities, symbol) =>
     {
         const planEntity = stockEntities[symbol]
-        if (!planEntity) return undefined
+        if (!planEntity)
+        {
+            const macroEntity = macroEntities[symbol]
+            if (!macroEntity) return undefined
+            else return macroEntity.mostRecentPrice
+        }
+
         else return planEntity.mostRecentPrice
     }
 )
+
+
+
+
+
 
 export const selectMostRecentPriceAndDailyChangeByTicker = createSelector(
     [planSelectors.selectEntities, (state, symbol) => symbol],

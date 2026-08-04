@@ -16,7 +16,9 @@ export function filterRegularSessionCandles(rawHistoricalCandles)
     // Sort chronologically to ensure seamless lookback tracking
     const sortedCandles = [...rawHistoricalCandles].sort((a, b) => new Date(a.Timestamp) - new Date(b.Timestamp));
 
-    return sortedCandles.filter(candle =>
+    const preMarket = []
+
+    const regularSession = sortedCandles.filter(candle =>
     {
         const timeObj = new Date(candle.Timestamp);
 
@@ -25,10 +27,12 @@ export function filterRegularSessionCandles(rawHistoricalCandles)
 
         // Format to a clean time string for explicit range checking (e.g., "09:45")
         const currentNYTimeStr = format(nyTime, 'HH:mm');
-
+        if (currentNYTimeStr < '09:30') preMarket.push(candle)
         // Allow bars strictly inside regular hours session boundaries
         return currentNYTimeStr >= '09:30' && currentNYTimeStr <= '16:00';
     });
+    return { preMarket, regularSession }
+
 }
 /**
  * Institutional Regular Session Time Filter.

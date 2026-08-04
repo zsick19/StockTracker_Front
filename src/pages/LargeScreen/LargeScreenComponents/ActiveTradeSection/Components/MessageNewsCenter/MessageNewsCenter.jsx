@@ -6,12 +6,13 @@ import { selectMessageNewsDetailControl, setMessageNewsDetailState } from '../..
 import ExpectedMoves from './Components/ExpectedMoves/ExpectedMoves';
 import StandardDeviationVisual from './Components/SDVisual';
 import JournalRecord from './Components/JournalRecord/JournalRecord';
-import WelcomeGreeting from './Components/WelcomeGreeting/WelcomeGreeting';
+import DailyValueFileUploads from './Components/WelcomeGreeting/DailyValueFileUploads';
 import QuickSearch from './Components/QuickSearch/QuickSearch';
 import { TerminalTaskStatusTickerHUD } from '../../../../../../layouts/dash/TerminalTaskStatusTickerHUD';
 import WeeksCalendar from './Components/MacroCalendar/WeeksCalendar';
 import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice';
 import AccountPLInfo from './Components/AccountPLInfo/AccountPLInfo';
+import DailyWeeklySchedule from './Components/Schedule/DailyWeeklySchedule';
 
 function MessageNewsCenter()
 {
@@ -22,14 +23,11 @@ function MessageNewsCenter()
     {
         switch (currentMessageNewsDetail)
         {
-            case 'macroZoneConditions': return <SectorZones />
+            case 'schedule': return <DailyWeeklySchedule />
             case 'account': return <AccountPLInfo />
-            case 'tickerInfo': return <QuickSearch />
-            case 'expectedMoves': return <ExpectedMoves />
-            case 'standardDeviation': return <StandardDeviationVisual />
             case 'journalRecord': return <JournalRecord />
             case 'calendar': return <WeeksCalendar />
-            default: return <WelcomeGreeting />
+            case 'dailyValues': return <DailyValueFileUploads />            
         }
     }
 
@@ -41,16 +39,12 @@ function MessageNewsCenter()
             <fieldset onChange={(e) => dispatch(setMessageNewsDetailState(e.target.id))} id='NewsCenterDisplayNav' className='fieldSetWithTabs'>
                 <input type="radio" name="messageDisplay" id="account" readOnly className='hidden-radio' checked={provideChecked('account')} />
                 <label htmlFor="account">Account</label>
-                <input type="radio" name="messageDisplay" id="general" readOnly checked={provideChecked('general')} className='hidden-radio' />
-                <label htmlFor="general">Schedule</label>
+                <input type="radio" name="messageDisplay" id="schedule" readOnly checked={provideChecked('schedule')} className='hidden-radio' />
+                <label htmlFor="schedule">Schedule</label>
                 <input type="radio" name="messageDisplay" id="calendar" readOnly className='hidden-radio' checked={provideChecked('tickerInfo')} />
                 <label htmlFor="calendar">Calendar</label>
-                <input disabled type="radio" name="messageDisplay" id="macroZoneConditions" readOnly className='hidden-radio' checked={provideChecked('macroZoneConditions')} />
-                <label htmlFor="macroZoneConditions">Macro</label>
-                <input type="radio" name="messageDisplay" id="standardDeviation" readOnly className='hidden-radio' checked={provideChecked('standardDeviation')} />
-                <label htmlFor="standardDeviation">STD</label>
-                {/* <input type="radio" name="messageDisplay" id="expectedMoves" readOnly className='hidden-radio' checked={provideChecked('expectedMoves')} />
-                <label htmlFor="expectedMoves">EM</label> */}
+                <input type="radio" name="dailyValues" id="dailyValues" readOnly className='hidden-radio' checked={provideChecked('dailyValues')} />
+                <label htmlFor="dailyValues">Daily Values</label>
                 <input type="radio" name="messageDisplay" id="journalRecord" readOnly className='hidden-radio' checked={provideChecked('journalRecord')} />
                 <label htmlFor="journalRecord">Journal</label>
             </fieldset>

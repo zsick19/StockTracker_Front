@@ -1759,6 +1759,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
         stockCandleSVG.select('.keyLevels').selectAll('text').remove()
         stockCandleSVG.select('.keyLevels').selectAll('rect').remove()
 
+
         if (preDimensionsAndCandleCheck() || !KeyLevels) return
         let keyLevelSelection = stockCandleSVG.select('.keyLevels')
         const textOffSetFromRight = 120

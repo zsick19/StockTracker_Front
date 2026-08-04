@@ -1,4 +1,12 @@
 #AccountPLInfo {
   display: grid;
-  grid-template-columns: 1fr 40%;
+  grid-template-columns: 30% 1fr;
+  height: 100%;
 }
+
+#AccountPLInfo > div:first-of-type {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+

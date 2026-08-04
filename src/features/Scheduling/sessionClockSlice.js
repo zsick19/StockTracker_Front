@@ -8,7 +8,7 @@ const TIMELINE_EVENTS = [
     { id: 'PRE_FLIGHT', time: '09:22', label: 'Pre-Flight Hydration', description: 'Ingesting morning CSV metadata arrays & Alpaca options chains.' },
     { id: 'DAILY_MACRO', time: '09:20', label: 'Macro Ticker Hydration', description: 'Input daily SPY values and core expected moves.' },
     { id: 'MORNING_DATA_PULL', time: '09:28', label: 'Morning Metrics Hydration', description: 'RTK Query fetching calculated morning metrics and morning options info.' },
-    { id: 'OPEN_CROSS_DATA_PULL', time: '09:34', label: 'Frontend Ingestion Wave', description: 'RTK Query fetching optimized pre-compiled opening cross watchlist data.' },
+    { id: 'OPEN_CROSS_DATA_PULL', time: '09:33', label: 'Frontend Ingestion Wave', description: 'RTK Query fetching optimized pre-compiled opening cross watchlist data.' },
     { id: 'PRIME_SWEET', time: '09:35', label: 'Prime Execution Window', description: 'Opening bell cool-down safety gates unlocked. Live volume climax tracking active.' },
     { id: 'MIDDAY_CHURN', time: '11:30', label: 'Midday Churn Monitoring', description: 'Evaluating live midday density ratios to flag un-sponsored retail traps.' },
     { id: 'MIDDAY_DATA_PULL', time: '13:08', label: 'Midday Options Hydration', description: 'RTK Query fetching calculated midday options info.' },

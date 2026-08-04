@@ -3,6 +3,8 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { selectPlanForStaticDetails } from '../../../features/Engine/EnginePlanApiSlice';
 import { setStockDetailState, setStockDetailStateWithTicker } from '../../../features/SelectedStocks/StockDetailControlSlice';
 import SearchMacroGraphArray from './SearchMacroGraphArray';
+import TodayOnlyChartWrapper from '../../../components/ChartSubGraph/TodayOnlyChart/TodayOnlyChartWrapper';
+import FoundPlanGraphWrapper from './FoundPlanGraphWrapper';
 
 function SearchResult({ tickerSymbol, handleNavigateClear })
 {
@@ -38,24 +40,29 @@ function SearchResult({ tickerSymbol, handleNavigateClear })
         <>
             <div className='fullScreenUnderlay' onClick={() => handleNavigateClear()}></div>
             <div className='SearchResultDisplay' onClick={(e) => { e.stopPropagation(); }}>
-                {selectedPlannedTicker ? <>
-                    <h2>{selectedPlannedTicker.id}</h2>
+                {selectedPlannedTicker ? <div id='SingleSearchFoundTicker'>
+                    <FoundPlanGraphWrapper tickerSymbol={selectedPlannedTicker.id} foundPlan={selectedPlannedTicker} />
+                    <div>
+                        <div>Daily Chart</div>
+                        <div>Sector Daily Chart</div>
+                    </div>
+                    <div>
+                        <h2>{selectedPlannedTicker.id}</h2>
 
+                        <button onClick={() => { dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: tickerSymbol })); handleNavigateClear(); }}>
+                            Integrated View
+                        </button>
 
-                    <button onClick={() => { dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: tickerSymbol })); handleNavigateClear(); }}>
-                        Integrated View
-                    </button>
-
-                    <button onClick={() => { dispatch(setStockDetailStateWithTicker({ detail: 22, ticker: tickerSymbol })); handleNavigateClear() }}>
-                        Deep Discounts
-                    </button>
-                    <button onClick={() => { dispatch(setStockDetailStateWithTicker({ detail: 27, ticker: tickerSymbol })); handleNavigateClear() }}>
-                        Trade
-                    </button>
-                </>
+                        <button onClick={() => { dispatch(setStockDetailStateWithTicker({ detail: 22, ticker: tickerSymbol })); handleNavigateClear() }}>
+                            Deep Discounts
+                        </button>
+                        <button onClick={() => { dispatch(setStockDetailStateWithTicker({ detail: 27, ticker: tickerSymbol })); handleNavigateClear() }}>
+                            Trade
+                        </button>
+                    </div>
+                </div>
                     :
                     <SearchMacroGraphArray />
-
                 }
             </div>
         </>

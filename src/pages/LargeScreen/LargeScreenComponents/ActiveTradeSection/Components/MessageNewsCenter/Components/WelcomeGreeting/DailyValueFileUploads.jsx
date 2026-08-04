@@ -11,7 +11,7 @@ import TaskCheckOffContainer from './TaskCheckOffContainer'
 import { useUpdateStockKeyLevelsMutation } from '../../../../../../../../features/KeyLevels/KeyLevelSliceApi'
 import DailySPYValues from './DailySPYValues'
 
-function WelcomeGreeting()
+function DailyValueFileUploads()
 {
     const [uploadProcess, setUploadProcess] = useState('DAILY CSV')
     const [currentInputForm, setCurrentInputForm] = useState(0)
@@ -37,7 +37,6 @@ function WelcomeGreeting()
 
     return (
         <div id='welcomeGreeting'>
-            <TaskCheckOffContainer />
             <div id='DailyInputsAndControls'>
                 <div id='DailyInputSelectionButtons'>
                     <div>PreMarket</div>
@@ -54,4 +53,4 @@ function WelcomeGreeting()
     )
 }
 
-export default WelcomeGreeting
+export default DailyValueFileUploads

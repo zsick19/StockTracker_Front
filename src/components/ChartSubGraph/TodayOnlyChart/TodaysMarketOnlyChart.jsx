@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useResizeObserver } from '../../../hooks/useResizeObserver'
 import { scaleDiscontinuous, discontinuityRange, discontinuitySkipUtcWeekends } from '@d3fc/d3fc-discontinuous-scale'
-import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay, addHours, addMinutes, differenceInBusinessDays, set, isWeekend, previousFriday, subBusinessDays, addBusinessDays, eachWeekOfInterval } from 'date-fns'
+import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, eachDayOfInterval, getDay, addHours, addMinutes, differenceInBusinessDays, set, isWeekend, previousFriday, subBusinessDays, addBusinessDays, eachWeekOfInterval, isYesterday } from 'date-fns'
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis, timeFormat } from 'd3'
 import { generateIntraDayTickMarksBetweenTwoDates, generateMarketTradingHoursBetweenTwoDates, getBreaksBetweenDates, preSetDailyTimes } from '../../../Utilities/TimeFrames'
 import { pixelBuffer } from '../GraphChartConstants'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectMostRecentPriceByTicker } from '../../../features/Engine/EnginePlanApiSlice'
 
-function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints, uuid, isZoomAble, currentDiscount, discountPrices, exitAlertPrice })
+function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints, uuid, isZoomAble,
+    currentDiscount, discountPrices, exitAlertPrice, zoneData, dailyEM, weeklyEM, snapShotInfo, isOnlyYZoomAble })
 {
     const dispatch = useDispatch()
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
@@ -22,18 +23,20 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
     const priceScaleSVG = select(priceSVG.current)
 
     const mostRecentPrice = useSelector(state => selectMostRecentPriceByTicker(state, ticker))
+
+
     const [chartZoomState, setChartZoomState] = useState()
 
 
 
     //chart zoom states    
-    const [enableZoom, setEnableZoom] = useState(true)
+    const [enableZoom, setEnableZoom] = useState(isZoomAble)
 
     //chart scale creation
-    const minPrice = useMemo(() => min(candleData, d => d.LowPrice), [candleData])
-    const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [candleData])
-    const minVol = useMemo(() => min(candleData, d => d.Volume), [candleData])
-    const maxVol = useMemo(() => max(candleData, d => d.Volume), [candleData])
+    const minPrice = useMemo(() => min(candleData, d => d.LowPrice), [])
+    const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [])
+    const minVol = useMemo(() => min(candleData, d => d.Volume), [])
+    const maxVol = useMemo(() => max(candleData, d => d.Volume), [])
 
 
     // const dateBetweenStartAndFinishInterval = useMemo(() => eachDayOfInterval({ start: chartStartDate, end: addBusinessDays(new Date(), 1) }), [chartStartDate])
@@ -68,7 +71,7 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
         if (preDimensionsAndCandleCheck()) return
 
         const yScale = scaleLinear()
-            .domain([minPrice * 0.95, maxPrice * 1.05])
+            .domain([minPrice * 0.9995, maxPrice * 1.0005])
             .range([candleDimensions.height - pixelBuffer.yDirectionPixelBuffer, 0])
             .interpolate(function (a, b) { const c = b - a; return function (t) { return +(a + t * c).toFixed(2); }; })
 
@@ -123,9 +126,9 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
     {
         if (preDimensionsAndCandleCheck()) return
 
-        const xAxis = axisBottom(createDateScale())
-        // .tickValues(intraDayTickMarks)
-        // .tickFormat(timeFormat("%-m/%-d"));
+        const xAxis = axisBottom(createDateScale()).ticks(7)
+            // .tickValues(intraDayTickMarks)
+            .tickFormat(timeFormat("%-I"));
         stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
 
         const yAxis = axisLeft(createPriceScale())
@@ -245,13 +248,6 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
                     .attr('y2', (d) => createPriceScale({ priceToPixel: d.ClosePrice }))
             })
         }
-
-
-
-
-
-
-
     }, [candleData, minPrice, maxPrice, candleDimensions, chartZoomState?.x, chartZoomState?.y])
 
 
@@ -388,10 +384,12 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
 
     // }, [ticker, currentDiscount, discountPrices, exitAlertPrice, candleDimensions, chartZoomState?.x, chartZoomState?.y])
 
+
+
+
     //plotMostRecentPrice
     useEffect(() =>
     {
-
         const mostRecentPriceSelect = stockCandleSVG.select('.lastCandleUpdate')
         const priceScale = priceScaleSVG.select('.currentPrice')
         mostRecentPriceSelect.selectAll('line').remove()
@@ -423,12 +421,205 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
 
     }, [ticker, mostRecentPrice, candleDimensions, chartZoomState?.x, chartZoomState?.y])
 
+    //plot zone data
+    useEffect(() =>
+    {
+        stockCandleSVG.select('.keyLevels').selectAll('line').remove()
+        stockCandleSVG.select('.keyLevels').selectAll('text').remove()
+        stockCandleSVG.select('.keyLevels').selectAll('rect').remove()
+
+        if (preDimensionsAndCandleCheck() || !zoneData) return
+        let keyLevelSelection = stockCandleSVG.select('.keyLevels')
+
+        let lowPixel = createPriceScale({ priceToPixel: zoneData.low })
+        let midPixel = createPriceScale({ priceToPixel: zoneData.mid })
+        let highPixel = createPriceScale({ priceToPixel: zoneData.high })
+        let closePixel = createPriceScale({ priceToPixel: zoneData.close })
+        let trendPixel = createPriceScale({ priceToPixel: zoneData.trend })
+
+        keyLevelSelection.append('line').attr('class', 'line_group')
+            .attr('x1', 0).attr('x2', candleDimensions.width)
+            .attr('stroke', 'yellow').attr('stroke-dasharray', '10 10')
+            .attr('y1', lowPixel).attr('y2', lowPixel).attr('opacity', 0.5)
+
+        keyLevelSelection.append('rect').attr('class', 'line_group').attr('x', 0).attr('width', 5000).attr('fill', "url(#zoneBearish)").attr('opacity', 0.15)
+            .attr('y', (d) => midPixel).attr('height', d => lowPixel - midPixel)
+        keyLevelSelection.append('rect').attr('class', 'line_group').attr('x', 0).attr('width', 5000).attr('fill', 'url(#zoneBullish)').attr('opacity', 0.15)
+            .attr('y', (d) => highPixel).attr('height', d => midPixel - highPixel)
+
+        keyLevelSelection.append('line').attr('class', 'line_group')
+            .attr('x1', 0).attr('x2', candleDimensions.width)
+            .attr('stroke', 'blue').attr('stroke-dasharray', '10 10')
+            .attr('y1', midPixel).attr('y2', midPixel)
+        keyLevelSelection.append('line').attr('class', 'line_group')
+            .attr('x1', 0).attr('x2', candleDimensions.width)
+            .attr('stroke', 'red').attr('stroke-dasharray', '10 10').attr('opacity', 0.5)
+            .attr('y1', highPixel).attr('y2', highPixel)
+        keyLevelSelection.append('line').attr('class', 'line_group')
+            .attr('x1', 0).attr('x2', candleDimensions.width)
+            .attr('stroke', 'black').attr('opacity', 1)
+            .attr('y1', closePixel).attr('y2', closePixel)
+        keyLevelSelection.append('line').attr('class', 'line_group')
+            .attr('x1', 0).attr('x2', candleDimensions.width)
+            .attr('stroke', 'black').attr('opacity', 1).attr('stroke-dasharray', '10 10')
+            .attr('y1', trendPixel).attr('y2', trendPixel)
+
+
+
+    }, [ticker, zoneData, candleDimensions, chartZoomState?.x, chartZoomState?.y])
+
+    //plot snapShot info
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck() || !snapShotInfo) return
+
+
+        const expectedMovesSelect = stockCandleSVG.select('.EMNumbers')
+
+        expectedMovesSelect.selectAll('line').remove()
+        expectedMovesSelect.selectAll('rect').remove()
+        expectedMovesSelect.selectAll('text').remove()
+
+
+        const yesterday = snapShotInfo.PrevDailyBar
+        const today = snapShotInfo.DailyBar
+
+        if (isToday(today.Timestamp))
+        {
+            //plot today's open and prev high/low
+            const openPricePixel = createPriceScale({ priceToPixel: today.OpenPrice })
+            expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', openPricePixel).attr('y2', openPricePixel)
+                .attr('stroke', 'gray').attr('stroke-dasharray', '5 5')
+
+            const yesterdayHighPricePixel = createPriceScale({ priceToPixel: yesterday.HighPrice })
+            expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', yesterdayHighPricePixel).attr('y2', yesterdayHighPricePixel)
+                .attr('stroke', 'green').attr('stroke-dasharray', '25 25')
+
+            const yesterdayLowPricePixel = createPriceScale({ priceToPixel: yesterday.LowPrice })
+            expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', yesterdayLowPricePixel).attr('y2', yesterdayLowPricePixel)
+                .attr('stroke', 'red').attr('stroke-dasharray', '25 25')
+        } else if (isYesterday(today.Timestamp))
+        {
+            //plot yesterday's high and low before market open
+            const yesterdayHighPricePixel = createPriceScale({ priceToPixel: today.HighPrice })
+            expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', yesterdayHighPricePixel).attr('y2', yesterdayHighPricePixel)
+                .attr('stroke', 'green').attr('stroke-dasharray', '25 25')
+
+            const yesterdayLowPricePixel = createPriceScale({ priceToPixel: today.LowPrice })
+            expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', yesterdayLowPricePixel).attr('y2', yesterdayLowPricePixel)
+                .attr('stroke', 'red').attr('stroke-dasharray', '25 25')
+        }
+    }, [ticker, snapShotInfo, candleDimensions, chartZoomState?.x, chartZoomState?.y])
+
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+
+
+        const expectedMovesSelect = stockCandleSVG.select('.EMNumbers')
+
+        expectedMovesSelect.selectAll('line').remove()
+        expectedMovesSelect.selectAll('rect').remove()
+        expectedMovesSelect.selectAll('text').remove()
+
+        if (snapShotInfo)
+        {
+            const yesterday = snapShotInfo.PrevDailyBar
+            const today = snapShotInfo.DailyBar
+
+            if (isToday(today.Timestamp))
+            {
+                //plot today's open and prev high/low
+                const openPricePixel = createPriceScale({ priceToPixel: today.OpenPrice })
+                expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', openPricePixel).attr('y2', openPricePixel)
+                    .attr('stroke', 'gray').attr('stroke-dasharray', '5 5')
+
+                const yesterdayHighPricePixel = createPriceScale({ priceToPixel: yesterday.HighPrice })
+                expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', yesterdayHighPricePixel).attr('y2', yesterdayHighPricePixel)
+                    .attr('stroke', 'green').attr('stroke-dasharray', '25 25')
+
+                const yesterdayLowPricePixel = createPriceScale({ priceToPixel: yesterday.LowPrice })
+                expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', yesterdayLowPricePixel).attr('y2', yesterdayLowPricePixel)
+                    .attr('stroke', 'red').attr('stroke-dasharray', '25 25')
+            } else if (isYesterday(today.Timestamp))
+            {
+                //plot yesterday's high and low before market open
+                const yesterdayHighPricePixel = createPriceScale({ priceToPixel: today.HighPrice })
+                expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', yesterdayHighPricePixel).attr('y2', yesterdayHighPricePixel)
+                    .attr('stroke', 'green').attr('stroke-dasharray', '25 25')
+
+                const yesterdayLowPricePixel = createPriceScale({ priceToPixel: today.LowPrice })
+                expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                    .attr('x1', 0).attr('x2', candleDimensions.width)
+                    .attr('y1', yesterdayLowPricePixel).attr('y2', yesterdayLowPricePixel)
+                    .attr('stroke', 'red').attr('stroke-dasharray', '25 25')
+            }
+        }
+
+
+        if (dailyEM?.dailyEMUpper || dailyEM?.iVolDailyEMUpper)
+        {
+            let chosenPrice = dailyEM?.dailyEMUpper || dailyEM.iVolDailyEMUpper
+            const emUpperPricePixel = createPriceScale({ priceToPixel: chosenPrice })
+            expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', emUpperPricePixel).attr('y2', emUpperPricePixel)
+                .attr('stroke', 'green')
+            // .attr('stroke-dasharray', '5 5')
+
+        }
+        if (dailyEM?.dailyEMLower || dailyEM?.iVolDailyEMLower)
+        {
+            let chosenPrice = dailyEM?.dailyEMLower || dailyEM.iVolDailyEMLower
+            const emLowerPricePixel = createPriceScale({ priceToPixel: chosenPrice })
+            expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', emLowerPricePixel).attr('y2', emLowerPricePixel)
+                .attr('stroke', 'red')
+        }
+        if (weeklyEM?.iVolWeeklyEMUpper)
+        {
+            const emUpperPricePixel = createPriceScale({ priceToPixel: weeklyEM.iVolWeeklyEMUpper })
+            expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', emUpperPricePixel).attr('y2', emUpperPricePixel)
+                .attr('stroke', 'yellow')
+        }
+        if (weeklyEM?.iVolWeeklyEMLower)
+        {
+            const emLowerPricePixel = createPriceScale({ priceToPixel: weeklyEM.iVolWeeklyEMLower })
+            expectedMovesSelect.append('line').attr('class', 'dailyEMALines')
+                .attr('x1', 0).attr('x2', candleDimensions.width)
+                .attr('y1', emLowerPricePixel).attr('y2', emLowerPricePixel)
+                .attr('stroke', 'yellow')
+        }
+    }, [ticker, snapShotInfo, dailyEM, candleDimensions, chartZoomState?.x, chartZoomState?.y])
+
+
 
 
     //zoomXBehavior
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !isZoomAble) return
+        if (preDimensionsAndCandleCheck() || !isZoomAble || isOnlyYZoomAble) return
         const zoomBehavior = zoom().on('zoom', () =>
         {
             if (enableZoom)

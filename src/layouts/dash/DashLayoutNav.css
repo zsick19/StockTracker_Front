@@ -82,3 +82,9 @@
   display: flex;
   background-color: black;
 }
+
+#SingleSearchFoundTicker {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
