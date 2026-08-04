@@ -20,7 +20,6 @@ export const InitializationApiSlice = apiSlice.injectEndpoints({
           powerHour: response.dailyTasks?.powerHour.map((t, i) => { if (!t?.status || !isToday(t.status)) return { ...t, status: undefined }; else return t }) || [],
           postClose: response.dailyTasks?.postClose.map((t, i) => { if (!t?.status || !isToday(t.status)) return { ...t, status: undefined }; else return t }) || []
         }
-
         return response
       },
       keepUnusedDataFor: 60000,
@@ -83,4 +82,7 @@ export const selectOldestRelevantDate = () => createSelector(
   (result) => { return result?.data?.oldestRelevantDateToFetch }
 )
 
-
+export const selectUsersJournalEntries = () => createSelector(
+  [InitializationApiSlice.endpoints.getUserInitialization.select()],
+  (result) => { return result?.data?.journalEntries || [] }
+)

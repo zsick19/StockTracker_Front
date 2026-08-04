@@ -1,11 +1,12 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { selectMostRecentPriceByTicker } from '../../../../../../../../../features/Engine/EnginePlanApiSlice'
 import { isToday } from 'date-fns'
+import { setStockDetailStateWithTicker } from '../../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 
 function SinglePosition({ trade })
 {
-
+    const dispatch = useDispatch()
     const mostRecentPrice = useSelector((state) => selectMostRecentPriceByTicker(state, trade.tickerSymbol))
     const todayOpenPrice = isToday(trade.snapShot.DailyBar.Timestamp) ? trade.snapShot.DailyBar.OpenPrice : 0
 
@@ -22,7 +23,7 @@ function SinglePosition({ trade })
 
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr' }}>
+        <div className='singlePLPosition' onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: trade.tickerSymbol }))}>
             <div>
                 <p>{trade.tickerSymbol}</p>
             </div>
@@ -31,8 +32,8 @@ function SinglePosition({ trade })
                 <p style={{ color: `${openPL > 0 ? 'green' : openPL < 0 ? 'red' : 'white'}` }}>{percentPLTotal.toFixed(2)}%</p>
             </div>
             <div>
-                <p>{mostRecentPrice}</p>
-                <p>${trade.averagePurchasePrice}</p>
+                <p>${mostRecentPrice}</p>
+                <p style={{ color: 'gray' }}>{trade.averagePurchasePrice}</p>
             </div>
             <div>
                 <p style={{ color: `${todayPL > 0 ? 'green' : todayPL < 0 ? 'red' : 'white'}` }}> {todayOpenPrice === 0 ? 0.00 : todayPL.toFixed(2)}</p>
@@ -40,7 +41,7 @@ function SinglePosition({ trade })
             </div>
             <div>
                 <p>{(trade.availableShares * mostRecentPrice).toFixed(2)}</p>
-                <p>{trade.availableShares}</p>
+                <p style={{ color: 'gray' }}>{trade.availableShares}</p>
             </div>
         </div>
     )

@@ -1,29 +1,29 @@
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import PLSummary from './Components/PLSummary'
 import './AccountPLInfo.css'
 import { Landmark, Scan, ScanBarcode, ScanFace, ScanSearch } from 'lucide-react'
+import AccountAdjustments from './Components/AccountAdjustments'
+import TradePositionBreakDown from './Components/TradePositionBreakDown'
+import { selectDayPL } from '../../../../../../../../features/Engine/EnginePlanApiSlice'
 
 function AccountPLInfo()
 {
     const dispatch = useDispatch()
 
     const userNetAccount = 7516.77
+    const pl = useSelector((state) => selectDayPL(state))
 
     const [showPositionExposure, setShowPositionExposure] = useState(false)
-    const [currentSubSection, setCurrentSubSection] = useState(0)
+    const [currentSubSection, setCurrentSubSection] = useState(1)
 
     function provideSubSection()
     {
         switch (currentSubSection)
         {
-            case 0: return <PLSummary />
-            case 1: return <div>
-                <button onClick={() => dispatch(setStockDetailState(26))}><ScanFace /></button>
-
-                <button onClick={() => setCurrentSubSection(0)}>hide</button></div>
-            case 2: return <div>Account Adjust <button onClick={() => setCurrentSubSection(0)}>hide</button></div>
+            case 1: return <TradePositionBreakDown setCurrentSubSection={setCurrentSubSection} trades={pl.trades} />
+            case 2: return <AccountAdjustments setCurrentSubSection={setCurrentSubSection} />
 
         }
     }
@@ -32,23 +32,23 @@ function AccountPLInfo()
         <div id='AccountPLInfo'>
             <div>
                 <div>
-                    <p>Net Account Value</p>
-                    <p>${userNetAccount}</p>
-                    <p>Day's P&L <span>{0.00} {0.00}%</span></p>
+                    <p style={{ fontSize: 'var(--fs-100)', color: 'gray' }}>Net Account Value</p>
+                    <p style={{ fontSize: 'var(--fs-600)' }}>${(userNetAccount + pl.openPLTotal).toFixed(2)}</p>
+                    <p style={{ fontSize: 'var(--fs-100)' }}>Day's P&L <span style={{ fontSize: 'var(--fs-200)', color: `${pl.todayPLTotal > 0 ? 'green' : pl.todayPLTotal < 0 ? 'red' : 'white'}` }} >
+                        ${pl.todayPLTotal.toFixed(2)}  {pl.todayOpenPercent.toFixed(2)}%</span></p>
                 </div>
 
                 <div>
-                    <p>Open P&L</p>
-                    <p>-108.21 -3.96%</p>
+                    <p style={{ fontSize: 'var(--fs-100)', color: 'gray' }}>Open P&L</p>
+                    <p style={{ color: `${pl.openPLTotal > 0 ? 'green' : pl.openPLTotal < 0 ? 'red' : 'white'}` }} > ${pl.openPLTotal.toFixed(2)} {pl.openPLPercent.toFixed(2)}%</p>
                 </div>
 
-                <div>
-                    <button onClick={() => setCurrentSubSection(1)}><ScanSearch /></button>
-                    <button onClick={() => { if (currentSubSection === 2) setCurrentSubSection(0); else setCurrentSubSection(2) }}><Landmark /></button>
-                </div>
+                <button onClick={() => { setCurrentSubSection(2) }}><Landmark /></button>
+
             </div>
             {provideSubSection()}
-        </div>
+            <PLSummary trades={pl.trades} />
+        </div >
 
     )
 }

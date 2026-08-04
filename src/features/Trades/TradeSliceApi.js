@@ -413,18 +413,20 @@ export const TradeApiSlice = apiSlice.injectEndpoints({
                         }
                         else if (freshTradeData?.updatedTrade)
                         {
+
                             draft.plans.entities[args.tickerSymbol].activeTradeConfig = freshTradeData.updatedTrade
 
                             let foundTrade = false
                             draft.trades = draft.trades.map((t) =>
                             {
+
                                 if (t.tickerSymbol === freshTradeData.updatedTrade.tickerSymbol)
                                 {
                                     foundTrade = true
-                                    return freshTradeData.updatedTrade
+                                    return { ...t, ...freshTradeData.updatedTrade }
                                 } else return t
                             })
-                            if (!foundTrade) { draft.trades.push(freshTradeData.updatedTrade) }
+                            if (!foundTrade) { draft.trades.push({ ...freshTradeData.updatedTrade, snapShot: draft.plans.entities[args.tickerSymbol].snapShot }) }
                         }
                     })
 

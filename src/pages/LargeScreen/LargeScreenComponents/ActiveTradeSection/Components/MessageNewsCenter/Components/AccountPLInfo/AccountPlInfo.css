@@ -1,6 +1,6 @@
 #AccountPLInfo {
   display: grid;
-  grid-template-columns: 30% 1fr;
+  grid-template-columns: 30% 30% 1fr;
   height: 100%;
 }
 
@@ -10,3 +10,13 @@
   justify-content: space-around;
 }
 
+#PLSummaryList {
+  max-height: 225px;
+  overflow-y: scroll;
+}
+
+.singlePLPosition {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  border-bottom: 1px solid gray;
+}
