@@ -24,7 +24,7 @@ function SingleActiveTradeBlock({ trade })
 
     const selectStaticFieldsInstance = useMemo(selectPlanForStaticDetails, [])
     const activeTrade = useSelector((state) => selectStaticFieldsInstance(state, trade.tickerSymbol), shallowEqual);
-
+    console.log(activeTrade)
 
 
 
@@ -109,7 +109,8 @@ function SingleActiveTradeBlock({ trade })
         >
             <div className='VerticalPlanDiagrams'>
                 {/* <VerticalPlanDiagram idealPrices={activeTrade.tradingPlanPrices} tickerSymbol={tickerSymbol} */}
-                //  currentPrice={activeTrade.mostRecentPrice} 
+                {activeTrade.id}
+                
                 {/* /> */}
                 {/* <VerticalMoveDiagram currentPrice={activeTrade.mostRecentPrice} percentOfGain={activeTrade.percentOfGain} /> */}
             </div>

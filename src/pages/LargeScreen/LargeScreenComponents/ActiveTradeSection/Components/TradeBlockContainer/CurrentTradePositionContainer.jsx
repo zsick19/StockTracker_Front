@@ -13,29 +13,14 @@ import SingleActiveTradeBlock from './Components/SingleActiveTradeBlock'
 
 function CurrentTradePositionContainer()
 {
-    let isWeekendPollingInterval = isWeekend(new Date()) ? 0 : 30000
-    // const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery(undefined,        { pollingInterval: isWeekendPollingInterval })
-    const { data: activeTrades, isSuccess, isLoading, isError, error, refetch } = useGetUsersActiveTradesQuery()
-
-
+    const dispatch = useDispatch()
     const trades = useSelector(state => selectActiveTradeResults(state))
-    console.log(trades)
-
-
-
-    let tradeDisplayContent
-    // if (isSuccess && activeTrades.ids.length > 10) { tradeDisplayContent = <ActiveTradeListWrapper ids={activeTrades.ids} refetch={refetch} /> }
-    // else
-    if (isSuccess && activeTrades.ids.length > 0) { tradeDisplayContent = <ActiveTradeBlockWrapper ids={activeTrades.ids} refetch={refetch} /> }
-    else if (isSuccess) { tradeDisplayContent = <div className='LSH-ActiveTradesMessage'><h2>No Active Trades</h2></div> }
-    else if (isLoading) { tradeDisplayContent = <div className='LSH-ActiveTradeMessage'><h2>Loading Current Trades...</h2></div> }
-    else if (isError) { tradeDisplayContent = <div><h2>Error Fetching Trades</h2><button onClick={() => refetch()}>Retry</button></div> }
 
     return (
 
         <div id='LSH-ActiveTradeContainer'>
-            {/* {tradeDisplayContent} */}
-            <div id='LSH-ActiveTradeBlockWrapper' className='hide-scrollbar' onDoubleClick={refetch} onContextMenu={(e) => { e.preventDefault(); dispatch(setStockDetailState(18)) }}>
+
+            <div id='LSH-ActiveTradeBlockWrapper' className='hide-scrollbar' onContextMenu={(e) => { e.preventDefault(); dispatch(setStockDetailState(18)) }}>
                 {trades.length > 0 ?
                     trades.map((activeTrade) => <SingleActiveTradeBlock trade={activeTrade} key={`activeTrade${activeTrade.tickerSymbol}`} />) :
                     <div className='LSH-ActiveTradesMessage'><h2>No Active Trades</h2></div>

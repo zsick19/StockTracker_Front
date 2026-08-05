@@ -27,7 +27,7 @@ function MessageNewsCenter()
             case 'account': return <AccountPLInfo />
             case 'journalRecord': return <JournalRecord />
             case 'calendar': return <WeeksCalendar />
-            case 'dailyValues': return <DailyValueFileUploads />            
+            case 'dailyValues': return <DailyValueFileUploads />
         }
     }
 
