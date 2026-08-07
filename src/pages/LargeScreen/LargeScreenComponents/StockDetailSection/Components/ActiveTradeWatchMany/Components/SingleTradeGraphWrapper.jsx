@@ -17,6 +17,10 @@ function SingleTradeGraphWrapper({ id })
     const { tradeWGraph } = useGetUsersActiveTradesWithGraphQuery(undefined, { selectFromResult: ({ data }) => ({ tradeWGraph: data ? activeTradeWithGraphSelectors.selectById(data, id) : undefined }) })
     const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideEnterExitPlanSelector(data, id) : undefined }) })
 
+
+
+
+    
     return (
         <div className='SingleTradeWithGraphWrapper'>
             <div>{tradeWGraph.tickerSymbol}</div>

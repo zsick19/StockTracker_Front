@@ -8,7 +8,7 @@ import { pixelBuffer } from '../GraphChartConstants'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectMostRecentPriceByTicker } from '../../../features/Engine/EnginePlanApiSlice'
 
-function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints, uuid, isZoomAble,
+function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints, uuid, isZoomAble, morningMetrics, dailyCalculatedValues,
     currentDiscount, discountPrices, exitAlertPrice, zoneData, dailyEM, weeklyEM, snapShotInfo, isOnlyYZoomAble })
 {
     const dispatch = useDispatch()
@@ -37,12 +37,6 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
     const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [])
     const minVol = useMemo(() => min(candleData, d => d.Volume), [])
     const maxVol = useMemo(() => max(candleData, d => d.Volume), [])
-
-
-    // const dateBetweenStartAndFinishInterval = useMemo(() => eachDayOfInterval({ start: chartStartDate, end: addBusinessDays(new Date(), 1) }), [chartStartDate])
-    // const visualBreaksPeriods = useMemo(() => getBreaksBetweenDates(subBusinessDays(chartStartDate, 1), new Date(), 'days'), [chartStartDate])
-    // const excludedPeriods = useMemo(() => generateMarketTradingHoursBetweenTwoDates(subBusinessDays(chartStartDate, 1), new Date()), [chartStartDate])
-    // const intraDayTickMarks = useMemo(() => generateIntraDayTickMarksBetweenTwoDates(subBusinessDays(chartStartDate, 1), addBusinessDays(new Date(), 1)), [chartStartDate])
 
 
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
@@ -384,6 +378,129 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
 
     // }, [ticker, currentDiscount, discountPrices, exitAlertPrice, candleDimensions, chartZoomState?.x, chartZoomState?.y])
 
+    //plot morning metrics if provided
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck() || !dailyCalculatedValues || !morningMetrics) return
+        const isCurrentlyWeekend = isWeekend(new Date())
+        const morningOpenLines = stockCandleSVG.select('.morningOpen')
+        morningOpenLines.selectAll('.line_group').remove()
+
+        const upSideTime = isCurrentlyWeekend ? previousFriday(set(new Date(), { hours: morningMetrics.upSide.averageTimeToPeak.hour, minutes: morningMetrics.upSide.averageTimeToPeak.minute }))
+            : set(new Date(), { hours: morningMetrics.upSide.averageTimeToPeak.hour, minutes: morningMetrics.upSide.averageTimeToPeak.minute })
+
+
+        const downSideTime = isCurrentlyWeekend ? previousFriday(set(new Date(), { hours: morningMetrics.downSide.averageTimeToBottom.hour, minutes: morningMetrics.downSide.averageTimeToBottom.minute }))
+            : set(new Date(), { hours: morningMetrics.downSide.averageTimeToBottom.hour, minutes: morningMetrics.downSide.averageTimeToBottom.minute })
+
+
+        let basePriceOpen
+        if ((new Date() > preSetDailyTimes.marketOpen) && dailyCalculatedValues.TodayOpenPrice)
+        { basePriceOpen = dailyCalculatedValues.TodayOpenPrice }
+        else { basePriceOpen = mostRecentPrice }
+
+        let upsidePercentVsOpen = basePriceOpen + (basePriceOpen * (morningMetrics.upSide.averageInitialRallyStretch / 100))
+        let downSidePercentVsOpen = basePriceOpen - (basePriceOpen * (morningMetrics.downSide.averageInitialDropStretch / 100))
+
+        const pixelUpSide = createPriceScale({ priceToPixel: upsidePercentVsOpen })
+        const pixelDownSide = createPriceScale({ priceToPixel: downSidePercentVsOpen })
+
+        const pixelUpTime = createDateScale({ dateToPixel: upSideTime })
+        const pixelDownTime = createDateScale({ dateToPixel: downSideTime })
+        const pixelFiveMin = createDateScale({ dateToPixel: preSetDailyTimes.first5Mins })
+        const pixelFirstHour = createDateScale({ dateToPixel: preSetDailyTimes.firstHour })
+        const pixelLastHour = createDateScale({ dateToPixel: preSetDailyTimes.lastHour })
+
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'cyan').attr('stroke-width', 1)
+            .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelUpSide).attr('y2', pixelUpSide).attr('opacity', 0.5)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'orange').attr('stroke-width', 1)
+            .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelDownSide).attr('y2', pixelDownSide).attr('opacity', 0.5)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'cyan').attr('stroke-width', 1)
+            .attr('x1', pixelUpTime).attr('x2', pixelUpTime).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'orange').attr('stroke-width', 1)
+            .attr('x1', pixelDownTime).attr('x2', pixelDownTime).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'blue').attr('stroke-width', 1)
+            .attr('x1', pixelFiveMin).attr('x2', pixelFiveMin).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+            .attr("stroke-dasharray", '2 2 2')
+
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'blue').attr('stroke-width', 1)
+            .attr('x1', pixelFirstHour).attr('x2', pixelFirstHour).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+        morningOpenLines.append('line').attr('class', 'line_group morningMetricVisual').attr('stroke', 'blue').attr('stroke-width', 1)
+            .attr('x1', pixelLastHour).attr('x2', pixelLastHour).attr('y1', 0).attr('y2', candleDimensions.height).attr('opacity', 0.5)
+
+
+
+    }, [mostRecentPrice, candleDimensions, chartZoomState?.x, chartZoomState?.y])
+
+    //plot daily calculated values for active trades
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck() || !dailyCalculatedValues) return
+
+        let dailyLines = stockCandleSVG.select('.dailyTickerValues')
+        let emaDailyLines = stockCandleSVG.select('.emaDailyHorizontals')
+
+        stockCandleSVG.select('.dailyTickerValues').selectAll('line').remove()
+        stockCandleSVG.select('.emaDailyHorizontals').selectAll('line').remove()
+        if (dailyCalculatedValues.dailyEMA)
+        {
+            let pixelPrice9 = createPriceScale({ priceToPixel: dailyCalculatedValues.dailyEMA.ema9 })
+            emaDailyLines.append('line').attr('class', 'line_group').attr('stroke', 'blue').attr('stroke-width', 2)
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice9).attr('y2', pixelPrice9)
+
+            let pixelPrice50 = createPriceScale({ priceToPixel: dailyCalculatedValues.dailyEMA.ema50 })
+            emaDailyLines.append('line').attr('class', 'line_group').attr('stroke', 'purple').attr('stroke-width', 2)
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice50).attr('y2', pixelPrice50)
+
+            let pixelPrice200 = createPriceScale({ priceToPixel: dailyCalculatedValues.dailyEMA.ema200 })
+            emaDailyLines.append('line').attr('class', 'line_group').attr('stroke', 'red').attr('stroke-width', 2)
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice200).attr('y2', pixelPrice200)
+        }
+
+
+        if (dailyCalculatedValues.PrevDailyBar.ClosePrice)
+        {
+            let prevClose = dailyCalculatedValues.PrevDailyBar.ClosePrice
+            let pixelPrice = createPriceScale({ priceToPixel: prevClose })
+            dailyLines.append('line').attr('class', 'line_group').attr('stroke', 'black').attr('stroke-width', 2).attr('stroke-dasharray', '5 2 5')
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
+
+            let plusATR = prevClose + dailyCalculatedValues.ATR
+            let pixelPricePlus = createPriceScale({ priceToPixel: plusATR })
+            dailyLines.append('line').attr('class', 'line_group').attr('stroke', 'gray').attr('stroke-width', 2).attr('stroke-dasharray', '5 2 5')
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPricePlus).attr('y2', pixelPricePlus)
+
+
+            let minusATR = prevClose - dailyCalculatedValues.ATR
+            let pixelPriceMinus = createPriceScale({ priceToPixel: minusATR })
+            dailyLines.append('line').attr('class', 'line_group').attr('stroke', 'gray').attr('stroke-width', 2).attr('stroke-dasharray', '5 2 5')
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPriceMinus).attr('y2', pixelPriceMinus)
+        }
+
+        if (dailyCalculatedValues.PrevDailyBar.HighPrice)
+        {
+            let pixelPrice = createPriceScale({ priceToPixel: dailyCalculatedValues.PrevDailyBar.HighPrice })
+            dailyLines.append('line').attr('class', 'line_group').attr('stroke', 'green').attr('stroke-width', 1).attr('stroke-dasharray', '3 5')
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
+        }
+        if (dailyCalculatedValues.PrevDailyBar.LowPrice)
+        {
+            let pixelPrice = createPriceScale({ priceToPixel: dailyCalculatedValues.PrevDailyBar.LowPrice })
+            dailyLines.append('line').attr('class', 'line_group').attr('stroke', 'red').attr('stroke-width', 1).attr('stroke-dasharray', '3 5')
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
+        }
+        if (dailyCalculatedValues.TodayOpenPrice)
+        {
+            let pixelPrice = createPriceScale({ priceToPixel: dailyCalculatedValues.TodayOpenPrice })
+            dailyLines.append('line').attr('class', 'line_group').attr('stroke', 'gray').attr('stroke-width', 1)
+                .attr('x1', 0).attr('x2', candleDimensions.width).attr('y1', pixelPrice).attr('y2', pixelPrice)
+        }
+
+
+
+    }, [ticker, candleDimensions, dailyCalculatedValues, chartZoomState?.y])
+
 
 
 
@@ -619,7 +736,8 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
     //zoomXBehavior
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck() || !isZoomAble || isOnlyYZoomAble) return
+        if (preDimensionsAndCandleCheck() || !isZoomAble || !isOnlyYZoomAble) return
+
         const zoomBehavior = zoom().on('zoom', () =>
         {
             if (enableZoom)

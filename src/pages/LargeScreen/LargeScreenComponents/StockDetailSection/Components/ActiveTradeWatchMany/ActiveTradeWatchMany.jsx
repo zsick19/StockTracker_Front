@@ -1,37 +1,26 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import { selectCurrentTradeDailyMove, useGetUsersActiveTradesQuery, useGetUsersActiveTradesWithGraphQuery } from '../../../../../../features/Trades/TradeSliceApi'
 import './ActiveTradeWatchMany.css'
 import SingleTradeGraphWrapper from './Components/SingleTradeGraphWrapper'
 import { isWeekend } from 'date-fns'
-import { useSelector } from 'react-redux'
+import { shallowEqual, useSelector } from 'react-redux'
 import PositionListDailyMoves from './Components/PositionListDailyMoves'
+import { selectPlansForWatchManyByWatchList } from '../../../../../../features/Engine/EnginePlanApiSlice'
+import SingleWatchChartWrapper from './Components/SingleWatchChartWrapper'
 
-function ActiveTradeWatchMany()
+function ActiveTradeWatchMany({ tickerList })
 {
-    const firstHour = new Date()
-    firstHour.setHours(10, 30)
-    const polling = new Date() < firstHour ? 300000 : 0
+    const [chosenWatchList, setChosenWatchList] = useState(tickerList)
+
+    const plansByWatchlist = useMemo(() => selectPlansForWatchManyByWatchList(), [chosenWatchList])
+    const tickersToWatch = useSelector((state) => plansByWatchlist(state, chosenWatchList), shallowEqual)
 
 
-    const { data, isLoading, isError, isSuccess, refetch, error } = useGetUsersActiveTradesWithGraphQuery(undefined, { refetchOnMountOrArgChange: true, pollingInterval: polling })
-
-
-    let activeTradeContent
-    if (isSuccess)
-    {
-        activeTradeContent = data.ids.map((symbol) => <SingleTradeGraphWrapper id={symbol} key={`${symbol}activeTradeGraph`} />)
-    } else if (isLoading)
-    {
-        activeTradeContent = <p>Loading...</p>
-    } else if (isError)
-    {
-        activeTradeContent = <button onClick={() => refetch()}>refetch</button>
-    }
 
 
 
     return (
-        <div id='ActiveTradeWatchMany' onDoubleClick={() => refetch()}>
+        <div id='ActiveTradeWatchMany' >
             <div className='TradeWatchManyLegend'>
                 <p>YesterDay</p>
                 <p>Dotted Green - High</p>
@@ -48,9 +37,16 @@ function ActiveTradeWatchMany()
                 <p>Red - 200ema</p>
             </div>
             <div>
+                <button onClick={() => setChosenWatchList('activeTrade')}>Current Trades</button>
+                <button onClick={() => setChosenWatchList('belowStop')}>Below Stop</button>
+                <button onClick={() => setChosenWatchList('discount')}>Discount</button>
+                <button onClick={() => setChosenWatchList('entryStrike')}>Strike Zone</button>
+                <button onClick={() => setChosenWatchList('viableEntry')}>Viable Entry</button>
+                <button onClick={() => setChosenWatchList('highImportance')}>High Importance</button>
+            </div>
+            <div>
                 <div id='tradeWithGraphContainer' className='hide-scrollbar'>
-                    <PositionListDailyMoves />
-                    {activeTradeContent}
+                    {tickersToWatch.map((t, i) => <SingleWatchChartWrapper key={`watchMany${t}`} tickerSymbol={t} />)}
                 </div>
 
             </div>

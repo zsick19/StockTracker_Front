@@ -45,18 +45,8 @@ function StockDetailSection()
     switch (currentStockDetail.detailSelected)
     {
       case 0: return <FourGraphSplitContainer />
-      case 1: return <MarketSearch currentMarketSearchPage={currentMarketSearchPage}
-        setCurrentMarketSearchPage={setCurrentMarketSearchPage}
-        marketSearchFilter={marketSearchFilter}
-        setMarketSearchFilter={setMarketSearchFilter} />
-      case 2: return <ConfirmMarketSearch />
-      case 3: return <ConfirmedStatus />
       case 4: return <PlanViabilityStatus />
       case 5: return <ChartSingleGraph />
-      case 6: return <PreWatchMany watchList={1} />
-      case 11: return <PreWatchMany watchList={0} />
-      case 12: return <PreWatchMany watchList={2} />
-      case 13: return <PreWatchMany watchList={3} />
       case 7: return <PlanStatusView />
       case 8: return <EnterExitTradeGraph />
       case 9: return <TradingJournal />
@@ -64,9 +54,16 @@ function StockDetailSection()
       case 14: return <BestPositionSplit />
       case 15: return <MacroChartingGraph />
       case 16: return <TinyPreWatch />
-      case 18: return <ActiveTradeWatchMany />
       case 20: return <FinalPreTradeCheck />
 
+
+
+
+
+      case 1: return <MarketSearch currentMarketSearchPage={currentMarketSearchPage} setCurrentMarketSearchPage={setCurrentMarketSearchPage} marketSearchFilter={marketSearchFilter} setMarketSearchFilter={setMarketSearchFilter} />
+      case 2: return <ConfirmMarketSearch />
+      case 3: return <ConfirmedStatus />
+      case 18: return <ActiveTradeWatchMany tickerList={currentStockDetail.ticker} />
 
       case 17: return <RRGChart />
       case 19: return <SectorPlanView tickerSymbol={currentStockDetail.ticker} />

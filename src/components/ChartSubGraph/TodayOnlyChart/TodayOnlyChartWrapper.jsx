@@ -4,13 +4,11 @@ import * as short from 'short-uuid'
 import { clearGraphControl, setInitialGraphControl } from '../../../features/Charting/GraphHoverZoomElement'
 import TodaysMarketOnlyChart from './TodaysMarketOnlyChart'
 
-function TodayOnlyChartWrapper({ ticker, candleData, mostRecentPrice, planData, snapShotInfo, zoneData, dailyEM, weeklyEM, isZoomAble })
+function TodayOnlyChartWrapper({ ticker, candleData, mostRecentPrice, planData, snapShotInfo, morningMetrics, dailyCalculatedValues, zoneData, dailyEM, weeklyEM, isZoomAble, isOnlyYZoomAble })
 {
     const dispatch = useDispatch()
     const uuid = useMemo(() => short.generate(), [])
-    // zoneData={macroResult.planData.dailyZone}
-    //                     dailyExpectedMove={macroResult.planData.dailyEM}
-    //                     weeklyExpectedMove={macroResult.planData.weeklyEM}
+
     const [chartZoomState, setChartZoomState] = useState({ x: undefined, y: undefined })
 
     useEffect(() =>
@@ -37,10 +35,9 @@ function TodayOnlyChartWrapper({ ticker, candleData, mostRecentPrice, planData, 
         })
     }, [])
     // function TodaysMarketOnlyChart({ ticker,  timeFrame, chartStartDate, pricePoints, uuid, isZoomAble, currentDiscount, discountPrices, exitAlertPrice })
-
     return (
-        <TodaysMarketOnlyChart ticker={ticker} candleData={candleData} isZoomAble={isZoomAble} uuid={uuid}
-            zoneData={zoneData} dailyEM={dailyEM} weeklyEM={weeklyEM} snapShotInfo={snapShotInfo}  isOnlyYZoomAble={true}/>
+        <TodaysMarketOnlyChart ticker={ticker} candleData={candleData} isZoomAble={isZoomAble} uuid={uuid} morningMetrics={morningMetrics} dailyCalculatedValues={dailyCalculatedValues}
+            zoneData={zoneData} dailyEM={dailyEM} weeklyEM={weeklyEM} snapShotInfo={snapShotInfo} isOnlyYZoomAble={isOnlyYZoomAble || true} />
     )
 }
 

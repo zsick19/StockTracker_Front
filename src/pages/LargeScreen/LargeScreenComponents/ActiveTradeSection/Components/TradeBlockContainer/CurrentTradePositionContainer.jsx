@@ -11,24 +11,24 @@ import { ScoringTestHUD } from '../../../MacroControlSection/Components/WatchLis
 import { selectActiveTradeResultIds, selectActiveTradeResults } from '../../../../../../features/Engine/EnginePlanApiSlice'
 import SingleActiveTradeBlock from './Components/SingleActiveTradeBlock'
 import { useMemo } from 'react'
+import { setStockDetailState, setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 
 function CurrentTradePositionContainer()
 {
     const dispatch = useDispatch()
 
-    const activeTradeIds = useSelector((state) => selectActiveTradeResults(state))
+    const currentActiveTrades = useSelector((state) => selectActiveTradeResults(state))
 
     return (
 
         <div id='LSH-ActiveTradeContainer'>
-
-            <div id='LSH-ActiveTradeBlockWrapper' className='hide-scrollbar' onContextMenu={(e) => { e.preventDefault(); dispatch(setStockDetailState(18)) }}>
-                {activeTradeIds.length > 0 ?
-                    activeTradeIds.map((tradeTickerId) => <SingleActiveTradeBlock activeTrade={tradeTickerId} key={`activeTrade${tradeTickerId.tickerSymbol}`} />) :
-                    <div className='LSH-ActiveTradesMessage'><h2>No Active Trades</h2></div>
-                }
+            <div id='LSH-ActiveTradeBlockWrapper' className='hide-scrollbar' onContextMenu={(e) => { e.preventDefault(); dispatch(setStockDetailStateWithTicker({ detail: 18, ticker: 'activeTrade' })) }}>
+                {currentActiveTrades.length > 0 ?
+                    currentActiveTrades.map((trade) => <SingleActiveTradeBlock activeTrade={trade} key={`activeTrade${trade.tickerSymbol}`} />) :
+                    <div className='LSH-ActiveTradesMessage'>
+                        <h2>No Active Trades</h2>
+                    </div>}
             </div>
-
         </div>
     )
 }

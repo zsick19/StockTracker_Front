@@ -1421,9 +1421,28 @@ export const selectActiveTradeResultIds = () =>
 
 
 
+const selectCurrentTradeTickers = createSelector(
+    [selectApiCacheData],
+    (trades) => trades.trades.map(t => t.tickerSymbol) || []
+)
+const selectTickerByWatchList = (_, watchList) => watchList
+export const selectPlansForWatchManyByWatchList = () =>
+{
+    return createSelector([selectCurrentTradeTickers, planSelectors.selectEntities, selectTickerByWatchList],
+        (currentTrades, planEntity, selectedWatchList) =>
+        {
 
-
-
+            switch (selectedWatchList)
+            {
+                case 'activeTrade': return currentTrades
+                case 'belowStop': return ['ACIW']
+                case 'discount': return ['ABOS']
+                case 'entryStrike': return ['AI']
+                case 'viableEntry': return ['ALTO']
+                case 'highImportance': return ['AIG']
+            }
+        })
+}
 
 
 
@@ -1631,14 +1650,19 @@ export const selectMostRecentPriceAndDailyChangeByTicker = createSelector(
         if (!planEntity) return undefined
         let priceChange = 0
         let percentChange = 0
+        let yesterdayPriceChange = 0
+        let yesterdayPercentChange = 0
         if (isToday(planEntity.snapShot.DailyBar.Timestamp))
         {
             priceChange = planEntity.mostRecentPrice - planEntity.snapShot.DailyBar.OpenPrice
             percentChange = (priceChange / planEntity.snapShot.DailyBar.OpenPrice) * 100
+
+            yesterdayPriceChange = planEntity.mostRecentPrice - planEntity.snapShot.PrevDailyBar.ClosePrice
+            yesterdayPercentChange = (yesterdayPriceChange / planEntity.snapShot.PrevDailyBar.ClosePrice) * 100
         }
 
         return {
-            mostRecentPrice: planEntity.mostRecentPrice, changeFromOpen: priceChange, percentChange: percentChange
+            mostRecentPrice: planEntity.mostRecentPrice, changeFromOpen: priceChange, percentChange: percentChange, yesterdayPriceChange, yesterdayPercentChange
         }
     }
 )

@@ -323,6 +323,7 @@ export function downSampleOneMinToFiveMin(oneMinArray)
 
 export const preSetDailyTimes = {
   marketOpen: set(new Date(), { hours: 9, minutes: 30, seconds: 0, milliseconds: 0 }),
+  first5Mins: set(new Date(), { hours: 9, minutes: 35, seconds: 0, milliseconds: 0 }),
   firstHour: set(new Date(), { hours: 10, minutes: 30, seconds: 0, milliseconds: 0 }),
   lastHour: set(new Date(), { hours: 15, minutes: 0, seconds: 0, milliseconds: 0 }),
   marketClose: set(new Date(), { hours: 16, minutes: 0, seconds: 0, milliseconds: 0 }),

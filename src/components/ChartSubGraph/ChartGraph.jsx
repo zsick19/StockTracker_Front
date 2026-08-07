@@ -1196,7 +1196,7 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     const yPositions = planArray.map((price) => yScaleRef.current({ priceToPixel: price }))
 
                     lineGroup.append('rect').attr('class', 'stopLossShading').attr('x', 0).attr('y', yPositions[1])
-                        .attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1]).attr('fill', 'red').attr('opacity', 0.1)
+                        .attr('width', candleDimensions.width).attr('height', Math.abs(yPositions[0] - yPositions[1])).attr('fill', 'red').attr('opacity', 0.1)
                     lineGroup.append('rect').attr('class', 'enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2]).attr('fill', 'yellow').attr('opacity', 0.1)
                     lineGroup.append('rect').attr('class', 'exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4]).attr('fill', 'green').attr('opacity', 0.1)
                     lineGroup.append('rect').attr('class', 'moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5]).attr('fill', 'blue').attr('opacity', 0.1)
@@ -1223,10 +1223,10 @@ function ChartGraph({ ticker, candleData, chartId, mostRecentPrice, setChartInfo
                     const planArray = [d.stopLossPrice, d.enterPrice, d.enterBufferPrice, d.exitBufferPrice, d.exitPrice, d.moonPrice]
                     const yPositions = planArray.map((price) => yScaleRef.current({ priceToPixel: price }))
 
-                    update.select('.stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', yPositions[0] - yPositions[1])
-                    update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', yPositions[1] - yPositions[2])
-                    update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', yPositions[3] - yPositions[4])
-                    update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', yPositions[4] - yPositions[5])
+                    update.select('.stopLossShading').attr('x', 0).attr('y', yPositions[1]).attr('width', candleDimensions.width).attr('height', Math.abs(yPositions[0] - yPositions[1]))
+                    update.select('.enterBufferShading').attr('x', 0).attr('y', yPositions[2]).attr('width', candleDimensions.width).attr('height', Math.abs(yPositions[1] - yPositions[2]))
+                    update.select('.exitBufferShading').attr('x', 0).attr('y', yPositions[4]).attr('width', candleDimensions.width).attr('height', Math.abs(yPositions[3] - yPositions[4]))
+                    update.select('.moonShading').attr('x', 0).attr('y', yPositions[5]).attr('width', candleDimensions.width).attr('height', Math.abs(yPositions[4] - yPositions[5]))
 
                     yPositions.map((position, index) =>
                     {
