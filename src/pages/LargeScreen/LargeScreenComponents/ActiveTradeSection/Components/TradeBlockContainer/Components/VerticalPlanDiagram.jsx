@@ -2,7 +2,10 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { useResizeObserver } from '../../../../../../../hooks/useResizeObserver'
 import { scaleLinear, select } from 'd3'
 
-function VerticalPlanDiagram({ idealPrices, currentPrice, percentOfGain, actualEnterPrice, beginTrackPrice, openPrice })
+function VerticalPlanDiagram({ idealPrices, currentPrice, averageEntryPrice,
+    emaPricePoints, atrPricePoints,
+    upwardVolumeNodes, downwardVolumeNodes,
+    percentOfGain, actualEnterPrice, beginTrackPrice, openPrice })
 {
     const verticalSVGWrapper = useRef()
     const verticalSVG = useRef()
@@ -57,8 +60,67 @@ function VerticalPlanDiagram({ idealPrices, currentPrice, percentOfGain, actualE
                 .attr("stroke-dasharray", "2,2")
         }
 
+        if (averageEntryPrice)
+        {
+            priceSVG.select('.pricePoints').append('line').attr('x1', 0).attr('x2', verticalDimensions.width)
+                .attr('y1', yScale(averageEntryPrice)).attr('y2', yScale(averageEntryPrice))
+                .attr('stroke-width', '1px')
+                .attr('stroke', 'green')
+                .attr("stroke-dasharray", "2,2")
+        }
+
+        if (emaPricePoints && emaPricePoints.length > 0)
+        {
+            const emaColors = ['blue', 'purple', 'red']
+            emaPricePoints.forEach((t, i) =>
+            {
+                priceSVG.select('.pricePoints').append('line').attr('x1', 0).attr('x2', verticalDimensions.width / 2)
+                    .attr('y1', yScale(t)).attr('y2', yScale(t))
+                    .attr('stroke-width', '2px')
+                    .attr('stroke', emaColors[i])
+                // .attr("stroke-dasharray", "2,2")
+            })
+        }
+        if (atrPricePoints && atrPricePoints.length > 0)
+        {
+            const atrColors = ['blue', 'gray', 'red']
+            atrPricePoints.forEach((t, i) =>
+            {
+                priceSVG.select('.pricePoints').append('line').attr('x1', 0).attr('x2', verticalDimensions.width / 2)
+                    .attr('y1', yScale(t)).attr('y2', yScale(t))
+                    .attr('stroke-width', '2px')
+                    .attr('stroke', () => { return i === 1 ? 'black' : 'gray' })
+                    .attr("stroke-dasharray", "2,2")
+            })
+        }
+
+        if (upwardVolumeNodes)
+        {
+            upwardVolumeNodes.forEach((t, i) =>
+            {
+                priceSVG.select('.pricePoints').append('line').attr('x1', verticalDimensions.width / 2).attr('x2', verticalDimensions.width)
+                    .attr('y1', yScale(t.priceLevel)).attr('y2', yScale(t.priceLevel))
+                    .attr('stroke-width', () => t.frictionRating === 'HIGH_CRITICAL_CLIFF' ? '4px' : t.frictionRating === 'MODERATE_TRAFFIC_NODE' ? '2px' : '1px')
+                    .attr('stroke', 'red')
+            })
+        }
+        if (downwardVolumeNodes)
+        {
+            downwardVolumeNodes.forEach((t, i) =>
+            {
+                priceSVG.select('.pricePoints').append('line').attr('x1', verticalDimensions.width / 2).attr('x2', verticalDimensions.width)
+                    .attr('y1', yScale(t.priceLevel)).attr('y2', yScale(t.priceLevel))
+                    .attr('stroke-width', () => t.frictionRating === 'HIGH_CRITICAL_CLIFF' ? '4px' : t.frictionRating === 'MODERATE_TRAFFIC_NODE' ? '2px' : '1px')
+                    .attr('stroke', 'blue')
+            })
+        }
 
 
+        priceSVG.select('.pricePoints').append('line').attr('x1', verticalDimensions.width / 2).attr('x2', verticalDimensions.width / 2)
+            .attr('y1', 0).attr('y2', verticalDimensions.height)
+            .attr('stroke-width', '1px')
+            .attr('stroke', 'black')
+            .attr("stroke-dasharray", "1,1")
 
 
 

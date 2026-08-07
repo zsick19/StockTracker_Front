@@ -129,9 +129,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                             totalMarketValue += (t.sharesRemaining * t.purchasePrice)
                         })
 
-                        positionBreakDown[enterExit.plan.stockId.Sector] += totalMarketValue 
-                activeTrades.push({ ...enterExit.plan.activeTradeId, snapShot: enterExit.snapShot })
-            }
+                        positionBreakDown[enterExit.plan.stockId.Sector] += totalMarketValue
+                        activeTrades.push({ ...enterExit.plan.activeTradeId, snapShot: enterExit.snapShot })
+                    }
 
 
 
@@ -146,7 +146,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     metricConfig.retailVsInstitution = enterExit.plan.retailVsInstitutionMetrics
                     metricConfig.volumeDistribution = enterExit.plan.volumeDistributionMetrics
                     metricConfig.openCross = enterExit.plan.openCrossMetrics
-                    if(isBefore(new Date(), set(new Date(), { hours: 9, minutes: 4 }))) metricConfig.openCross.todaysOpenCross = undefined
+                    if (isBefore(new Date(), set(new Date(), { hours: 9, minutes: 4 }))) metricConfig.openCross.todaysOpenCross = undefined
 
 
                     let currentPriceStats = {}
@@ -166,7 +166,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
                     let discountConfig = {}
                     discountConfig.isReviewed = enterExit.plan.deepDiscounts?.dateReviewed ?
-            differenceInBusinessDays(new Date(), enterExit.plan.deepDiscounts?.dateReviewed) < 5 ? true : false : false
+                        differenceInBusinessDays(new Date(), enterExit.plan.deepDiscounts?.dateReviewed) < 5 ? true : false : false
 
                     discountConfig.aboveStopLoss = enterExit.plan?.deepDiscounts?.aboveStopLoss
                     discountConfig.belowStopLoss = enterExit.plan?.deepDiscounts?.belowStopLoss
@@ -175,9 +175,9 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     discountConfig.dateReviewed = enterExit.plan.deepDiscounts?.dateReviewed
 
                     discountConfig.prices = [enterExit.plan?.deepDiscounts?.aboveStopLoss?.price || 0,
-        enterExit.plan?.deepDiscounts?.belowStopLoss?.price || 0,
-        enterExit.plan?.deepDiscounts?.aboveMaxPain?.price || 0
-        ]
+                    enterExit.plan?.deepDiscounts?.belowStopLoss?.price || 0,
+                    enterExit.plan?.deepDiscounts?.aboveMaxPain?.price || 0
+                    ]
 
                     discountConfig.includesDiscount = Math.max(...discountConfig.prices)
                     //provides 0 for no discounts set or the first discount to compare a live price against
@@ -185,540 +185,540 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
 
 
                     let tradeTapeConfig = {}
-                    if(enterExit.tradeData) tradeTapeConfig.liveTapeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
+                    if (enterExit.tradeData) tradeTapeConfig.liveTapeMetrics = processAuthoritativeTradesArray(enterExit.tradeData)
                     else tradeTapeConfig.liveTapeMetrics = undefined
 
                     let firstHourCandles = {
-        candles: [],
-        metrics: {
-            high: undefined,
-            low: undefined,
-            volume: undefined
-        },
-        peakMetrics: {
-            high: undefined,
-            volumeToPeak: undefined
-        },
-        bottomMetrics: {
-            low: undefined,
-            volumeToBottom: undefined
-        },
-        mostRecentCandle: { ClosePrice: enterExit.snapShot.LatestTrade.Price }
-    }
+                        candles: [],
+                        metrics: {
+                            high: undefined,
+                            low: undefined,
+                            volume: undefined
+                        },
+                        peakMetrics: {
+                            high: undefined,
+                            volumeToPeak: undefined
+                        },
+                        bottomMetrics: {
+                            low: undefined,
+                            volumeToBottom: undefined
+                        },
+                        mostRecentCandle: { ClosePrice: enterExit.snapShot.LatestTrade.Price }
+                    }
 
                     return {
-        id: enterExit.plan.tickerSymbol,
-        stockInfo: enterExit.plan.stockId,
-        mostRecentPrice,
-        mostRecentPriceUpDown: undefined,
-        highImportance: enterExit.plan?.highImportance || undefined,
-        planConfig,
+                        id: enterExit.plan.tickerSymbol,
+                        stockInfo: enterExit.plan.stockId,
+                        mostRecentPrice,
+                        mostRecentPriceUpDown: undefined,
+                        highImportance: enterExit.plan?.highImportance || undefined,
+                        planConfig,
 
-        patternConfig,
-        activeTradeConfig,
-        optionsConfig,
-        metricConfig,
-        discountConfig,
-        tradeTapeConfig,
-        currentPriceStats,
-        historicCandle: regularSessionCandles,
-        firstHourCandles,
-        todaysCandles: [],
-        preMarketCandles: [],
-        combinedCandleData: regularSessionCandles,
-        snapShot: enterExit.snapShot,
-        liveAuctionMetrics: {
-            lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
-            auditedRollingVolume: 0,
-            liveTicksPerSecond: 0.0,
+                        patternConfig,
+                        activeTradeConfig,
+                        optionsConfig,
+                        metricConfig,
+                        discountConfig,
+                        tradeTapeConfig,
+                        currentPriceStats,
+                        historicCandle: regularSessionCandles,
+                        firstHourCandles,
+                        todaysCandles: [],
+                        preMarketCandles: [],
+                        combinedCandleData: regularSessionCandles,
+                        snapShot: enterExit.snapShot,
+                        liveAuctionMetrics: {
+                            lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
+                            auditedRollingVolume: 0,
+                            liveTicksPerSecond: 0.0,
 
-            staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
-            ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
-            isChannelHeightViable: baseLineIndicators?.isChannelHeightViable || false,
+                            staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
+                            ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
+                            isChannelHeightViable: baseLineIndicators?.isChannelHeightViable || false,
 
-            historicalTrendHealthScore: baseLineIndicators?.historicalTrendHealthScore || 50,
-            isPullbackVolumeDry: baseLineIndicators?.isPullbackVolumeDry || false,
-            baseBreakoutVelocity: baseLineIndicators?.baseBreakoutVelocity || 0,
+                            historicalTrendHealthScore: baseLineIndicators?.historicalTrendHealthScore || 50,
+                            isPullbackVolumeDry: baseLineIndicators?.isPullbackVolumeDry || false,
+                            baseBreakoutVelocity: baseLineIndicators?.baseBreakoutVelocity || 0,
 
-            volumeCliffPrice: baseLineIndicators?.volumeCliffPrice || 0,
-            baselineAvgOneMinVolume: baseLineIndicators?.baselineAvgOneMinVolume || 0,
-            historicalAtr: baseLineIndicators?.historicalAtr || 0.0
-        }
-    }
-})
-
-
-let macroResults = []
-if (responseData?.macros) macroResults = responseData.macros.map((macroPlan) =>
-{
-    let filteredCandles = filterRegularSessionCandles(macroPlan.candleData)
-    let regularSessionCandles = filteredCandles.regularSession
-    let computedMACDMetrics = calculateMacroThirtyMinMacd(regularSessionCandles)
-    let macroPlanData = macroPlan.macroPlan
-
-    return {
-        id: macroPlanData.tickerSymbol,
-        planData: macroPlanData,
-        historicCandle: regularSessionCandles,
-        todaysCandles: [],
-        preMarketCandles: [],
-        combinedCandleData: regularSessionCandles,
-        macroTideSentry: {
-            macdLine: computedMACDMetrics.macdLine,
-            signalLine: computedMACDMetrics.signalLine,
-            histogram: computedMACDMetrics.histogram,
-            isHistogramGrowingBearish: computedMACDMetrics.isHistogramGrowingBearish,
-            lastPrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00
-        },
-        snapShot: macroPlan.snapShot,
-        mostRecentPrice: macroPlan.snapShot.LatestTrade.Price
-    }
-})
+                            volumeCliffPrice: baseLineIndicators?.volumeCliffPrice || 0,
+                            baselineAvgOneMinVolume: baseLineIndicators?.baselineAvgOneMinVolume || 0,
+                            historicalAtr: baseLineIndicators?.historicalAtr || 0.0
+                        }
+                    }
+                })
 
 
-return {
-    plans: enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), planResults),
-    macros: engineMacroAdapter.setAll(engineMacroAdapter.getInitialState(), macroResults),
-    trades: activeTrades,
-    exposureResults: { sectorExposure, industryExposure, totalPlans, positionBreakDown }
-}
+                let macroResults = []
+                if (responseData?.macros) macroResults = responseData.macros.map((macroPlan) =>
+                {
+                    let filteredCandles = filterRegularSessionCandles(macroPlan.candleData)
+                    let regularSessionCandles = filteredCandles.regularSession
+                    let computedMACDMetrics = calculateMacroThirtyMinMacd(regularSessionCandles)
+                    let macroPlanData = macroPlan.macroPlan
+
+                    return {
+                        id: macroPlanData.tickerSymbol,
+                        planData: macroPlanData,
+                        historicCandle: regularSessionCandles,
+                        todaysCandles: [],
+                        preMarketCandles: [],
+                        combinedCandleData: regularSessionCandles,
+                        macroTideSentry: {
+                            macdLine: computedMACDMetrics.macdLine,
+                            signalLine: computedMACDMetrics.signalLine,
+                            histogram: computedMACDMetrics.histogram,
+                            isHistogramGrowingBearish: computedMACDMetrics.isHistogramGrowingBearish,
+                            lastPrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00
+                        },
+                        snapShot: macroPlan.snapShot,
+                        mostRecentPrice: macroPlan.snapShot.LatestTrade.Price
+                    }
+                })
+
+
+                return {
+                    plans: enginePlanAdapter.setAll(enginePlanAdapter.getInitialState(), planResults),
+                    macros: engineMacroAdapter.setAll(engineMacroAdapter.getInitialState(), macroResults),
+                    trades: activeTrades,
+                    exposureResults: { sectorExposure, industryExposure, totalPlans, positionBreakDown }
+                }
             },
             async onCacheEntryAdded(arg, { getState, updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },)
-{
-    let streamingPriceBuffer = {};
-    let macroStreamingPriceBuffer = Object.fromEntries(macroAndSectorTickers.map(key => [key, null]))
-    let throttledUIUpdateClock = null;
-    let macroThrottledUIUpdateClock = null;
-    let pennyVelocityTimestampsMap = {};
-
-    let wsConnection = null;
-    const userId = getState().auth.userId
-    const ws = getWebSocket(userId, 'PlannedWatchListTickers')
-
-
-    const incomingPlanTradeListener = (data) =>
-    {
-        updateCachedData((draft) =>
-        {
-            let activePlan = draft.plans.entities[data.tickerSymbol]
-            if (!activePlan) return
-            dispatch(updateStreamMostRecent({ ticker: data.tickerSymbol, price: data.trade.Price }))
-            // --- PATH A: THE REAL-TIME PRICE PATCH (ALL ASSETS) ---
-            let currentPrice = parseFloat(data.trade.Price)
-            streamingPriceBuffer[data.tickerSymbol] = currentPrice
-
-
-            // --- PATH B: THE PENNY TAPE VELOCITY COLLECTOR ---
-            if (activePlan.patternConfig.maintainLiveCandles)
             {
-                if (!pennyVelocityTimestampsMap[activePlan.id]) { pennyVelocityTimestampsMap[activePlan.id] = []; }
-                pennyVelocityTimestampsMap[activePlan.id].push(Date.now()); // Store only the integer millisecond timestamp of the transaction [INDEX]
-            }
+                let streamingPriceBuffer = {};
+                let macroStreamingPriceBuffer = Object.fromEntries(macroAndSectorTickers.map(key => [key, null]))
+                let throttledUIUpdateClock = null;
+                let macroThrottledUIUpdateClock = null;
+                let pennyVelocityTimestampsMap = {};
 
-            // CRITICAL STAGE B: THE 500MS SYSTEM BATCH THROTTLER (ONE REDUX PASS)
-            throttledUIUpdateClock = setInterval(() =>
-            {
+                let wsConnection = null;
+                const userId = getState().auth.userId
+                const ws = getWebSocket(userId, 'PlannedWatchListTickers')
 
-                // --- CRITICAL OVERRIDE: IF OUTSIDE AUTHORIZED MARKET HOURS, SCRUB AND EXIT ---
-                if (!checkStreamAuthorization())
+
+                const incomingPlanTradeListener = (data) =>
                 {
-                    streamingPriceBuffer = {};
-                    pennyVelocityTimestampsMap = {};
-                    return;
+                    updateCachedData((draft) =>
+                    {
+                        let activePlan = draft.plans.entities[data.tickerSymbol]
+                        if (!activePlan) return
+                        dispatch(updateStreamMostRecent({ ticker: data.tickerSymbol, price: data.trade.Price }))
+                        // --- PATH A: THE REAL-TIME PRICE PATCH (ALL ASSETS) ---
+                        let currentPrice = parseFloat(data.trade.Price)
+                        streamingPriceBuffer[data.tickerSymbol] = currentPrice
+
+
+                        // --- PATH B: THE PENNY TAPE VELOCITY COLLECTOR ---
+                        if (activePlan.patternConfig.maintainLiveCandles)
+                        {
+                            if (!pennyVelocityTimestampsMap[activePlan.id]) { pennyVelocityTimestampsMap[activePlan.id] = []; }
+                            pennyVelocityTimestampsMap[activePlan.id].push(Date.now()); // Store only the integer millisecond timestamp of the transaction [INDEX]
+                        }
+
+                        // CRITICAL STAGE B: THE 500MS SYSTEM BATCH THROTTLER (ONE REDUX PASS)
+                        throttledUIUpdateClock = setInterval(() =>
+                        {
+
+                            // --- CRITICAL OVERRIDE: IF OUTSIDE AUTHORIZED MARKET HOURS, SCRUB AND EXIT ---
+                            if (!checkStreamAuthorization())
+                            {
+                                streamingPriceBuffer = {};
+                                pennyVelocityTimestampsMap = {};
+                                return;
+                            }
+
+
+                            const now = Date.now();
+                            const fiveSecondsAgo = now - 5000;
+
+                            // Process your velocity calculations in raw memory first
+                            const currentCalculatedMetrics = {};
+                            Object.keys(pennyVelocityTimestampsMap).forEach(symbol =>
+                            {
+                                // Trim old timestamps out of your raw memory arrays
+                                pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(ts => ts >= fiveSecondsAgo);
+
+                                const activeTicksCount = pennyVelocityTimestampsMap[symbol].length;
+                                const currentVelocityTPS = parseFloat((activeTicksCount / 5).toFixed(1));
+
+                                currentCalculatedMetrics[symbol] = {
+                                    liveTicksPerSecond: currentVelocityTPS,
+                                    isTapeSpeedScreaming: currentVelocityTPS >= 12.0
+                                };
+                            });
+
+                            // Check if any fresh stream updates are actually sitting in your memory cache
+                            const symbolsWithActivePriceUpdates = Object.keys(streamingPriceBuffer);
+                            const symbolsWithActiveVelocityUpdates = Object.keys(currentCalculatedMetrics);
+                            if (symbolsWithActivePriceUpdates.length === 0 && symbolsWithActiveVelocityUpdates.length === 0) { return; }
+
+                            // FIRE ONE SINGLE MUTATION FOR THE ENTIRE WATCHLIST COMPILATION PASS
+                            updateCachedData((draft) =>
+                            {
+                                if (!draft) return;
+                                // Part 1: Batch overwrite the latest prices for standard and penny tickers
+                                symbolsWithActivePriceUpdates.forEach(symbol =>
+                                {
+                                    const activePlan = draft.plans.entities[symbol];
+                                    if (!activePlan) return;
+
+                                    let price = streamingPriceBuffer[symbol]
+
+                                    activePlan.liveAuctionMetrics = { ...activePlan.liveAuctionMetrics, lastTradePrice: price };
+                                    activePlan.mostRecentPriceUpDown = price >= activePlan.mostRecentPrice
+                                    activePlan.mostRecentPrice = price
+                                    activePlan.firstHourCandles.mostRecentPrice = price
+                                    activePlan.currentPriceStats.changeFromYesterdayClose = price - activePlan.currentPriceStats.yesterdayClose
+
+                                });
+
+                                // Part 2: Batch overwrite velocity values for active penny tickers
+                                symbolsWithActiveVelocityUpdates.forEach(symbol =>
+                                {
+                                    const activePlan = draft.plans.entities[symbol];
+                                    if (!activePlan) return;
+
+                                    activePlan.liveAuctionMetrics = {
+                                        ...activePlan.liveAuctionMetrics,
+                                        liveTicksPerSecond: currentCalculatedMetrics[symbol].liveTicksPerSecond,
+                                        isTapeSpeedScreaming: currentCalculatedMetrics[symbol].isTapeSpeedScreaming
+                                    };
+                                });
+
+                                for (const prop in streamingPriceBuffer) { delete streamingPriceBuffer[prop]; }
+                            });
+                        }, 3000)
+                    })
                 }
 
 
-                const now = Date.now();
-                const fiveSecondsAgo = now - 5000;
-
-                // Process your velocity calculations in raw memory first
-                const currentCalculatedMetrics = {};
-                Object.keys(pennyVelocityTimestampsMap).forEach(symbol =>
+                const incomingMacroTradeListener = (data) =>
                 {
-                    // Trim old timestamps out of your raw memory arrays
-                    pennyVelocityTimestampsMap[symbol] = pennyVelocityTimestampsMap[symbol].filter(ts => ts >= fiveSecondsAgo);
+                    if (!Object.hasOwn(macroStreamingPriceBuffer, data.Symbol)) return
+                    macroStreamingPriceBuffer[data.Symbol] = data.Price
 
-                    const activeTicksCount = pennyVelocityTimestampsMap[symbol].length;
-                    const currentVelocityTPS = parseFloat((activeTicksCount / 5).toFixed(1));
-
-                    currentCalculatedMetrics[symbol] = {
-                        liveTicksPerSecond: currentVelocityTPS,
-                        isTapeSpeedScreaming: currentVelocityTPS >= 12.0
-                    };
-                });
-
-                // Check if any fresh stream updates are actually sitting in your memory cache
-                const symbolsWithActivePriceUpdates = Object.keys(streamingPriceBuffer);
-                const symbolsWithActiveVelocityUpdates = Object.keys(currentCalculatedMetrics);
-                if (symbolsWithActivePriceUpdates.length === 0 && symbolsWithActiveVelocityUpdates.length === 0) { return; }
-
-                // FIRE ONE SINGLE MUTATION FOR THE ENTIRE WATCHLIST COMPILATION PASS
-                updateCachedData((draft) =>
-                {
-                    if (!draft) return;
-                    // Part 1: Batch overwrite the latest prices for standard and penny tickers
-                    symbolsWithActivePriceUpdates.forEach(symbol =>
+                    macroThrottledUIUpdateClock = setInterval(() =>
                     {
-                        const activePlan = draft.plans.entities[symbol];
-                        if (!activePlan) return;
+                        if (!checkStreamAuthorization()) { macroStreamingPriceBuffer = {}; return; }
 
-                        let price = streamingPriceBuffer[symbol]
+                        const symbolsWithActiveTicks = Object.keys(macroStreamingPriceBuffer).filter(symbol => macroStreamingPriceBuffer[symbol] !== null)
+                        if (symbolsWithActiveTicks.length === 0) return
 
-                        activePlan.liveAuctionMetrics = { ...activePlan.liveAuctionMetrics, lastTradePrice: price };
-                        activePlan.mostRecentPriceUpDown = price >= activePlan.mostRecentPrice
-                        activePlan.mostRecentPrice = price
-                        activePlan.firstHourCandles.mostRecentPrice = price
-                        activePlan.currentPriceStats.changeFromYesterdayClose = price - activePlan.currentPriceStats.yesterdayClose
+                        updateCachedData((draft) =>
+                        {
+                            if (!draft) return
+                            symbolsWithActiveTicks.forEach(symbol =>
+                            {
+                                const activeMacroEntity = draft.macros.entities[symbol]
+                                if (!activeMacroEntity) return;
 
-                    });
+                                let price = parseFloat(macroStreamingPriceBuffer[symbol].toFixed(2))
+                                activeMacroEntity.mostRecentPrice = price
+                                activeMacroEntity.macroTideSentry.lastPrice = price
+                            })
+                            symbolsWithActiveTicks.forEach(symbol => { macroStreamingPriceBuffer[symbol] = null })
 
-                    // Part 2: Batch overwrite velocity values for active penny tickers
-                    symbolsWithActiveVelocityUpdates.forEach(symbol =>
-                    {
-                        const activePlan = draft.plans.entities[symbol];
-                        if (!activePlan) return;
-
-                        activePlan.liveAuctionMetrics = {
-                            ...activePlan.liveAuctionMetrics,
-                            liveTicksPerSecond: currentCalculatedMetrics[symbol].liveTicksPerSecond,
-                            isTapeSpeedScreaming: currentCalculatedMetrics[symbol].isTapeSpeedScreaming
-                        };
-                    });
-
-                    for (const prop in streamingPriceBuffer) { delete streamingPriceBuffer[prop]; }
-                });
-            }, 3000)
-        })
-    }
+                        })
+                    }, 3000);
+                }
 
 
-    const incomingMacroTradeListener = (data) =>
-    {
-        if (!Object.hasOwn(macroStreamingPriceBuffer, data.Symbol)) return
-        macroStreamingPriceBuffer[data.Symbol] = data.Price
-
-        macroThrottledUIUpdateClock = setInterval(() =>
-        {
-            if (!checkStreamAuthorization()) { macroStreamingPriceBuffer = {}; return; }
-
-            const symbolsWithActiveTicks = Object.keys(macroStreamingPriceBuffer).filter(symbol => macroStreamingPriceBuffer[symbol] !== null)
-            if (symbolsWithActiveTicks.length === 0) return
-
-            updateCachedData((draft) =>
-            {
-                if (!draft) return
-                symbolsWithActiveTicks.forEach(symbol =>
+                try
                 {
-                    const activeMacroEntity = draft.macros.entities[symbol]
-                    if (!activeMacroEntity) return;
+                    await cacheDataLoaded
+                    subscribe('enterExitWatchListPrice', incomingPlanTradeListener, 'initialEnginePopulate')
+                    subscribe('macroWatchListUpdate', incomingMacroTradeListener, 'initialEnginePopulate')
+                } catch (error)
+                {
+                    await cacheEntryRemoved
+                    unsubscribe('enterExitWatchListPrice', incomingPlanTradeListener, userId, 'initialEnginePopulate')
+                    unsubscribe('macroWatchListUpdate', incomingMacroTradeListener, userId, 'initialEnginePopulate')
+                    if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
+                    if (macroThrottledUIUpdateClock) clearInterval(macroThrottledUIUpdateClock)
+                }
 
-                    let price = parseFloat(macroStreamingPriceBuffer[symbol].toFixed(2))
-                    activeMacroEntity.mostRecentPrice = price
-                    activeMacroEntity.macroTideSentry.lastPrice = price
-                })
-                symbolsWithActiveTicks.forEach(symbol => { macroStreamingPriceBuffer[symbol] = null })
-
-            })
-        }, 3000);
-    }
-
-
-    try
-    {
-        await cacheDataLoaded
-        subscribe('enterExitWatchListPrice', incomingPlanTradeListener, 'initialEnginePopulate')
-        subscribe('macroWatchListUpdate', incomingMacroTradeListener, 'initialEnginePopulate')
-    } catch (error)
-    {
-        await cacheEntryRemoved
-        unsubscribe('enterExitWatchListPrice', incomingPlanTradeListener, userId, 'initialEnginePopulate')
-        unsubscribe('macroWatchListUpdate', incomingMacroTradeListener, userId, 'initialEnginePopulate')
-        if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
-        if (macroThrottledUIUpdateClock) clearInterval(macroThrottledUIUpdateClock)
-    }
-
-    await cacheEntryRemoved
-    unsubscribe('enterExitWatchListPrice', incomingPlanTradeListener, userId, 'initialEnginePopulate')
-    unsubscribe('macroWatchListUpdate', incomingMacroTradeListener, userId, 'initialEnginePopulate')
-    if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
-    if (macroThrottledUIUpdateClock) clearInterval(macroThrottledUIUpdateClock)
-}
+                await cacheEntryRemoved
+                unsubscribe('enterExitWatchListPrice', incomingPlanTradeListener, userId, 'initialEnginePopulate')
+                unsubscribe('macroWatchListUpdate', incomingMacroTradeListener, userId, 'initialEnginePopulate')
+                if (throttledUIUpdateClock) clearInterval(throttledUIUpdateClock);
+                if (macroThrottledUIUpdateClock) clearInterval(macroThrottledUIUpdateClock)
+            }
 
         }),
-fetchEngineCandleBarData: builder.query({
-    query: (args) => ({
-        url: `/engine/today/bars/${args.oneMinOrFivMinBars}`,
-        validateStatus: (response, result) => { return response.status === 200 && !result.isError }
-    }),
-    async onQueryStarted(args, { dispatch, queryFulfilled })
-    {
-        try
-        {
-            const { data: freshCandleData } = await queryFulfilled;
-
-            dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+        fetchEngineCandleBarData: builder.query({
+            query: (args) => ({
+                url: `/engine/today/bars/${args.oneMinOrFivMinBars}`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
             {
-                if (!draft) return
-                if (freshCandleData?.planData) Object.keys(freshCandleData.planData).forEach(symbol =>
+                try
                 {
-                    const entityToUpdate = draft.plans.entities[symbol]
+                    const { data: freshCandleData } = await queryFulfilled;
 
-                    if (!draft.plans.entities[symbol]) return
-                    let liveCandles = freshCandleData.planData[symbol]
-                    if (!liveCandles || liveCandles.length === 0) return
-
-                    const filteredCandles = filterRegularSessionCandles(liveCandles)
-
-                    entityToUpdate.preMarketCandles = filteredCandles.preMarket
-                    const cleanCandlesToday = filteredCandles.regularSession
-                    if (cleanCandlesToday.length === 0) return
-
-                    draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
-                    let lastCandle = cleanCandlesToday[cleanCandlesToday.length - 1].ClosePrice
-                    entityToUpdate.mostRecentPriceUpDown = lastCandle >= entityToUpdate.mostRecentPrice
-                    entityToUpdate.mostRecentPrice = lastCandle
-
-
-                    if (isBefore(new Date(), preSetDailyTimes.firstHour) || entityToUpdate.firstHourCandles.candles.length === 0)
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
-                        let firstHourCandles = filterFirstHourSessionCandles(cleanCandlesToday)
-                        let firstHourHigh = firstHourCandles[0]?.HighPrice || 0
-                        let firstHourLow = firstHourCandles[0]?.LowPrice || 0
-                        let firstHourVolume = 0
-
-                        let peak = entityToUpdate.metricConfig.morningMetrics.upSide.averageTimeToPeak
-                        let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
-                        let volumeToPeak = 0
-                        let highToPeak = firstHourCandles[0]?.HighPrice || 0
-                        let lowToPeak = firstHourCandles[0]?.LowPrice || 0
-
-                        let bottom = entityToUpdate.metricConfig.morningMetrics.downSide.averageTimeToBottom
-                        let bottomTime = isWeekend(new Date()) ?
-                            previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
-                            set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
-
-                        let volumeToBottom = 0
-                        let highToBottom = firstHourCandles[0]?.HighPrice || 0
-                        let lowToBottom = firstHourCandles[0]?.LowPrice || 0
-
-                        firstHourCandles.forEach((t) =>
+                        if (!draft) return
+                        if (freshCandleData?.planData) Object.keys(freshCandleData.planData).forEach(symbol =>
                         {
+                            const entityToUpdate = draft.plans.entities[symbol]
 
-                            if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
-                            if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
-                            firstHourVolume += t.Volume
+                            if (!draft.plans.entities[symbol]) return
+                            let liveCandles = freshCandleData.planData[symbol]
+                            if (!liveCandles || liveCandles.length === 0) return
 
-                            if (isBefore(t.Timestamp, peakTime))
+                            const filteredCandles = filterRegularSessionCandles(liveCandles)
+
+                            entityToUpdate.preMarketCandles = filteredCandles.preMarket
+                            const cleanCandlesToday = filteredCandles.regularSession
+                            if (cleanCandlesToday.length === 0) return
+
+                            draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
+                            let lastCandle = cleanCandlesToday[cleanCandlesToday.length - 1].ClosePrice
+                            entityToUpdate.mostRecentPriceUpDown = lastCandle >= entityToUpdate.mostRecentPrice
+                            entityToUpdate.mostRecentPrice = lastCandle
+
+
+                            if (isBefore(new Date(), preSetDailyTimes.firstHour) || entityToUpdate.firstHourCandles.candles.length === 0)
                             {
-                                volumeToPeak += t.Volume
-                                if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
-                                if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
+                                let firstHourCandles = filterFirstHourSessionCandles(cleanCandlesToday)
+                                let firstHourHigh = firstHourCandles[0]?.HighPrice || 0
+                                let firstHourLow = firstHourCandles[0]?.LowPrice || 0
+                                let firstHourVolume = 0
+
+                                let peak = entityToUpdate.metricConfig.morningMetrics.upSide.averageTimeToPeak
+                                let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
+                                let volumeToPeak = 0
+                                let highToPeak = firstHourCandles[0]?.HighPrice || 0
+                                let lowToPeak = firstHourCandles[0]?.LowPrice || 0
+
+                                let bottom = entityToUpdate.metricConfig.morningMetrics.downSide.averageTimeToBottom
+                                let bottomTime = isWeekend(new Date()) ?
+                                    previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
+                                    set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
+
+                                let volumeToBottom = 0
+                                let highToBottom = firstHourCandles[0]?.HighPrice || 0
+                                let lowToBottom = firstHourCandles[0]?.LowPrice || 0
+
+                                firstHourCandles.forEach((t) =>
+                                {
+
+                                    if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
+                                    if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
+                                    firstHourVolume += t.Volume
+
+                                    if (isBefore(t.Timestamp, peakTime))
+                                    {
+                                        volumeToPeak += t.Volume
+                                        if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
+                                        if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
+                                    }
+                                    if (isBefore(t.Timestamp, bottomTime))
+                                    {
+
+                                        volumeToBottom += t.Volume
+                                        if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
+                                        if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
+                                    }
+                                })
+
+                                let candleUpdate = {
+                                    candles: firstHourCandles,
+                                    mostRecentCandle: firstHourCandles.at(-1),
+                                    metrics: { high: firstHourHigh, low: firstHourLow, volume: firstHourVolume },
+                                    peakMetrics: { high: highToPeak, low: lowToPeak, volumeToPeak, peakTime },
+                                    bottomMetrics: { high: highToBottom, low: lowToBottom, volumeToBottom, bottomTime },
+                                    mostRecentPrice: lastCandle
+                                }
+                                entityToUpdate.firstHourCandles = candleUpdate
+
                             }
-                            if (isBefore(t.Timestamp, bottomTime))
-                            {
 
-                                volumeToBottom += t.Volume
-                                if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
-                                if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
+                            if (draft.plans.entities[symbol].patternConfig.maintainLiveCandles || args.oneMinOrFivMinBars === 'openingSession')
+                            {
+                                draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
+                            } else
+                            {
+                                let chunked5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
+                                draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...chunked5MinCandles]
                             }
                         })
 
-                        let candleUpdate = {
-                            candles: firstHourCandles,
-                            mostRecentCandle: firstHourCandles.at(-1),
-                            metrics: { high: firstHourHigh, low: firstHourLow, volume: firstHourVolume },
-                            peakMetrics: { high: highToPeak, low: lowToPeak, volumeToPeak, peakTime },
-                            bottomMetrics: { high: highToBottom, low: lowToBottom, volumeToBottom, bottomTime },
-                            mostRecentPrice: lastCandle
-                        }
-                        entityToUpdate.firstHourCandles = candleUpdate
-
-                    }
-
-                    if (draft.plans.entities[symbol].patternConfig.maintainLiveCandles || args.oneMinOrFivMinBars === 'openingSession')
-                    {
-                        draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
-                    } else
-                    {
-                        let chunked5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
-                        draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...chunked5MinCandles]
-                    }
-                })
-
-                if (freshCandleData?.macroData) Object.keys(freshCandleData.macroData).forEach(symbol =>
-                {
-                    if (!draft.macros.entities[symbol]) return
-                    let liveCandles = freshCandleData.macroData[symbol]
-                    if (!liveCandles || liveCandles.length === 0) return
-
-                    const filteredCandles = filterRegularSessionCandles(liveCandles)
-                    const cleanCandlesToday = filteredCandles.regularSession
-                    draft.macros.entities[symbol].todaysCandles = cleanCandlesToday
-                    draft.macros.entities[symbol].preMarketCandles = filteredCandles.preMarket
-
-                    const compiled5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
-                    let combinedCandleData = [...(draft.macros.entities[symbol].historicCandle || []), ...compiled5MinCandles]
-                    draft.macros.entities[symbol].combinedCandleData = combinedCandleData
-
-                    const updatedMACDMetrics = calculateMacroThirtyMinMacd(combinedCandleData)
-
-                    draft.macros.entities[symbol].macroTideSentry = {
-                        ...draft.macros.entities[symbol].macroTideSentry,
-                        macdLine: updatedMACDMetrics.macdLine,
-                        signalLine: updatedMACDMetrics.signalLine,
-                        histogram: updatedMACDMetrics.histogram,
-                        isHistogramGrowingBearish: updatedMACDMetrics.isHistogramGrowingBearish,
-                    }
-                })
-            }))
-
-        } catch (error)
-        {
-            console.log(error)
-        }
-    }
-}),
-    fetchEngineOneMinCandleBarData: builder.query({
-        query: (args) => ({
-            url: `/engine/today/bars/regularSession/minute`,
-            validateStatus: (response, result) => { return response.status === 200 && !result.isError }
-        }),
-        async onQueryStarted(args, { dispatch, queryFulfilled })
-        {
-            try
-            {
-                const { data: freshCandleData } = await queryFulfilled;
-
-                dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
-                {
-                    if (!draft) return
-                    if (freshCandleData?.planData) Object.keys(freshCandleData.planData).forEach(symbol =>
-                    {
-                        const entityToUpdate = draft.plans.entities[symbol]
-                        if (!entityToUpdate) return
-
-                        let liveCandles = freshCandleData.planData[symbol]
-                        if (!liveCandles || liveCandles.length === 0) return
-
-                        let filteredCandles = filterRegularSessionCandles(liveCandles)
-                        const cleanCandlesToday = filteredCandles.regularSession
-
-                        if (entityToUpdate.preMarketCandles.length === 0) entityToUpdate.preMarketCandles = filteredCandles.preMarket
-
-                        if (cleanCandlesToday.length === 0) return
-                        let lastCandle = cleanCandlesToday[cleanCandlesToday.length - 1].ClosePrice
-
-
-                        entityToUpdate.mostRecentPriceUpDown = lastCandle >= draft.mostRecentPrice
-                        entityToUpdate.mostRecentPrice = lastCandle
-
-                        if (isAfter(new Date(), set(new Date(), { hours: 10, minutes: 30 })) && entityToUpdate.firstHourCandles.candles.length === 0)
+                        if (freshCandleData?.macroData) Object.keys(freshCandleData.macroData).forEach(symbol =>
                         {
-                            let firstHourCandles = filterFirstHourSessionCandles(cleanCandlesToday)
+                            if (!draft.macros.entities[symbol]) return
+                            let liveCandles = freshCandleData.macroData[symbol]
+                            if (!liveCandles || liveCandles.length === 0) return
 
-                            let firstHourHigh = firstHourCandles[0]?.HighPrice || 0
-                            let firstHourLow = firstHourCandles[0]?.LowPrice || 0
-                            let firstHourVolume = 0
+                            const filteredCandles = filterRegularSessionCandles(liveCandles)
+                            const cleanCandlesToday = filteredCandles.regularSession
+                            draft.macros.entities[symbol].todaysCandles = cleanCandlesToday
+                            draft.macros.entities[symbol].preMarketCandles = filteredCandles.preMarket
 
-                            let peak = entityToUpdate.metricConfig.morningMetrics.upSide.averageTimeToPeak
-                            let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
-                            let volumeToPeak = 0
-                            let highToPeak = firstHourCandles[0]?.HighPrice || 0
-                            let lowToPeak = firstHourCandles[0]?.LowPrice || 0
+                            const compiled5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
+                            let combinedCandleData = [...(draft.macros.entities[symbol].historicCandle || []), ...compiled5MinCandles]
+                            draft.macros.entities[symbol].combinedCandleData = combinedCandleData
 
-                            let bottom = entityToUpdate.metricConfig.morningMetrics.downSide.averageTimeToBottom
-                            let bottomTime = isWeekend(new Date()) ?
-                                previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
-                                set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
+                            const updatedMACDMetrics = calculateMacroThirtyMinMacd(combinedCandleData)
 
-                            let volumeToBottom = 0
-                            let highToBottom = firstHourCandles[0]?.HighPrice || 0
-                            let lowToBottom = firstHourCandles[0]?.LowPrice || 0
-
-                            firstHourCandles.forEach((t) =>
-                            {
-                                if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
-                                if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
-                                firstHourVolume += t.Volume
-
-                                if (isBefore(t.Timestamp, peakTime))
-                                {
-                                    volumeToPeak += t.Volume
-                                    if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
-                                    if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
-                                }
-                                if (isBefore(t.Timestamp, bottomTime))
-                                {
-
-                                    volumeToBottom += t.Volume
-                                    if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
-                                    if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
-                                }
-                            })
-
-                            let candleUpdate = {
-                                candles: firstHourCandles,
-                                mostRecentCandle: firstHourCandles.at(-1),
-                                metrics: {
-                                    high: firstHourHigh,
-                                    low: firstHourLow,
-                                    volume: firstHourVolume
-                                },
-                                peakMetrics: {
-                                    high: highToPeak,
-                                    low: lowToPeak,
-                                    volumeToPeak,
-                                    peakTime
-                                },
-                                bottomMetrics: {
-                                    high: highToBottom,
-                                    low: lowToBottom,
-                                    volumeToBottom,
-                                    bottomTime
-                                },
-                                mostRecentPrice: lastCandle
+                            draft.macros.entities[symbol].macroTideSentry = {
+                                ...draft.macros.entities[symbol].macroTideSentry,
+                                macdLine: updatedMACDMetrics.macdLine,
+                                signalLine: updatedMACDMetrics.signalLine,
+                                histogram: updatedMACDMetrics.histogram,
+                                isHistogramGrowingBearish: updatedMACDMetrics.isHistogramGrowingBearish,
                             }
-                            entityToUpdate.firstHourCandles = candleUpdate
+                        })
+                    }))
 
-                        }
-
-
-                        draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
-                        draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
-                    })
-
-                    if (freshCandleData?.macroData) Object.keys(freshCandleData.macroData).forEach(symbol =>
-                    {
-                        if (!draft.macros.entities[symbol]) return
-
-                        let liveCandles = freshCandleData.macroData[symbol]
-                        if (!liveCandles || liveCandles.length === 0) return
-                        const filteredCandles = filterRegularSessionCandles(liveCandles)
-                        const cleanCandlesToday = filteredCandles.regularSession
-                        draft.macros.entities[symbol].todaysCandles = cleanCandlesToday
-
-                        const compiled5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
-                        let combinedCandleData = [...(draft.macros.entities[symbol].historicCandle || []), ...compiled5MinCandles]
-                        draft.macros.entities[symbol].combinedCandleData = combinedCandleData
-
-                        const updatedMACDMetrics = calculateMacroThirtyMinMacd(combinedCandleData)
-
-                        draft.macros.entities[symbol].macroTideSentry = {
-                            ...draft.macros.entities[symbol].macroTideSentry,
-                            macdLine: updatedMACDMetrics.macdLine,
-                            signalLine: updatedMACDMetrics.signalLine,
-                            histogram: updatedMACDMetrics.histogram,
-                            isHistogramGrowingBearish: updatedMACDMetrics.isHistogramGrowingBearish,
-                        }
-                    })
-                }))
-
-            } catch (error)
-            {
-                console.log(error)
+                } catch (error)
+                {
+                    console.log(error)
+                }
             }
-        }
-    }),
+        }),
+        fetchEngineOneMinCandleBarData: builder.query({
+            query: (args) => ({
+                url: `/engine/today/bars/regularSession/minute`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshCandleData } = await queryFulfilled;
+
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        if (freshCandleData?.planData) Object.keys(freshCandleData.planData).forEach(symbol =>
+                        {
+                            const entityToUpdate = draft.plans.entities[symbol]
+                            if (!entityToUpdate) return
+
+                            let liveCandles = freshCandleData.planData[symbol]
+                            if (!liveCandles || liveCandles.length === 0) return
+
+                            let filteredCandles = filterRegularSessionCandles(liveCandles)
+                            const cleanCandlesToday = filteredCandles.regularSession
+
+                            if (entityToUpdate.preMarketCandles.length === 0) entityToUpdate.preMarketCandles = filteredCandles.preMarket
+
+                            if (cleanCandlesToday.length === 0) return
+                            let lastCandle = cleanCandlesToday[cleanCandlesToday.length - 1].ClosePrice
+
+
+                            entityToUpdate.mostRecentPriceUpDown = lastCandle >= draft.mostRecentPrice
+                            entityToUpdate.mostRecentPrice = lastCandle
+
+                            if (isAfter(new Date(), set(new Date(), { hours: 10, minutes: 30 })) && entityToUpdate.firstHourCandles.candles.length === 0)
+                            {
+                                let firstHourCandles = filterFirstHourSessionCandles(cleanCandlesToday)
+
+                                let firstHourHigh = firstHourCandles[0]?.HighPrice || 0
+                                let firstHourLow = firstHourCandles[0]?.LowPrice || 0
+                                let firstHourVolume = 0
+
+                                let peak = entityToUpdate.metricConfig.morningMetrics.upSide.averageTimeToPeak
+                                let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
+                                let volumeToPeak = 0
+                                let highToPeak = firstHourCandles[0]?.HighPrice || 0
+                                let lowToPeak = firstHourCandles[0]?.LowPrice || 0
+
+                                let bottom = entityToUpdate.metricConfig.morningMetrics.downSide.averageTimeToBottom
+                                let bottomTime = isWeekend(new Date()) ?
+                                    previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
+                                    set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
+
+                                let volumeToBottom = 0
+                                let highToBottom = firstHourCandles[0]?.HighPrice || 0
+                                let lowToBottom = firstHourCandles[0]?.LowPrice || 0
+
+                                firstHourCandles.forEach((t) =>
+                                {
+                                    if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
+                                    if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
+                                    firstHourVolume += t.Volume
+
+                                    if (isBefore(t.Timestamp, peakTime))
+                                    {
+                                        volumeToPeak += t.Volume
+                                        if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
+                                        if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
+                                    }
+                                    if (isBefore(t.Timestamp, bottomTime))
+                                    {
+
+                                        volumeToBottom += t.Volume
+                                        if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
+                                        if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
+                                    }
+                                })
+
+                                let candleUpdate = {
+                                    candles: firstHourCandles,
+                                    mostRecentCandle: firstHourCandles.at(-1),
+                                    metrics: {
+                                        high: firstHourHigh,
+                                        low: firstHourLow,
+                                        volume: firstHourVolume
+                                    },
+                                    peakMetrics: {
+                                        high: highToPeak,
+                                        low: lowToPeak,
+                                        volumeToPeak,
+                                        peakTime
+                                    },
+                                    bottomMetrics: {
+                                        high: highToBottom,
+                                        low: lowToBottom,
+                                        volumeToBottom,
+                                        bottomTime
+                                    },
+                                    mostRecentPrice: lastCandle
+                                }
+                                entityToUpdate.firstHourCandles = candleUpdate
+
+                            }
+
+
+                            draft.plans.entities[symbol].todaysCandles = cleanCandlesToday
+                            draft.plans.entities[symbol].combinedCandleData = [...draft.plans.entities[symbol].historicCandle, ...cleanCandlesToday]
+                        })
+
+                        if (freshCandleData?.macroData) Object.keys(freshCandleData.macroData).forEach(symbol =>
+                        {
+                            if (!draft.macros.entities[symbol]) return
+
+                            let liveCandles = freshCandleData.macroData[symbol]
+                            if (!liveCandles || liveCandles.length === 0) return
+                            const filteredCandles = filterRegularSessionCandles(liveCandles)
+                            const cleanCandlesToday = filteredCandles.regularSession
+                            draft.macros.entities[symbol].todaysCandles = cleanCandlesToday
+
+                            const compiled5MinCandles = downSampleOneMinToFiveMin(cleanCandlesToday)
+                            let combinedCandleData = [...(draft.macros.entities[symbol].historicCandle || []), ...compiled5MinCandles]
+                            draft.macros.entities[symbol].combinedCandleData = combinedCandleData
+
+                            const updatedMACDMetrics = calculateMacroThirtyMinMacd(combinedCandleData)
+
+                            draft.macros.entities[symbol].macroTideSentry = {
+                                ...draft.macros.entities[symbol].macroTideSentry,
+                                macdLine: updatedMACDMetrics.macdLine,
+                                signalLine: updatedMACDMetrics.signalLine,
+                                histogram: updatedMACDMetrics.histogram,
+                                isHistogramGrowingBearish: updatedMACDMetrics.isHistogramGrowingBearish,
+                            }
+                        })
+                    }))
+
+                } catch (error)
+                {
+                    console.log(error)
+                }
+            }
+        }),
         fetchEngineTradeData: builder.query({
             query: () => ({
                 url: `/engine/today/trades`,
@@ -749,544 +749,544 @@ fetchEngineCandleBarData: builder.query({
             }
         }),
 
-            fetchPlanUpdates: builder.mutation({
-                query: () => ({
-                    url: `/engine/planRefresh`,
-                    validateStatus: (response, result) => { return response.status === 200 && !result.isError }
-                }),
-                async onQueryStarted(args, { dispatch, queryFulfilled })
-                {
-                    try
-                    {
-                        const { data: freshPlanData } = await queryFulfilled;
-                        console.log(freshPlanData)
-                        const cacheUpdateRecipe = EnginePlanPlanApiSlice.util.updateQueryData(
-                            'initiateEngineWithEnterExitPlan', undefined, (draft) =>
-                        {
-                            console.log(draft)
-                            if (!draft || !draft.plans.entities) return;
-
-                            freshPlanData.plans.forEach((newPlan) =>
-                            {
-                                const ticker = newPlan.plan.tickerSymbol
-                                console.log(ticker)
-                                const existingPlan = draft.plans.entities[ticker]
-
-                                if (existingPlan)
-                                {
-                                    console.log(`This ${ticker} already exist and will be updated`)
-                                    //process through all possible updates form incoming data
-
-                                } else
-                                {
-                                    console.log(`This ${ticker} needs to be created`)
-
-                                    let regularSessionCandles = filterRegularSessionCandles(newPlan.candleData)
-                                    let todaysRegularSessionCandles = filterRegularSessionCandles(newPlan.todayCandleData)
-                                    console.log(regularSessionCandles.length, todaysRegularSessionCandles.length)
-                                    let enterExitPlanPrices = newPlan.plan.plan
-                                    let patternClassification = newPlan.plan.patternClassification
-
-                                    let patternConfig = {}
-                                    let baseLineIndicators = {}
-                                    if (patternClassification === 'channel')
-                                    {
-                                        patternConfig = { ...newPlan.plan.channelPattern }
-                                        if (patternConfig.channelType !== 'MULTIDAY_SPACED')
-                                        {
-                                            baseLineIndicators = compileHistoricalOneMinPennyBaselines(regularSessionCandles)
-                                        } else if (patternConfig.channelType === 'MULTIDAY_SPACED')
-                                        {
-                                            baseLineIndicators = compileHistoricalStandardChannelBaselines(patternConfig, regularSessionCandles)
-                                        }
-                                    } else if (patternClassification === 'continuation')
-                                    {
-                                        patternConfig = newPlan.plan.continuationPattern
-                                        baseLineIndicators = compileHistoricalContinuationBaselines(regularSessionCandles)
-                                    } else if (patternClassification === 'cascade')
-                                    {
-                                        patternConfig = newPlan.plan.cascadePattern
-                                        baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(patternConfig, regularSessionCandles)
-                                    }
-                                    patternConfig.maintainLiveCandles = newPlan.plan?.maintainLiveCandles || false
-                                    patternConfig.patternClassification = patternClassification
-
-                                    let planConfig = {}
-                                    planConfig.trackingDays = differenceInBusinessDays(new Date(), new Date(newPlan.plan.dateAdded))
-                                    planConfig.tickerSymbol = newPlan.plan.tickerSymbol
-                                    planConfig.sector = newPlan.plan.sector
-                                    planConfig.plan = newPlan.plan.plan
-                                    planConfig.relevantCandleDate = newPlan.plan.relevantCandleDate
-                                    planConfig.dateAdded = newPlan.plan.dateAdded
-                                    planConfig.correlationValues = newPlan.plan.correlationValues
-                                    planConfig.greatestCorrelation = newPlan.plan.greatestCorrelation
-                                    planConfig.spyBetaValue = newPlan.plan.dailyTickerValues.spyBetaValue || 1
-                                    planConfig.dailyCalculatedValues = newPlan.plan.dailyTickerValues
-                                    planConfig.planId = newPlan.plan._id
-                                    planConfig.backTestedValues = {
-                                        entryPrice: newPlan.plan.relevantDateBackTests,
-                                        floorPrice: newPlan.plan.relevantDateBackTestsUsingFloor
-                                    }
-                                    planConfig.datesLastCalculated = {
-                                        morningMetrics: newPlan.plan.dateMorningMetricsLastCalculated,
-                                        volumeProfileMetrics: newPlan.plan.dateVolumeProfileLastCalculated,
-                                        absorptionWindow: newPlan.plan.dateAbsorptionWindowLastCalculated,
-                                        options: newPlan.plan.dateOptionsEMLastCalculated,
-                                        pattern: newPlan.plan.datePatternLastCalculated,
-                                        retailVsInstitution: newPlan.plan.dateRvILastCalculated
-                                    }
-
-
-                                    let metricConfig = {}
-                                    metricConfig.extentProb = newPlan.plan.extentProb
-                                    metricConfig.morningMetrics = newPlan.plan.morningMetrics
-                                    metricConfig.morningVolume = newPlan.plan.morningVolumeMetrics
-                                    metricConfig.extremeProbByFiveMin = newPlan.plan.extremeProbByFiveMin
-                                    metricConfig.vpSupportResistance = newPlan.plan.volumeProfileMetrics
-                                    metricConfig.absorptionWindow = newPlan.plan.absorptionWindowMetrics
-                                    metricConfig.retailVsInstitution = newPlan.plan.retailVsInstitutionMetrics
-                                    metricConfig.volumeDistribution = newPlan.plan.volumeDistributionMetrics
-                                    console.log(newPlan.plan.openCrossMetrics)
-                                    metricConfig.openCross = { ...newPlan.plan.openCrossMetrics }
-                                    if (isBefore(new Date(), set(new Date(), { hours: 9, minutes: 4 })))
-                                        metricConfig.openCross.todaysOpenCross = undefined
-
-
-                                    let currentPriceStats = {}
-                                    let mostRecentPrice = newPlan.snapShot.LatestTrade.Price
-                                    currentPriceStats.snapShot = newPlan.snapShot
-                                    currentPriceStats.dailyBar = newPlan.snapShot.DailyBar
-                                    currentPriceStats.prevDailyBar = newPlan.snapShot.PrevDailyBar
-
-                                    currentPriceStats.yesterdayClose = newPlan.snapShot.PrevDailyBar.ClosePrice
-                                    currentPriceStats.changeFromYesterdayClose = mostRecentPrice - currentPriceStats.yesterdayClose
-
-                                    let optionsConfig = {}
-                                    optionsConfig = newPlan.plan?.optionsExpectedMoves || undefined
-
-
-
-
-                                    let discountConfig = {}
-                                    discountConfig.isReviewed = newPlan.plan.deepDiscounts?.dateReviewed ?
-                                        differenceInBusinessDays(new Date(), newPlan.plan.deepDiscounts?.dateReviewed) < 5 ? true : false : false
-
-                                    discountConfig.aboveStopLoss = newPlan.plan?.deepDiscounts?.aboveStopLoss
-                                    discountConfig.belowStopLoss = newPlan.plan?.deepDiscounts?.belowStopLoss
-                                    discountConfig.aboveMaxPain = newPlan.plan?.deepDiscounts?.aboveMaxPain
-
-                                    discountConfig.dateReviewed = newPlan.plan.deepDiscounts?.dateReviewed
-
-                                    discountConfig.prices = [newPlan.plan?.deepDiscounts?.aboveStopLoss?.price || 0,
-                                    newPlan.plan?.deepDiscounts?.belowStopLoss?.price || 0,
-                                    newPlan.plan?.deepDiscounts?.aboveMaxPain?.price || 0
-                                    ]
-
-                                    discountConfig.includesDiscount = Math.max(...discountConfig.prices)
-                                    //provides 0 for no discounts set or the first discount to compare a live price against
-
-
-
-                                    let tradeTapeConfig = {}
-                                    if (newPlan.tradeData) tradeTapeConfig.liveTapeMetrics = processAuthoritativeTradesArray(newPlan.tradeData)
-                                    else tradeTapeConfig.liveTapeMetrics = undefined
-
-                                    let firstHourCandles
-                                    if (isBefore(new Date(), preSetDailyTimes.marketOpen))
-                                    {
-                                        firstHourCandles = {
-                                            candles: [],
-                                            metrics: {
-                                                high: undefined,
-                                                low: undefined,
-                                                volume: undefined
-                                            },
-                                            peakMetrics: {
-                                                high: undefined,
-                                                volumeToPeak: undefined
-                                            },
-                                            bottomMetrics: {
-                                                low: undefined,
-                                                volumeToBottom: undefined
-                                            },
-                                            mostRecentCandle: { ClosePrice: newPlan.snapShot.LatestTrade.Price }
-                                        }
-                                    } else if (isBefore(new Date(), preSetDailyTimes.firstHour))
-                                    {
-                                        let cleanFirstHourCandles = filterFirstHourSessionCandles(todaysRegularSessionCandles)
-
-                                        let firstHourHigh = cleanFirstHourCandles[0].HighPrice
-                                        let firstHourLow = cleanFirstHourCandles[0].LowPrice
-                                        let firstHourVolume = 0
-
-                                        let peak = morningMetrics.upSide.averageTimeToPeak
-                                        let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
-                                        let volumeToPeak = 0
-                                        let highToPeak = cleanFirstHourCandles[0].HighPrice
-                                        let lowToPeak = cleanFirstHourCandles[0].LowPrice
-
-                                        let bottom = morningMetrics.downSide.averageTimeToBottom
-                                        let bottomTime = isWeekend(new Date()) ?
-                                            previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
-                                            set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
-
-                                        let volumeToBottom = 0
-                                        let highToBottom = cleanFirstHourCandles[0].HighPrice
-                                        let lowToBottom = cleanFirstHourCandles[0].LowPrice
-
-                                        cleanFirstHourCandles.forEach((t) =>
-                                        {
-
-                                            if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
-                                            if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
-                                            firstHourVolume += t.Volume
-
-                                            if (isBefore(t.Timestamp, peakTime))
-                                            {
-                                                volumeToPeak += t.Volume
-                                                if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
-                                                if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
-                                            }
-                                            if (isBefore(t.Timestamp, bottomTime))
-                                            {
-
-                                                volumeToBottom += t.Volume
-                                                if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
-                                                if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
-                                            }
-                                        })
-
-                                        firstHourCandles = {
-                                            candles: cleanFirstHourCandles,
-                                            metrics: { high: firstHourHigh, low: firstHourLow, volume: firstHourVolume },
-                                            peakMetrics: { high: highToPeak, low: lowToPeak, volumeToPeak, peakTime },
-                                            bottomMetrics: { high: highToBottom, low: lowToBottom, volumeToBottom, bottomTime },
-                                            mostRecentCandle: firstHourCandles.at(-1),
-                                            mostRecentPrice: newPlan.snapShot.LatestTrade.Price
-                                        }
-                                    }
-                                    else 
-                                    {
-                                        let cleanFirstHourCandles = filterFirstHourSessionCandles(todaysRegularSessionCandles)
-
-
-                                        let firstHourHigh = cleanFirstHourCandles[0].HighPrice
-                                        let firstHourLow = cleanFirstHourCandles[0].LowPrice
-                                        let firstHourVolume = 0
-
-                                        let peak = metricConfig.morningMetrics.upSide.averageTimeToPeak
-                                        let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
-                                        let volumeToPeak = 0
-                                        let highToPeak = cleanFirstHourCandles[0].HighPrice
-                                        let lowToPeak = cleanFirstHourCandles[0].LowPrice
-
-                                        let bottom = metricConfig.morningMetrics.downSide.averageTimeToBottom
-                                        let bottomTime = isWeekend(new Date()) ?
-                                            previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
-                                            set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
-
-                                        let volumeToBottom = 0
-                                        let highToBottom = cleanFirstHourCandles[0].HighPrice
-                                        let lowToBottom = cleanFirstHourCandles[0].LowPrice
-
-                                        cleanFirstHourCandles.forEach((t) =>
-                                        {
-                                            if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
-                                            if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
-                                            firstHourVolume += t.Volume
-
-                                            if (isBefore(t.Timestamp, peakTime))
-                                            {
-                                                volumeToPeak += t.Volume
-                                                if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
-                                                if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
-                                            }
-                                            if (isBefore(t.Timestamp, bottomTime))
-                                            {
-
-                                                volumeToBottom += t.Volume
-                                                if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
-                                                if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
-                                            }
-                                        })
-                                        firstHourCandles = {
-                                            candles: cleanFirstHourCandles,
-                                            mostRecentCandle: firstHourCandles.at(-1),
-                                            metrics: {
-                                                high: firstHourHigh,
-                                                low: firstHourLow,
-                                                volume: firstHourVolume
-                                            },
-                                            peakMetrics: {
-                                                high: highToPeak,
-                                                low: lowToPeak,
-                                                volumeToPeak,
-                                                peakTime
-                                            },
-                                            bottomMetrics: {
-                                                high: highToBottom,
-                                                low: lowToBottom,
-                                                volumeToBottom,
-                                                bottomTime
-                                            },
-                                            mostRecentPrice: lastCandle
-                                        }
-                                    }
-
-
-
-                                    enginePlanAdapter.addOne(draft.plans, {
-                                        id: newPlan.plan.tickerSymbol,
-                                        stockInfo: newPlan.plan.stockId,
-                                        mostRecentPrice,
-                                        mostRecentPriceUpDown: undefined,
-                                        planConfig,
-                                        patternConfig,
-                                        optionsConfig,
-                                        metricConfig,
-                                        discountConfig,
-                                        tradeTapeConfig,
-                                        currentPriceStats,
-                                        historicCandle: regularSessionCandles,
-                                        firstHourCandles,
-                                        todaysCandles: todaysRegularSessionCandles,
-                                        combinedCandleData: [...regularSessionCandles, ...todaysRegularSessionCandles],
-                                        snapShot: newPlan.snapShot,
-                                        liveAuctionMetrics: {
-                                            lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
-                                            auditedRollingVolume: 0,
-                                            liveTicksPerSecond: 0.0,
-
-                                            staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
-                                            ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
-                                            isChannelHeightViable: baseLineIndicators?.isChannelHeightViable || false,
-
-                                            historicalTrendHealthScore: baseLineIndicators?.historicalTrendHealthScore || 50,
-                                            isPullbackVolumeDry: baseLineIndicators?.isPullbackVolumeDry || false,
-                                            baseBreakoutVelocity: baseLineIndicators?.baseBreakoutVelocity || 0,
-
-                                            volumeCliffPrice: baseLineIndicators?.volumeCliffPrice || 0,
-                                            baselineAvgOneMinVolume: baseLineIndicators?.baselineAvgOneMinVolume || 0,
-                                            historicalAtr: baseLineIndicators?.historicalAtr || 0.0
-                                        }
-                                    })
-                                }
-                            })
-                        })
-
-                        dispatch(cacheUpdateRecipe)
-                    } catch (error)
-                    {
-                        console.log(error)
-                        // Handle potential mutation errors here
-                    }
-                }
+        fetchPlanUpdates: builder.mutation({
+            query: () => ({
+                url: `/engine/planRefresh`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
             }),
-
-                removePlanFromUser: builder.mutation({
-                    async queryFn(args, api, extraOptions, baseQuery)
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshPlanData } = await queryFulfilled;
+                    console.log(freshPlanData)
+                    const cacheUpdateRecipe = EnginePlanPlanApiSlice.util.updateQueryData(
+                        'initiateEngineWithEnterExitPlan', undefined, (draft) =>
                     {
-                        const state = api.getState()
-                        const initializationEndpointDataSelector = InitializationApiSlice.endpoints.getUserInitialization.select(undefined)
-                        const userInitializationData = initializationEndpointDataSelector(state);
-                        const userStockHistory = userInitializationData?.data.userStockHistory
+                        console.log(draft)
+                        if (!draft || !draft.plans.entities) return;
 
-                        let historyIdForRemoval
-                        userStockHistory.forEach((t) => { if (args.tickerSymbol === t.symbol) historyIdForRemoval = t._id })
-
-                        let result = await baseQuery({
-                            url: `/enterExitPlan/remove/${args.planId}/history/${historyIdForRemoval}`,
-                            method: 'DELETE',
-                        })
-
-                        if (result.error) { return { error: result.error }; }
-                        return { data: result.data };
-                    },
-                    async onQueryStarted(args, { dispatch, queryFulfilled })
-                    {
-                        const { data: deletionConfirmation } = await queryFulfilled;
-
-                        try
+                        freshPlanData.plans.forEach((newPlan) =>
                         {
-                            const cacheUpdateRecipe = EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                            const ticker = newPlan.plan.tickerSymbol
+                            console.log(ticker)
+                            const existingPlan = draft.plans.entities[ticker]
+
+                            if (existingPlan)
                             {
-                                if (!draft || !draft.plans.entities) return;
-                                enginePlanAdapter.removeOne(draft.plans, deletionConfirmation.tickerRemoved)
-                            })
-                            setTimeout(() => dispatch(cacheUpdateRecipe), [3000])
-                        } catch (error)
-                        {
-                            console.log(error)
-                            // Handle potential mutation errors here
-                        }
-                    }
-                }),
-                    fetchEngineMorningData: builder.query({
-                        query: () => ({
-                            url: `/engine/today/morning`,
-                            validateStatus: (response, result) => { return response.status === 200 && !result.isError }
-                        }),
-                        async onQueryStarted(args, { dispatch, queryFulfilled })
-                        {
-                            try
+                                console.log(`This ${ticker} already exist and will be updated`)
+                                //process through all possible updates form incoming data
+
+                            } else
                             {
-                                const { data: freshMorningData } = await queryFulfilled;
-                                dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                                console.log(`This ${ticker} needs to be created`)
+
+                                let regularSessionCandles = filterRegularSessionCandles(newPlan.candleData)
+                                let todaysRegularSessionCandles = filterRegularSessionCandles(newPlan.todayCandleData)
+                                console.log(regularSessionCandles.length, todaysRegularSessionCandles.length)
+                                let enterExitPlanPrices = newPlan.plan.plan
+                                let patternClassification = newPlan.plan.patternClassification
+
+                                let patternConfig = {}
+                                let baseLineIndicators = {}
+                                if (patternClassification === 'channel')
                                 {
-                                    if (!draft) return
-                                    freshMorningData.planAndTrackedStocks.map((t, i) =>
+                                    patternConfig = { ...newPlan.plan.channelPattern }
+                                    if (patternConfig.channelType !== 'MULTIDAY_SPACED')
                                     {
-                                        if (!draft.plans.entities[t.tickerSymbol]) return
-                                        const entityToUpdate = draft.plans.entities[t.tickerSymbol]
-
-                                        if (t?.extentProb) entityToUpdate.metricConfig.extentProb = t.extentProb
-                                        if (t?.extremeProbByFiveMin) entityToUpdate.metricConfig.extremeProbByFiveMin = t.extremeProbByFiveMin
-                                        if (t?.morningMetrics) entityToUpdate.metricConfig.morningMetrics = t.morningMetrics
-                                        if (t?.morningVolumeMetrics) entityToUpdate.metricConfig.morningVolume = t.morningVolumeMetrics
-                                        if (t?.volumeDistributionMetrics) entityToUpdate.metricConfig.volumeDistribution = t.volumeDistributionMetrics
-                                        if (t?.optionsExpectedMoves) entityToUpdate.optionsConfig = t.optionsExpectedMoves
-
-                                        if (t?.dateOptionsEMLastCalculated) entityToUpdate.planConfig.datesLastCalculated.options = t.dateOptionsEMLastCalculated
-                                        if (t?.dateMorningMetricsLastCalculated) entityToUpdate.planConfig.datesLastCalculated.morningMetrics = t.dateMorningMetricsLastCalculated
-
-                                    })
-                                }))
-                            } catch (error) { console.log(error) }
-                        }
-                    }),
-                        fetchEngineOpenCrossData: builder.query({
-                            query: () => ({
-                                url: `/engine/today/openCross`,
-                                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
-                            }),
-                            async onQueryStarted(args, { dispatch, queryFulfilled })
-                            {
-                                try
+                                        baseLineIndicators = compileHistoricalOneMinPennyBaselines(regularSessionCandles)
+                                    } else if (patternConfig.channelType === 'MULTIDAY_SPACED')
+                                    {
+                                        baseLineIndicators = compileHistoricalStandardChannelBaselines(patternConfig, regularSessionCandles)
+                                    }
+                                } else if (patternClassification === 'continuation')
                                 {
-                                    const { data: freshOpenCrosses } = await queryFulfilled;
-                                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
-                                    {
-                                        if (!draft) return
-                                        freshOpenCrosses.openCross.map((t, i) =>
-                                        {
-                                            if (!draft.plans.entities[t.tickerSymbol]) return
-                                            if (t?.openCrossMetrics) draft.plans.entities[t.tickerSymbol].metricConfig.openCross = t.openCrossMetrics
-                                        })
-
-                                        if (freshOpenCrosses.snapShots)
-                                        {
-                                            freshOpenCrosses.snapShots.map((t, i) =>
-                                            {
-                                                let entityForUpdate = draft.plans.entities[t.symbol]
-                                                if (entityForUpdate)
-                                                {
-                                                    entityForUpdate.snapShot = t
-
-
-                                                    entityForUpdate.currentPriceStats.snapShot = t
-                                                    entityForUpdate.currentPriceStats.dailyBar = t.DailyBar
-                                                    entityForUpdate.currentPriceStats.prevDailyBar = t.PrevDailyBar
-
-                                                    entityForUpdate.currentPriceStats.yesterdayClose = t.PrevDailyBar.ClosePrice
-                                                    entityForUpdate.currentPriceStats.changeFromYesterdayClose = entityForUpdate.mostRecentPrice - t.PrevDailyBar.ClosePrice
-
-
-                                                    if (entityForUpdate.activeTradeConfig)
-                                                    {
-                                                        let tradesCopy = [...draft.trades]
-                                                        draft.trades = tradesCopy.map((k, i) =>
-                                                        {
-                                                            if (k.snapShot.symbol === t.symbol) return { ...k, snapShot: t }
-                                                            else return k
-                                                        })
-                                                    }
-
-
-                                                } else if (draft.macros.entities[t.symbol])
-                                                {
-                                                    entityForUpdate = draft.macros.entities[t.symbol]
-                                                    entityForUpdate.snapShot = t
-                                                }
-
-                                            })
-
-                                        }
-
-
-                                    }))
-                                } catch (error) { console.log(error) }
-                            }
-                        }),
-                            fetchEngineMidDayData: builder.query({
-                                query: () => ({
-                                    url: `/engine/today/midday`,
-                                    validateStatus: (response, result) => { return response.status === 200 && !result.isError }
-                                }),
-                                async onQueryStarted(args, { dispatch, queryFulfilled })
+                                    patternConfig = newPlan.plan.continuationPattern
+                                    baseLineIndicators = compileHistoricalContinuationBaselines(regularSessionCandles)
+                                } else if (patternClassification === 'cascade')
                                 {
-                                    try
-                                    {
-                                        const { data: freshMidDayData } = await queryFulfilled;
-                                        dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
-                                        {
-                                            if (!draft) return
-                                            freshMidDayData.planAndTrackedStocks.map((t, i) =>
-                                            {
-                                                if (!draft.plans.entities[t.tickerSymbol]) return
-                                                const entityToUpdate = draft.plans.entities[t.tickerSymbol]
-                                                if (t?.optionsExpectedMoves) entityToUpdate.optionsConfig = t.optionsExpectedMoves
-                                                if (t?.dateOptionsEMLastCalculated) entityToUpdate.planConfig.datesLastCalculated.options = t.dateOptionsEMLastCalculated
-
-                                            })
-                                        }))
-                                    } catch (error) { console.log(error) }
+                                    patternConfig = newPlan.plan.cascadePattern
+                                    baseLineIndicators = compileHistoricalFiveMinCascadeBaselines(patternConfig, regularSessionCandles)
                                 }
-                            }),
-                                fetchEnginePostCloseData: builder.query({
-                                    query: () => ({
-                                        url: `/engine/today/postClose`,
-                                        validateStatus: (response, result) => { return response.status === 200 && !result.isError }
-                                    }),
-                                    async onQueryStarted(args, { dispatch, queryFulfilled })
+                                patternConfig.maintainLiveCandles = newPlan.plan?.maintainLiveCandles || false
+                                patternConfig.patternClassification = patternClassification
+
+                                let planConfig = {}
+                                planConfig.trackingDays = differenceInBusinessDays(new Date(), new Date(newPlan.plan.dateAdded))
+                                planConfig.tickerSymbol = newPlan.plan.tickerSymbol
+                                planConfig.sector = newPlan.plan.sector
+                                planConfig.plan = newPlan.plan.plan
+                                planConfig.relevantCandleDate = newPlan.plan.relevantCandleDate
+                                planConfig.dateAdded = newPlan.plan.dateAdded
+                                planConfig.correlationValues = newPlan.plan.correlationValues
+                                planConfig.greatestCorrelation = newPlan.plan.greatestCorrelation
+                                planConfig.spyBetaValue = newPlan.plan.dailyTickerValues.spyBetaValue || 1
+                                planConfig.dailyCalculatedValues = newPlan.plan.dailyTickerValues
+                                planConfig.planId = newPlan.plan._id
+                                planConfig.backTestedValues = {
+                                    entryPrice: newPlan.plan.relevantDateBackTests,
+                                    floorPrice: newPlan.plan.relevantDateBackTestsUsingFloor
+                                }
+                                planConfig.datesLastCalculated = {
+                                    morningMetrics: newPlan.plan.dateMorningMetricsLastCalculated,
+                                    volumeProfileMetrics: newPlan.plan.dateVolumeProfileLastCalculated,
+                                    absorptionWindow: newPlan.plan.dateAbsorptionWindowLastCalculated,
+                                    options: newPlan.plan.dateOptionsEMLastCalculated,
+                                    pattern: newPlan.plan.datePatternLastCalculated,
+                                    retailVsInstitution: newPlan.plan.dateRvILastCalculated
+                                }
+
+
+                                let metricConfig = {}
+                                metricConfig.extentProb = newPlan.plan.extentProb
+                                metricConfig.morningMetrics = newPlan.plan.morningMetrics
+                                metricConfig.morningVolume = newPlan.plan.morningVolumeMetrics
+                                metricConfig.extremeProbByFiveMin = newPlan.plan.extremeProbByFiveMin
+                                metricConfig.vpSupportResistance = newPlan.plan.volumeProfileMetrics
+                                metricConfig.absorptionWindow = newPlan.plan.absorptionWindowMetrics
+                                metricConfig.retailVsInstitution = newPlan.plan.retailVsInstitutionMetrics
+                                metricConfig.volumeDistribution = newPlan.plan.volumeDistributionMetrics
+                                console.log(newPlan.plan.openCrossMetrics)
+                                metricConfig.openCross = { ...newPlan.plan.openCrossMetrics }
+                                if (isBefore(new Date(), set(new Date(), { hours: 9, minutes: 4 })))
+                                    metricConfig.openCross.todaysOpenCross = undefined
+
+
+                                let currentPriceStats = {}
+                                let mostRecentPrice = newPlan.snapShot.LatestTrade.Price
+                                currentPriceStats.snapShot = newPlan.snapShot
+                                currentPriceStats.dailyBar = newPlan.snapShot.DailyBar
+                                currentPriceStats.prevDailyBar = newPlan.snapShot.PrevDailyBar
+
+                                currentPriceStats.yesterdayClose = newPlan.snapShot.PrevDailyBar.ClosePrice
+                                currentPriceStats.changeFromYesterdayClose = mostRecentPrice - currentPriceStats.yesterdayClose
+
+                                let optionsConfig = {}
+                                optionsConfig = newPlan.plan?.optionsExpectedMoves || undefined
+
+
+
+
+                                let discountConfig = {}
+                                discountConfig.isReviewed = newPlan.plan.deepDiscounts?.dateReviewed ?
+                                    differenceInBusinessDays(new Date(), newPlan.plan.deepDiscounts?.dateReviewed) < 5 ? true : false : false
+
+                                discountConfig.aboveStopLoss = newPlan.plan?.deepDiscounts?.aboveStopLoss
+                                discountConfig.belowStopLoss = newPlan.plan?.deepDiscounts?.belowStopLoss
+                                discountConfig.aboveMaxPain = newPlan.plan?.deepDiscounts?.aboveMaxPain
+
+                                discountConfig.dateReviewed = newPlan.plan.deepDiscounts?.dateReviewed
+
+                                discountConfig.prices = [newPlan.plan?.deepDiscounts?.aboveStopLoss?.price || 0,
+                                newPlan.plan?.deepDiscounts?.belowStopLoss?.price || 0,
+                                newPlan.plan?.deepDiscounts?.aboveMaxPain?.price || 0
+                                ]
+
+                                discountConfig.includesDiscount = Math.max(...discountConfig.prices)
+                                //provides 0 for no discounts set or the first discount to compare a live price against
+
+
+
+                                let tradeTapeConfig = {}
+                                if (newPlan.tradeData) tradeTapeConfig.liveTapeMetrics = processAuthoritativeTradesArray(newPlan.tradeData)
+                                else tradeTapeConfig.liveTapeMetrics = undefined
+
+                                let firstHourCandles
+                                if (isBefore(new Date(), preSetDailyTimes.marketOpen))
+                                {
+                                    firstHourCandles = {
+                                        candles: [],
+                                        metrics: {
+                                            high: undefined,
+                                            low: undefined,
+                                            volume: undefined
+                                        },
+                                        peakMetrics: {
+                                            high: undefined,
+                                            volumeToPeak: undefined
+                                        },
+                                        bottomMetrics: {
+                                            low: undefined,
+                                            volumeToBottom: undefined
+                                        },
+                                        mostRecentCandle: { ClosePrice: newPlan.snapShot.LatestTrade.Price }
+                                    }
+                                } else if (isBefore(new Date(), preSetDailyTimes.firstHour))
+                                {
+                                    let cleanFirstHourCandles = filterFirstHourSessionCandles(todaysRegularSessionCandles)
+
+                                    let firstHourHigh = cleanFirstHourCandles[0].HighPrice
+                                    let firstHourLow = cleanFirstHourCandles[0].LowPrice
+                                    let firstHourVolume = 0
+
+                                    let peak = morningMetrics.upSide.averageTimeToPeak
+                                    let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
+                                    let volumeToPeak = 0
+                                    let highToPeak = cleanFirstHourCandles[0].HighPrice
+                                    let lowToPeak = cleanFirstHourCandles[0].LowPrice
+
+                                    let bottom = morningMetrics.downSide.averageTimeToBottom
+                                    let bottomTime = isWeekend(new Date()) ?
+                                        previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
+                                        set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
+
+                                    let volumeToBottom = 0
+                                    let highToBottom = cleanFirstHourCandles[0].HighPrice
+                                    let lowToBottom = cleanFirstHourCandles[0].LowPrice
+
+                                    cleanFirstHourCandles.forEach((t) =>
                                     {
-                                        try
+
+                                        if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
+                                        if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
+                                        firstHourVolume += t.Volume
+
+                                        if (isBefore(t.Timestamp, peakTime))
                                         {
-                                            const { data: freshPostCloseData } = await queryFulfilled;
+                                            volumeToPeak += t.Volume
+                                            if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
+                                            if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
+                                        }
+                                        if (isBefore(t.Timestamp, bottomTime))
+                                        {
 
-                                            dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
-                                            {
-                                                if (!draft) return
-                                                freshPostCloseData.planAndTrackedStocks.map((t, i) =>
-                                                {
-                                                    if (!draft.plans.entities[t.tickerSymbol]) return
+                                            volumeToBottom += t.Volume
+                                            if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
+                                            if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
+                                        }
+                                    })
 
-                                                    const entityToUpdate = draft.plans.entities[t.tickerSymbol]
-                                                    if (t?.channelPattern || t?.cascadePattern || t?.continuationPattern)
-                                                    {
-                                                        if (entityToUpdate.patternConfig.patternClassification === 'channel') { entityToUpdate.patternConfig = t.channelPattern }
-                                                        else if (entityToUpdate.patternConfig.patternClassification === 'continuation') { entityToUpdate.patternConfig = t.continuationPattern }
-                                                        else if (entityToUpdate.patternConfig.patternClassification === 'cascade') { entityToUpdate.patternConfig = t.cascadePattern }
-                                                    }
+                                    firstHourCandles = {
+                                        candles: cleanFirstHourCandles,
+                                        metrics: { high: firstHourHigh, low: firstHourLow, volume: firstHourVolume },
+                                        peakMetrics: { high: highToPeak, low: lowToPeak, volumeToPeak, peakTime },
+                                        bottomMetrics: { high: highToBottom, low: lowToBottom, volumeToBottom, bottomTime },
+                                        mostRecentCandle: firstHourCandles.at(-1),
+                                        mostRecentPrice: newPlan.snapShot.LatestTrade.Price
+                                    }
+                                }
+                                else 
+                                {
+                                    let cleanFirstHourCandles = filterFirstHourSessionCandles(todaysRegularSessionCandles)
 
-                                                    if (t?.correlationValues) entityToUpdate.planConfig.correlationValues = t.correlationValues
-                                                    if (t?.greatestCorrelation) entityToUpdate.planConfig.greatestCorrelation = t.greatestCorrelation
-                                                    if (t?.dailyTickerValues) entityToUpdate.planConfig.dailyCalculatedValues = t.dailyTickerValues
-                                                    if (t?.relevantDateBackTests && t?.relevantDateBackTestsUsingFloor) entityToUpdate.planConfig.backTestedValues = { entryPrice: t.relevantDateBackTests, floorPrice: t.relevantDateBackTestsUsingFloor }
 
-                                                    if (t?.absorptionWindowMetrics) entityToUpdate.metricConfig.absorptionWindow = t.absorptionWindowMetrics
-                                                    if (t?.retailVsInstitutionMetrics) entityToUpdate.metricConfig.retailVsInstitution = t.retailVsInstitutionMetrics
-                                                    if (t?.volumeProfileMetrics) entityToUpdate.metricConfig.vpSupportResistance = t.volumeProfileMetrics
+                                    let firstHourHigh = cleanFirstHourCandles[0].HighPrice
+                                    let firstHourLow = cleanFirstHourCandles[0].LowPrice
+                                    let firstHourVolume = 0
 
-                                                    if (t?.dateVolumeProfileLastCalculated) entityToUpdate.planConfig.datesLastCalculated.volumeProfileMetrics = t.dateVolumeProfileLastCalculated
-                                                    if (t?.datePatternLastCalculated) entityToUpdate.planConfig.datesLastCalculated.pattern = t.datePatternLastCalculated
-                                                    if (t?.dateRvILastCalculated) entityToUpdate.planConfig.datesLastCalculated.retailVsInstitution = t.dateRvILastCalculated
-                                                    if (t?.dateAbsorptionWindowLastCalculated) entityToUpdate.planConfig.datesLastCalculated.absorptionWindow = t.dateAbsorptionWindowLastCalculated
+                                    let peak = metricConfig.morningMetrics.upSide.averageTimeToPeak
+                                    let peakTime = set(new Date(), { hours: peak.hour, minutes: peak.minute })
+                                    let volumeToPeak = 0
+                                    let highToPeak = cleanFirstHourCandles[0].HighPrice
+                                    let lowToPeak = cleanFirstHourCandles[0].LowPrice
 
-                                                })
-                                            }))
-                                        } catch (error) { console.log(error) }
+                                    let bottom = metricConfig.morningMetrics.downSide.averageTimeToBottom
+                                    let bottomTime = isWeekend(new Date()) ?
+                                        previousFriday(set(new Date(), { hours: bottom.hour, minutes: bottom.minute })) :
+                                        set(new Date(), { hours: bottom.hour, minutes: bottom.minute })
+
+                                    let volumeToBottom = 0
+                                    let highToBottom = cleanFirstHourCandles[0].HighPrice
+                                    let lowToBottom = cleanFirstHourCandles[0].LowPrice
+
+                                    cleanFirstHourCandles.forEach((t) =>
+                                    {
+                                        if (t.LowPrice < firstHourLow) firstHourLow = t.LowPrice
+                                        if (t.HighPrice > firstHourHigh) firstHourHigh = t.HighPrice
+                                        firstHourVolume += t.Volume
+
+                                        if (isBefore(t.Timestamp, peakTime))
+                                        {
+                                            volumeToPeak += t.Volume
+                                            if (t.LowPrice > lowToPeak) lowToPeak = t.LowPrice
+                                            if (t.HighPrice > highToPeak) highToPeak = t.HighPrice
+                                        }
+                                        if (isBefore(t.Timestamp, bottomTime))
+                                        {
+
+                                            volumeToBottom += t.Volume
+                                            if (t.LowPrice > lowToBottom) lowToBottom = t.LowPrice
+                                            if (t.HighPrice > highToBottom) highToBottom = t.HighPrice
+                                        }
+                                    })
+                                    firstHourCandles = {
+                                        candles: cleanFirstHourCandles,
+                                        mostRecentCandle: firstHourCandles.at(-1),
+                                        metrics: {
+                                            high: firstHourHigh,
+                                            low: firstHourLow,
+                                            volume: firstHourVolume
+                                        },
+                                        peakMetrics: {
+                                            high: highToPeak,
+                                            low: lowToPeak,
+                                            volumeToPeak,
+                                            peakTime
+                                        },
+                                        bottomMetrics: {
+                                            high: highToBottom,
+                                            low: lowToBottom,
+                                            volumeToBottom,
+                                            bottomTime
+                                        },
+                                        mostRecentPrice: lastCandle
+                                    }
+                                }
+
+
+
+                                enginePlanAdapter.addOne(draft.plans, {
+                                    id: newPlan.plan.tickerSymbol,
+                                    stockInfo: newPlan.plan.stockId,
+                                    mostRecentPrice,
+                                    mostRecentPriceUpDown: undefined,
+                                    planConfig,
+                                    patternConfig,
+                                    optionsConfig,
+                                    metricConfig,
+                                    discountConfig,
+                                    tradeTapeConfig,
+                                    currentPriceStats,
+                                    historicCandle: regularSessionCandles,
+                                    firstHourCandles,
+                                    todaysCandles: todaysRegularSessionCandles,
+                                    combinedCandleData: [...regularSessionCandles, ...todaysRegularSessionCandles],
+                                    snapShot: newPlan.snapShot,
+                                    liveAuctionMetrics: {
+                                        lastTradePrice: regularSessionCandles.length > 0 ? regularSessionCandles.at(-1).ClosePrice : 0.00,
+                                        auditedRollingVolume: 0,
+                                        liveTicksPerSecond: 0.0,
+
+                                        staticHistoryTouchCount: baseLineIndicators?.staticHistoryTouchCount || 0,
+                                        ceilingFatigueTouchCount: baseLineIndicators?.ceilingFatigueTouchCount || 0,
+                                        isChannelHeightViable: baseLineIndicators?.isChannelHeightViable || false,
+
+                                        historicalTrendHealthScore: baseLineIndicators?.historicalTrendHealthScore || 50,
+                                        isPullbackVolumeDry: baseLineIndicators?.isPullbackVolumeDry || false,
+                                        baseBreakoutVelocity: baseLineIndicators?.baseBreakoutVelocity || 0,
+
+                                        volumeCliffPrice: baseLineIndicators?.volumeCliffPrice || 0,
+                                        baselineAvgOneMinVolume: baseLineIndicators?.baselineAvgOneMinVolume || 0,
+                                        historicalAtr: baseLineIndicators?.historicalAtr || 0.0
                                     }
                                 })
+                            }
+                        })
+                    })
+
+                    dispatch(cacheUpdateRecipe)
+                } catch (error)
+                {
+                    console.log(error)
+                    // Handle potential mutation errors here
+                }
+            }
+        }),
+
+        removePlanFromUser: builder.mutation({
+            async queryFn(args, api, extraOptions, baseQuery)
+            {
+                const state = api.getState()
+                const initializationEndpointDataSelector = InitializationApiSlice.endpoints.getUserInitialization.select(undefined)
+                const userInitializationData = initializationEndpointDataSelector(state);
+                const userStockHistory = userInitializationData?.data.userStockHistory
+
+                let historyIdForRemoval
+                userStockHistory.forEach((t) => { if (args.tickerSymbol === t.symbol) historyIdForRemoval = t._id })
+
+                let result = await baseQuery({
+                    url: `/enterExitPlan/remove/${args.planId}/history/${historyIdForRemoval}`,
+                    method: 'DELETE',
+                })
+
+                if (result.error) { return { error: result.error }; }
+                return { data: result.data };
+            },
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                const { data: deletionConfirmation } = await queryFulfilled;
+
+                try
+                {
+                    const cacheUpdateRecipe = EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft || !draft.plans.entities) return;
+                        enginePlanAdapter.removeOne(draft.plans, deletionConfirmation.tickerRemoved)
+                    })
+                    setTimeout(() => dispatch(cacheUpdateRecipe), [3000])
+                } catch (error)
+                {
+                    console.log(error)
+                    // Handle potential mutation errors here
+                }
+            }
+        }),
+        fetchEngineMorningData: builder.query({
+            query: () => ({
+                url: `/engine/today/morning`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshMorningData } = await queryFulfilled;
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        freshMorningData.planAndTrackedStocks.map((t, i) =>
+                        {
+                            if (!draft.plans.entities[t.tickerSymbol]) return
+                            const entityToUpdate = draft.plans.entities[t.tickerSymbol]
+
+                            if (t?.extentProb) entityToUpdate.metricConfig.extentProb = t.extentProb
+                            if (t?.extremeProbByFiveMin) entityToUpdate.metricConfig.extremeProbByFiveMin = t.extremeProbByFiveMin
+                            if (t?.morningMetrics) entityToUpdate.metricConfig.morningMetrics = t.morningMetrics
+                            if (t?.morningVolumeMetrics) entityToUpdate.metricConfig.morningVolume = t.morningVolumeMetrics
+                            if (t?.volumeDistributionMetrics) entityToUpdate.metricConfig.volumeDistribution = t.volumeDistributionMetrics
+                            if (t?.optionsExpectedMoves) entityToUpdate.optionsConfig = t.optionsExpectedMoves
+
+                            if (t?.dateOptionsEMLastCalculated) entityToUpdate.planConfig.datesLastCalculated.options = t.dateOptionsEMLastCalculated
+                            if (t?.dateMorningMetricsLastCalculated) entityToUpdate.planConfig.datesLastCalculated.morningMetrics = t.dateMorningMetricsLastCalculated
+
+                        })
+                    }))
+                } catch (error) { console.log(error) }
+            }
+        }),
+        fetchEngineOpenCrossData: builder.query({
+            query: () => ({
+                url: `/engine/today/openCross`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshOpenCrosses } = await queryFulfilled;
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        freshOpenCrosses.openCross.map((t, i) =>
+                        {
+                            if (!draft.plans.entities[t.tickerSymbol]) return
+                            if (t?.openCrossMetrics) draft.plans.entities[t.tickerSymbol].metricConfig.openCross = t.openCrossMetrics
+                        })
+
+                        if (freshOpenCrosses.snapShots)
+                        {
+                            freshOpenCrosses.snapShots.map((t, i) =>
+                            {
+                                let entityForUpdate = draft.plans.entities[t.symbol]
+                                if (entityForUpdate)
+                                {
+                                    entityForUpdate.snapShot = t
+
+
+                                    entityForUpdate.currentPriceStats.snapShot = t
+                                    entityForUpdate.currentPriceStats.dailyBar = t.DailyBar
+                                    entityForUpdate.currentPriceStats.prevDailyBar = t.PrevDailyBar
+
+                                    entityForUpdate.currentPriceStats.yesterdayClose = t.PrevDailyBar.ClosePrice
+                                    entityForUpdate.currentPriceStats.changeFromYesterdayClose = entityForUpdate.mostRecentPrice - t.PrevDailyBar.ClosePrice
+
+
+                                    if (entityForUpdate.activeTradeConfig)
+                                    {
+                                        let tradesCopy = [...draft.trades]
+                                        draft.trades = tradesCopy.map((k, i) =>
+                                        {
+                                            if (k.snapShot.symbol === t.symbol) return { ...k, snapShot: t }
+                                            else return k
+                                        })
+                                    }
+
+
+                                } else if (draft.macros.entities[t.symbol])
+                                {
+                                    entityForUpdate = draft.macros.entities[t.symbol]
+                                    entityForUpdate.snapShot = t
+                                }
+
+                            })
+
+                        }
+
+
+                    }))
+                } catch (error) { console.log(error) }
+            }
+        }),
+        fetchEngineMidDayData: builder.query({
+            query: () => ({
+                url: `/engine/today/midday`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshMidDayData } = await queryFulfilled;
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        freshMidDayData.planAndTrackedStocks.map((t, i) =>
+                        {
+                            if (!draft.plans.entities[t.tickerSymbol]) return
+                            const entityToUpdate = draft.plans.entities[t.tickerSymbol]
+                            if (t?.optionsExpectedMoves) entityToUpdate.optionsConfig = t.optionsExpectedMoves
+                            if (t?.dateOptionsEMLastCalculated) entityToUpdate.planConfig.datesLastCalculated.options = t.dateOptionsEMLastCalculated
+
+                        })
+                    }))
+                } catch (error) { console.log(error) }
+            }
+        }),
+        fetchEnginePostCloseData: builder.query({
+            query: () => ({
+                url: `/engine/today/postClose`,
+                validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+            }),
+            async onQueryStarted(args, { dispatch, queryFulfilled })
+            {
+                try
+                {
+                    const { data: freshPostCloseData } = await queryFulfilled;
+
+                    dispatch(EnginePlanPlanApiSlice.util.updateQueryData('initiateEngineWithEnterExitPlan', undefined, (draft) =>
+                    {
+                        if (!draft) return
+                        freshPostCloseData.planAndTrackedStocks.map((t, i) =>
+                        {
+                            if (!draft.plans.entities[t.tickerSymbol]) return
+
+                            const entityToUpdate = draft.plans.entities[t.tickerSymbol]
+                            if (t?.channelPattern || t?.cascadePattern || t?.continuationPattern)
+                            {
+                                if (entityToUpdate.patternConfig.patternClassification === 'channel') { entityToUpdate.patternConfig = t.channelPattern }
+                                else if (entityToUpdate.patternConfig.patternClassification === 'continuation') { entityToUpdate.patternConfig = t.continuationPattern }
+                                else if (entityToUpdate.patternConfig.patternClassification === 'cascade') { entityToUpdate.patternConfig = t.cascadePattern }
+                            }
+
+                            if (t?.correlationValues) entityToUpdate.planConfig.correlationValues = t.correlationValues
+                            if (t?.greatestCorrelation) entityToUpdate.planConfig.greatestCorrelation = t.greatestCorrelation
+                            if (t?.dailyTickerValues) entityToUpdate.planConfig.dailyCalculatedValues = t.dailyTickerValues
+                            if (t?.relevantDateBackTests && t?.relevantDateBackTestsUsingFloor) entityToUpdate.planConfig.backTestedValues = { entryPrice: t.relevantDateBackTests, floorPrice: t.relevantDateBackTestsUsingFloor }
+
+                            if (t?.absorptionWindowMetrics) entityToUpdate.metricConfig.absorptionWindow = t.absorptionWindowMetrics
+                            if (t?.retailVsInstitutionMetrics) entityToUpdate.metricConfig.retailVsInstitution = t.retailVsInstitutionMetrics
+                            if (t?.volumeProfileMetrics) entityToUpdate.metricConfig.vpSupportResistance = t.volumeProfileMetrics
+
+                            if (t?.dateVolumeProfileLastCalculated) entityToUpdate.planConfig.datesLastCalculated.volumeProfileMetrics = t.dateVolumeProfileLastCalculated
+                            if (t?.datePatternLastCalculated) entityToUpdate.planConfig.datesLastCalculated.pattern = t.datePatternLastCalculated
+                            if (t?.dateRvILastCalculated) entityToUpdate.planConfig.datesLastCalculated.retailVsInstitution = t.dateRvILastCalculated
+                            if (t?.dateAbsorptionWindowLastCalculated) entityToUpdate.planConfig.datesLastCalculated.absorptionWindow = t.dateAbsorptionWindowLastCalculated
+
+                        })
+                    }))
+                } catch (error) { console.log(error) }
+            }
+        })
     })
 });
 
@@ -1411,6 +1411,27 @@ export const selectExposureResults = createSelector([selectApiCacheData], (cache
 
 export const selectActiveTradeResults = createSelector([selectApiCacheData], (cachedData) => cachedData.trades)
 
+export const selectActiveTradeResultIds = () =>
+{
+    return createSelector(
+        [selectApiCacheData], (cachedData) => cachedData.trades.map(t => t.tickerSymbol)
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const selectDayPL = createSelector([selectApiCacheData, planSelectors.selectEntities], (activeTrades, planEntity) =>
 {
     let totalPurchasePrice = 0
@@ -1454,6 +1475,9 @@ export const selectDayPL = createSelector([selectApiCacheData, planSelectors.sel
 
     return { openPLTotal, openPLPercent, todayPLTotal, todayOpenPercent, trades: currentTrades.sort((a, b) => b.openPL - a.openPL) }
 })
+
+
+
 
 
 
@@ -1727,3 +1751,49 @@ export const selectMacroTickers = createSelector(
     [macroSelectors.selectEntities, (state, symbol) => symbol],
     (macros, symbol) => { return macros[symbol] }
 )
+
+
+
+
+
+const selectPlanConfig = createSelector(
+    [planSelectors.selectEntities, selectTickerSymbolParam],
+    (stockEntities, symbol) => stockEntities[symbol]?.planConfig || null
+)
+
+const selectMetricConfig = createSelector(
+    [planSelectors.selectEntities, selectTickerSymbolParam],
+    (stockEntities, symbol) => stockEntities[symbol]?.metricConfig || null
+)
+export const selectStaticTradeBlockInfoByTicker = () =>
+{
+    return createSelector(
+        [
+            selectPlanConfig,
+            selectMetricConfig
+        ],
+        (plan, metrics) =>
+        {
+            if (!plan) return null
+
+
+            return {
+                planPricePoints: [plan.plan.stopLossPrice, plan.plan.enterPrice, plan.plan.enterBufferPrice, plan.plan.exitBufferPrice,
+                plan.patternConfig?.channelTop ||
+                plan.plan.exitPrice, plan.plan.moonPrice],
+                dailyCalculatedValues: plan.dailyCalculatedValues,
+                emaPricePoints: {
+                    ema9: plan.dailyCalculatedValues.ema9,
+                    ema50: plan.dailyCalculatedValues.ema50,
+                    ema200: plan.dailyCalculatedValues.ema200
+                },
+                volumeProfile: metrics?.vpSupportResistance,
+                atr: plan.dailyCalculatedValues.atr,
+                sector: plan.sector,
+                averagePositionPrice: plan.activeTradeConfig,
+                PrevClosePrice: plan.dailyCalculatedValues.PrevDailyBar.ClosePrice,
+                TodayOpenPrice: plan.dailyCalculatedValues.DailyBar.OpenPrice
+            }
+        }
+    )
+}

@@ -13,15 +13,15 @@ function SearchMacroGraphArray({ handleNavigateClear })
         <div id='SearchMacroGraphArray'>
 
             <div id='MajorMacroSearch'>
-                {majorMacroTickers.map((ticker, i) => <SingleMacroGraph key={`searchMacro${ticker}`} ticker={ticker} />)}
+                {majorMacroTickers.map((ticker, i) => <SingleMacroGraph key={`searchMacro${ticker}`} ticker={ticker} handleNavigateClear={handleNavigateClear} />)}
             </div>
 
             <div id='MinorMacroSearch'>
-                {allSectorTickers.map((ticker) => < SingleMacroGraph key={`searchMacro${ticker}`} ticker={ticker} />)}
+                {allSectorTickers.map((ticker) => < SingleMacroGraph key={`searchMacro${ticker}`} ticker={ticker} handleNavigateClear={handleNavigateClear} />)}
             </div>
 
             <div id='ProgramJumpControls'>
-            <button onClick={handleNavigateClear}>Market Search</button>
+                <button onClick={handleNavigateClear}>Market Search</button>
             </div>
         </div>
     )

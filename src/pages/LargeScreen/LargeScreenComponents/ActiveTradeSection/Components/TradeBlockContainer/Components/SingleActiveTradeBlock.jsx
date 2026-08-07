@@ -6,7 +6,7 @@ import { setStockDetailState } from '../../../../../../../features/SelectedStock
 import { ChevronDown, ChevronUp, CopySlash, Expand, X } from 'lucide-react'
 import VerticalPlanDiagram from './VerticalPlanDiagram'
 import VerticalMoveDiagram from './VerticalMoveDiagram'
-import { differenceInBusinessDays } from 'date-fns'
+import { differenceInBusinessDays, isToday } from 'date-fns'
 import { selectMacroTickersAndChartIds } from '../../../../../../../features/WatchList/WatchListStreamingSliceApi'
 import MiniGraphChartWrapper from './MiniGraphChartWrapper'
 import { sectorToTicker } from '../../../../../../../Utilities/SectorsAndIndustries'
@@ -15,47 +15,28 @@ import MiniFiveMinChart from '../../../../StockDetailSection/Components/TinyPreW
 import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { initiateTickerPreCheck } from '../../../../../../../features/Trades/PreTradeCheckSlice'
 import { provideEnterExitPlanSelector } from '../../../../../../../Utilities/adaptorSelection'
-import { selectPlanForStaticDetails } from '../../../../../../../features/Engine/EnginePlanApiSlice'
+import { selectDetailedScoreBreakDownBySymbol, selectPlanForStaticDetails, selectStaticTradeBlockInfoByTicker } from '../../../../../../../features/Engine/EnginePlanApiSlice'
+import MiniCandleLineChart from './MiniCandleLineChart'
+import { getInsertionIndexLinear } from '../../../../../../../Utilities/UtilityHelperFunctions'
 
-function SingleActiveTradeBlock({ trade })
+function SingleActiveTradeBlock({ activeTrade })
 {
-    console.log(trade)
-    const tickerSymbol = trade.tickerSymbol
+    const tickerSymbol = activeTrade.tickerSymbol
 
     const selectStaticFieldsInstance = useMemo(selectPlanForStaticDetails, [])
-    const activeTrade = useSelector((state) => selectStaticFieldsInstance(state, trade.tickerSymbol), shallowEqual);
-    console.log(activeTrade)
+    const activeTradeStaticPlanFields = useSelector((state) => selectStaticFieldsInstance(state, tickerSymbol), shallowEqual);
 
+
+    const selectStaticTradeBlock = useMemo(selectStaticTradeBlockInfoByTicker, [])
+    const activeStaticTradeInfo = useSelector((state) => selectStaticTradeBlock(state, tickerSymbol), shallowEqual)
 
 
     const dispatch = useDispatch()
 
-    const liquidatePrice = useRef()
-    const [alterTradeRecord] = useAlterTradeRecordMutation()
-    async function liquidateFullPosition(priceFromCashOutMessage)
-    {
+    const { centralScoreProfile, mostRecentPrice, mostRecentPriceUpDown } = useSelector((state) => selectDetailedScoreBreakDownBySymbol(state, tickerSymbol))
 
-        let price
-        if (priceFromCashOutMessage) { price = priceFromCashOutMessage }
-        else parseFloat(liquidatePrice.current.value)
 
-        if (!price || price > (activeTrade.mostRecentPrice * 1.2) || price < (activeTrade.mostRecentPrice * 0.8)) return
 
-        try
-        {
-            await alterTradeRecord({
-                action: 'closeAll',
-                tickerSymbol: activeTrade.tickerSymbol,
-                tradeId: activeTrade._id,
-                tradePrice: price,
-                positionSizeOfAlter: activeTrade.availableShares
-            })
-        } catch (error)
-        {
-            console.log(error)
-        }
-
-    }
 
 
 
@@ -65,12 +46,6 @@ function SingleActiveTradeBlock({ trade })
     const [showTradeOptions, setShowTradeOptions] = useState(false)
     const [showMiniGraph, setShowMiniGraph] = useState(false)
 
-    // const { activeTrade } = useGetUsersActiveTradesQuery(undefined, { selectFromResult: ({ data }) => ({ activeTrade: data ? activeTradeSelectors.selectById(data, id) : undefined }) })
-    // const { plan } = useGetUsersEnterExitPlanQuery(undefined, { selectFromResult: ({ data }) => ({ plan: data ? provideEnterExitPlanSelector(data, id) : undefined }) })
-
-
-    // const macroToChartMemo = useMemo(selectMacroTickersAndChartIds, [])
-    // const macroToChartId = useSelector(state => macroToChartMemo(state))
 
 
 
@@ -97,33 +72,70 @@ function SingleActiveTradeBlock({ trade })
     }
 
 
+    const isPositiveOrNegativeTrade = mostRecentPrice >= activeTrade.averagePurchasePrice
+    const averagePriceToExitSpan = activeStaticTradeInfo.planPricePoints[4] - activeTrade.averagePurchasePrice
+    const currentChangeFromAveragePrice = mostRecentPrice - activeTrade.averagePurchasePrice
+
+    const averagePriceRiskPercent = (activeTrade.averagePurchasePrice - activeStaticTradeInfo.planPricePoints[0]) * 100 / activeTrade.averagePurchasePrice
+    const averagePriceRewardPercent = (activeStaticTradeInfo.planPricePoints[4] - activeTrade.averagePurchasePrice) * 100 / activeTrade.averagePurchasePrice
+
+    const averageGainPerShare = mostRecentPrice - activeTrade.averagePurchasePrice
+
+
+    const todayOpenPrice = isToday(activeTrade.snapShot.DailyBar.Timestamp) ? activeTrade.snapShot.DailyBar.OpenPrice : 0
+    const yesterdayClosePrice = isToday(activeTrade.snapShot.DailyBar.Timestamp) ? activeTrade.snapShot.PrevDailyBar.ClosePrice : activeTrade.snapShot.DailyBar.ClosePrice
+
+    let todayPL = 0
+    if (todayOpenPrice) todayPL = (mostRecentPrice - todayOpenPrice) * activeTrade.availableShares
+    let todayPercent = ((mostRecentPrice - todayOpenPrice) / todayOpenPrice)
+
+    let totalCost = 0
+    activeTrade.purchaseRecords.forEach(t => totalCost += (t.purchasePrice * t.sharesRemaining))
+
+    let openPL = 0
+    activeTrade.purchaseRecords.forEach(t => openPL += ((mostRecentPrice - t.purchasePrice) * t.sharesRemaining))
+    let percentPLTotal = ((openPL - totalCost) / totalCost)
+
+
+    let idealTotalGain = (activeStaticTradeInfo.planPricePoints[4] - activeTrade.averagePurchasePrice) * activeTrade.availableShares
+    let idealTotalRisk = (activeTrade.averagePurchasePrice - activeStaticTradeInfo.planPricePoints[0]) * activeTrade.availableShares
+
+
+const classVisualNames=['belowStopLoss','belowEnter','belowEnterBuffer','belowExitBuffer','belowExit','belowMoon','aboveMoon']
+
+
+    const currentVisualPosition = getInsertionIndexLinear(activeStaticTradeInfo.planPricePoints, mostRecentPrice)
+
     return (<>
         {/* {false ?
             // {activeTrade.totalGain < -50 ?
             <CashOutMessage activeTrade={activeTrade} liquidateFullPosition={liquidateFullPosition} /> : */}
 
         {/* {showMiniGraph ? <MiniGraphChartWrapper setShowMiniGraph={setShowMiniGraph} activeTrade={activeTrade} /> : */}
-        {/* ${activeTrade?.classVisual} */}
-        <div className={`LSH-ActiveTradeBlock 
-            `}
-        >
+        
+        <div className={`LSH-ActiveTradeBlock  ${classVisualNames[currentVisualPosition]} `}>
             <div className='VerticalPlanDiagrams'>
-                {/* <VerticalPlanDiagram idealPrices={activeTrade.tradingPlanPrices} tickerSymbol={tickerSymbol} */}
-                {activeTrade.id}
-                
-                {/* /> */}
+                <VerticalPlanDiagram idealPrices={activeStaticTradeInfo.planPricePoints} averageEntryPrice={activeTrade.averagePurchasePrice}
+                    currentPrice={mostRecentPrice} tickerSymbol={tickerSymbol}
+                    emaPricePoints={[activeStaticTradeInfo.emaPricePoints.ema9, activeStaticTradeInfo.emaPricePoints.ema50, activeStaticTradeInfo.emaPricePoints.ema200]}
+                    atrPricePoints={[yesterdayClosePrice - activeStaticTradeInfo.atr, yesterdayClosePrice, yesterdayClosePrice + activeStaticTradeInfo.atr]}
+                    upwardVolumeNodes={activeStaticTradeInfo.volumeProfile.overHeadResistance}
+                    downwardVolumeNodes={activeStaticTradeInfo.volumeProfile.underlyingSupport}
+                />
+
+
                 {/* <VerticalMoveDiagram currentPrice={activeTrade.mostRecentPrice} percentOfGain={activeTrade.percentOfGain} /> */}
             </div>
 
-            {/* <div className='TradeInfoSection'>
+            <div className='TradeInfoSection'>
                 <div>
                     <div className='PriceTickerInfo'>
-                        <h2 onClick={() => { setShowTradeOptions(prev => !prev); }}>{activeTrade.tickerSymbol}</h2>
+                        <h2 onClick={() => { setShowTradeOptions(prev => !prev); }}>{tickerSymbol}</h2>
                         <div className='PriceMovementPerTrade' onClick={() => handleStockToTradeChart()}
                             onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); handleFinalPreCheckView() }}>
-                            <h2 className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>${activeTrade.mostRecentPrice.toFixed(activeTrade.mostRecentPrice > 1 ? 2 : 4)}</h2>
-                            {activeTrade.priceDirection === 'negativeDirection' && < ChevronDown size={18} color='red' />}
-                            {activeTrade.priceDirection === 'positiveDirection' && <ChevronUp size={18} color='green' />}
+                            <h2 style={{ color: `${mostRecentPrice > activeStaticTradeInfo.TodayOpenPrice ? 'green' : mostRecentPrice < activeStaticTradeInfo.TodayOpenPrice ? 'red' : 'gray'}` }}                            >
+                                ${mostRecentPrice.toFixed(mostRecentPrice > 2 ? 2 : 3)}</h2>
+                            {mostRecentPriceUpDown ? < ChevronDown size={18} color='red' /> : <ChevronUp size={18} color='green' />}
                         </div>
                     </div>
 
@@ -136,73 +148,85 @@ function SingleActiveTradeBlock({ trade })
                             <button onClick={() => liquidateFullPosition()} className='iconButton'>
                                 <p>All</p><CopySlash color='red' size={16} />
                             </button>
-
-
                         </div>
+
                         : <div className='TimeFrameOptions'>
                             <div className='flex' onClick={() => setShowMiniGraph(true)}>
-                                <p ><span className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>${(activeTrade.mostRecentPrice - activeTrade.previousClose).toFixed(2)}</span></p>
-                                <p className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>{((activeTrade.mostRecentPrice - activeTrade.previousClose) / activeTrade.previousClose * 100).toFixed(2)}%</p>
+                                <p ><span className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>
+                                    ${(mostRecentPrice - activeStaticTradeInfo.PrevClosePrice).toFixed(2)}</span></p>
+
+                                <p className={activeTrade?.todaysGain > 0 ? 'positiveDirection' : 'negativeDirection'}>
+                                    {((mostRecentPrice - activeStaticTradeInfo.PrevClosePrice) / activeStaticTradeInfo.PrevClosePrice * 100).toFixed(2)}%</p>
                             </div>
-                            <p onClick={() => handleStockToFourWaySector()} onContextMenu={(e) => { e.preventDefault(); handleStockToFourWay() }}>{activeTrade.sector}</p>
+                            <p onClick={() => handleStockToFourWaySector()} onContextMenu={(e) => { e.preventDefault(); handleStockToFourWay() }}>
+                                {activeStaticTradeInfo.sector}</p>
                         </div>
                     }
                 </div>
 
                 <div>
                     {showStopEnterExit === 0 ?
-                        <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive currentPL' : 'activeTradeNegative currentPL'} onClick={() => setShowStopEnterExit(1)}>
+                        <div
+                            style={{ backgroundColor: `${isPositiveOrNegativeTrade ? 'green' : 'red'}` }}
+                            className='currentPL' onClick={() => setShowStopEnterExit(1)}>
+
                             <div onMouseEnter={() => setShowGainPercentOrGPP(1)} onMouseLeave={() => setShowGainPercentOrGPP(0)}>
-                                <h2>{activeTrade.percentFromOpen > 0 && '+'}{activeTrade.percentFromOpen.toFixed(2)}%</h2>
-                                <p>GPS: ${activeTrade.gainPerShare.toFixed(2)}</p>
+                                <h2>{isPositiveOrNegativeTrade && '+'}{percentPLTotal.toFixed(2)}%</h2>
+                                <p>GPS: ${averageGainPerShare.toFixed(2)}</p>
                             </div>
 
                             <div onMouseEnter={() => setShowGainPercentOrGPP(2)} onMouseLeave={() => setShowGainPercentOrGPP(0)}>
-                                <h2>${(activeTrade.gainPerShare * activeTrade.availableShares).toFixed(2)}</h2>
-                                <p >Day's P/L: ${activeTrade?.todaysGain.toFixed(2)}</p>
+                                <h2>${(averageGainPerShare * activeTrade.availableShares).toFixed(2)}</h2>
+                                <p >Day's P/L: <span style={{ color: `${todayPL >= 0 ? '' : 'red'}` }}>${todayPL.toFixed(2)}</span></p>
                             </div>
                         </div> :
-                        showStopEnterExit === 1 ? <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive PlanStopEnterExit' : 'activeTradeNegative PlanStopEnterExit'}
-                            onClick={() => setShowStopEnterExit(2)}>
-                            <div>
-                                <p>${activeTrade.tradingPlanPrices[0]}</p>
-                                <p>StopLoss</p>
-                            </div>
-                            <div>
-                                <p>${activeTrade.tradingPlanPrices[1]}</p>
-                                <p>Enter</p>
-                            </div>
-                            <div>
-                                <p>${activeTrade.tradingPlanPrices[2]}</p>
-                                <p>Enter Buffer</p>
-                            </div>
-                        </div> :
-                            showStopEnterExit === 2 ? <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive PlanStopEnterExit' : 'activeTradeNegative PlanStopEnterExit'}
-                                onClick={() => setShowStopEnterExit(3)}>
+                        showStopEnterExit === 1 ?
+                            <div style={{ backgroundColor: `${isPositiveOrNegativeTrade ? 'green' : 'red'}` }}
+                                className='PlanStopEnterExit'
+                                onClick={() => setShowStopEnterExit(2)}>
                                 <div>
-                                    <p>${activeTrade.tradingPlanPrices[3]}</p>
-                                    <p>Exit Buffer</p>
+                                    <p>${activeStaticTradeInfo.planPricePoints[0]}</p>
+                                    <p>StopLoss</p>
                                 </div>
                                 <div>
-                                    <p>${activeTrade.tradingPlanPrices[4]}</p>
-                                    <p>Exit {activeTrade.percentFromPlanPrices[3].toFixed(2)}%</p>
+                                    <p>${activeStaticTradeInfo.planPricePoints[1]}</p>
+                                    <p>Enter</p>
                                 </div>
                                 <div>
-                                    <p>${activeTrade.tradingPlanPrices[5]}</p>
-                                    <p>Moon Shot</p>
+                                    <p>${activeStaticTradeInfo.planPricePoints[2]}</p>
+                                    <p>Enter Buffer</p>
                                 </div>
-                            </div>
-                                : <div className={activeTrade.percentFromOpen >= 0 ? 'activeTradePositive PlanStopEnterExit' : 'activeTradeNegative PlanStopEnterExit'}
+                            </div> :
+                            showStopEnterExit === 2 ?
+                                <div style={{ backgroundColor: `${isPositiveOrNegativeTrade ? 'green' : 'red'}` }}
+                                    className='PlanStopEnterExit' onClick={() => setShowStopEnterExit(3)}>
+                                    <div>
+                                        <p>${activeStaticTradeInfo.planPricePoints[3]}</p>
+                                        <p>Exit Buffer</p>
+                                    </div>
+                                    <div>
+                                        <p>${activeStaticTradeInfo.planPricePoints[4]}</p>
+                                        <p>Exit</p>
+                                    </div>
+                                    <div>
+                                        <p>${activeStaticTradeInfo.planPricePoints[5]}</p>
+                                        <p>Moon Shot</p>
+                                    </div>
+                                </div>
+                                :
+                                <div style={{ backgroundColor: `${isPositiveOrNegativeTrade ? 'green' : 'red'}` }}
+                                    className='PlanStopEnterExit'
                                     onClick={() => setShowStopEnterExit(0)}>
                                     <div>Risk</div>
-                                    <p>{activeTrade.idealPercents[0]} vs {activeTrade.idealPercents[3]}</p>
+                                    <p>{averagePriceRiskPercent.toFixed(1)} vs {averagePriceRewardPercent.toFixed(1)}</p>
                                     <div>Reward</div>
                                 </div>}
 
-                    <div
-                        className={activeTrade.percentFromOpen >= 0 ? 'moveCapturePositive MoveCaptured' : 'moveCaptureNegative MoveCaptured'}>
+                    <div style={{ border: `2px solid ${isPositiveOrNegativeTrade ? 'green' : 'red'}` }} className='MoveCaptured'>
                         {showGainPercentOrGPP === 0 ?
-                            <p onClick={() => setShowGainPercentOrGPP(1)} >{activeTrade.percentOfGain.toFixed(2)}% E/X Captured</p> :
+                            <p onClick={() => setShowGainPercentOrGPP(1)} >
+                                {(currentChangeFromAveragePrice * 100 / averagePriceToExitSpan).toFixed(2)}% E/X Captured
+                            </p> :
 
                             showGainPercentOrGPP === 1 ?
                                 <div className='flex' onClick={() => setShowGainPercentOrGPP(2)}>
@@ -210,7 +234,7 @@ function SingleActiveTradeBlock({ trade })
                                     <p>GPD ${(activeTrade.availableShares * 0.10).toFixed(2)}</p>
                                 </div> :
                                 <div onClick={() => setShowGainPercentOrGPP(0)}>
-                                    <p>${(activeTrade.idealTotalGain - activeTrade.totalGain).toFixed(2)} From Exit Price</p>
+                                    <p>${(idealTotalGain - openPL).toFixed(2)} From Exit Price</p>
                                 </div>
                         }
                     </div>
@@ -221,11 +245,12 @@ function SingleActiveTradeBlock({ trade })
                     <div className='TradeBlockBottom'>
                         <div onClick={() => setShowPositionInfo(1)}>
                             <p>ATR</p>
-                            <p>${(activeTrade.mostRecentPrice - activeTrade.previousClose).toFixed(2)} vs ${activeTrade?.atr}</p>
+                            <p>${(mostRecentPrice - activeStaticTradeInfo.PrevClosePrice).toFixed(2)} vs ${activeStaticTradeInfo?.atr}</p>
                         </div>
                         <div onClick={() => setShowPositionInfo(2)}>
-                            <MiniFiveMinChart candleData={activeTrade.dailyCandles}
-                                direction={activeTrade.mostRecentPrice > activeTrade.openPrice} openPrice={activeTrade.openPrice} stopLossPrice={activeTrade.tradingPlanPrices[0]} />
+                            <MiniCandleLineChart tickerSymbol={tickerSymbol}
+                                direction={mostRecentPrice > activeStaticTradeInfo.TodayOpenPrice} openPrice={activeStaticTradeInfo.TodayOpenPrice}
+                                stopLossPrice={activeStaticTradeInfo.planPricePoints[0]} />
                         </div>
                     </div> :
                     showPositionInfo === 1 ?
@@ -243,15 +268,15 @@ function SingleActiveTradeBlock({ trade })
                         <div className='TradeBlockBottom' onClick={() => setShowPositionInfo(0)}>
                             <div>
                                 <p>Position Risk</p>
-                                <p>${activeTrade.idealTotalRisk.toFixed(2)}</p>
+                                <p>${idealTotalRisk.toFixed(2)}</p>
                             </div>
                             <div>
                                 <p>Ideal Reward</p>
-                                <p>${activeTrade.idealTotalGain.toFixed(2)}</p>
+                                <p>${idealTotalGain.toFixed(2)}</p>
                             </div>
                         </div>
                 }
-            </div> */}
+            </div>
         </div>
     </>
     )

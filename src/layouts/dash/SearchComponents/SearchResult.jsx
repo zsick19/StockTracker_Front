@@ -62,7 +62,7 @@ function SearchResult({ tickerSymbol, handleNavigateClear })
                     </div>
                 </div>
                     :
-                    <SearchMacroGraphArray />
+                    <SearchMacroGraphArray handleNavigateClear={handleNavigateClear}/>
                 }
             </div>
         </>

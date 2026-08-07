@@ -64,16 +64,18 @@ function StockDetailSection()
       case 14: return <BestPositionSplit />
       case 15: return <MacroChartingGraph />
       case 16: return <TinyPreWatch />
-      case 17: return <RRGChart />
       case 18: return <ActiveTradeWatchMany />
-      case 19: return <SectorPlanView />
       case 20: return <FinalPreTradeCheck />
+
+
+      case 17: return <RRGChart />
+      case 19: return <SectorPlanView tickerSymbol={currentStockDetail.ticker} />
 
       case 21: return <IntegratedPlanView tickerSymbol={currentStockDetail.ticker} />
       case 22: return <DeepDiscount tickerSymbol={currentStockDetail.ticker} />
       case 23: return <DeepDiscountTradeView tickerSymbol={currentStockDetail.ticker} />
       case 24: return <MacroEventOverlap tickerSymbol={currentStockDetail.ticker} />
-      case 25: return <div>Calander</div>
+      case 25: return <div>Calender Build Out Here</div>
       case 26: return <PlanTradeExposure />
       case 27: return <ManageTrade tickerSymbol={currentStockDetail.ticker} />
       case 28: return <JournalRecords />

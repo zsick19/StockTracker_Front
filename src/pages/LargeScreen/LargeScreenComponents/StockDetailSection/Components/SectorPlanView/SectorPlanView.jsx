@@ -14,48 +14,51 @@ import * as short from 'short-uuid'
 import SectorViewHighImportance from './Components/SectorViewHighImportance'
 import SectorViewAllPlans from './Components/SectorViewAllPlans'
 
-function SectorPlanView()
+function SectorPlanView({ tickerSymbol })
 {
-    const dispatch = useDispatch()
-    const ticker = useSelector(selectStockDetailTickerControl)
+    // const dispatch = useDispatch()
+    // const ticker = useSelector(selectStockDetailTickerControl)
 
 
-    const pollingInterval = isWeekend(new Date()) ? 0 : 300000
-    const { data, isSuccess, isLoading, isError, error, refetch } = useFetchMacroDailyZoneInfoQuery(undefined, { pollingInterval: pollingInterval })
-    const { data: dailyCandles, isSuccess: isSuccessDaily, isError: isErrorDaily, isLoading: isLoadingDaily, error: errorDaily } =
-        useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame: defaultTimeFrames.dailyHalfYear, provideNews: false, liveFeed: true })
+    // const pollingInterval = isWeekend(new Date()) ? 0 : 300000
+    // const { data, isSuccess, isLoading, isError, error, refetch } = useFetchMacroDailyZoneInfoQuery(undefined, { pollingInterval: pollingInterval })
+    // const { data: dailyCandles, isSuccess: isSuccessDaily, isError: isErrorDaily, isLoading: isLoadingDaily, error: errorDaily } =
+    //     useGetStockDataUsingTimeFrameQuery({ ticker, timeFrame: defaultTimeFrames.dailyHalfYear, provideNews: false, liveFeed: true })
 
 
-    const { data: miniChartData, isSuccess: isMiniChartSuccess, isLoading: isMiniChartLoading, isError: isMiniChartError, error: miniChartError, refetch: miniChartRefetch } = useGetTinyEnterExit5MinChartsQuery(undefined, { pollingInterval })
-    const { data: enterExitData, isSuccess: isEnterExitSuccess, refetch: refetchEnterExitPlan } = useGetUsersEnterExitPlanQuery()
+    // const { data: miniChartData, isSuccess: isMiniChartSuccess, isLoading: isMiniChartLoading, isError: isMiniChartError, error: miniChartError, refetch: miniChartRefetch } = useGetTinyEnterExit5MinChartsQuery(undefined, { pollingInterval })
+    // const { data: enterExitData, isSuccess: isEnterExitSuccess, refetch: refetchEnterExitPlan } = useGetUsersEnterExitPlanQuery()
 
 
-    let sectorGraph
-    if (isSuccess)
-    {
-        sectorGraph = <FiveMinSectorChartContainer sector={ticker} />
-    } else if (isLoading)
-    {
-        sectorGraph = <div>Loading Sector Data</div>
-    } else if (isError)
-    {
-        sectorGraph = <div>Error Loading Sector</div>
-    }
+    // let sectorGraph
+    // if (isSuccess)
+    // {
+    //     sectorGraph = <FiveMinSectorChartContainer sector={ticker} />
+    // } else if (isLoading)
+    // {
+    //     sectorGraph = <div>Loading Sector Data</div>
+    // } else if (isError)
+    // {
+    //     sectorGraph = <div>Error Loading Sector</div>
+    // }
 
-    const uuid = useMemo(() => short.generate(), [])
-    let sectorGraphDaily
-    if (isSuccessDaily)
-    {
-        sectorGraphDaily = <ChartWithChartingWrapper
-            ticker={ticker}
-            candleData={dailyCandles} uuid={uuid} timeFrame={defaultTimeFrames.dailyHalfYear}
-            interactionController={{ isZoomAble: true, isInteractive: false }}
-            showEMAs={true} />
-    }
+    // const uuid = useMemo(() => short.generate(), [])
+    // let sectorGraphDaily
+    // if (isSuccessDaily)
+    // {
+    //     sectorGraphDaily = <ChartWithChartingWrapper
+    //         ticker={ticker}
+    //         candleData={dailyCandles} uuid={uuid} timeFrame={defaultTimeFrames.dailyHalfYear}
+    //         interactionController={{ isZoomAble: true, isInteractive: false }}
+    //         showEMAs={true} />
+    // }
 
     return (
         <div id='SectorPlanView'>
-            <div id='sectorDailyFiveLeader'>
+            <p>{tickerSymbol}</p>
+            <p>sector graph here</p>
+            <p>Plans and their current positions here</p>
+            {/* <div id='sectorDailyFiveLeader'>
                 {sectorGraph}
                 {sectorGraphDaily}
                 <div id='sectorLeaderBoard'>
@@ -71,7 +74,7 @@ function SectorPlanView()
             </div>
 
             <SectorViewHighImportance sector={ticker} />
-            <SectorViewAllPlans sector={ticker} />
+            <SectorViewAllPlans sector={ticker} /> */}
 
         </div>
     )

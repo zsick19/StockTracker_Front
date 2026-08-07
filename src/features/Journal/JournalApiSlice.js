@@ -1,6 +1,8 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { getDay, isAfter, isBefore, isThisWeek } from "date-fns";
+import { InitializationApiSlice } from "../Initializations/InitializationSliceApi";
+
 
 export const JournalApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -15,13 +17,56 @@ export const JournalApiSlice = apiSlice.injectEndpoints({
       query: (args) => ({
         url: `/journal`,
         method: 'POST',
-        body: args
-      })
+        body: args,
+        validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+      }),
+      async onQueryStarted(args, { dispatch, queryFulfilled })
+      {
+        try
+        {
+          const { data: freshJournalEntry } = await queryFulfilled;
+
+          const cacheUpdateRecipe = InitializationApiSlice.util.updateQueryData('getUserInitialization', undefined, (draft) =>
+          { draft.journalEntries.push(freshJournalEntry) })
+
+          dispatch(cacheUpdateRecipe)
+        } catch (error)
+        {
+          console.log(error)
+        }
+      }
+    }),
+    removeJournalEntry: builder.mutation({
+      query: (args) => ({
+        url: `/journal/${args.journalId}`,
+        method: 'DELETE',
+        validateStatus: (response, result) => { return response.status === 200 && !result.isError }
+      }),
+      async onQueryStarted(args, { dispatch, queryFulfilled })
+      {
+        try
+        {
+          const { data: freshJournalEntry } = await queryFulfilled;
+
+          const cacheUpdateRecipe = InitializationApiSlice.util.updateQueryData('getUserInitialization', undefined, (draft) =>
+          {
+            if (!freshJournalEntry?.removedEntry) return
+            draft.journalEntries = draft.journalEntries.filter((t) => t._id !== freshJournalEntry.removedEntry)
+          })
+
+          dispatch(cacheUpdateRecipe)
+        } catch (error)
+        {
+          console.log(error)
+        }
+      }
     })
+
+
   })
 });
 
-export const { useCreateJournalEntryMutation } = JournalApiSlice;
+export const { useCreateJournalEntryMutation, useRemoveJournalEntryMutation } = JournalApiSlice;
 
 // const selectMacroCalendarResult = MacroCalendarApiSlice.endpoints.fetchMacroCalendar.select()
 // const selectCalendarData = createSelector(MacroCalendarApiSlice.endpoints.fetchMacroCalendar.select(), (result) =>

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './JournalRecord.css'
-import { useCreateJournalEntryMutation } from '../../../../../../../../features/Journal/JournalApiSlice'
+import { useCreateJournalEntryMutation, useRemoveJournalEntryMutation } from '../../../../../../../../features/Journal/JournalApiSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import { selectUsersJournalEntries } from '../../../../../../../../features/Initializations/InitializationSliceApi'
+import { X } from 'lucide-react'
 
 function JournalRecord()
 {
@@ -22,20 +23,37 @@ function JournalRecord()
         {
             const results = await createJournalEntry({ journalEntry, journalEntryCategory }).unwrap()
             setServerResponseMessage('Successfully Added Journal Entry')
-            setTimeout(() => setServerResponseMessage(''), [2500])
+            setTimeout(() =>
+            {
+                setServerResponseMessage('')
+                setShowJournalRecord(false)
+            }
+                , [2500])
         } catch (error)
         {
             setServerResponseMessage('Error Creating Journal Entry')
         }
     }
 
-    useEffect(() =>
+    const [removeJournalEntry] = useRemoveJournalEntryMutation()
+    async function attemptRemovingJournalEntry(journalEntryToRemove)
     {
-        if (showJournalRecord) journalEntryRef.current.focus()
-    }, [showJournalRecord])
+        const journalId = journalEntryToRemove._id
+        if (!journalId) return
+        try
+        {
+            const results = await removeJournalEntry({ journalId }).unwrap()
+
+        } catch (error)
+        {
+            console.log(error)
+        }
+    }
+
+
+    useEffect(() => { if (showJournalRecord) journalEntryRef.current.focus() }, [showJournalRecord])
 
     const entries = useSelector(selectUsersJournalEntries())
-    console.log(entries)
 
     return (
         <div id='JournalEntryRecord'>
@@ -74,11 +92,12 @@ function JournalRecord()
 
                 </form> : <div>
                     JournalRecord
-                    <div>
+                    <div style={{ height: '100px', overflowY: 'scroll' }} className='hide-scrollbar'>
                         {entries.map((t) =>
                             <div className='flex'>
                                 <p>{t.category}</p>
                                 <p>{t.entry}</p>
+                                <button onClick={() => attemptRemovingJournalEntry(t)}><X /></button>
                             </div>
                         )}
                     </div>
@@ -86,7 +105,6 @@ function JournalRecord()
                     <button onClick={() => dispatch(setStockDetailState(28))}>View Full Journal</button>
                     <button onClick={() => setShowJournalRecord(true)}>Add Entry</button>
                 </div>
-
             }
 
             <div>

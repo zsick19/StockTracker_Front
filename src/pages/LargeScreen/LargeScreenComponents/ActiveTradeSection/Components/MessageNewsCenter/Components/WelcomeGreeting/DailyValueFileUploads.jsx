@@ -22,14 +22,11 @@ function DailyValueFileUploads()
         {
             case 0: return <DailySPYValues showManualSpyIntake={false} />
             case 1: return <DailySPYValues showManualSpyIntake={true} />
-            case 2: return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', justifyItems: 'center', height: '230px' }}>
-                <StockCsvUpload process={uploadProcess} />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: '100%' }}>
-                    <button style={{ backgroundColor: "#00FFFF" }} onClick={() => setUploadProcess('DAILY CSV')}>Daily CSV</button>
-                    <button style={{ backgroundColor: "purple" }} onClick={() => setUploadProcess('ASHER EM')}>Asher Core EM</button>
-                    <button style={{ backgroundColor: "gold" }} onClick={() => setUploadProcess('DAILY EM')}>Daily EM</button>
-                    <button style={{ backgroundColor: "#00ff55" }} onClick={() => setUploadProcess('ZONE DOC')}>Zone Doc</button>
-                </div>
+            case 2: return <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', justifyItems: 'center', height: '230px' }}>
+                <StockCsvUpload process={'DAILY CSV'} />
+                <StockCsvUpload process={'DAILY EM'} />
+                <StockCsvUpload process={'ASHER EM'} />
+                <StockCsvUpload process={'ZONE DOC'} />
             </div>
             case 3: return <div> Spy Classification build out here</div>
         }

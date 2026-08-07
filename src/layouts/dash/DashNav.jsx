@@ -22,12 +22,7 @@ function DashNav()
 
   const { data, isSuccess: isMacroCalendarSuccess, isLoading: isMacroCalendarLoading, isError: isMacroCalendarError, error } = useFetchMacroCalendarQuery()
   let calendarContent
-  if (isMacroCalendarSuccess)
-  {
-
-    console.log(data)
-    calendarContent = <CalendarDays color="green" />
-  }
+  if (isMacroCalendarSuccess) { calendarContent = <CalendarDays color="green" /> }
   else if (isMacroCalendarLoading) { calendarContent = <CalendarDays color="gray" /> }
   else if (isMacroCalendarError) { calendarContent = <CalendarDays color="red" /> }
 

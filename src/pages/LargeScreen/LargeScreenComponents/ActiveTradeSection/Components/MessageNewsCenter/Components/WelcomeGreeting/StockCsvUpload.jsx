@@ -124,7 +124,7 @@ export const StockCsvUpload = ({ process }) =>
                     transition: 'all 0.2s ease'
                 }}>
                 <input type="file" id="filePicker" accept=".csv" onClick={(e) => e.preventDefault()} onChange={handleFileSelect} style={{ display: 'none' }} />
-                <label htmlFor="filePicker" style={{ cursor: 'pointer', textAlign: 'center', color: '#888' }}>
+                <label htmlFor="filePicker" style={{ cursor: 'pointer', textAlign: 'center', color: '#888', width: '100%' }}>
                     <span style={{
                         color: `${process === 'DAILY CSV' ? '#00FFFF' :
                             process === 'ASHER EM' ? "purple" :
@@ -133,46 +133,42 @@ export const StockCsvUpload = ({ process }) =>
                     }}>DRAG {process} HERE</span>
                 </label>
             </div >
-            {(process === 'ASHER EM' || process === 'DAILY EM') && <div className='flex'>
-                <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'DAILY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('DAILY')}>D</button>
-                <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'WEEKLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('WEEKLY')}>W</button>
-                <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'MONTHLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('MONTHLY')}>M</button>
-                <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'QUARTERLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('QUARTERLY')}>Q</button>
-                <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'YEARLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('YEARLY')}>Y</button>
-            </div>}
 
-            {
-                uploadStatus.message && (
-                    <div className="status-readout" style={{
-                        marginTop: '15px',
-                        fontSize: '12px',
-                        color: uploadStatus.state === 'ERROR' ? '#FF0055' : (uploadStatus.state === 'SUCCESS' ? '#00FFCC' : '#fff'),
-                        background: '#1a1a1a',
-                        padding: '10px',
-                        borderRadius: '4px'
+
+            {uploadStatus.message ? (
+                <div className="status-readout" style={{
+                    marginTop: '0.5rem', fontSize: '12px',
+                    color: uploadStatus.state === 'ERROR' ? '#FF0055' : (uploadStatus.state === 'SUCCESS' ? '#00FFCC' : '#fff'),
+                    background: '#1a1a1a',
+                    padding: '5px', borderRadius: '4px'
+                }}>
+                    {uploadStatus.message}
+                </div>
+            ) :
+                (process === 'ASHER EM' || process === 'DAILY EM') ?
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }} >
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'DAILY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('DAILY')}>D</button>
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'WEEKLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('WEEKLY')}>W</button>
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'MONTHLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('MONTHLY')}>M</button>
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'QUARTERLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('QUARTERLY')}>Q</button>
+                        <button style={{ backgroundColor: `${expectedMovesTimePeriod === 'YEARLY' ? 'blue' : ''}` }} onClick={() => setExpectedMovesTimePeriod('YEARLY')}>Y</button>
+                    </div> : ""}
+
+            {activeFile && uploadStatus.state !== 'PROCESSING' && (
+                <button onClick={attemptExecuteUpload}
+                    style={{
+                        marginTop: '1rem', width: '100%',
+
+                        background: '#00FFFF',
+                        color: '#000',
+                        border: 'none',
+                        fontWeight: 'bold',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
                     }}>
-                        {uploadStatus.message}
-                    </div>
-                )
-            }
-
-            {
-                activeFile && uploadStatus.state !== 'PROCESSING' && (
-                    <button onClick={attemptExecuteUpload}
-                        style={{
-                            marginTop: '15px',
-                            width: '100%',
-                            padding: '10px',
-                            background: '#00FFFF',
-                            color: '#000',
-                            border: 'none',
-                            fontWeight: 'bold',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}>
-                        SYNC DATA TO MONGODB
-                    </button>
-                )
+                    SYNC DATA TO MONGODB
+                </button>
+            )
             }
         </div >
     );

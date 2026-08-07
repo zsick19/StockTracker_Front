@@ -1,8 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import * as d3 from 'd3';
+import { useDispatch } from 'react-redux';
+import { setStockDetailStateWithTicker } from '../../../../../../../../../features/SelectedStocks/StockDetailControlSlice';
+import { sectorToTicker } from '../../../../../../../../../Utilities/SectorsAndIndustries';
 
 const SectorPieChart = ({ data, width = 500, height = 400 }) =>
 {
+  const dispatch = useDispatch()
   // Track hovered item data and screen mouse position
   const [hoveredSlice, setHoveredSlice] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
@@ -25,7 +29,7 @@ const SectorPieChart = ({ data, width = 500, height = 400 }) =>
   }, [data, totalValue]);
 
   // 2. Setup D3 spatial parameters
-  const radius = Math.min(width, height) / 2 -20;
+  const radius = Math.min(width, height) / 2 - 20;
   const centerX = width / 2;
   const centerY = height / 2;
 
@@ -58,7 +62,7 @@ const SectorPieChart = ({ data, width = 500, height = 400 }) =>
             const isHovered = hoveredSlice?.label === arc.data.label;
 
             return (
-              <path
+              <path onClick={() => dispatch(setStockDetailStateWithTicker({ detail: 19, ticker: sectorToTicker[arc.data.label] }))}
                 key={i}
                 d={arcGenerator(arc)}
                 fill={colorScale(arc.data.label)}

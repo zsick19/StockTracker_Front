@@ -1,16 +1,17 @@
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { selectMacroTickers } from '../../../features/Engine/EnginePlanApiSlice'
 import TodayOnlyChartWrapper from '../../../components/ChartSubGraph/TodayOnlyChart/TodayOnlyChartWrapper'
+import { setStockDetailStateWithTicker } from '../../../features/SelectedStocks/StockDetailControlSlice'
 
-function SingleMacroGraph({ ticker })
+function SingleMacroGraph({ ticker, handleNavigateClear })
 {
     const macroResult = useSelector((state) => selectMacroTickers(state, ticker))
     const [showMinOrDaily, setShowMinOrDaily] = useState(true)
-
+    const dispatch = useDispatch()
 
     return (
-        <div className='SingleMacroGraphArray' onContextMenu={(e) => { e.preventDefault(); setShowMinOrDaily(prev => !prev) }}>
+        <div className='SingleMacroGraphArray' onDoubleClick={() => { dispatch(setStockDetailStateWithTicker({ detail: 19, ticker })); handleNavigateClear() }} onContextMenu={(e) => { e.preventDefault(); setShowMinOrDaily(prev => !prev) }}>
 
             {showMinOrDaily ?
                 <TodayOnlyChartWrapper ticker={macroResult.id}
