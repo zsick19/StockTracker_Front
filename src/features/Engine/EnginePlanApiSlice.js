@@ -1428,18 +1428,17 @@ const selectCurrentTradeTickers = createSelector(
 const selectTickerByWatchList = (_, watchList) => watchList
 export const selectPlansForWatchManyByWatchList = () =>
 {
-    return createSelector([selectCurrentTradeTickers, planSelectors.selectEntities, selectTickerByWatchList],
-        (currentTrades, planEntity, selectedWatchList) =>
+    return createSelector([selectCurrentTradeTickers, selectHighImportancePlanIds, selectPrioritizedWatchlist, selectTickerByWatchList],
+        (currentTrades, importantIds, alphaScoredPlans, selectedWatchList) =>
         {
-
             switch (selectedWatchList)
             {
                 case 'activeTrade': return currentTrades
-                case 'belowStop': return ['ACIW']
-                case 'discount': return ['ABOS']
-                case 'entryStrike': return ['AI']
-                case 'viableEntry': return ['ALTO']
-                case 'highImportance': return ['AIG']
+                case 'belowStop': return alphaScoredPlans.filter(t => t.pricePosition === 0).map(t => t.tickerSymbol)
+                case 'discount': return alphaScoredPlans.filter(t => t.pricePosition === 1).map(t => t.tickerSymbol)
+                case 'entryStrike': return alphaScoredPlans.filter(t => t.pricePosition === 2).map(t => t.tickerSymbol)
+                case 'viableEntry': return alphaScoredPlans.filter(t => t.pricePosition < 3 && t.pricePosition > 0).map(t => t.tickerSymbol)
+                case 'highImportance': return importantIds.map(t => t.tickerSymbol)
             }
         })
 }
@@ -1636,12 +1635,6 @@ export const selectMostRecentPriceByTicker = createSelector(
         else return planEntity.mostRecentPrice
     }
 )
-
-
-
-
-
-
 export const selectMostRecentPriceAndDailyChangeByTicker = createSelector(
     [planSelectors.selectEntities, (state, symbol) => symbol],
     (stockEntities, symbol) =>
@@ -1666,8 +1659,6 @@ export const selectMostRecentPriceAndDailyChangeByTicker = createSelector(
         }
     }
 )
-
-
 export const selectDeepDiscountByReviewedStatus = createSelector(
 
     [planSelectors.selectAll, (state, onlyNonReviewedPlans) => onlyNonReviewedPlans],

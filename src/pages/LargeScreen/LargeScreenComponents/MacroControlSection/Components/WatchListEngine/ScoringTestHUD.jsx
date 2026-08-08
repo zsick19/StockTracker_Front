@@ -30,7 +30,7 @@ export const ScoringTestHUD = () =>
     }
 
     return (
-        <div style={{ background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', maxHeight: '600px' }}>
+        <div style={{ background: '#0a0a0c', color: '#fff', fontFamily: 'monospace', maxHeight: '600px' }} onContextMenu={(e) => { e.preventDefault(); dispatch(setStockDetailStateWithTicker({ detail: 18, ticker: 'viableEntry' })) }}>
 
             {headerOrShowSelect ?
                 <table style={{ width: '100%', height: '65px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }} onClick={(e) => { e.preventDefault(); setHeaderOrShowSelect(prev => !prev) }}>
@@ -64,7 +64,7 @@ export const ScoringTestHUD = () =>
                 </div>
             ) : (
                 <div className='hide-scrollbar' style={{ height: '500px', overflowY: 'scroll' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}                         >
                         <thead>
                             <tr style={{ background: '#111', color: '#888', }} >
                                 <th></th>

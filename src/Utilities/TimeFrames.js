@@ -1,4 +1,4 @@
-import { sub, subBusinessDays, startOfMonth, addMonths, isBefore, format, add, addDays, isSaturday, isSunday, subDays, subHours, isFriday, set } from 'date-fns';
+import { sub, subBusinessDays, startOfMonth, addMonths, isBefore, format, add, addDays, isSaturday, isSunday, subDays, subHours, isFriday, set, isWeekend, previousFriday } from 'date-fns';
 
 
 export const defaultTimeFrames = {
@@ -320,11 +320,11 @@ export function downSampleOneMinToFiveMin(oneMinArray)
 
 }
 
-
+const weekDay = isWeekend(new Date()) ? previousFriday(new Date()) : new Date()
 export const preSetDailyTimes = {
-  marketOpen: set(new Date(), { hours: 9, minutes: 30, seconds: 0, milliseconds: 0 }),
-  first5Mins: set(new Date(), { hours: 9, minutes: 35, seconds: 0, milliseconds: 0 }),
-  firstHour: set(new Date(), { hours: 10, minutes: 30, seconds: 0, milliseconds: 0 }),
-  lastHour: set(new Date(), { hours: 15, minutes: 0, seconds: 0, milliseconds: 0 }),
-  marketClose: set(new Date(), { hours: 16, minutes: 0, seconds: 0, milliseconds: 0 }),
+  marketOpen: set(new Date(weekDay), { hours: 9, minutes: 30, seconds: 0, milliseconds: 0 }),
+  first5Mins: set(new Date(weekDay), { hours: 9, minutes: 35, seconds: 0, milliseconds: 0 }),
+  firstHour: set(new Date(weekDay), { hours: 10, minutes: 30, seconds: 0, milliseconds: 0 }),
+  lastHour: set(new Date(weekDay), { hours: 15, minutes: 0, seconds: 0, milliseconds: 0 }),
+  marketClose: set(new Date(weekDay), { hours: 16, minutes: 0, seconds: 0, milliseconds: 0 }),
 }
