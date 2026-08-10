@@ -20,6 +20,7 @@ import { compileThreeTierPennyResistance } from "./RootCalculations/HistoricalCa
 import { compileThreeTierOverheadResistance } from "./RootCalculations/HistoricalCandleAnalytics/compileOverheadResistance";
 import { downSampleOneMinToFiveMin, preSetDailyTimes } from "../../Utilities/TimeFrames";
 import { updateStreamMostRecent } from "../Initializations/StreamMostRecentSlice";
+import { removeDeepDiscountWatch } from "../DeepDiscountEngine/DeepDiscountLocalSlice";
 
 
 const { getWebSocket, subscribe, unsubscribe, checkStreamAuthorization } = setupWebSocket();
@@ -1106,6 +1107,7 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     {
                         if (!draft || !draft.plans.entities) return;
                         enginePlanAdapter.removeOne(draft.plans, deletionConfirmation.tickerRemoved)
+                        dispatch(removeDeepDiscountWatch(deletionConfirmation.tickerRemoved))
                     })
                     setTimeout(() => dispatch(cacheUpdateRecipe), [3000])
                 } catch (error)

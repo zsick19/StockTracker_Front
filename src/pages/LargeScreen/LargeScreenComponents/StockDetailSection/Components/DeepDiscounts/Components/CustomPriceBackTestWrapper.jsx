@@ -98,6 +98,18 @@ function CustomPriceBackTestWrapper({ planId, tickerSymbol, discountPrices, setD
                         <p>No Successful Trades With An Discount Price of ${discountEntry.toFixed(3)}</p>
                     </div>
                 }
+                <div className='flex'>
+                    <p>Increment</p>
+                    <button onClick={() => { setUpDownIncrement(0.01); handleDiscountPriceChange(false) }}>D 0.01</button>
+                    <button onClick={() => { setUpDownIncrement(0.01); handleDiscountPriceChange(true) }}>U 0.01</button>
+                    <button onClick={() => setUpDownIncrement(0.05)}>0.05</button>
+                    <button onClick={() => setUpDownIncrement(0.10)}>0.10</button>
+                    <button onClick={() => setUpDownIncrement(0.25)}>0.25</button>
+                    <button onClick={() => setUpDownIncrement(0.50)}>0.50</button>
+                    <button onClick={() => setUpDownIncrement(1.0)}>1.00</button>
+                    <button onClick={() => setUpDownIncrement(5.0)}>5.00</button>
+                    <button onClick={() => setUpDownIncrement(10.0)}>10.00</button>
+                </div>
             </div>
 
             <div id='DiscountActionControls'>

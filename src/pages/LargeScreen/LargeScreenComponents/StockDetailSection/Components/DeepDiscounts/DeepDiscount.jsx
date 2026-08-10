@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { selectPlanForStaticDetails } from '../../../../../../features/Engine/EnginePlanApiSlice';
 import './DeepDiscount.css'
@@ -86,17 +86,23 @@ function DeepDiscount({ tickerSymbol })
         }
     }
 
-
-
-
-
     const [discountPrices, setDiscountPrices] = useState({
         aboveStopLoss: discountConfig?.aboveStopLoss?.price || planConfig.plan.stopLossPrice * 1.02,
         belowStopLoss: discountConfig?.belowStopLoss?.price || planConfig.plan.stopLossPrice * 0.98,
         aboveMaxPain: discountConfig?.aboveMaxPain?.price || maxPainFromPattern * 1.02
     })
 
+    useEffect(() =>
+    {
+        setDiscountPrices({
+            aboveStopLoss: discountConfig?.aboveStopLoss?.price || planConfig.plan.stopLossPrice * 1.02,
+            belowStopLoss: discountConfig?.belowStopLoss?.price || planConfig.plan.stopLossPrice * 0.98,
+            aboveMaxPain: discountConfig?.aboveMaxPain?.price || maxPainFromPattern * 1.02
+        })
 
+        setExitAlertPrice(planConfig.plan?.exitAlertPrice || patternConfig.channelTop)
+
+    }, [tickerSymbol])
 
     let dailyChart
     let customChartDiscount

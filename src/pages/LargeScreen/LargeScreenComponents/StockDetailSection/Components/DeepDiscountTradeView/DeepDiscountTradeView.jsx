@@ -13,7 +13,7 @@ import { SpreadElasticityRollingChart } from './Components/SpreadElasticityRolli
 import { TradeVelocityScatterPlot } from './Components/TradeVelocityScatterPlot'
 import { selectPlanForStaticDetails } from '../../../../../../features/Engine/EnginePlanApiSlice'
 import IntegratedPlanChartWrapper from '../IntegratedPlanView/Components/IntegratedPlanChartWrapper'
-import { setStockDetailState } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import { setStockDetailState, setStockDetailStateWithTicker } from '../../../../../../features/SelectedStocks/StockDetailControlSlice'
 import DailyChartWrapper from '../../../../../../components/ChartSubGraph/DailyChartWrapper'
 
 
@@ -36,8 +36,7 @@ function DeepDiscountTradeView({ tickerSymbol })
         try
         {
             const results = await clearDeepDiscountEngineLiveData({ tickerSymbol: tickerSymbol }).unwrap()
-            // dispatch(removeDeepDiscountWatch({ tickerSymbol }))
-            // dispatch(setStockDetailState({ detail: 1 }))          
+            dispatch(setStockDetailStateWithTicker({ detail: 21, ticker: tickerSymbol }))
         } catch (error)
         {
             console.log(error)
