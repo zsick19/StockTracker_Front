@@ -1,0 +1,31 @@
+#WeekInReview {
+  display: grid;
+  grid-template-rows: 1fr 700px;
+  gap: 1rem;
+  height: 100%;
+}
+
+#selectPreviousTrade {
+  display: grid;
+  grid-template-columns: 1fr 25%;
+}
+
+#contentSummaryContainer {
+  font-size: var(--fs-100);
+  overflow-y: scroll;
+
+  max-height: 700px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  height: min-content;
+
+  gap: 1rem;
+}
+.singleWeeklyTrade {
+  background-color: rgba(43, 48, 43, 0.836);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem;
+  border-radius: 5px;
+  height: min-content;
+}

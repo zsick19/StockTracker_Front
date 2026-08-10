@@ -28,7 +28,7 @@ export const interDayTimeFrames = [{ label: '1M', timeFrame: defaultTimeFrames.t
 ]
 
 
-export function generateTradingHours(timeFrame, displayMarketHours)
+export function generateTradingHours(timeFrame, displayMarketHours = true)
 {
   const timeRanges = [];
   let currentDate = subBusinessDays(new Date(), timeFrame.duration + 30);

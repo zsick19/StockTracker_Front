@@ -15,7 +15,7 @@ import MiniFiveMinChart from '../../../../StockDetailSection/Components/TinyPreW
 import { enterBufferSelectors, enterExitPlannedSelectors, stopLossHitSelectors, useGetUsersEnterExitPlanQuery } from '../../../../../../../features/EnterExitPlans/EnterExitApiSlice'
 import { initiateTickerPreCheck } from '../../../../../../../features/Trades/PreTradeCheckSlice'
 import { provideEnterExitPlanSelector } from '../../../../../../../Utilities/adaptorSelection'
-import { selectDetailedScoreBreakDownBySymbol, selectMostRecentPriceAndDailyChangeByTicker, selectPlanForStaticDetails, selectStaticTradeBlockInfoByTicker } from '../../../../../../../features/Engine/EnginePlanApiSlice'
+import { makeSelectFrontendDynamicStopLoss, selectDetailedScoreBreakDownBySymbol, selectMostRecentPriceAndDailyChangeByTicker, selectPlanForStaticDetails, selectStaticTradeBlockInfoByTicker } from '../../../../../../../features/Engine/EnginePlanApiSlice'
 import MiniCandleLineChart from './MiniCandleLineChart'
 import { getInsertionIndexLinear } from '../../../../../../../Utilities/UtilityHelperFunctions'
 
@@ -35,8 +35,8 @@ function SingleActiveTradeBlock({ activeTrade })
     const { mostRecentPrice, yesterdayPriceChange, yesterdayPercentChange } = useSelector((state) => selectMostRecentPriceAndDailyChangeByTicker(state, tickerSymbol))
 
 
-
-
+    const selectDynamicStopLoss = useMemo(makeSelectFrontendDynamicStopLoss, [])
+    const dynamicStopLoss = useSelector(state => selectDynamicStopLoss(state, tickerSymbol), shallowEqual)
 
     const [showStopEnterExit, setShowStopEnterExit] = useState(0)
     const [showPositionInfo, setShowPositionInfo] = useState(0)
@@ -95,6 +95,7 @@ function SingleActiveTradeBlock({ activeTrade })
 
     const currentVisualPosition = getInsertionIndexLinear(activeStaticTradeInfo.planPricePoints, mostRecentPrice)
 
+    const [showDynamicStopOrATR, setShowDynamicStopOrATR] = useState(true)
     return (<>
         {showMiniGraph ? <MiniGraphChartWrapper setShowMiniGraph={setShowMiniGraph} activeTrade={activeTrade} /> :
 
@@ -202,9 +203,14 @@ function SingleActiveTradeBlock({ activeTrade })
 
                     {showPositionInfo === 0 ?
                         <div className='TradeBlockBottom'>
-                            <div onClick={() => setShowPositionInfo(1)}>
-                                <p>ATR</p>
-                                <p>${(mostRecentPrice - activeStaticTradeInfo.PrevClosePrice).toFixed(2)} vs ${activeStaticTradeInfo?.atr}</p>
+                            <div onClick={() => setShowPositionInfo(1)} onMouseEnter={() => setShowDynamicStopOrATR(false)} onMouseLeave={() => setShowDynamicStopOrATR(true)}>
+                                {showDynamicStopOrATR ? <>
+                                    <p>Dynamic Stop</p>
+                                    ${dynamicStopLoss.toFixed(2)}
+                                </> : <>
+                                    <p>${(mostRecentPrice - activeStaticTradeInfo.PrevClosePrice).toFixed(2)} vs ${activeStaticTradeInfo?.atr}</p>
+                                    <p>ATR</p>
+                                </>}
                             </div>
                             <div onClick={() => setShowPositionInfo(2)}>
                                 <MiniCandleLineChart tickerSymbol={tickerSymbol}

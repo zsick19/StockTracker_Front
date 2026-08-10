@@ -2,15 +2,17 @@ import React from 'react'
 import TaskCheckOffContainer from '../WelcomeGreeting/TaskCheckOffContainer'
 import { useDispatch } from 'react-redux'
 import { setStockDetailState } from '../../../../../../../../features/SelectedStocks/StockDetailControlSlice'
+import './DailyWeeklySchedule.css'
 
 function DailyWeeklySchedule()
 {
     const dispatch = useDispatch()
     return (
-        <div>
+        <div id='DailyWeeklySchedule'>
             <TaskCheckOffContainer />
-
-            <button onClick={() => dispatch(setStockDetailState(29))}>Weekly Review</button>
+            <div>
+                <button onClick={() => dispatch(setStockDetailState(29))}>Weekly Review</button>
+            </div>
         </div>
     )
 }

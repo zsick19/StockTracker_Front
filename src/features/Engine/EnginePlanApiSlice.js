@@ -57,12 +57,6 @@ export const EnginePlanPlanApiSlice = apiSlice.injectEndpoints({
                     }
 
 
-
-
-
-
-
-
                     let filteredCandles = filterRegularSessionCandles(enterExit.candleData)
                     let regularSessionCandles = filteredCandles.regularSession
                     let enterExitPlanPrices = enterExit.plan.plan
@@ -1812,3 +1806,125 @@ export const selectStaticTradeBlockInfoByTicker = () =>
         }
     )
 }
+
+
+
+
+
+
+// Extract your standard unparameterized slice entities selectors natively [INDEX]
+// const selectInterceptSentryState = (state) => state.interceptSentry;
+// const selectTickerParam = (_, tickerSymbol) => tickerSymbol;
+
+// const selectors = deepInterceptionAdapter.getSelectors(selectInterceptSentryState);
+
+/**
+ * PRODUCTION ARCHITECTURE FACTORY: makeSelectFrontendDynamicStopLoss
+ * Generates an isolated, time-aware memoization cell per ticker instance.
+ * It computes your 3-stage adaptive trailing stop entirely client-side [INDEX].
+ */
+export const makeSelectFrontendDynamicStopLoss = () =>
+{
+    return createSelector(
+        [planSelectors.selectEntities, selectTickerSymbolParam],
+        (entities, tickerSymbol) =>
+        {
+            const activeNode = entities[tickerSymbol];
+            if (!activeNode || !activeNode.activeTradeConfig) return 0;
+
+            const trade = activeNode.activeTradeConfig;
+
+            const entryPrice = trade.averagePurchasePrice;
+            const initialStopLine = activeNode.planConfig.plan.stopLossPrice;
+
+            // Ingest your self-cleaning 10-day 1-minute candlestick memory matrix [INDEX]
+            const candles = activeNode.combinedCandleData || [];
+            if (candles.length < 15) return initialStopLine;
+
+            // Extract today's regular trading hour closes to track active returns [INDEX]
+            const todayCloses = activeNode.todaysCandles.map(c => c.ClosePrice || 0);
+            const livePrice = activeNode.mostRecentPrice || entryPrice;
+
+            const maximumPriceObserved = Math.max(...todayCloses, entryPrice);
+            const currentFloatingReturnPct = ((livePrice - entryPrice) / entryPrice) * 100;
+
+
+            // // =========================================================================
+            // // 🧱 STAGE 3: THE HIGH-VELOCITY HULL MOVEMENT LOCK (>= 10% RETURN) [INDEX]
+            // // =========================================================================
+            if (currentFloatingReturnPct >= 10.0)
+            {
+                const lookbackHma = 9;
+                const trailingSlice = todayCloses.slice(-lookbackHma);
+                const hmaSumDenominator = (lookbackHma * (lookbackHma + 1)) / 2;
+
+                let weightedPriceSum = 0;
+                trailingSlice.forEach((price, idx) =>
+                {
+                    weightedPriceSum += price * (idx + 1);
+                });
+
+                const calculatedHullFloor = parseFloat((weightedPriceSum / hmaSumDenominator).toFixed(4));
+                return parseFloat(Math.max(initialStopLine, calculatedHullFloor).toFixed(4));
+            }
+
+            // // =========================================================================
+            // // 🧱 STAGE 2: THE VOLUME-SHELF INVERSION SNAP (+5% TO +10% RETURN)
+            // // =========================================================================
+            if (currentFloatingReturnPct >= 5.0 && currentFloatingReturnPct < 10.0)
+            {
+                const volumeBinsMap = {};
+                let maximumVolumeObserved = 0;
+                let volumePointOfControlPrice = 0;
+
+                candles.forEach(candle =>
+                {
+                    const closePrice = candle.ClosePrice || candle.c || 0;
+                    const volumeAmount = candle.Volume || candle.v || 0;
+                    if (closePrice === 0) return;
+
+                    const centBucketKey = parseFloat(closePrice.toFixed(2));
+                    volumeBinsMap[centBucketKey] = (volumeBinsMap[centBucketKey] || 0) + volumeAmount;
+
+                    if (volumeBinsMap[centBucketKey] > maximumVolumeObserved)
+                    {
+                        maximumVolumeObserved = volumeBinsMap[centBucketKey];
+                        volumePointOfControlPrice = centBucketKey;
+                    }
+                });
+
+                const volumeInversionFloor = parseFloat((volumePointOfControlPrice * 0.99).toFixed(4));
+                if (livePrice >= volumePointOfControlPrice * 1.025)
+                {
+                    return parseFloat(Math.max(initialStopLine, volumeInversionFloor).toFixed(4));
+                }
+            }
+
+            // // =========================================================================
+            // // 🧱 STAGE 1: DEFAULT VOLATILITY CHANDELIER FENCE (0% TO +5% RETURN) [INDEX]
+            // // =========================================================================
+            if (currentFloatingReturnPct >= 0)
+            {
+                let totalTrueRangeSum = 0;
+                const lookbackAtr = 14;
+                const todayCandles = candles.slice(-lookbackAtr);
+
+                for (let i = 1; i < todayCandles.length; i++)
+                {
+                    const curr = todayCandles[i];
+                    const prev = todayCandles[i - 1];
+                    const hl = (curr.HighPrice || curr.h) - (curr.LowPrice || curr.l);
+                    const hpc = Math.abs((curr.HighPrice || curr.h) - (prev.ClosePrice || prev.c));
+                    const lpc = Math.abs((curr.LowPrice || curr.l) - (prev.ClosePrice || prev.c));
+                    totalTrueRangeSum += Math.max(hl, hpc, lpc);
+                }
+
+                const currentAtr = totalTrueRangeSum / lookbackAtr;
+                const calculatedChandelierStop = maximumPriceObserved - (currentAtr * 1.5); // 1.5x Volatility buffer [INDEX]
+
+                return parseFloat(Math.max(initialStopLine, calculatedChandelierStop).toFixed(4));
+            }
+            return initialStopLine
+        }
+    );
+};
