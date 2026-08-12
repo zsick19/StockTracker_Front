@@ -29,6 +29,7 @@ import PlanTradeExposure from './Components/Exposure/PlanTradeExposure';
 import ManageTrade from './Components/ManageTrade/ManageTrade';
 import JournalRecords from './Components/JournalRecords/JournalRecords';
 import WeekInReview from './Components/WeekInReview/WeekInReview';
+import WeGotARunner from './Components/WeGotARunner/WeGotARunner';
 
 function StockDetailSection()
 {
@@ -78,6 +79,7 @@ function StockDetailSection()
       case 27: return <ManageTrade tickerSymbol={currentStockDetail.ticker} />
       case 28: return <JournalRecords />
       case 29: return <WeekInReview />
+      case 30: return <WeGotARunner tickerSymbol={currentStockDetail.ticker} />
     }
   }
 

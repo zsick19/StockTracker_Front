@@ -322,9 +322,11 @@ export function downSampleOneMinToFiveMin(oneMinArray)
 
 const weekDay = isWeekend(new Date()) ? previousFriday(new Date()) : new Date()
 export const preSetDailyTimes = {
+  preMarketOpen: set(new Date(weekDay), { hours: 4, minutes: 0, seconds: 0, milliseconds: 0 }),
   marketOpen: set(new Date(weekDay), { hours: 9, minutes: 30, seconds: 0, milliseconds: 0 }),
   first5Mins: set(new Date(weekDay), { hours: 9, minutes: 35, seconds: 0, milliseconds: 0 }),
   firstHour: set(new Date(weekDay), { hours: 10, minutes: 30, seconds: 0, milliseconds: 0 }),
   lastHour: set(new Date(weekDay), { hours: 15, minutes: 0, seconds: 0, milliseconds: 0 }),
   marketClose: set(new Date(weekDay), { hours: 16, minutes: 0, seconds: 0, milliseconds: 0 }),
+  afterMarketClose: set(new Date(weekDay), { hours: 20, minutes: 0, seconds: 0, milliseconds: 0 })
 }

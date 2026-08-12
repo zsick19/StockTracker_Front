@@ -5,6 +5,8 @@ import { addPriceAlert, removeQuickAlert } from '../../features/PriceAlerts/Pric
 import { toZonedTime } from 'date-fns-tz';
 import { isWeekend, isWithinInterval, set } from 'date-fns';
 import { setMonitorDisconnectionMessage } from '../../features/Initializations/StreamMostRecentSlice';
+import { initiateNewsRunnerWatch, setIncomingNewsAlertPrice, setIncomingNewsAlertQuote } from '../../features/NewsRunnerEngine/NewsRunnerLocalSlice';
+import { NewsRunnerApiSlice } from '../../features/NewsRunnerEngine/NewsRunnerApiSlice';
 
 // Create a singleton to manage the single WebSocket connection
 let listeners = {
@@ -40,6 +42,41 @@ export const setupWebSocket = () =>
                 //         store.dispatch(removeQuickAlert(payload))
                 //     }, 3000);
                 // }
+                if (eventName === 'newsAlertPriceStream') { store.dispatch(setIncomingNewsAlertPrice(payload)) }
+                if (eventName === 'newsAlertQuoteStream') { store.dispatch(setIncomingNewsAlertQuote(payload)) }
+                if (eventName === 'highAlertNewsTicker')
+                {
+                    store.dispatch(initiateNewsRunnerWatch(payload))
+                    setTimeout(async () =>
+                    {
+                        const latestState = store.getState();
+                        const ticker = payload.ticker
+                        console.log(latestState)
+                        const newsAlertWatch = latestState.newsRunnerSlice.entities[ticker];
+                        console.log(newsAlertWatch)
+                        // 4. Condition Check: Did the high-speed Alpaca stream fail to trigger a breakout?
+                        if (newsAlertWatch && newsAlertWatch.status === 'quite')
+                        {
+                            console.log(`[TIMEOUT] $${ticker} remained dead for 45s. Running cleanup mutation...`);
+
+                            try
+                            {
+                                // 5. Trigger the RTK Query mutation programmatically from your raw JS file
+                                // .initiate() returns a thunk action creator that must be dispatched
+                                await store.dispatch(NewsRunnerApiSlice.endpoints.clearNewsRunnerData.initiate({ tickerSymbol: ticker })).unwrap();
+
+                                console.log(`[TIMEOUT SUCCESS] Successfully cleaned up $${ticker}`);
+                            } catch (error)
+                            {
+                                console.error(`[TIMEOUT ERROR] Failed to execute cleanup mutation for $${ticker}:`, error);
+                            }
+                        } else
+                        {
+                            console.log(`[TIMEOUT BYPASS] $${ticker} broke out or was already handled. No cleanup needed.`);
+                        }
+
+                    }, [45000])
+                }
                 if (eventName === 'monitorError' && store) { store.dispatch(setMonitorDisconnectionMessage(payload)) }
             })
 

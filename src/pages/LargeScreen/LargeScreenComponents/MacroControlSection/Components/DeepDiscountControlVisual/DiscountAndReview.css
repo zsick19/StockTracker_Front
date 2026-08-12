@@ -7,7 +7,7 @@
 
 .SingleDiscountAlert {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 30px;
+  grid-template-columns: 1fr 1fr 1fr 30px;
   text-align: center;
   align-items: center;
   font-size: var(--fs-200);
@@ -58,9 +58,9 @@
   cursor: pointer; /* Changes the mouse arrow to a clickable hand icon */
 }
 
-#DeepDiscountStatusList {
+#DiscountAlertList {
   overflow-y: scroll;
-  max-height: 475px;
+  max-height: 250px;
 }
 
 .mutedAlert {
@@ -94,7 +94,6 @@
   background-color: rgb(16, 16, 138);
   border-radius: 10px 10px 0 0;
   color: orange;
-  
 }
 
 #HighImportanceReview > div:last-child {

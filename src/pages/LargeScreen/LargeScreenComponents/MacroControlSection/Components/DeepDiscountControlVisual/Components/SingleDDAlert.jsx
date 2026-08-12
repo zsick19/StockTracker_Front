@@ -23,7 +23,6 @@ function SingleDDAlert({ deepDiscountAlert })
 
     useEffect(() => { return () => { if (timerRef.current) { clearTimeout(timerRef.current) } } }, [])
 
-
     let mutedClassName = deepDiscountAlert.muted ? 'mutedAlert' : 'unmutedAlert'
     let discountLevelClassName = [undefined, 'AboveStopAlert', 'BelowStopAlert', 'MaxPainAlert']
     let possibleDiscountLevelColors = [undefined, 'blue', 'orange', 'red']
@@ -36,8 +35,8 @@ function SingleDDAlert({ deepDiscountAlert })
                 <p>{deepDiscountAlert.tickerSymbol}</p>
             </div>
             <p>{possibleLevels[deepDiscountAlert.discountLevel]}</p>
-            <p></p>
-            <p></p>
+            {/* <p></p> */}
+            {/* <p></p> */}
             {!deepDiscountAlert.muted && <button className='buttonIcon' onClick={(e) => { e.stopPropagation(); muteDeepDiscount(deepDiscountAlert.tickerSymbol) }}><VolumeOff size={14} /></button>}
         </div>
     )

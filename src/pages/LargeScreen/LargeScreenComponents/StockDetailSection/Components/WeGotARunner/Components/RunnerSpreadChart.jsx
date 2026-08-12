@@ -6,7 +6,7 @@ import * as d3 from 'd3';
 // Compile our selector tool once outside the rendering thread loop to save CPU cycles [INDEX]
 // const interceptSentrySelectors = deepInterceptionAdapter.getSelectors((state) => state.interceptSentry);
 
-export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQuoteHistory }) =>
+export const RunnerSpreadChart = ({ tickerSymbol, currentSpread, rawQuoteHistory }) =>
 {
     const svgRef = useRef(null);
 
@@ -38,14 +38,15 @@ export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQ
         // 📐 REAL-TIME TIME-SERIES SCALING & BOUNDS [INDEX]
         // =====================================================================
         // X-Axis Scale maps absolute epoch timestamps over your rolling 5-minute horizon
-        const liveEndTime = dataPoints[dataPoints.length - 1].time || dataPoints[dataPoints.length - 1].Timestamp;
+        const liveEndTime = new Date(dataPoints[dataPoints.length - 1].Timestamp);
         const rollingStartTime = liveEndTime - (5 * 60 * 1000); // 5 Minute Rolling Delta Window
+
 
         const xScale = d3.scaleTime()
             .domain([new Date(rollingStartTime), new Date(liveEndTime)])
             .range([0, width]);
         // Y-Axis Scale handles spread width in cents, auto-scaling to catch extreme slippage spikes [INDEX]
-        const maxSpreadObserved = d3.max(dataPoints, d => d.spread) || 0.05;
+        const maxSpreadObserved = d3.max(dataPoints, d => { return (d.AskPrice - d.BidPrice) }) || 0.05;
 
         const yScale = d3.scaleLinear()
             .domain([0, maxSpreadObserved * 1.25]) // Add a clean 10% structural visual padding cushion
@@ -80,9 +81,9 @@ export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQ
         // =====================================================================
         // Area path pourer binds the baseline to absolute zero floor
         const areaGenerator = d3.area()
-            .x(d => xScale(new Date(d.time)))
+            .x(d => xScale(new Date(d.Timestamp)))
             .y0(height)
-            .y1(d => yScale(d.spread))
+            .y1(d => yScale((d.AskPrice - d.BidPrice)))
             .curve(d3.curveMonotoneX); // Curves segments fluidly to eliminate blocky stepping artifacts [INDEX]
 
         svg.append("path")
@@ -92,8 +93,8 @@ export const SpreadElasticityRollingChart = ({ tickerSymbol, currentSpread, rawQ
 
         // Core Price-Spread Trajectory line
         const lineGenerator = d3.line()
-            .x(d => xScale(new Date(d.time)))
-            .y(d => yScale(d.spread))
+            .x(d => xScale(new Date(d.Timestamp)))
+            .y(d => yScale((d.AskPrice - d.BidPrice)))
             .curve(d3.curveMonotoneX);
 
         svg.append("path")

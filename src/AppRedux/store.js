@@ -27,6 +27,7 @@ import { injectStore } from "./api/ws";
 import { deepDiscountSentryListener } from "../features/DeepDiscountEngine/DeepDiscountListenerSlice";
 import interceptSentrySliceReducers from '../features/DeepDiscountEngine/DeepDiscountLocalSlice'
 import streamMostRecentReducers from '../features/Initializations/StreamMostRecentSlice'
+import newsRunnerSliceReducers from '../features/NewsRunnerEngine/NewsRunnerLocalSlice'
 
 export const store = configureStore({
   reducer: {
@@ -53,7 +54,8 @@ export const store = configureStore({
     interceptSentrySlice: interceptSentrySliceReducers,
     auth: authReducer,
     test: testReducer,
-    streamMostRecent: streamMostRecentReducers
+    streamMostRecent: streamMostRecentReducers,
+    newsRunnerSlice: newsRunnerSliceReducers
 
   },
   middleware: (getDefaultMiddleware) =>

@@ -23,7 +23,7 @@ function DeepDiscountAlertHUD()
             <div id='DiscountAlertHeader'>
                 <h4>Deep Discount Alerts</h4>
             </div>
-            <div className='hide-Scrollbar' id='DiscountAlertList'>
+            <div className='hide-scrollbar' id='DiscountAlertList'>
                 {deepDiscountWatches.map((t, i) => <SingleDDAlert deepDiscountAlert={t} />)}
             </div>
         </div>
