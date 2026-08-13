@@ -3,6 +3,7 @@ import { useFetchNewsRunnerTradeQuotesQuery } from '../../../../../../../feature
 import QuoteVisual from './QuoteVisual'
 import TradesVisual from './TradesVisual'
 import { isWeekend } from 'date-fns'
+import NewsDetail from './NewsDetail'
 
 function TradeAndQuoteWrapper({ tickerForStream })
 {
@@ -12,10 +13,12 @@ function TradeAndQuoteWrapper({ tickerForStream })
 
   let quoteContent
   let tradeContent
+  let currentStatus
   if (isSuccess)
   {
     quoteContent = <QuoteVisual quotes={data.quotes} ticker={tickerForStream} />
     tradeContent = <TradesVisual trades={data.trades} ticker={tickerForStream} />
+    currentStatus = <div>processing and displaying hold/sell signals</div>
   } else if (isLoading)
   {
     quoteContent = <div>Loading...</div>
@@ -28,9 +31,15 @@ function TradeAndQuoteWrapper({ tickerForStream })
 
 
   return (
-    <div id='QuoteAndTradeContainer'>
-      {quoteContent}
-      {tradeContent}
+    <div id='QuoteTradeArticleContainer'>
+      <div className='flex'>
+        <NewsDetail tickerSymbol={tickerForStream} />
+        {currentStatus}
+      </div>
+      <div id='QuoteAndTradeContainer'>
+        {quoteContent}
+        {tradeContent}
+      </div>
     </div>
   )
 }

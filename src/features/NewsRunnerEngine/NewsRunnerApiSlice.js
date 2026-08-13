@@ -1,8 +1,8 @@
 import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "../../AppRedux/api/apiSlice";
 import { setupWebSocket } from '../../AppRedux/api/ws'
-import { setStockDetailState } from "../SelectedStocks/StockDetailControlSlice";
-import { removeNewsRunnerWatch } from "./NewsRunnerLocalSlice";
+import { setStockDetailIfClearingRunner, setStockDetailState } from "../SelectedStocks/StockDetailControlSlice";
+import { checkNewsRunnerPriceChange, removeNewsRunnerWatch } from "./NewsRunnerLocalSlice";
 
 
 // const { getWebSocket, subscribe, unsubscribe, checkStreamAuthorization } = setupWebSocket();
@@ -20,7 +20,7 @@ export const NewsRunnerApiSlice = apiSlice.injectEndpoints({
                 try
                 {
                     await queryFulfilled;
-                    dispatch(setStockDetailState(1))
+                    dispatch(setStockDetailIfClearingRunner(args.tickerSymbol))
                     dispatch(removeNewsRunnerWatch({ tickerSymbol: args.tickerSymbol }))
                 }
                 catch { }
@@ -35,6 +35,16 @@ export const NewsRunnerApiSlice = apiSlice.injectEndpoints({
             query: (args) => ({
                 url: `/stockData/newsRunner/tradeQuotes?ticker=${args.tickerSymbol}`
             })
+        }),
+        fetchNewsRunnerInfo: builder.mutation({
+            query: (args) => ({
+                url: `/news/newsRunner/info?tickerSymbol=${args.tickerSymbol}`,
+            }),
+        }),
+        fetchNewsRunnerPrice: builder.mutation({
+            query: (args) => ({
+                url: `/news/newsRunner/price?tickerSymbol=${args.tickerSymbol}`,
+            }),
         })
     })
 });
@@ -42,6 +52,8 @@ export const NewsRunnerApiSlice = apiSlice.injectEndpoints({
 export const {
     useClearNewsRunnerDataMutation,
     useFetchNewsRunnerCandleDataQuery,
-    useFetchNewsRunnerTradeQuotesQuery
+    useFetchNewsRunnerTradeQuotesQuery,
+    useFetchNewsRunnerInfoMutation,
+    useFetchNewsRunnerPriceMutation
 } = NewsRunnerApiSlice;
 

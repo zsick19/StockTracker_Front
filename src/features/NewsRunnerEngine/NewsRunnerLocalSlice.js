@@ -27,6 +27,7 @@ const newsRunnerSlice = createSlice({
                     trades: [],
                     quotes: [],
                     status: 'quite',
+                    stockInfo: null,
                     foundEntrySurge: null,
                     breakOutMetrics: null,
                     ...action.payload
@@ -40,9 +41,9 @@ const newsRunnerSlice = createSlice({
             {
                 existingNode.mostRecentTrade = action.payload
                 let percentChange = (action.payload.Price - existingNode.newsAlertOriginalPrice) * 100 / existingNode.newsAlertOriginalPrice
-                existingNode.percentChangeFromOriginal =
+                existingNode.percentChangeFromOriginal = percentChange
 
-                    existingNode.trades.push(action.payload);
+                existingNode.trades.push(action.payload);
                 if (existingNode.trades.length > 20) existingNode.trades.shift();
 
                 if (Math.abs(percentChange) > 0.5)
@@ -67,79 +68,36 @@ const newsRunnerSlice = createSlice({
         {
             const { tickerSymbol } = action.payload
             newsRunnerAdapter.removeOne(state, tickerSymbol)
+        },
+        markNewsRunnerActive: (state, action) =>
+        {
+            const existingNode = state.entities[action.payload.Symbol];
+            if (existingNode)
+            {
+                existingNode.status = 'active'
+            }
+        },
+        checkNewsRunnerPriceChange: (state, action) =>
+        {
+            const existingNode = state.entities[action.payload.Symbol];
+            console.log(action.payload)
+            if (existingNode)
+            {
+                existingNode.mostRecentTrade = action.payload.Price
+                let percentChange = (action.payload.Price - existingNode.newsAlertOriginalPrice) * 100 / existingNode.newsAlertOriginalPrice
+                existingNode.percentChangeFromOriginal = percentChange
+                if (percentChange > 0) existingNode.status = 'active'
+            }
+        },
+        provideNewsRunnerTickerInfo: (state, action) =>
+        {
+            const existingNode = state.entities[action.payload.Symbol];
+            if (existingNode) { existingNode.tickerInfo = action.payload }
         }
 
-        // updateDeepDiscountWatch: (state, action) =>
-        // {
-        //     const { tickerSymbol } = action.payload
-        //     const existingNode = state.entities[tickerSymbol]
-        //     existingNode.discountLevel = action.payload.discountLevel
-        // },
-        // muteDeepDiscountWatch: (state, action) =>
-        // {
-        //     const { tickerSymbol } = action.payload
-        //     const existingNode = state.entities[tickerSymbol]
-        //     existingNode.muted = true
-        // },
-        // unMuteDeepDiscountWatch: (state, action) =>
-        // {
-        //     const { tickerSymbol } = action.payload
-        //     const existingNode = state.entities[tickerSymbol]
-        //     existingNode.muted = false
-        // },
-        // removeDeepDiscountWatch: (state, action) =>
-        // {
-        //     const { tickerSymbol } = action.payload
-        //     console.log(action.payload)
-        //     deepInterceptionAdapter.removeOne(state, tickerSymbol)
 
-        // },
-        // appendDailyCandles: (state, action) =>
-        // {
-        //     const { tickerSymbol, dailyCandleData } = action.payload;
 
-        //     const existingNode = state.entities[tickerSymbol];
 
-        //     if (!existingNode)
-        //     {
-        //         deepInterceptionAdapter.addOne(state, {
-        //             tickerSymbol,
-        //             dailyCandles: dailyCandleData,
-        //             currentSpread: undefined,
-        //             quotesHistory: [],
-        //             tradeHistory: [],
-        //             latestAskBid: { BidSize: 0, BidPrice: 0, AskSize: 0, AskPrice: 0 },
-        //             muted: undefined,
-        //             timeAdded: new Date()
-        //         });
-        //     } else { existingNode.dailyCandles = dailyCandleData }
-
-        // },
-        // appendInterceptQuoteTick: (state, action) =>
-        // {
-        //     const { tickerSymbol, currentSpread, tickEpoch, BidSize, BidPrice, AskSize, AskPrice } = action.payload;
-
-        //     const existingNode = state.entities[tickerSymbol];
-
-        //     if (!existingNode) return
-        //     existingNode.currentSpread = currentSpread;
-        //     existingNode.quotesHistory.push({ spread: currentSpread, time: tickEpoch, BidPrice, BidSize, AskPrice, AskSize });
-
-        //     // Self-cleaning time fence: instantly cull points older than 5 minutes
-        //     const fiveMinutesAgo = tickEpoch - (5 * 60 * 1000);
-        //     existingNode.quotesHistory = existingNode.quotesHistory.filter(q => q.time >= fiveMinutesAgo);
-        //     existingNode.latestAskBid = { BidSize: BidSize, BidPrice: BidPrice, AskSize: AskSize, AskPrice: AskPrice }
-        // },
-        // appendInterceptTradeTick: (state, action) =>
-        // {
-        //     const { tickerSymbol, trade } = action.payload
-
-        //     const existingNode = state.entities[trade.Symbol];
-        //     if (!existingNode || existingNode.tickerSymbol !== trade.Symbol) return
-
-        //     existingNode.tradeHistory.push(trade)
-        //     existingNode.tradeHistory = existingNode.tradeHistory.filter(q => isAfter(q.Timestamp, subMinutes(new Date(), 3)));
-        // }
     },
     extraReducers: (builder) =>
     {
@@ -153,29 +111,39 @@ const newsRunnerSlice = createSlice({
 
                 // existingNode.foundEntrySurge = identifyEarlyEntryTrack(action.payload.trades, action.payload.quotes)
 
-                // const quoteData = action.payload.quotes
-
-                // existingNode.quotesHistory = quoteData.map((t, i) =>
-                // {
-                //     const currentSpreadWidth = parseFloat((t.AskPrice - t.BidPrice).toFixed(4));
-                //     const tickEpoch = new Date(t.Timestamp).getTime();
-                //     return { spread: currentSpreadWidth, time: tickEpoch, BidPrice: t.BidPrice, BidSize: t.BidSize, AskPrice: t.AskPrice, AskSize: t.AskSize }
-                // })
-
-                // const mostRecent = quoteData[quoteData.length - 1]
-                // const bidAskImbalance = mostRecent.AskSize > 0 ? parseFloat((mostRecent.BidSize / mostRecent.AskSize).toFixed(2)) : 1.0;
-                // const currentSpreadWidth = parseFloat((mostRecent.AskPrice - mostRecent.BidPrice).toFixed(4));
-
-
-                // existingNode.tradeHistory = action.payload.trades
-                // existingNode.currentSpread = currentSpreadWidth;
-                // existingNode.latestAskBid = { BidSize: mostRecent.BidSize, BidPrice: mostRecent.BidPrice, AskSize: mostRecent.AskSize, AskPrice: mostRecent.AskPrice }
             }
-        )
+        ),
+            builder.addMatcher(
+                NewsRunnerApiSlice.endpoints.fetchNewsRunnerInfo.matchFulfilled,
+                (state, action) =>
+                {
+                    const ticker = action.meta.arg.originalArgs.tickerSymbol
+                    const existingNode = state.entities[ticker];
+                    if (!existingNode || !action.payload.stockInfo) return
+
+                    existingNode.stockInfo = action.payload.stockInfo
+                }
+            ),
+            builder.addMatcher(
+                NewsRunnerApiSlice.endpoints.fetchNewsRunnerPrice.matchFulfilled,
+                (state, action) =>
+                {
+                    console.log(action.payload)
+                    console.log(action.meta.arg.originalArgs.tickerSymbol)
+                    const ticker = action.meta.arg.originalArgs.tickerSymbol
+                    const existingNode = state.entities[ticker];
+                    if (!existingNode || !action.payload.latestTrade) return
+
+                    existingNode.mostRecentTrade = action.payload.latestTrade
+                    let percentChange = (action.payload.latestTrade.Price - existingNode.newsAlertOriginalPrice) * 100 / existingNode.newsAlertOriginalPrice
+                    existingNode.percentChangeFromOriginal = percentChange
+                    if (percentChange > 0) existingNode.status = 'active'
+                }
+            )
     }
 });
 
-export const { initiateNewsRunnerWatch, setIncomingNewsAlertPrice, removeNewsRunnerWatch, setIncomingNewsAlertQuote,
+export const { initiateNewsRunnerWatch, checkNewsRunnerPriceChange, setIncomingNewsAlertPrice, removeNewsRunnerWatch, setIncomingNewsAlertQuote, markNewsRunnerActive
 } = newsRunnerSlice.actions;
 export default newsRunnerSlice.reducer;
 
@@ -195,6 +163,11 @@ export const selectNewRunnerTradeById = (state, ticker) =>
 {
     let record = newsRunnerAdapterSelectors.selectById(state.newsRunnerSlice, ticker)
     if (record) return record.mostRecentTrade
+}
+export const selectNewsRunnerTradeInfoById = (state, ticker) =>
+{
+    let record = newsRunnerAdapterSelectors.selectById(state.newsRunnerSlice, ticker)
+    if (record) return record.tickerInfo
 }
 
 

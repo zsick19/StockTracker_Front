@@ -1,15 +1,19 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { selectAllNewsRunnerIds, selectNewsRunnerById } from '../../../../../../../features/NewsRunnerEngine/NewsRunnerLocalSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { markNewsRunnerActive, selectAllNewsRunnerIds, selectNewsRunnerById } from '../../../../../../../features/NewsRunnerEngine/NewsRunnerLocalSlice'
 import SingleNewsRunner from '../../../../MacroControlSection/Components/NewsRunner/Components/SingleNewsRunner'
 import { useClearNewsRunnerDataMutation } from '../../../../../../../features/NewsRunnerEngine/NewsRunnerApiSlice'
+import SkyRocketCheck from './SkyRocketCheck'
 
 function CurrentRunnersList({ tickerForStream, setTickerForStream })
 {
-
+    const dispatch = useDispatch()
     const newsRunners = useSelector((state) => selectAllNewsRunnerIds(state))
-    if (!newsRunners || newsRunners.length === 0) return <div>No Runners</div>
     const currentNewsRunner = useSelector((state) => selectNewsRunnerById(state, tickerForStream))
+
+
+    console.log(currentNewsRunner.stockInfo)
+    console.log(currentNewsRunner.mostRecentTrade)
 
 
     const [clearNewsRunnerData] = useClearNewsRunnerDataMutation()
@@ -23,18 +27,19 @@ function CurrentRunnersList({ tickerForStream, setTickerForStream })
             console.log(error)
         }
     }
-    const hasPriceChange = currentNewsRunner?.mostRecentTradePrice !== currentNewsRunner?.newsAlertOriginalPrice
+    const hasPriceChange = currentNewsRunner?.mostRecentTrade.Price !== currentNewsRunner?.newsAlertOriginalPrice
 
     return (
         <div id='CurrentRunnersList'>
             <div id='CurrentRunnerInfo' style={{ backgroundColor: `${currentNewsRunner.foundEntrySurge ? 'red' : ''}` }}>
                 <p>{currentNewsRunner.id}</p>
-                <p>{currentNewsRunner.newsAlertOriginalPrice}</p>
-                <p>{currentNewsRunner.mostRecentTradePrice}</p>
-                <p>{hasPriceChange ? currentNewsRunner.percentChangeFromOriginal.toFixed(2) : ''}%</p>
+                <p>${currentNewsRunner.newsAlertOriginalPrice} vs ${currentNewsRunner.mostRecentTrade.Price}</p>
+                <p>{hasPriceChange ? currentNewsRunner.percentChangeFromOriginal.toFixed(2) + '%' : ''}</p>
                 <p>Impact: {currentNewsRunner?.impact_score || '-'}</p>
 
                 <button onClick={() => attemptClearingNewsRunner()}>Clear</button>
+                <button onClick={() => dispatch(markNewsRunnerActive({ Symbol: tickerForStream }))}>Mark Active</button>
+                {currentNewsRunner.stockInfo && <SkyRocketCheck stockInfo={currentNewsRunner.stockInfo} />}
             </div>
             <div id='RunnersList' className='hide-scrollbar'>
                 {newsRunners.map((t, i) => <SingleNewsRunner key={`weGotRunner${t}`} tickerSymbol={t} />)}

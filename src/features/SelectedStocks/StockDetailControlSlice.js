@@ -12,13 +12,20 @@ const stockDetailControlSlice = createSlice({
         {
             state.detailSelected = action.payload.detail
             state.ticker = action.payload.ticker
+        },
+        setStockDetailIfClearingRunner:(state,action)=>{
+            if(state.ticker!==action.payload){
+                state.detailSelected=1
+                state.ticker=undefined
+            }
         }
     },
 });
 
 export const {
     setStockDetailState,
-    setStockDetailStateWithTicker
+    setStockDetailStateWithTicker,
+    setStockDetailIfClearingRunner
 } = stockDetailControlSlice.actions;
 
 export default stockDetailControlSlice.reducer;

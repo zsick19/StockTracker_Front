@@ -47,13 +47,14 @@ export const setupWebSocket = () =>
                 if (eventName === 'highAlertNewsTicker')
                 {
                     store.dispatch(initiateNewsRunnerWatch(payload))
+                    const ticker = payload.ticker
+
                     setTimeout(async () =>
                     {
                         const latestState = store.getState();
-                        const ticker = payload.ticker
-                        console.log(latestState)
+
+
                         const newsAlertWatch = latestState.newsRunnerSlice.entities[ticker];
-                        console.log(newsAlertWatch)
                         // 4. Condition Check: Did the high-speed Alpaca stream fail to trigger a breakout?
                         if (newsAlertWatch && newsAlertWatch.status === 'quite')
                         {
@@ -75,6 +76,26 @@ export const setupWebSocket = () =>
                             console.log(`[TIMEOUT BYPASS] $${ticker} broke out or was already handled. No cleanup needed.`);
                         }
 
+                    }, [60000])
+
+                    try
+                    {
+                        store.dispatch(NewsRunnerApiSlice.endpoints.fetchNewsRunnerInfo.initiate({ tickerSymbol: ticker })).unwrap()
+                    } catch (error)
+                    {
+                        console.log('Error Collecting News Info')
+                    }
+
+                    setTimeout(async () =>
+                    {
+                        try
+                        {
+                            await store.dispatch(NewsRunnerApiSlice.endpoints.fetchNewsRunnerPrice.initiate({ tickerSymbol: ticker })).unwrap();
+
+                        } catch (error)
+                        {
+                            console.error(`Failed to fetch price update for new runner $${ticker}:`, error);
+                        }
                     }, [45000])
                 }
                 if (eventName === 'monitorError' && store) { store.dispatch(setMonitorDisconnectionMessage(payload)) }

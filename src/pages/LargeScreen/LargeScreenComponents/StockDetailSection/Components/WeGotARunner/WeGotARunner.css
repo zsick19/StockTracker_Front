@@ -24,13 +24,21 @@
 
 #CurrentRunnerInfo {
   flex: 1;
-  background-color: green;
+  padding: 0.5rem;
+  border-radius: 10px;
+  background-color: rgb(27, 33, 41);
 }
 
 #RunnersList {
-  height: 400px;
-  background-color: green;
+  border-radius: 10px;
+  height: 150px;
+  background-color: rgb(49, 60, 73);
   overflow-y: scroll;
+}
+
+#QuoteTradeArticleContainer {
+  display: grid;
+  grid-template-rows: 200px 1fr;
 }
 
 #QuoteAndTradeContainer {

@@ -24,9 +24,9 @@ function RunnerChart({ candleData, ticker })
     const currentNewsRunner = useSelector((state) => selectNewsRunnerById(state, ticker))
 
 
-    let originalPrice = currentNewsRunner.newsAlertOriginalPrice
-    let articlePublishDate = new Date(currentNewsRunner.dispatched_at_ms)
-    let mostRecentPrice = currentNewsRunner.mostRecentTrade.Price
+    let originalPrice = currentNewsRunner?.newsAlertOriginalPrice || 0
+    let articlePublishDate = new Date(currentNewsRunner?.dispatched_at_ms)
+    let mostRecentPrice = currentNewsRunner?.mostRecentTrade?.Price
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
 
     // const mostRecentPrice = useSelector(state => selectMostRecentPriceByTicker(state, ticker))
