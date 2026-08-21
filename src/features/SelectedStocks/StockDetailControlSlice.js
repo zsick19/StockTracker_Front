@@ -13,10 +13,12 @@ const stockDetailControlSlice = createSlice({
             state.detailSelected = action.payload.detail
             state.ticker = action.payload.ticker
         },
-        setStockDetailIfClearingRunner:(state,action)=>{
-            if(state.ticker!==action.payload){
-                state.detailSelected=1
-                state.ticker=undefined
+        setStockDetailIfClearingRunner: (state, action) =>
+        {
+            if (state.ticker === action.payload)
+            {
+                state.detailSelected = 1
+                state.ticker = undefined
             }
         }
     },

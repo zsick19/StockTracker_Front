@@ -1,50 +1,55 @@
 import { Circle } from 'lucide-react'
-import React from 'react'
+import React, { useMemo } from 'react'
+import { abbreviateNumber, marketCapToText } from '../../../../../../../Utilities/UtilityHelperFunctions'
+import { makeSelectNewsRunnerStockInfoById, selectLargeOrderThresholdById } from '../../../../../../../features/NewsRunnerEngine/NewsRunnerLocalSlice'
+import { useSelector } from 'react-redux'
 
-function SkyRocketCheck({ stockInfo })
+function SkyRocketCheck({ ticker })
 {
-    console.log(stockInfo)
+    const stockInfo = useSelector((state) => makeSelectNewsRunnerStockInfoById(state, ticker))
+    if (!stockInfo) return <div>No Info Yet</div>
+
     return (
-        <div style={{ fontSize: '10px' }}>
+        <div style={{ fontSize: '12px', display: 'grid', justifyContent: 'center' }}>
             <div className='flex'>
                 <div>
                     <div className='flex'>
                         <Circle fill={stockInfo.ShortPercentOfFloat > 20 ? 'yellowGreen' : 'red'} color='' size='14' />
-                        <p>Short % of Float</p>
+                        <p>Short % of Float ({stockInfo.ShortPercentOfFloat}%)</p>
                     </div>
                     <div className='flex'>
                         <Circle fill={stockInfo.ShortPercentOfShares > 20 ? 'yellowGreen' : 'red'} color='' size='14' />
-                        <p>Short % of Shares</p>
+                        <p>Short % of Shares ({stockInfo.ShortPercentOfShares}%)</p>
                     </div>
                     <div className='flex'>
                         <Circle fill={stockInfo.ShortRatioDaysToCover > 4 ? 'yellowGreen' : 'red'} color='' size='14' />
-                        <p>Days To Cover</p>
+                        <p>Days To Cover ({stockInfo.ShortRatioDaysToCover} days)</p>
                     </div>
                 </div>
                 <div>
                     <div className='flex'>
                         <Circle fill={stockInfo.SharesFloat < 200000000 ? 'yellowGreen' : 'red'} color='' size='14' />
-                        <p>Float</p>
+                        <p>Float - {abbreviateNumber(stockInfo.SharesFloat)}</p>
                     </div>
                     <div className='flex'>
                         <Circle fill={stockInfo.MarketCap < 500000000 ? 'yellowGreen' : 'red'} color='' size='14' />
-                        <p>Market Cap</p>
+                        <p>{marketCapToText(stockInfo.MarketCap)}</p>
                     </div>
                     <div className='flex'>
-                        <Circle fill={stockInfo.FloatPercent < 50 ? 'yellowGreen' : 'red'} color='' size='14' />
-                        <p>Float %</p>
+                        <Circle fill={stockInfo.FloatPercentage < 50 ? 'yellowGreen' : 'red'} color='' size='14' />
+                        <p>Float - {stockInfo.FloatPercentage}%</p>
                     </div>
                 </div>
             </div>
             <br />
-            <div>
+            <div className='flex'>
                 <div className='flex'>
                     <Circle fill={(stockInfo.PositionInRangePercent < 25 || stockInfo.PositionInRangePercent > 90) ? 'yellowGreen' : 'red'} size='14' color='' />
-                    <p>Position In Range</p>
+                    <p>Position In Range ({stockInfo.PositionInRangePercent})</p>
                 </div>
                 <div className='flex'>
                     <Circle fill={(stockInfo.Beta1Y > 2) ? 'yellowGreen' : 'red'} color='' size='14' />
-                    <p>Beta1Y</p>
+                    <p>Beta1Y ({stockInfo.Beta1Y})</p>
                 </div>
             </div>
         </div>

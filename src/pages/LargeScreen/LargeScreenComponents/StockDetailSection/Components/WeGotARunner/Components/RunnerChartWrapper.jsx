@@ -4,27 +4,16 @@ import GraphLoadingSpinner from '../../../../../../../components/ChartSubGraph/G
 import GraphLoadingError from '../../../../../../../components/ChartSubGraph/GraphFetchStates/GraphLoadingError'
 import RunnerChart from './RunnerChart'
 import { isWeekend } from 'date-fns'
+import { MinuteMacdChart } from './MinuteMacdChart'
 
-function RunnerChartWrapper({ tickerForStream })
+function RunnerChartWrapper({ ticker })
 {
-    const pollingInterval = isWeekend(new Date()) ? 0 : 1000 * 30
-    const { data, isSuccess, isLoading, isError, error, refetch } = useFetchNewsRunnerCandleDataQuery({ tickerSymbol: tickerForStream }, { pollingInterval })
-
-    let chartContent
-    if (isSuccess)
-    {
-        chartContent = <RunnerChart candleData={data.todays} ticker={tickerForStream} />
-    } else if (isLoading)
-    {
-        chartContent = <GraphLoadingSpinner />
-    } else if (isError)
-    {
-        chartContent = <GraphLoadingError refetch={refetch} />
-    }
+    // const currentNewsRunner = useSelector((state) => selectNewsRunnerById(state, ticker))
 
     return (
-        <div>
-            {chartContent}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <RunnerChart ticker={ticker} />
+            <MinuteMacdChart ticker={ticker} height={96} />
         </div>
     )
 }

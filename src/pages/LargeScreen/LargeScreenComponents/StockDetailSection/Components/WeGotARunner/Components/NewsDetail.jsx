@@ -1,13 +1,14 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { selectNewsRunnerById } from '../../../../../../../features/NewsRunnerEngine/NewsRunnerLocalSlice'
+import { makeSelectNewsRunnerRTPRDetailsById, selectNewsRunnerById } from '../../../../../../../features/NewsRunnerEngine/NewsRunnerLocalSlice'
 import { Link } from 'react-router-dom'
+import PriceAndChangeReadOut from './PriceAndChangeReadOut'
 
-function NewsDetail({ tickerSymbol })
+function NewsDetail({ ticker })
 {
-    const currentNewsRunner = useSelector((state) => selectNewsRunnerById(state, tickerSymbol))
+    const newsRunnerDetails = useSelector((state) => makeSelectNewsRunnerRTPRDetailsById(state, ticker))
 
-    console.log(currentNewsRunner.article_url)
+    // console.log(currentNewsRunner.article_url)
     //   type: 'alert',
     //   alert_kind: 'high_impact',
     //   ticker: 'BOXL',
@@ -20,17 +21,31 @@ function NewsDetail({ tickerSymbol })
     //   band_hit_rate: 0.475
 
     return (
-        <div>
-            <p>Direction: {currentNewsRunner?.impact_direction}</p>
-            <p>Event Type: {currentNewsRunner?.event_type}</p>
-            <p>Impact Score: {currentNewsRunner?.impact_score}</p>
+        <div id='NewsRunnerArticleDetail'>
+            {newsRunnerDetails.impactDirection === 'bullish' ? <div id='BullishNewsRunner'>
+                <div>
+                    <p>Direction: {newsRunnerDetails?.impactDirection}</p>
+                    <p>Event Type: {newsRunnerDetails?.eventType}</p>
+                </div>
+                <div>
+                    <p>Impact Score: {newsRunnerDetails?.impactScore}</p>
+                    <p>Impact Tier: {newsRunnerDetails?.impactTier}</p>
+                </div>
+                <p>Historical Accuracy: {newsRunnerDetails?.bandHitRate}</p>
+            </div> : <div id='NoImpactNewsRunner'>
+                <p>No Impact Information from Press Release</p>
+                <PriceAndChangeReadOut ticker={ticker} />
+            </div>}
 
-            {/* <a href={currentNewsRunner?.article_url}></a> */}
-            {/* <Link to={currentNewsRunner?.article_url} /> */}
+            <div>
+                <Link to={newsRunnerDetails.articleURL} target="_blank" rel="noopener noreferrer" >
+                    <button type="button" style={{ width: '100%', height: '100%', borderRadius: '10px' }}>
+                        Press Release
+                    </button>
+                </Link>
+            </div>
 
-            <p>Impact Tier: {currentNewsRunner?.impact_tier}</p>
-            <p>Historical Accuracy: {currentNewsRunner?.band_hit_rate}</p>
-        </div>
+        </div >
     )
 }
 

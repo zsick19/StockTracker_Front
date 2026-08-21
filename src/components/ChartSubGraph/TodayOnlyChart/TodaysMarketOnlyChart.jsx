@@ -43,7 +43,7 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
     {
         if (preDimensionsAndCandleCheck()) return
 
-        let xDateScale = scaleTime().domain([preSetDailyTimes.marketOpen, preSetDailyTimes.marketClose]).range([0, candleDimensions.width])
+        let xDateScale = scaleTime().domain([preSetDailyTimes.marketOpen, addMinutes(new Date(), 30)]).range([0, candleDimensions.width])
 
 
         if (chartZoomState?.x)
@@ -65,7 +65,7 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
         if (preDimensionsAndCandleCheck()) return
 
         const yScale = scaleLinear()
-            .domain([minPrice * 0.9995, maxPrice * 1.0005])
+            .domain([minPrice * 0.98, maxPrice * 1.02])
             .range([candleDimensions.height - pixelBuffer.yDirectionPixelBuffer, 0])
             .interpolate(function (a, b) { const c = b - a; return function (t) { return +(a + t * c).toFixed(2); }; })
 
@@ -121,8 +121,8 @@ function TodaysMarketOnlyChart({ ticker, candleData, chartStartDate, pricePoints
         if (preDimensionsAndCandleCheck()) return
 
         const xAxis = axisBottom(createDateScale()).ticks(7)
-            // .tickValues(intraDayTickMarks)
-            .tickFormat(timeFormat("%-I"));
+        // .tickValues(intraDayTickMarks)
+        // .tickFormat(timeFormat("%-I"));
         stockCandleSVG.select('.x-axis').style('transform', `translateY(${candleDimensions.height - pixelBuffer.yDirectionPixelBuffer}px)`).call(xAxis)
 
         const yAxis = axisLeft(createPriceScale())

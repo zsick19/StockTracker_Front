@@ -1,3 +1,14 @@
-.flashingHighAlertMoving {
+.newsRunnerMovement {
+  background-color: blue;
+}
+
+.newsRunnerProgressing {
+  background-color: orange;
+}
+.newRunnerExploding {
   background-color: red;
+}
+
+.newRunnerExploding {
+  background-color: #10b981;
 }

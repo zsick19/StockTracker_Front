@@ -8,6 +8,8 @@ import chartingElementReducers from "../features/Charting/chartingElements";
 import keyLevelGraphElementsReducers from '../features/KeyLevels/KeyLevelGraphElements'
 import selectedStockReducers from '../features/SelectedStocks/SelectedStockSlice'
 import stockDetailControlReducers from '../features/SelectedStocks/StockDetailControlSlice'
+import macroDetailControlReducers from '../features/SelectedStocks/MacroDetailControlSlice'
+
 import previousNextStockReducers from '../features/SelectedStocks/PreviousNextStockSlice'
 import chartingToolReducers from '../features/Charting/ChartingTool'
 import chartingVisibilityReducers from '../features/Charting/ChartingVisibility'
@@ -55,15 +57,15 @@ export const store = configureStore({
     auth: authReducer,
     test: testReducer,
     streamMostRecent: streamMostRecentReducers,
-    newsRunnerSlice: newsRunnerSliceReducers
-
+    newsRunnerSlice: newsRunnerSliceReducers,
+    macroDetailControl: macroDetailControlReducers
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
       immutableCheck: false,
     })
-      .prepend(deepDiscountSentryListener.middleware)
+      //.prepend(deepDiscountSentryListener.middleware)
       .concat(apiSlice.middleware),
   devTools: true,
 });

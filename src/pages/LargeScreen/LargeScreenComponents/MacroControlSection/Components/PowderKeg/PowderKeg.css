@@ -1,0 +1,14 @@
+#PowderKeg {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  background-color: gray;
+  border-radius: 10px;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+#PowderKeg > div:nth-child(2) {
+  flex: 1;
+  max-height: 200px;
+}

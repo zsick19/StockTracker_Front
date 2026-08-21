@@ -17,6 +17,9 @@ import { ScoringTestHUD } from "./Components/WatchListEngine/ScoringTestHUD";
 import { selectDetailedScoreBreakDownBySymbol } from "../../../../features/Engine/EnginePlanApiSlice";
 import DiscountAndReview from "./Components/DeepDiscountControlVisual/DiscountAndReview";
 import NewsRunner from "./Components/NewsRunner/NewsRunner";
+import PowderKeg from "./Components/PowderKeg/PowderKeg";
+import { selectMacroDetailControl, selectMacroDetailTickerControl } from "../../../../features/SelectedStocks/MacroDetailControlSlice";
+import { selectNewsRunnerById } from "../../../../features/NewsRunnerEngine/NewsRunnerLocalSlice";
 
 function MacroControlSection()
 {
@@ -76,13 +79,27 @@ function MacroControlSection()
     }
   }
 
+  const currentMacroSelection = useSelector(selectMacroDetailControl)
+  const currentNewsRunner = useSelector((state) => selectNewsRunnerById(state, currentMacroSelection.ticker))
+
+
+
   return (
     <section id="LSH-MacroSection">
-
       <div id="MacroWatchNewsRunner">
         <NewsRunner />
+        {currentNewsRunner ?
+          <PowderKeg currentNewsRunner={currentNewsRunner} /> :
+          <div id="NoPowderKeg">
+            <p>Powder Keg</p>
+          </div>}
+
+        <div style={{ flex: '1', backgroundColor: 'gray' }}>
+          Current Runner Trades
+        </div>
+        {/* {provideMacroContent()} */}
         <div id="LSH-MacroWatchLists">
-          <MacroWatchListContainer setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} />
+          {/* <MacroWatchListContainer setPrimaryChartTicker={setPrimaryChartTicker} setSecondaryChartTicker={setSecondaryChartTicker} /> */}
 
           {showAddWatchlist ? <div className="LSH-AddWatchListForm">
             <form onSubmit={(e) => attemptAddingMacroWatchList(e)}>
@@ -94,12 +111,9 @@ function MacroControlSection()
             <div className="LSH-MacroOptionControlButtons">
               <button onClick={() => setShowMacroKeyLevelDisplay(2)}><ListOrdered color="white" size={16} /></button>
               <button onClick={() => setShowMacroKeyLevelDisplay(1)}><ChartLine color="white" size={16} /></button>
-              {/* <button onClick={() => setShowAddWatchlist(true)}><CirclePlus color="white" size={16} /></button> */}
             </div>}
         </div>
       </div>
-
-
       <div id="LSH-MacroCharts">
         <ChartSubGraphContainer ticker={primaryChartTicker} uuid={uuidGraph1} incomingTF={defaultTimeFrames.threeDayOneMin} />
 
@@ -109,6 +123,7 @@ function MacroControlSection()
             <ZonesInputForm setShowMacroKeyLevelDisplay={setShowMacroKeyLevelDisplay} />}
 
       </div>
+
     </section >
   );
 }

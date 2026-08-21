@@ -5,12 +5,20 @@ import { addDays, isToday, subMonths, addYears, subDays, startOfMonth, endOfMont
 import { select, drag, zoom, zoomTransform, axisBottom, axisLeft, scaleTime, min, max, line, timeDay, scaleLinear, timeMonths, zoomIdentity, curveLinear, curveBasis, timeFormat } from 'd3'
 import { pixelBuffer } from '../../../../../../../components/ChartSubGraph/GraphChartConstants'
 import { useSelector } from 'react-redux'
-import { selectNewsRunnerById } from '../../../../../../../features/NewsRunnerEngine/NewsRunnerLocalSlice'
+import { makeSelectNewsRunnerCandlesById, makeSelectNewsRunnerMostRecentCandleById } from '../../../../../../../features/NewsRunnerEngine/NewsRunnerLocalSlice'
 import { preSetDailyTimes } from '../../../../../../../Utilities/TimeFrames'
+import { MinuteMacdChart } from './MinuteMacdChart'
 
 
-function RunnerChart({ candleData, ticker })
+function RunnerChart({ ticker })
 {
+    const selectMostRecentCandle = useMemo(makeSelectNewsRunnerMostRecentCandleById, [ticker])
+    const mostRecentCandle = useSelector((state) => selectMostRecentCandle(state, ticker))
+
+    const selectNewsRunnerCandle = useMemo(makeSelectNewsRunnerCandlesById, [ticker])
+    const { candleData, originalPrice, articlePublishDate } = useSelector((state) => selectNewsRunnerCandle(state, ticker))
+
+
     const [chartZoomState, setChartZoomState] = useState({ x: undefined, y: undefined })
     const priceSVG = useRef()
     const candleSVG = useRef()
@@ -21,27 +29,24 @@ function RunnerChart({ candleData, ticker })
     const stockCandleSVG = select(candleSVG.current)
     const priceScaleSVG = select(priceSVG.current)
 
-    const currentNewsRunner = useSelector((state) => selectNewsRunnerById(state, ticker))
 
 
-    let originalPrice = currentNewsRunner?.newsAlertOriginalPrice || 0
-    let articlePublishDate = new Date(currentNewsRunner?.dispatched_at_ms)
-    let mostRecentPrice = currentNewsRunner?.mostRecentTrade?.Price
+
+
     const preDimensionsAndCandleCheck = () => { return !priceDimensions || !candleDimensions }
 
-    // const mostRecentPrice = useSelector(state => selectMostRecentPriceByTicker(state, ticker))
 
     //chart scale creation
-    const minPrice = useMemo(() => min(candleData, d => d.LowPrice), [candleData])
-    const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [candleData])
+    const minPrice = useMemo(() => min(candleData, d => d.LowPrice), [ticker, candleData])
+    const maxPrice = useMemo(() => max(candleData, d => d.HighPrice), [ticker, candleData])
 
     const createDateScale = useCallback(({ dateToPixel = undefined, pixelToDate = undefined } = {}) =>
     {
-        if (preDimensionsAndCandleCheck()) return
+        if (preDimensionsAndCandleCheck() || candleData.length === 0) return
 
-        let start = currentNewsRunner?.dispatched_at_ms ? subMinutes(new Date(currentNewsRunner.dispatched_at_ms), 15) : subMinutes(new Date(), 15)
+        let start = subMinutes(new Date(), 15)
 
-        let xDateScale = scaleTime().domain([start, addMinutes(new Date(), 60)]).range([0, candleDimensions.width])
+        let xDateScale = scaleTime().domain([start, addMinutes(new Date(), 25)]).range([0, candleDimensions.width])
 
         if (chartZoomState?.x)
         {
@@ -62,7 +67,7 @@ function RunnerChart({ candleData, ticker })
         if (preDimensionsAndCandleCheck()) return
 
         const yScale = scaleLinear()
-            .domain([minPrice * 0.95, maxPrice * 1.05])
+            .domain([minPrice * 0.98, maxPrice * 1.02])
             .range([candleDimensions.height - pixelBuffer.yDirectionPixelBuffer, 0])
             .interpolate(function (a, b) { const c = b - a; return function (t) { return +(a + t * c).toFixed(2); }; })
 
@@ -80,12 +85,12 @@ function RunnerChart({ candleData, ticker })
 
     }, [candleData, chartZoomState?.y, priceDimensions])
 
+    useEffect(() => { setChartZoomState({ x: undefined, y: undefined }) }, [ticker])
 
     //plot stock candles and scale axis
-    // useEffect(() => { stockCandleSVG.select('.x-axis').selectAll('*').remove() }, [timeFrame])
     useEffect(() =>
     {
-        if (preDimensionsAndCandleCheck()) return
+        if (preDimensionsAndCandleCheck() || candleData.length === 0) return
 
         const xAxis = axisBottom(createDateScale())
         // .tickValues(intraDayTickMarks)
@@ -115,10 +120,9 @@ function RunnerChart({ candleData, ticker })
 
         for (let i = 0; i < candleDataLength; i++)
         {
-            const timeStampDate = new Date(candleData[i].Timestamp)
-            if (timeStampDate < minDate || timeStampDate > maxDate) { continue; }
+            //const timeStampDate = new Date(candleData[i].Timestamp)
+            // if (timeStampDate < minDate || timeStampDate > maxDate) { continue; }
             const d = candleData[i]
-
             const x = createDateScale({ dateToPixel: d.Timestamp })
             const xCenter = x + barWidth / 2
             const yHigh = createPriceScale({ priceToPixel: d.HighPrice })
@@ -134,16 +138,12 @@ function RunnerChart({ candleData, ticker })
             const wickPath = `M${xCenter},${yHigh}V${yLow}`;
             const bodyPath = `M${xCenter},${yTop}V${yBottom}`;
 
-            if ((d?.visualColor === '#FFFF00' || d?.visualColor === '#00FFFF') && differenceInBusinessDays(new Date(), d.Timestamp) < 8) { churnCandles.push(d) }
-            else
-            {
-                if (d.ClosePrice >= d.OpenPrice)
-                { bullishBodies += bodyPath }
-                else { bearishBodies += bodyPath }
-                candleWicks += wickPath
-            }
+            if (d.ClosePrice >= d.OpenPrice) { bullishBodies += bodyPath }
+            else { bearishBodies += bodyPath }
 
+            candleWicks += wickPath
         }
+
 
         stockCandleSVG.select('.tickerVal').selectAll('.candlePath').remove()
         const candleGroup = stockCandleSVG.select('.tickerVal').append('g').attr('class', 'candlePath')
@@ -211,47 +211,60 @@ function RunnerChart({ candleData, ticker })
         }
     }, [candleData, minPrice, maxPrice, candleDimensions, chartZoomState?.x, chartZoomState?.y])
 
-    //plotMostRecentPrice
+
+    //plot most recent candle data and live price
     useEffect(() =>
     {
-
-        const mostRecentPriceSelect = stockCandleSVG.select('.lastCandleUpdate')
-        const priceScale = priceScaleSVG.select('.currentPrice')
-        mostRecentPriceSelect.selectAll('line').remove()
-        priceScale.selectAll('text').remove()
-        priceScale.selectAll('rect').remove()
-        if (preDimensionsAndCandleCheck() || !mostRecentPrice) return
-
-        let centerTextOnPriceLinePixel = 4
+        if (preDimensionsAndCandleCheck() || !mostRecentCandle || !candleData.length > 0) return
+        let centerTextOnPriceLinePixel = 5
         let centerRectOnPriceLinePixel = 15
-        if (mostRecentPrice)
-        {
-            const mostRecentPricePixel = createPriceScale({ priceToPixel: mostRecentPrice })
-
-            mostRecentPriceSelect.append('line').attr('x1', 0).attr('x2', candleDimensions.width)
-                .attr('y1', mostRecentPricePixel).attr('y2', mostRecentPricePixel)
-                .attr('stroke', 'green').attr('stroke-dasharray', '2 2')
+        let priceOnYScale = priceScaleSVG.select('.currentPrice')
+        priceOnYScale.selectAll('*').remove()
+        let lastCandleDataTimeStampPlusOneMin = candleData.length > 0 ? addMinutes(candleData[candleData.length - 1].Timestamp, 1) : new Date()
 
 
-            priceScale.append('rect').attr('class', 'livePriceRect')
-                .attr('y', mostRecentPricePixel - centerRectOnPriceLinePixel + centerTextOnPriceLinePixel)
-                .attr('x', 0).attr('width', '49px').attr('height', '20px').attr('fill', 'blue').attr('rx', 7)
+        let tickerGroups = stockCandleSVG.select('.lastCandleUpdate')
+        tickerGroups.selectAll('*').remove()
 
-            priceScale.append('text').attr('class', 'livePriceText').attr('color', 'white')
-                .attr("x", 3).attr("y", mostRecentPricePixel + centerTextOnPriceLinePixel).attr("dy", "-1px")
-                .text(`$${mostRecentPrice.toFixed(2)}`)
-        }
+        tickerGroups.append('line').attr('stroke', 'black').attr('stroke-width', 1)
+            .attr('y1', (d) => createPriceScale({ priceToPixel: mostRecentCandle.LowPrice }))
+            .attr('y2', (d) => createPriceScale({ priceToPixel: mostRecentCandle.HighPrice }))
+            .attr('x1', (d) => createDateScale({ dateToPixel: lastCandleDataTimeStampPlusOneMin }))
+            .attr('x2', (d) => createDateScale({ dateToPixel: lastCandleDataTimeStampPlusOneMin }))
+
+        tickerGroups.append('line').attr('stroke', (d, i) => { return mostRecentCandle.OpenPrice < mostRecentCandle.ClosePrice ? 'green' : 'red' }).attr('stroke-width', 2)
+            .attr('y1', (d) => createPriceScale({ priceToPixel: mostRecentCandle.ClosePrice }))
+            .attr('y2', (d) => createPriceScale({ priceToPixel: mostRecentCandle.OpenPrice }))
+            .attr('x1', (d) => createDateScale({ dateToPixel: lastCandleDataTimeStampPlusOneMin }))
+            .attr('x2', (d) => createDateScale({ dateToPixel: lastCandleDataTimeStampPlusOneMin }))
+
+        let pixelPrice = createPriceScale({ priceToPixel: mostRecentCandle.ClosePrice })
+        tickerGroups.append('line').attr('class', 'livePrice')
+            .attr('x1', -5000).attr('x2', candleDimensions.width)
+            .attr('y1', pixelPrice).attr('y2', pixelPrice)
+            .attr('stroke', 'green')
+            .attr('stroke-width', '1px')
+            .attr('stroke-dasharray', '5 5')
+
+        priceOnYScale.append('rect').attr('class', 'livePriceRect').attr('x', 0).attr('y', pixelPrice - centerRectOnPriceLinePixel + centerTextOnPriceLinePixel)
+            .attr('width', '49px').attr('height', '20px').attr('fill', 'blue')
+
+        priceOnYScale.append('text').attr('class', 'livePriceText').attr('color', 'white')
+            .text(`$${mostRecentCandle.ClosePrice.toFixed(2)}`).attr("x", 3).attr("y", pixelPrice + centerTextOnPriceLinePixel);
+
+    }, [candleData, mostRecentCandle, candleDimensions, chartZoomState?.x, chartZoomState?.y])
 
 
 
-    }, [ticker, mostRecentPrice, candleDimensions, chartZoomState?.x, chartZoomState?.y])
+
+
+
 
     //plot original prices/dates
     useEffect(() =>
     {
 
         const mostRecentPriceSelect = stockCandleSVG.select('.keyLevels')
-        // const priceScale = priceScaleSVG.select('.currentPrice')
         mostRecentPriceSelect.selectAll('line').remove()
 
         if (preDimensionsAndCandleCheck() || !originalPrice || !articlePublishDate) return
@@ -289,9 +302,23 @@ function RunnerChart({ candleData, ticker })
         priceScaleSVG.call(zoomBehavior)
     }, [candleData, priceDimensions])
 
+    //zoomXBehavior
+    useEffect(() =>
+    {
+        if (preDimensionsAndCandleCheck()) return
+        const zoomBehavior = zoom().on('zoom', () =>
+        {
+
+            const zoomState = zoomTransform(stockCandleSVG.node())
+            setChartZoomState(prev => { return { ...prev, x: { x: zoomState.x, y: zoomState.y, k: zoomState.k } } })
+        })
+        stockCandleSVG.call(zoomBehavior)
+    }, [candleData, candleDimensions])
+
+
 
     return (
-        <div className='SVGGraphWrapper'>
+        <div className='SVGGraphWrapper' onContextMenu={(e) => { e.preventDefault(); setChartZoomState({ x: undefined, y: undefined }) }}>
 
             <div ref={priceSVGWrapper} className='priceSVGWrapper'>
                 <svg ref={priceSVG}>
